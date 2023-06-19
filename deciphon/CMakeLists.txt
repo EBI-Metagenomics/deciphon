@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20.2 FATAL_ERROR)
 project(
   deciphon
-  VERSION 0.8.5
+  VERSION 0.8.6
   LANGUAGES C)
 
 include(cmake/warnings.cmake)
@@ -13,13 +13,15 @@ cpmaddpackage(
   NAME hmmer_reader
   GITHUB_REPOSITORY EBI-Metagenomics/hmmer3
   GIT_TAG hmmer-reader-v0.7.0
-  VERSION 0.7.0)
+  VERSION 0.7.0
+  SOURCE_SUBDIR hmmer-reader)
 cpmaddpackage(
   NAME h3client
   GITHUB_REPOSITORY EBI-Metagenomics/hmmer3
   GIT_TAG h3client-v0.12.0
-  VERSION 0.12.0)
-cpmaddpackage("gh:EBI-Metagenomics/imm@3.0.9")
+  VERSION 0.12.0
+  SOURCE_SUBDIR h3client)
+cpmaddpackage("gh:EBI-Metagenomics/imm@3.1.0")
 cpmaddpackage("gh:EBI-Metagenomics/lip@0.5.2")
 
 find_package(OpenMP)
