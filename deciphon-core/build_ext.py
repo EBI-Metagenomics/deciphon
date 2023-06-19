@@ -97,12 +97,8 @@ def build_ext(ext: Ext):
     tar_filename = f"{ext.github_project}-{ext.git_tag}.tar.gz"
 
     os.makedirs(TMP, exist_ok=True)
-    try:
-        with open(TMP / tar_filename, "wb") as lf:
-            lf.write(urllib.request.urlopen(url).read())
-    except Exception as exc:
-        breakpoint()
-        pass
+    with open(TMP / tar_filename, "wb") as lf:
+        lf.write(urllib.request.urlopen(url).read())
 
     with tarfile.open(TMP / tar_filename) as tf:
         dir = os.path.commonprefix(tf.getnames())
