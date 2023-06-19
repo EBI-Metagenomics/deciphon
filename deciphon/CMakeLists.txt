@@ -18,8 +18,8 @@ cpmaddpackage(
 cpmaddpackage(
   NAME h3client
   GITHUB_REPOSITORY EBI-Metagenomics/hmmer3
-  GIT_TAG h3client-v0.12.0
-  VERSION 0.12.0
+  GIT_TAG h3client-v0.12.1
+  VERSION 0.12.1
   SOURCE_SUBDIR h3client)
 cpmaddpackage("gh:EBI-Metagenomics/imm@3.1.0")
 cpmaddpackage("gh:EBI-Metagenomics/lip@0.5.2")
