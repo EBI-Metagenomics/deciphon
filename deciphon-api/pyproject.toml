@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "deciphon-api"
+version = "0.9.0"
+description = "RESTful API for deciphon scheduler"
+authors = ["Danilo Horta <horta@ebi.ac.uk>"]
+license = "MIT"
+readme = "README.md"
+packages = [{ include = "deciphon_api" }]
+
+[tool.poetry.dependencies]
+fastapi = { extras = ["all"], version = ">=0.97.0" }
+fsspec = { extras = ["libarchive"], version = ">=2022.11.0" }
+gunicorn = ">=20.1.0"
+loguru = ">=0.6.0"
+pydantic = { extras = ["dotenv"], version = ">=1.10.2" }
+python = "^3.9"
+sqlmodel = ">=0.0.8"
+fasta-reader = ">=1.0.3"
+biopython = "1.80"
+bcbio-gff = ">=0.6.9"
+uvicorn = ">=0.20.0"
+tabulate = ">=0.9.0"
+blx = ">=0.1.10"
+gmqtt = ">=0.6.11"
+fastapi-mqtt = ">=1.0.7"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=7.3.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
