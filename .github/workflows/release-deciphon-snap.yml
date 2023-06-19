@@ -2,9 +2,6 @@ name: Release deciphon-snap
 
 on:
   push:
-    paths:
-      - deciphon-snap/**
-      - .github/workflows/release-deciphon-snap.yml
     tags:
       - deciphon-snap-v*
 
