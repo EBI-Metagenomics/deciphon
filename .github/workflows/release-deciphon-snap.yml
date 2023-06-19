@@ -27,5 +27,5 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
-          packages_dir: deciphon-snap/dist
+          packages-dir: deciphon-snap/dist
           skip-existing: true
