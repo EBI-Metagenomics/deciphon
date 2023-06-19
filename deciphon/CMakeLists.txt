@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20.2 FATAL_ERROR)
 project(
   deciphon
-  VERSION 0.8.6
+  VERSION 0.8.7
   LANGUAGES C)
 
 include(cmake/warnings.cmake)
@@ -18,8 +18,8 @@ cpmaddpackage(
 cpmaddpackage(
   NAME h3client
   GITHUB_REPOSITORY EBI-Metagenomics/hmmer3
-  GIT_TAG h3client-v0.12.1
-  VERSION 0.12.1
+  GIT_TAG h3client-v0.12.2
+  VERSION 0.12.2
   SOURCE_SUBDIR h3client)
 cpmaddpackage("gh:EBI-Metagenomics/imm@3.1.0")
 cpmaddpackage("gh:EBI-Metagenomics/lip@0.5.2")
