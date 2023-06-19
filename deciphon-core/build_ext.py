@@ -58,14 +58,14 @@ EXTS = [
     Ext(
         "EBI-Metagenomics",
         "hmmer3",
-        "h3client-v0.12.1",
+        "h3client-v0.12.3",
         "./h3client",
         CMAKE_OPTS + CPM_OPTS,
     ),
     Ext(
         "EBI-Metagenomics",
         "deciphon",
-        "deciphon-v0.8.6",
+        "deciphon-v0.8.8",
         "./deciphon",
         CMAKE_OPTS + CPM_OPTS,
     ),
