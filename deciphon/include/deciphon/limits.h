@@ -1,0 +1,16 @@
+#ifndef DECIPHON_LIMITS_H
+#define DECIPHON_LIMITS_H
+
+#include <assert.h>
+
+enum dcp_limits
+{
+  DCP_ABC_NAME_SIZE = 16,
+  DCP_PROFILE_NAME_SIZE = 64,
+  DCP_NPARTITIONS_MAX = 128,
+  DCP_NTHREADS_MAX = 128,
+  DCP_SHORT_PATH_MAX = 256,
+  DCP_LONG_PATH_MAX = 512,
+};
+
+#endif
