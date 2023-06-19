@@ -1,0 +1,82 @@
+from __future__ import annotations
+
+import os
+import shutil
+from pathlib import Path
+from typing import Iterator
+
+import pytest
+from h3daemon.hmmfile import HMMFile as H3File
+from h3daemon.sched import SchedContext
+
+from deciphon_core.hmmfile import HMMFile
+from deciphon_core.press import Press
+from deciphon_core.scan import Scan
+from deciphon_core.seq import Seq
+from deciphon_core.snapfile import NewSnapFile
+
+
+def test_scan(tmp_path: Path, files_path: Path, seqit: Iterator[Seq]):
+    shutil.copy(files_path / "minifam.hmm", tmp_path)
+    os.chdir(tmp_path)
+
+    hmm = Path("minifam.hmm")
+    with Press(HMMFile(path=hmm)) as press:
+        for x in press:
+            x.press()
+
+    hmmfile = H3File(hmm)
+    hmmfile.ensure_pressed()
+
+    with SchedContext(hmmfile) as sched:
+        sched.is_ready(True)
+        scan = Scan(HMMFile(path=hmm), seqit, NewSnapFile(path=Path("snap.dcs")))
+        scan.port = sched.get_cport()
+        with scan:
+            scan.run()
+
+
+@pytest.fixture
+def seqit():
+    return iter(
+        [
+            Seq(
+                1,
+                "Homoserine_dh-consensus",
+                "CCTATCATTTCGACGCTCAAGGAGTCGCTGACAGGTGACCGTATTACTCGAATCGAAGGGATATTAAACG"
+                "GCACCCTGAATTACATTCTCACTGAGATGGAGGAAGAGGGGGCTTCATTCTCTGAGGCGCTGAAGGAGGC"
+                "ACAGGAATTGGGCTACGCGGAAGCGGATCCTACGGACGATGTGGAAGGGCTAGATGCTGCTAGAAAGCTG"
+                "GCAATTCTAGCCAGATTGGCATTTGGGTTAGAGGTCGAGTTGGAGGACGTAGAGGTGGAAGGAATTGAAA"
+                "AGCTGACTGCCGAAGATATTGAAGAAGCGAAGGAAGAGGGTAAAGTTTTAAAACTAGTGGCAAGCGCCGT"
+                "CGAAGCCAGGGTCAAGCCTGAGCTGGTACCTAAGTCACATCCATTAGCCTCGGTAAAAGGCTCTGACAAC"
+                "GCCGTGGCTGTAGAAACGGAACGGGTAGGCGAACTCGTAGTGCAGGGACCAGGGGCTGGCGCAGAGCCAA"
+                "CCGCATCCGCTGTACTCGCTGACCTTCTC",
+            ),
+            Seq(
+                2,
+                "AA_kinase-consensus",
+                "AAACGTGTAGTTGTAAAGCTTGGGGGTAGTTCTCTGACAGATAAGGAAGAGGCATCACTCAGGCGTTTAG"
+                "CTGAGCAGATTGCAGCATTAAAAGAGAGTGGCAATAAACTAGTGGTCGTGCATGGAGGCGGCAGCTTCAC"
+                "TGATGGTCTGCTGGCATTGAAAAGTGGCCTGAGCTCGGGCGAATTAGCTGCGGGGTTGAGGAGCACGTTA"
+                "GAAGAGGCCGGAGAAGTAGCGACGAGGGACGCCCTAGCTAGCTTAGGGGAACGGCTTGTTGCAGCGCTGC"
+                "TGGCGGCGGGTCTCCCTGCTGTAGGACTCAGCGCCGCTGCGTTAGATGCGACGGAGGCGGGCCGGGATGA"
+                "AGGCAGCGACGGGAACGTCGAGTCCGTGGACGCAGAAGCAATTGAGGAGTTGCTTGAGGCCGGGGTGGTC"
+                "CCCGTCCTAACAGGATTTATCGGCTTAGACGAAGAAGGGGAACTGGGAAGGGGATCTTCTGACACCATCG"
+                "CTGCGTTACTCGCTGAAGCTTTAGGCGCGGACAAACTCATAATACTGACCGACGTAGACGGCGTTTACGA"
+                "TGCCGACCCTAAAAAGGTCCCAGACGCGAGGCTCTTGCCAGAGATAAGTGTGGACGAGGCCGAGGAAAGC"
+                "GCCTCCGAATTAGCGACCGGTGGGATGAAGGTCAAACATCCAGCGGCTCTTGCTGCAGCTAGACGGGGGG"
+                "GTATTCCGGTCGTGATAACGAAT",
+            ),
+            Seq(
+                3,
+                "23ISL-consensus",
+                "CAGGGTCTGGATAACGCTAATCGTTCGCTAGTTCGCGCTACAAAAGCAGAAAGTTCAGATATACGGAAAG"
+                "AGGTGACTAACGGCATCGCTAAAGGGCTGAAGCTAGACAGTCTGGAAACAGCTGCAGAGTCGAAGAACTG"
+                "CTCAAGCGCACAGAAAGGCGGATCGCTAGCTTGGGCAACCAACTCCCAACCACAGCCTCTCCGTGAAAGT"
+                "AAGCTTGAGCCATTGGAAGACTCCCCACGTAAGGCTTTAAAAACACCTGTGTTGCAAAAGACATCCAGTA"
+                "CCATAACTTTACAAGCAGTCAAGGTTCAACCTGAACCCCGCGCTCCCGTCTCCGGGGCGCTGTCCCCGAG"
+                "CGGGGAGGAACGCAAGCGCCCAGCTGCGTCTGCTCCCGCTACCTTACCGACACGACAGAGTGGTCTAGGT"
+                "TCTCAGGAAGTCGTTTCGAAGGTGGCGACTCGCAAAATTCCAATGGAGTCACAACGCGAGTCGACT",
+            ),
+        ]
+    )

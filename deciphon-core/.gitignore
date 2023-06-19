@@ -1,0 +1,5 @@
+.build_ext/
+cffi.*
+deciphon_core/include/
+deciphon_core/lib/
+deciphon_core/share/
