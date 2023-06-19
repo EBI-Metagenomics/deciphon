@@ -2,6 +2,8 @@ name: Test deciphon-snap
 
 on:
   push:
+    branches:
+      - "**"
     paths:
       - deciphon-snap/**
       - .github/workflows/test-deciphon-snap.yml

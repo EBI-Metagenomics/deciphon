@@ -2,6 +2,8 @@ name: Test deciphon
 
 on:
   push:
+    branches:
+      - "**"
     paths:
       - deciphon/**
       - .github/workflows/test-deciphon.yml
