@@ -1,0 +1,27 @@
+name: Test deciphon-snap
+
+on:
+  push:
+    paths:
+      - deciphon-snap/**
+      - .github/workflows/test-deciphon-snap.yml
+
+defaults:
+  run:
+    working-directory: deciphon-snap
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run tests
+        run: |
+          pipx install poetry
+          poetry install
+          poetry run pytest
