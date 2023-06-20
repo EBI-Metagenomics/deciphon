@@ -15,5 +15,6 @@ def test_read_snap(files_path: Path):
     snap_file = read_snap(files_path / "example.dcs")
     assert len(snap_file.products) == 470
     prod = snap_file.products[0]
+    assert prod.id == 0
     assert len(prod.match_list) == 462
     assert str(prod.match_list[0]) == "(∅,S,∅,∅)"

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import csv
+from csv import DictReader
 from typing import List
 
 import prettytable as pt
@@ -54,9 +54,10 @@ class SnapFile:
 
 def read_products(file):
     prods: List[Prod] = []
-    for row in csv.DictReader((stringify(i) for i in file), delimiter="\t"):
+    for i, row in enumerate(DictReader((stringify(i) for i in file), delimiter="\t")):
         prods.append(
             Prod(
+                id=i,
                 seq_id=int(row["seq_id"]),
                 profile=str(row["profile"]),
                 abc=str(row["abc"]),

@@ -13,7 +13,7 @@ class ProdList(BaseModel):
     def __len__(self):
         return len(self.__root__)
 
-    def __getitem__(self, i):
+    def __getitem__(self, i) -> Prod:
         return self.__root__[i]
 
     def __iter__(self):

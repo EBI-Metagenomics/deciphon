@@ -6,6 +6,7 @@ __all__ = ["Prod"]
 
 
 class Prod(BaseModel):
+    id: int
     seq_id: int
     profile: str
     abc: str
