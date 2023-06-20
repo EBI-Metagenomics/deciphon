@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import time
 from collections.abc import Generator
 from pathlib import Path
 from typing import Optional, TextIO
@@ -9,12 +8,10 @@ import ijson
 from deciphon_core.seq import Seq
 from fasta_reader.reader import Reader as FASTAReader
 
-from deciphon.path_like import PathLike
 from deciphon.filetype import Filetype
+from deciphon.path_like import PathLike
 
 __all__ = ["SeqFile"]
-
-prev = None
 
 
 class SeqFile:
@@ -50,17 +47,7 @@ class SeqFile:
 
     def __next__(self):
         assert self._iter
-        global prev
-        if prev is None:
-            prev = time.time()
-        else:
-            curr = time.time()
-            elapsed = curr - prev
-            prev = curr
-            print(f"{elapsed}")
-        seq = next(self._iter)
-        # print(seq.name)
-        return seq
+        return next(self._iter)
 
     def __iter__(self):
         return self
