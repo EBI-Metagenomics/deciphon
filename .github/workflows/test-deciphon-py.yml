@@ -1,0 +1,29 @@
+name: Test deciphon-py
+
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - deciphon-py/**
+      - .github/workflows/test-deciphon-py.yml
+
+defaults:
+  run:
+    working-directory: deciphon-py
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run tests
+        run: |
+          pipx install poetry
+          poetry install
+          poetry run pytest
