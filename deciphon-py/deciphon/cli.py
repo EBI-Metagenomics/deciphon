@@ -4,13 +4,13 @@ import importlib.metadata
 from pathlib import Path
 from typing import Optional
 
-from deciphon_snap.snap_file import SnapFile
 from deciphon_core.hmmfile import HMMFile
 from deciphon_core.press import Press
 from deciphon_core.scan import Scan
 from deciphon_core.snapfile import NewSnapFile
+from deciphon_snap.read_snap import read_snap
 from rich.progress import track
-from typer import Exit, Option, Typer, echo, get_text_stream
+from typer import Exit, Option, Typer, echo
 
 from deciphon.h3daemon import H3Daemon
 from deciphon.hmmer_press import hmmer_press
@@ -27,7 +27,6 @@ app = Typer(
 )
 
 O_PROGRESS = Option(True, "--progress/--no-progress", help="Display progress bar.")
-# O_HEURISTIC = Option(True, "--heuristic/--no-heuristic", help="Use heuristic.")
 O_LRT_THRESHOLD = Option(2.0, "--lrt-threshold", help="LRT threshold.")
 O_NTHREADS = Option(1, "--nthreads", help="Number of threads.")
 
@@ -57,7 +56,6 @@ def scan(
     hmm: Path,
     seq: Path,
     snap: Optional[Path] = None,
-    # heuristic: bool = O_HEURISTIC,
     lrt_threshold: float = O_LRT_THRESHOLD,
     nthreads: int = O_NTHREADS,
 ):
@@ -76,7 +74,6 @@ def scan(
             with H3Daemon(hmmfile) as daemon:
                 scan = Scan(hmmfile, seqfile, snapfile)
                 scan.port = daemon.port
-                # scan.heuristic = heuristic
                 scan.lrt_threshold = lrt_threshold
                 scan.nthreads = nthreads
                 with scan:
@@ -89,9 +86,5 @@ def see(snap: Path):
     Display scan results stored in a snap file.
     """
     with service_exit():
-        h3r = SnapFile(snap)
-        stream = get_text_stream("stdout")
-        h3r.print_targets(stream)
-        h3r.print_targets_table(stream)
-        h3r.print_domains(stream)
-        h3r.print_domains_table(stream)
+        x = read_snap(snap)
+        echo(x)
