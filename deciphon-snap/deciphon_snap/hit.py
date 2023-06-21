@@ -2,16 +2,69 @@ from typing import List
 
 from pydantic import BaseModel
 
-from deciphon_snap.match import Match
+from deciphon_snap.interval import PyInterval, RInterval
+from deciphon_snap.match import MatchList
 
-__all__ = ["Hit"]
+__all__ = ["Hit", "HitList"]
 
 
 class Hit(BaseModel):
     id: int
-    name: str
-    prod_id: int
-    evalue: float
-    matchs: List[Match]
-    feature_start: int = 0
-    feature_end: int = 0
+    sequence_interval: RInterval
+    match_list_interval: PyInterval
+
+
+class HitList(BaseModel):
+    __root__: List[Hit]
+
+    def __len__(self):
+        return len(self.__root__)
+
+    def __getitem__(self, i):
+        return self.__root__[i]
+
+    def __iter__(self):
+        return iter(self.__root__)
+
+    def __str__(self):
+        return " ".join(str(i) for i in self.__root__)
+
+    @classmethod
+    def make(cls, match_list: MatchList):
+        hits: List[Hit] = []
+
+        hit_start = 0
+        hit_stop = 0
+        offset = 0
+        hit_start_found = False
+        hit_end_found = False
+        match_start = 0
+        match_stop = 0
+
+        for i, x in enumerate(match_list):
+            if not hit_start_found and is_core_state(x.state):
+                hit_start = offset
+                match_start = i
+                hit_start_found = True
+
+            if hit_start_found and not is_core_state(x.state):
+                hit_stop = offset + len(x.query)
+                hit_end_found = True
+
+            if hit_end_found:
+                match_stop = i
+                si = PyInterval(start=hit_start, stop=hit_stop).rinterval
+                mi = PyInterval(start=match_start, stop=match_stop)
+                hit_id = len(hits)
+                hit = Hit(id=hit_id, sequence_interval=si, match_list_interval=mi)
+                hits.append(hit)
+                hit_start_found = False
+                hit_end_found = False
+
+            offset += len(x.query)
+
+        return cls.parse_obj(hits)
+
+
+def is_core_state(state: str):
+    return state.startswith("M") or state.startswith("I") or state.startswith("D")
