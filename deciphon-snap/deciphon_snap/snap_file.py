@@ -5,7 +5,7 @@ from typing import List
 
 import prettytable as pt
 
-from deciphon_snap.match_list import MatchList
+from deciphon_snap.match_list import LazyMatchList
 from deciphon_snap.prod import Prod
 from deciphon_snap.prod_list import ProdList
 from deciphon_snap.shorten import shorten
@@ -64,7 +64,7 @@ def read_products(file):
                 alt=float(row["alt"]),
                 null=float(row["null"]),
                 evalue=float(row["evalue"]),
-                match_list=MatchList.from_string(str(row["match"])),
+                match_list=LazyMatchList(raw=str(row["match"])),
             )
         )
     return ProdList.parse_obj(prods)

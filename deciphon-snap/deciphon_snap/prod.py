@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from deciphon_snap.match_list import MatchList
+from deciphon_snap.match_list import LazyMatchList
 
 __all__ = ["Prod"]
 
@@ -13,4 +13,4 @@ class Prod(BaseModel):
     alt: float
     null: float
     evalue: float
-    match_list: MatchList
+    match_list: LazyMatchList
