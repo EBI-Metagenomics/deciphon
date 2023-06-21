@@ -5,16 +5,14 @@ from tempfile import NamedTemporaryFile
 
 from h3result.h3result import H3Result as H3ResultRaw
 from hmmer_tables.domtbl import read_domtbl
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 __all__ = ["H3Result"]
 
 
 class H3Result(BaseModel):
     raw: H3ResultRaw
-
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @property
     def targets(self) -> str:

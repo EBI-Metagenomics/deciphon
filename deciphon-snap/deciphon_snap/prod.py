@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, RootModel
+from typing import List
 
 from deciphon_snap.hmmer import H3Result
 from deciphon_snap.match import LazyMatchList
@@ -16,3 +17,16 @@ class Prod(BaseModel):
     evalue: float
     match_list: LazyMatchList
     h3result: H3Result | None = None
+
+
+class ProdList(RootModel):
+    root: List[Prod]
+
+    def __len__(self):
+        return len(self.root)
+
+    def __getitem__(self, i) -> Prod:
+        return self.root[i]
+
+    def __iter__(self):
+        return iter(self.root)

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from functools import lru_cache
 from typing import List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, RootModel, ConfigDict
 
 __all__ = ["Match", "MatchList", "LazyMatchList"]
 
@@ -26,29 +27,45 @@ class Match(BaseModel):
         return f"({query},{state},{codon},{amino})"
 
 
-class MatchList(BaseModel):
-    __root__: List[Match]
+class MatchList(RootModel):
+    root: List[Match]
 
     @classmethod
     def from_string(cls, x: str):
-        return cls.parse_obj([Match.from_string(i) for i in x.split(";")])
+        return cls.model_validate([Match.from_string(i) for i in x.split(";")])
 
     def __len__(self):
-        return len(self.__root__)
+        return len(self.root)
 
     def __getitem__(self, i):
-        return self.__root__[i]
+        if isinstance(i, slice):
+            return MatchList.model_validate(self.root[i])
+        return self.root[i]
 
     def __iter__(self):
-        return iter(self.__root__)
+        return iter(self.root)
 
     def __str__(self):
-        return " ".join(str(i) for i in self.__root__)
+        return " ".join(str(i) for i in self.root)
+
+    @property
+    def query(self):
+        return "".join(x.query for x in iter(self))
+
+    @property
+    def codon(self):
+        return "".join(x.codon for x in iter(self))
+
+    @property
+    def amino(self):
+        return "".join(x.amino for x in iter(self))
 
 
 class LazyMatchList(BaseModel):
     raw: str
+    model_config = ConfigDict(frozen=True)
 
+    @lru_cache(maxsize=1)
     def evaluate(self):
         return MatchList.from_string(self.raw)
 
@@ -66,3 +83,15 @@ class LazyMatchList(BaseModel):
 
     def __repr__(self):
         return repr(self.evaluate())
+
+    @property
+    def query(self):
+        return self.evaluate().query
+
+    @property
+    def codon(self):
+        return self.evaluate().codon
+
+    @property
+    def amino(self):
+        return self.evaluate().amino

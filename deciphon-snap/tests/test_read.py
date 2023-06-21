@@ -18,3 +18,12 @@ def test_read_snap(files_path: Path):
     assert prod.id == 0
     assert len(prod.match_list) == 462
     assert str(prod.match_list[0]) == "(∅,S,∅,∅)"
+
+    assert prod.match_list.query[:4] == "ATGC"
+    assert prod.match_list.query[-4:] == "CTAA"
+
+    assert prod.match_list.codon[:4] == "ATGC"
+    assert prod.match_list.codon[-4:] == "ACTA"
+
+    assert prod.match_list.amino[:4] == "MRDN"
+    assert prod.match_list.amino[-4:] == "IKKL"

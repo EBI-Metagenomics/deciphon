@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, root_validator
-from pydantic.types import conint
+from pydantic import BaseModel, model_validator
+from pydantic.types import conint, Any
 
 __all__ = ["PyInterval", "RInterval"]
 
@@ -26,11 +26,10 @@ class PyInterval(BaseModel):
     start: conint(ge=0)
     stop: conint(ge=0)
 
-    @root_validator()
-    @classmethod
-    def root_validator(cls, field_values):
-        assert field_values["start"] <= field_values["stop"]
-        return field_values
+    @model_validator(mode="before")
+    def pre_root(cls, values: dict[str, Any]) -> dict[str, Any]:
+        assert values["start"] <= values["stop"]
+        return values
 
     @property
     def rinterval(self) -> RInterval:
@@ -67,11 +66,10 @@ class RInterval(BaseModel):
     start: conint(gt=0)
     stop: conint(gt=0)
 
-    @root_validator()
-    @classmethod
-    def root_validator(cls, field_values):
-        assert field_values["start"] <= field_values["stop"]
-        return field_values
+    @model_validator(mode="before")
+    def pre_root(cls, values: dict[str, Any]) -> dict[str, Any]:
+        assert values["start"] <= values["stop"]
+        return values
 
     @property
     def pyinterval(self) -> PyInterval:

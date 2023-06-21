@@ -9,7 +9,7 @@ from h3result.read_h3result import read_h3result
 from deciphon_snap.hmmer import H3Result
 from deciphon_snap.match import LazyMatchList
 from deciphon_snap.prod import Prod
-from deciphon_snap.prod_list import ProdList
+from deciphon_snap.prod import ProdList
 from deciphon_snap.shorten import shorten
 from deciphon_snap.stringify import stringify
 
@@ -51,7 +51,7 @@ class SnapFile:
                         h3result=h3r,
                     )
                 )
-            self._prods = ProdList.parse_obj(prods)
+            self._prods = ProdList.model_validate(prods)
 
     @property
     def products(self):

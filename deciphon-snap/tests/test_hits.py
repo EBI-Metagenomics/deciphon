@@ -10,7 +10,7 @@ def test_hits():
             "ATG,N,ATG,M;"
             "AGC,N,AGC,S;"
             ",B,,;"
-            "GTG,M1,GTG,V;"
+            "GTG,M1,GTT,V;"
             "AAA,I2,AAA,K;"
             "ACC,M3,ACC,T;"
             ",D4,,;"
@@ -33,12 +33,14 @@ def test_hits():
     assert len(hits) == 2
     assert hits[0].id == 0
     assert hits[1].id == 1
-    assert seq[hits[0].sequence_interval.slice] == "GTGAAAACC"
-    assert seq[hits[1].sequence_interval.slice] == "AAACCG"
+    assert seq[hits[0].query_interval.slice] == "GTGAAAACC"
+    assert seq[hits[1].query_interval.slice] == "AAACCG"
+    assert seq[hits[0].query_interval.slice] == "GTGAAAACC"
+    assert seq[hits[1].query_interval.slice] == "AAACCG"
 
     x = match_list[hits[0].match_list_interval.slice]
     assert len(x) == 5
-    assert repr(x[0]) == repr(Match.from_string("GTG,M1,GTG,V"))
+    assert repr(x[0]) == repr(Match.from_string("GTG,M1,GTT,V"))
     assert repr(x[1]) == repr(Match.from_string("AAA,I2,AAA,K"))
     assert repr(x[2]) == repr(Match.from_string("ACC,M3,ACC,T"))
     assert repr(x[3]) == repr(Match.from_string(",D4,,"))
@@ -48,3 +50,12 @@ def test_hits():
     assert len(x) == 2
     assert repr(x[0]) == repr(Match.from_string("AAA,M258,AAA,K"))
     assert repr(x[1]) == repr(Match.from_string("CCG,M259,CCG,P"))
+
+    assert match_list[hits[0].match_list_interval.slice].query == "GTGAAAACC"
+    assert match_list[hits[1].match_list_interval.slice].query == "AAACCG"
+
+    assert match_list[hits[0].match_list_interval.slice].codon == "GTTAAAACC"
+    assert match_list[hits[1].match_list_interval.slice].codon == "AAACCG"
+
+    assert match_list[hits[0].match_list_interval.slice].amino == "VKT"
+    assert match_list[hits[1].match_list_interval.slice].amino == "KP"

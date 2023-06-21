@@ -1,6 +1,6 @@
 from typing import List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, RootModel
 
 from deciphon_snap.interval import PyInterval, RInterval
 from deciphon_snap.match import MatchList
@@ -10,24 +10,24 @@ __all__ = ["Hit", "HitList"]
 
 class Hit(BaseModel):
     id: int
-    sequence_interval: RInterval
+    query_interval: RInterval
     match_list_interval: PyInterval
 
 
-class HitList(BaseModel):
-    __root__: List[Hit]
+class HitList(RootModel):
+    root: List[Hit]
 
     def __len__(self):
-        return len(self.__root__)
+        return len(self.root)
 
     def __getitem__(self, i):
-        return self.__root__[i]
+        return self.root[i]
 
     def __iter__(self):
-        return iter(self.__root__)
+        return iter(self.root)
 
     def __str__(self):
-        return " ".join(str(i) for i in self.__root__)
+        return " ".join(str(i) for i in self.root)
 
     @classmethod
     def make(cls, match_list: MatchList):
@@ -53,17 +53,17 @@ class HitList(BaseModel):
 
             if hit_end_found:
                 match_stop = i
-                si = PyInterval(start=hit_start, stop=hit_stop).rinterval
+                qi = PyInterval(start=hit_start, stop=hit_stop).rinterval
                 mi = PyInterval(start=match_start, stop=match_stop)
                 hit_id = len(hits)
-                hit = Hit(id=hit_id, sequence_interval=si, match_list_interval=mi)
+                hit = Hit(id=hit_id, query_interval=qi, match_list_interval=mi)
                 hits.append(hit)
                 hit_start_found = False
                 hit_end_found = False
 
             offset += len(x.query)
 
-        return cls.parse_obj(hits)
+        return cls.model_validate(hits)
 
 
 def is_core_state(state: str):
