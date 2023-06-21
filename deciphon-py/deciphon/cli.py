@@ -14,7 +14,7 @@ from typer import Exit, Option, Typer, echo
 
 from deciphon.h3daemon import H3Daemon
 from deciphon.hmmer_press import hmmer_press
-from deciphon.seqfile import SeqFile
+from deciphon.seq_file import SeqFile
 from deciphon.service_exit import service_exit
 
 __all__ = ["app"]

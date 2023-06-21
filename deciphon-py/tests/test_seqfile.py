@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from deciphon.seqfile import SeqFile
+from deciphon.seq_file import SeqFile
 
 
 def test_seqfile(files_path: Path):
