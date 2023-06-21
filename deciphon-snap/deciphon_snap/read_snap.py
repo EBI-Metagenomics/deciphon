@@ -1,3 +1,4 @@
+from fsspec.implementations.cached import WholeFileCacheFileSystem
 from fsspec.implementations.zip import ZipFileSystem
 
 from deciphon_snap.path_like import PathLike
@@ -7,4 +8,4 @@ __all__ = ["read_snap"]
 
 
 def read_snap(filename: PathLike):
-    return SnapFile(ZipFileSystem(filename))
+    return SnapFile(WholeFileCacheFileSystem(fs=ZipFileSystem(filename)))
