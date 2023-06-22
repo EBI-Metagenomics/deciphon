@@ -4,7 +4,8 @@ import os
 from tempfile import NamedTemporaryFile
 
 from h3result.h3result import H3Result as H3ResultRaw
-from hmmer_tables.domtbl import read_domtbl
+from hmmer_tables.domtbl import read_domtbl, DomTBL
+from hmmer_tables.tbl import read_tbl, TBL
 from pydantic import BaseModel, ConfigDict
 
 __all__ = ["H3Result"]
@@ -42,10 +43,17 @@ class H3Result(BaseModel):
             self.raw.print_domains_table(tmp.fileno())
         return tmp.content
 
+    @property
+    def tbl(self) -> TBL:
+        return read_tbl(stream=self.targets_table.split("\n"))
+
+    @property
+    def domtbl(self) -> DomTBL:
+        return read_domtbl(stream=self.domains_table.split("\n"))
+
     def __str__(self):
-        rows = read_domtbl(stream=self.domains_table.split("\n"))
         items = []
-        for x in rows:
+        for x in self.domtbl:
             e_value = x.full_sequence.e_value
             start = x.ali_coord.start
             stop = x.ali_coord.stop

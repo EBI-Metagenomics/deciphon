@@ -2,16 +2,14 @@ from typing import List
 
 from pydantic import BaseModel, RootModel
 
-from deciphon_snap.interval import PyInterval, RInterval
-from deciphon_snap.match import MatchList
+from deciphon_snap.match import MatchList, MatchListInterval
 
 __all__ = ["Hit", "HitList"]
 
 
 class Hit(BaseModel):
     id: int
-    query_interval: RInterval
-    match_list_interval: PyInterval
+    match_list_interval: MatchListInterval
 
 
 class HitList(RootModel):
@@ -33,8 +31,6 @@ class HitList(RootModel):
     def make(cls, match_list: MatchList):
         hits: List[Hit] = []
 
-        hit_start = 0
-        hit_stop = 0
         offset = 0
         hit_start_found = False
         hit_end_found = False
@@ -43,20 +39,17 @@ class HitList(RootModel):
 
         for i, x in enumerate(match_list):
             if not hit_start_found and is_core_state(x.state):
-                hit_start = offset
                 match_start = i
                 hit_start_found = True
 
             if hit_start_found and not is_core_state(x.state):
-                hit_stop = offset + len(x.query)
                 hit_end_found = True
 
             if hit_end_found:
                 match_stop = i
-                qi = PyInterval(start=hit_start, stop=hit_stop).rinterval
-                mi = PyInterval(start=match_start, stop=match_stop)
+                mi = MatchListInterval(start=match_start, stop=match_stop)
                 hit_id = len(hits)
-                hit = Hit(id=hit_id, query_interval=qi, match_list_interval=mi)
+                hit = Hit(id=hit_id, match_list_interval=mi)
                 hits.append(hit)
                 hit_start_found = False
                 hit_end_found = False

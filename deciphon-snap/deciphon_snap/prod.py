@@ -18,6 +18,18 @@ class Prod(BaseModel):
     match_list: LazyMatchList
     h3result: H3Result | None = None
 
+    @property
+    def query(self):
+        return self.match_list.query
+
+    @property
+    def codon(self):
+        return self.match_list.codon
+
+    @property
+    def amino(self):
+        return self.match_list.amino
+
 
 class ProdList(RootModel):
     root: List[Prod]

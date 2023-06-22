@@ -1,12 +1,26 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
+
 from pydantic import BaseModel, model_validator
-from pydantic.types import conint, Any
+from pydantic.types import Any, conint
 
-__all__ = ["PyInterval", "RInterval"]
+__all__ = ["Interval", "PyInterval", "RInterval"]
 
 
-class PyInterval(BaseModel):
+class Interval(BaseModel, ABC):
+    @property
+    @abstractmethod
+    def slice(self) -> slice:
+        ...
+
+    @property
+    @abstractmethod
+    def pyinterval(self) -> PyInterval:
+        ...
+
+
+class PyInterval(Interval):
     """
     Python interval.
 
@@ -36,6 +50,10 @@ class PyInterval(BaseModel):
         return RInterval(start=self.start + 1, stop=self.stop)
 
     @property
+    def pyinterval(self) -> PyInterval:
+        return self
+
+    @property
     def slice(self) -> slice:
         return slice(self.start, self.stop)
 
@@ -46,7 +64,7 @@ class PyInterval(BaseModel):
         return repr(self)
 
 
-class RInterval(BaseModel):
+class RInterval(Interval):
     """
     R interval.
 

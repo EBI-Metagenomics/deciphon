@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from functools import lru_cache
 from typing import List
+from deciphon_snap.interval import PyInterval
+from deciphon_snap.amino import AminoInterval
 
 from pydantic import BaseModel, RootModel, ConfigDict
 
-__all__ = ["Match", "MatchList", "LazyMatchList"]
+__all__ = ["Match", "MatchList", "LazyMatchList", "MatchListInterval"]
 
 
 class Match(BaseModel):
@@ -59,6 +61,23 @@ class MatchList(RootModel):
     @property
     def amino(self):
         return "".join(x.amino for x in iter(self))
+
+
+class MatchListInterval(PyInterval):
+    ...
+
+
+class MatchListIntervalBuilder:
+    def __init__(self, match_list: MatchList):
+        self._amino_map = [i for i, x in enumerate(match_list) if len(x.amino) > 0]
+
+    def make_from_amino_interval(
+        self, amino_interval: AminoInterval
+    ) -> MatchListInterval:
+        i = amino_interval
+        start = self._amino_map[i.pyinterval.start]
+        stop = self._amino_map[i.pyinterval.stop]
+        return MatchListInterval(start=start, stop=stop)
 
 
 class LazyMatchList(BaseModel):
