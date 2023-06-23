@@ -19,6 +19,11 @@ class Prod(BaseModel):
     h3result: H3Result | None = None
 
     @property
+    def hmmer(self):
+        assert self.h3result
+        return self.h3result
+
+    @property
     def query(self):
         return self.match_list.query
 

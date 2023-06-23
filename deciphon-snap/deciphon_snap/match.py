@@ -75,9 +75,8 @@ class MatchListIntervalBuilder:
         self, amino_interval: AminoInterval
     ) -> MatchListInterval:
         i = amino_interval
-        start = self._amino_map[i.pyinterval.start]
-        stop = self._amino_map[i.pyinterval.stop]
-        return MatchListInterval(start=start, stop=stop)
+        x = self._amino_map[i.slice]
+        return MatchListInterval(start=x[0], stop=x[-1] + 1)
 
 
 class LazyMatchList(BaseModel):
