@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "deciphon-eval"
+version = "0.1.0"
+description = ""
+authors = ["Danilo Horta <horta@ebi.ac.uk>"]
+license = "MIT"
+readme = "README.md"
+packages = [{ include = "deciphon_eval" }]
+
+[tool.poetry.dependencies]
+deciphon-snap = ">=0.2.0"
+fire = ">=0.5.0"
+hmmer-tables = ">=0.4.0"
+pandas = ">=2.0.2"
+plotly = ">=5.15.0"
+polars = ">=0.18.4"
+portion = ">=2.4.0"
+pyarrow = ">=12.0.1"
+pydantic = ">=2.0b3"
+python = "^3.9"
+tdqm = ">=0.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
