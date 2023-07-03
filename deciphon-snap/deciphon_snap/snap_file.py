@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from csv import DictReader
+import csv
 from typing import List
 
 import prettytable as pt
@@ -14,6 +14,8 @@ from deciphon_snap.shorten import shorten
 from deciphon_snap.stringify import stringify
 
 __all__ = ["SnapFile"]
+
+csv.field_size_limit(8388608)
 
 
 class SnapFile:
@@ -32,7 +34,7 @@ class SnapFile:
 
         with fs.open(prod_file, "rb") as file:
             prods: List[Prod] = []
-            reader = DictReader((stringify(x) for x in file), delimiter="\t")
+            reader = csv.DictReader((stringify(x) for x in file), delimiter="\t")
             for idx, row in enumerate(reader):
                 seq_id = int(row["seq_id"])
                 profile = str(row["profile"])
