@@ -18,7 +18,7 @@ portion = ">=2.4.0"
 pyarrow = ">=12.0.1"
 pydantic = ">=2.0b3"
 python = "^3.9"
-tdqm = ">=0.0.1"
+tqdm = "^4.65.0"
 
 
 [build-system]
