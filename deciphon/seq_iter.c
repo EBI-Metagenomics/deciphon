@@ -11,7 +11,7 @@ static bool noop(struct dcp_seq *x, void *arg)
 
 void seq_iter_init(struct seq_iter *x, dcp_seq_next_fn *callb, void *arg)
 {
-  dcp_seq_setup(&x->seq, 0, "", "");
+  dcp_seq_init(&x->seq, 0, "", "");
   x->next_callb = callb ? callb : noop;
   x->arg = arg;
 }

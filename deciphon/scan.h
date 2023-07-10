@@ -1,8 +1,8 @@
 #ifndef DECIPHON_SCAN_H
 #define DECIPHON_SCAN_H
 
-#include "deciphon/export.h"
-#include "deciphon/seq.h"
+#include "api.h"
+#include "seq.h"
 #include <stdbool.h>
 
 struct dcp_scan;

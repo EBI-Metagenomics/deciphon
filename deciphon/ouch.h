@@ -1,5 +1,5 @@
-#ifndef OUCH_H
-#define OUCH_H
+#ifndef DECIPHON_OUCH_H
+#define DECIPHON_OUCH_H
 
 #include <stdio.h>
 

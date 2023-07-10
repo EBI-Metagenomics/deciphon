@@ -1,5 +1,5 @@
-#ifndef COMPILER_H
-#define COMPILER_H
+#ifndef DECIPHON_COMPILER_H
+#define DECIPHON_COMPILER_H
 
 #include "bug.h"
 

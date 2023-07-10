@@ -1,5 +1,5 @@
-#ifndef PROD_MATCH_H
-#define PROD_MATCH_H
+#ifndef DECIPHON_PROD_MATCH_H
+#define DECIPHON_PROD_MATCH_H
 
 #include "deciphon/limits.h"
 

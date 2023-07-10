@@ -1,5 +1,5 @@
-#ifndef PROTEIN_H
-#define PROTEIN_H
+#ifndef DECIPHON_PROTEIN_H
+#define DECIPHON_PROTEIN_H
 
 #include "imm/imm.h"
 #include "model.h"

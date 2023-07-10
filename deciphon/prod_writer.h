@@ -1,5 +1,5 @@
-#ifndef PROD_WRITER_H
-#define PROD_WRITER_H
+#ifndef DECIPHON_PROD_WRITER_H
+#define DECIPHON_PROD_WRITER_H
 
 #include "deciphon/limits.h"
 #include "prod_writer_thrd.h"

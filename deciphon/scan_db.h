@@ -1,5 +1,5 @@
-#ifndef SCAN_DB_H
-#define SCAN_DB_H
+#ifndef DECIPHON_SCAN_DB_H
+#define DECIPHON_SCAN_DB_H
 
 #include "db_reader.h"
 #include "protein_reader.h"

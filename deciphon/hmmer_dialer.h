@@ -1,5 +1,5 @@
-#ifndef HMMER_DIALER_H
-#define HMMER_DIALER_H
+#ifndef DECIPHON_HMMER_DIALER_H
+#define DECIPHON_HMMER_DIALER_H
 
 struct hmmer;
 struct h3client_dialer;

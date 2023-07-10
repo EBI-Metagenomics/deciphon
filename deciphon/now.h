@@ -1,5 +1,5 @@
-#ifndef NOW_H
-#define NOW_H
+#ifndef DECIPHON_NOW_H
+#define DECIPHON_NOW_H
 
 struct tm;
 

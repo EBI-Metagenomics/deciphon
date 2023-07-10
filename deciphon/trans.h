@@ -1,5 +1,5 @@
-#ifndef TRANS_H
-#define TRANS_H
+#ifndef DECIPHON_TRANS_H
+#define DECIPHON_TRANS_H
 
 #include "imm/imm.h"
 

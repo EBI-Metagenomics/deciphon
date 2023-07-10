@@ -1,5 +1,5 @@
-#ifndef MODEL_H
-#define MODEL_H
+#ifndef DECIPHON_MODEL_H
+#define DECIPHON_MODEL_H
 
 #include "deciphon/errno.h"
 #include "entry_dist.h"

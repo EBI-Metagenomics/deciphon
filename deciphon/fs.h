@@ -1,5 +1,5 @@
-#ifndef FS_H
-#define FS_H
+#ifndef DECIPHON_FS_H
+#define DECIPHON_FS_H
 
 #include <stdbool.h>
 #include <stdio.h>

@@ -1,5 +1,5 @@
-#ifndef H3READER_H
-#define H3READER_H
+#ifndef DECIPHON_H3READER_H
+#define DECIPHON_H3READER_H
 
 #include "deciphon/errno.h"
 #include "hmmer_reader/hmmer_reader.h"

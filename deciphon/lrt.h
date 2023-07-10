@@ -1,5 +1,5 @@
-#ifndef LRT_H
-#define LRT_H
+#ifndef DECIPHON_LRT_H
+#define DECIPHON_LRT_H
 
 float lrt32(float null_loglik, float alt_loglik);
 double lrt64(double null_loglik, double alt_loglik);

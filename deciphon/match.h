@@ -1,5 +1,5 @@
-#ifndef MATCH_H
-#define MATCH_H
+#ifndef DECIPHON_MATCH_H
+#define DECIPHON_MATCH_H
 
 #include "imm/imm.h"
 #include <stdbool.h>

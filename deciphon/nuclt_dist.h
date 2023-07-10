@@ -1,5 +1,5 @@
-#ifndef NUCLT_DIST_H
-#define NUCLT_DIST_H
+#ifndef DECIPHON_NUCLT_DIST_H
+#define DECIPHON_NUCLT_DIST_H
 
 #include "deciphon/errno.h"
 #include "imm/imm.h"

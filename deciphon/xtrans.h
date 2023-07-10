@@ -1,5 +1,5 @@
-#ifndef XTRANS_H
-#define XTRANS_H
+#ifndef DECIPHON_XTRANS_H
+#define DECIPHON_XTRANS_H
 
 #include "imm/imm.h"
 

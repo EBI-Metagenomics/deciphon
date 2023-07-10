@@ -1,5 +1,5 @@
-#ifndef SCAN_TASK_H
-#define SCAN_TASK_H
+#ifndef DECIPHON_SCAN_TASK_H
+#define DECIPHON_SCAN_TASK_H
 
 #include "imm/imm.h"
 

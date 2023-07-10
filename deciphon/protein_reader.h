@@ -1,5 +1,5 @@
-#ifndef PROTEIN_READER_H
-#define PROTEIN_READER_H
+#ifndef DECIPHON_PROTEIN_READER_H
+#define DECIPHON_PROTEIN_READER_H
 
 #include "deciphon/limits.h"
 

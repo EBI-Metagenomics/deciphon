@@ -1,5 +1,5 @@
-#ifndef MATCH_ITER_H
-#define MATCH_ITER_H
+#ifndef DECIPHON_MATCH_ITER_H
+#define DECIPHON_MATCH_ITER_H
 
 #include <stdbool.h>
 

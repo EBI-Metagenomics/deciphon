@@ -1,7 +1,6 @@
 #include "prod_writer_thrd.h"
 #include "array_size.h"
 #include "array_size_field.h"
-#include "dbl_fmt.h"
 #include "deciphon/errno.h"
 #include "defer_return.h"
 #include "fmt.h"
@@ -10,6 +9,9 @@
 #include "match.h"
 #include "match_iter.h"
 #include <string.h>
+
+/* Reference: https://stackoverflow.com/a/21162120 */
+#define DBL_FMT "%.17g"
 
 /* Output example for two matches.
  *

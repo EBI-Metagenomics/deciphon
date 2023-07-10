@@ -1,5 +1,5 @@
-#ifndef DB_WRITER_H
-#define DB_WRITER_H
+#ifndef DECIPHON_DB_WRITER_H
+#define DECIPHON_DB_WRITER_H
 
 #include "deciphon/errno.h"
 #include "entry_dist.h"

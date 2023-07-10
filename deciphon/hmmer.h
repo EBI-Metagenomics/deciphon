@@ -1,5 +1,5 @@
-#ifndef HMMER_H
-#define HMMER_H
+#ifndef DECIPHON_HMMER_H
+#define DECIPHON_HMMER_H
 
 #include "elapsed/elapsed.h"
 #include "hmmer_result.h"

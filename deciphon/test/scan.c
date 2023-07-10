@@ -99,7 +99,7 @@ static bool seq_next(struct dcp_seq *x, void *arg)
   (void)arg;
   if (seq_idx > 2) return false;
   int i = seq_idx;
-  dcp_seq_setup(x, test_seqs[i].id, test_seqs[i].name, test_seqs[i].data);
+  dcp_seq_init(x, test_seqs[i].id, test_seqs[i].name, test_seqs[i].data);
   seq_idx = seq_idx + 1;
   return true;
 }

@@ -1,5 +1,5 @@
-#ifndef XNODE_H
-#define XNODE_H
+#ifndef DECIPHON_XNODE_H
+#define DECIPHON_XNODE_H
 
 #include "imm/imm.h"
 

@@ -1,5 +1,5 @@
-#ifndef MODEL_SUMMARY_H
-#define MODEL_SUMMARY_H
+#ifndef DECIPHON_MODEL_SUMMARY_H
+#define DECIPHON_MODEL_SUMMARY_H
 
 struct model_summary
 {

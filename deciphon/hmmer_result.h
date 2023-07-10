@@ -1,5 +1,5 @@
-#ifndef HMMER_RESULT_H
-#define HMMER_RESULT_H
+#ifndef DECIPHON_HMMER_RESULT_H
+#define DECIPHON_HMMER_RESULT_H
 
 #include <stdio.h>
 

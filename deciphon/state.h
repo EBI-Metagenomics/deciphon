@@ -1,5 +1,5 @@
-#ifndef STATE_H
-#define STATE_H
+#ifndef DECIPHON_STATE_H
+#define DECIPHON_STATE_H
 
 #include "imm/imm.h"
 

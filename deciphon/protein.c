@@ -33,7 +33,7 @@ void protein_init(struct protein *x, struct imm_gencode const *gc,
 int protein_set_accession(struct protein *x, char const *acc)
 {
   unsigned n = array_size_field(struct protein, accession);
-  return imm_strlcpy(x->accession, acc, n) < n ? 0 : DCP_ELONGACC;
+  return dcp_strlcpy(x->accession, acc, n) < n ? 0 : DCP_ELONGACC;
 }
 
 void protein_setup(struct protein *protein, unsigned seq_size, bool multi_hits,
@@ -83,7 +83,7 @@ int protein_absorb(struct protein *x, struct model *m)
   if (x->nuclt_code->nuclt != model_nuclt(m)) return DCP_EDIFFABC;
 
   unsigned n = array_size_field(struct protein, consensus);
-  imm_strlcpy(x->consensus, m->consensus, n);
+  dcp_strlcpy(x->consensus, m->consensus, n);
 
   struct model_summary s = model_summary(m);
   if ((rc = protein_null_absorb(&x->null, m, &s))) return rc;

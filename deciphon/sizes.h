@@ -1,9 +1,7 @@
-#ifndef DECIPHON_LIMITS_H
-#define DECIPHON_LIMITS_H
+#ifndef DECIPHON_SIZES_H
+#define DECIPHON_SIZES_H
 
-#include <assert.h>
-
-enum dcp_limits
+enum dcp_sizes
 {
   DCP_ABC_NAME_SIZE = 16,
   DCP_PROFILE_NAME_SIZE = 64,

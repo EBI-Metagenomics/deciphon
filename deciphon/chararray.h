@@ -1,5 +1,5 @@
-#ifndef CHARARRAY_H
-#define CHARARRAY_H
+#ifndef DECIPHON_CHARARRAY_H
+#define DECIPHON_CHARARRAY_H
 
 #include <stddef.h>
 

@@ -1,14 +1,14 @@
 #include "deciphon/scan.h"
 #include "array_size_field.h"
-#include "deciphon/errno.h"
-#include "deciphon/limits.h"
 #include "defer_return.h"
 #include "hmmer_dialer.h"
 #include "iseq.h"
 #include "prod_writer.h"
+#include "rc.h"
 #include "scan_db.h"
 #include "scan_thrd.h"
 #include "seq_iter.h"
+#include "sizes.h"
 #include "strlcpy.h"
 #include <stdlib.h>
 #include <string.h>

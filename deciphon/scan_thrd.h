@@ -1,5 +1,5 @@
-#ifndef SCAN_THRD_H
-#define SCAN_THRD_H
+#ifndef DECIPHON_SCAN_THRD_H
+#define DECIPHON_SCAN_THRD_H
 
 #include "chararray.h"
 #include "hmmer.h"

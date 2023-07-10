@@ -1,10 +1,10 @@
-#ifndef DECIPHON_ERRNO_H
-#define DECIPHON_ERRNO_H
+#ifndef DECIPHON_RC_H
+#define DECIPHON_RC_H
 
-#include "deciphon/export.h"
+#include "api.h"
 
 // clang-format off
-enum dcp_errno
+enum dcp_rc
 {
   DCP_EDIFFABC      = 1,
   DCP_EFCLOSE       = 2,

@@ -172,7 +172,7 @@ static int protein_write(struct dcp_press *x)
   if (rc) return rc;
 
   unsigned n = array_size_field(struct protein, accession);
-  imm_strlcpy(x->protein.accession, x->reader.h3.protein.meta.acc, n);
+  dcp_strlcpy(x->protein.accession, x->reader.h3.protein.meta.acc, n);
 
   return db_writer_pack(&x->writer.db, &x->protein);
 }

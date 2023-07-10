@@ -1,5 +1,5 @@
-#ifndef ISEQ_H
-#define ISEQ_H
+#ifndef DECIPHON_ISEQ_H
+#define DECIPHON_ISEQ_H
 
 #include "imm/imm.h"
 

@@ -1,7 +1,7 @@
 #ifndef DECIPHON_PRESS_H
 #define DECIPHON_PRESS_H
 
-#include "deciphon/export.h"
+#include "api.h"
 #include <stdbool.h>
 
 struct dcp_press;

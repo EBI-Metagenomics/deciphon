@@ -1,5 +1,5 @@
-#ifndef PROD_WRITER_THRD_H
-#define PROD_WRITER_THRD_H
+#ifndef DECIPHON_PROD_WRITER_THRD_H
+#define DECIPHON_PROD_WRITER_THRD_H
 
 #include "prod_match.h"
 #include <stdio.h>

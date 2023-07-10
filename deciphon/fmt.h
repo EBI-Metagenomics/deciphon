@@ -1,5 +1,5 @@
-#ifndef FMT_H
-#define FMT_H
+#ifndef DECIPHON_FMT_H
+#define DECIPHON_FMT_H
 
 #include "array_size.h"
 #include <stddef.h>

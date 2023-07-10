@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.20.2 FATAL_ERROR)
-project(
-  deciphon
-  VERSION 0.8.8
-  LANGUAGES C)
+project(deciphon VERSION 0.8.8 LANGUAGES C)
 
 include(cmake/warnings.cmake)
 include(cmake/sanitizers.cmake)
@@ -23,7 +20,6 @@ cpmaddpackage(
   SOURCE_SUBDIR h3client)
 cpmaddpackage("gh:EBI-Metagenomics/imm@4.0.0")
 cpmaddpackage("gh:EBI-Metagenomics/lip@0.5.2")
-
 find_package(OpenMP)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -33,52 +29,25 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
-add_library(
-  deciphon
-  chararray.c
-  codec.c
-  db_reader.c
-  db_writer.c
-  echo.c
-  expect.c
-  fmt.c
-  fs.c
-  h3reader.c
-  hmmer.c
-  hmmer_dialer.c
-  hmmer_result.c
-  iseq.c
-  lrt.c
-  match.c
-  match_iter.c
-  model.c
-  now.c
-  nuclt_dist.c
-  ouch.c
-  partition_size.c
-  press.c
-  prod_match.c
-  prod_writer.c
-  prod_writer_thrd.c
-  protein.c
-  protein_alts.c
-  protein_iter.c
-  protein_null.c
-  protein_reader.c
-  scan.c
-  scan_db.c
-  scan_task.c
-  scan_thrd.c
-  seq.c
-  seq_iter.c
-  state.c
-  strerror.c
-  strkcpy.c
-  strlcpy.c
-  vfprintf.c
-  u16toa.c
-  xtrans.c)
+file(GLOB DECIPHON_SOURCES "*.c")
+file(GLOB DECIPHON_HEADERS "*.h")
+list(FILTER DECIPHON_SOURCES EXCLUDE REGEX "test_.*")
+list(FILTER DECIPHON_HEADERS EXCLUDE REGEX "test_.*")
+
+add_library(deciphon ${DECIPHON_SOURCES})
 add_library(DECIPHON::deciphon ALIAS deciphon)
+target_link_libraries(deciphon PRIVATE IMM::imm)
+target_link_libraries(deciphon PRIVATE LIP::lip)
+target_link_libraries(deciphon PRIVATE ELAPSED::elapsed)
+target_link_libraries(deciphon PRIVATE H3CLIENT::h3client)
+target_link_libraries(deciphon INTERFACE $<$<BOOL:${UNIX}>:m>)
+target_link_libraries(deciphon PRIVATE HMMER_READER::hmmer_reader)
+if(OpenMP_C_FOUND)
+  target_link_libraries(deciphon PRIVATE OpenMP::OpenMP_C)
+endif()
+
+file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/deciphon)
+file(COPY ${DECIPHON_HEADERS} DESTINATION ${PROJECT_BINARY_DIR}/deciphon)
 
 if(NOT BUILD_SHARED_LIBS)
   target_compile_definitions(deciphon PUBLIC -DDECIPHON_STATIC_DEFINE)
@@ -87,21 +56,13 @@ endif()
 target_include_directories(
   deciphon
   PUBLIC $<INSTALL_INTERFACE:include>
-         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
          $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
-  PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>)
+  PRIVATE ${PROJECT_SOURCE_DIR}
+)
 
 set_target_properties(deciphon PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(deciphon PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR})
-
-target_link_libraries(deciphon PRIVATE ELAPSED::elapsed)
-target_link_libraries(deciphon PRIVATE H3CLIENT::h3client)
-target_link_libraries(deciphon PRIVATE HMMER_READER::hmmer_reader)
-target_link_libraries(deciphon PRIVATE IMM::imm)
-target_link_libraries(deciphon PUBLIC LIP::lip)
-if(OpenMP_C_FOUND)
-  target_link_libraries(deciphon PRIVATE OpenMP::OpenMP_C)
-endif()
 
 install(
   TARGETS deciphon
@@ -109,8 +70,7 @@ install(
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
-install(DIRECTORY include/deciphon/ DESTINATION include/deciphon)
-install(FILES ${CONFIG_FILE} DESTINATION include/deciphon)
+install(DIRECTORY ${PROJECT_BINARY_DIR}/deciphon DESTINATION include)
 
 export(
   TARGETS deciphon
@@ -121,24 +81,26 @@ install(
   NAMESPACE DECIPHON::
   DESTINATION lib/cmake/deciphon)
 
-install(FILES ${PROJECT_SOURCE_DIR}/README.md ${PROJECT_SOURCE_DIR}/LICENSE
-        DESTINATION share/docs/deciphon)
+install(
+  FILES ${PROJECT_SOURCE_DIR}/README.md ${PROJECT_SOURCE_DIR}/LICENSE
+  DESTINATION share/docs/imm)
 
 include(CMakePackageConfigHelpers)
-
-set(project_config ${PROJECT_BINARY_DIR}/deciphon-config.cmake)
-set(version_config ${PROJECT_BINARY_DIR}/deciphon-config-version.cmake)
-
-configure_package_config_file(deciphon-config.cmake.in ${project_config}
+set(PROJECT_CONFIG ${PROJECT_BINARY_DIR}/deciphon-config.cmake)
+set(VERSION_CONFIG ${PROJECT_BINARY_DIR}/deciphon-config-version.cmake)
+configure_package_config_file(deciphon-config.cmake.in ${PROJECT_CONFIG}
                               INSTALL_DESTINATION lib/cmake/deciphon)
-
-write_basic_package_version_file(${version_config}
+write_basic_package_version_file(${VERSION_CONFIG}
                                  COMPATIBILITY SameMajorVersion)
-
-install(FILES ${project_config} ${version_config}
-        DESTINATION lib/cmake/deciphon)
+install(FILES ${PROJECT_CONFIG} ${VERSION_CONFIG} DESTINATION lib/cmake/deciphon)
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
   enable_testing()
-  add_subdirectory(test)
+  file(GLOB IMM_TEST_SOURCES "test_*.c")
+  foreach(source ${IMM_TEST_SOURCES})
+    get_filename_component(x ${source} NAME_WE)
+    add_executable(${x} ${source})
+    target_link_libraries(${x} PRIVATE deciphon)
+    add_test(NAME ${x} COMMAND ${x} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+  endforeach()
 endif()

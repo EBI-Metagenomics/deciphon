@@ -1,5 +1,5 @@
-#ifndef PARTITION_SIZE_H
-#define PARTITION_SIZE_H
+#ifndef DECIPHON_PARTITION_SIZE_H
+#define DECIPHON_PARTITION_SIZE_H
 
 long partition_size(long nelems, long nparts, long idx);
 

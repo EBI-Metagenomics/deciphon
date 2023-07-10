@@ -1,5 +1,5 @@
-#ifndef ECHO_H
-#define ECHO_H
+#ifndef DECIPHON_ECHO_H
+#define DECIPHON_ECHO_H
 
 #include <stdio.h>
 

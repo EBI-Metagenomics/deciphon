@@ -1,5 +1,5 @@
-#ifndef NODE_H
-#define NODE_H
+#ifndef DECIPHON_NODE_H
+#define DECIPHON_NODE_H
 
 #include "imm/imm.h"
 #include "nuclt_dist.h"

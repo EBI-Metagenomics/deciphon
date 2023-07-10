@@ -1,5 +1,5 @@
-#ifndef BUG_H
-#define BUG_H
+#ifndef DECIPHON_BUG_H
+#define DECIPHON_BUG_H
 
 /*
  * Force a compilation error if condition is true, but also produce a

@@ -1,5 +1,5 @@
-#ifndef DB_READER_H
-#define DB_READER_H
+#ifndef DECIPHON_DB_READER_H
+#define DECIPHON_DB_READER_H
 
 #include "entry_dist.h"
 #include "imm/imm.h"

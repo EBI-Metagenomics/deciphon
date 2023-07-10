@@ -1,5 +1,5 @@
-#ifndef CODEC_H
-#define CODEC_H
+#ifndef DECIPHON_CODEC_H
+#define DECIPHON_CODEC_H
 
 #include "deciphon/errno.h"
 #include <stdbool.h>

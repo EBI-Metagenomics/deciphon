@@ -1,7 +1,6 @@
-#ifndef SEQ_ITER_H
-#define SEQ_ITER_H
+#ifndef DECIPHON_SEQ_ITER_H
+#define DECIPHON_SEQ_ITER_H
 
-#include "deciphon/seq.h"
 #include "seq.h"
 
 struct seq_iter
