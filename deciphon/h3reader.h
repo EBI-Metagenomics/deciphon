@@ -1,10 +1,10 @@
 #ifndef DECIPHON_H3READER_H
 #define DECIPHON_H3READER_H
 
-#include "deciphon/errno.h"
 #include "hmmer_reader/hmmer_reader.h"
 #include "imm/imm.h"
 #include "model.h"
+#include "rc.h"
 #include <stdio.h>
 
 struct h3reader

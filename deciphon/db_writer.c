@@ -1,9 +1,9 @@
 #include "db_writer.h"
-#include "deciphon/errno.h"
 #include "defer_return.h"
 #include "fs.h"
 #include "lip/1darray/1darray.h"
 #include "magic_number.h"
+#include "rc.h"
 
 static int pack_entry_dist(struct lip_file *file, enum entry_dist const *edist)
 {
@@ -90,12 +90,12 @@ static int db_writer_pack_prof(struct db_writer *db, void const *arg)
   int rc = 0;
 
   long start = 0;
-  if ((rc = fs_tell(lip_file_ptr(&db->tmp.proteins), &start))) return rc;
+  if ((rc = dcp_fs_tell(lip_file_ptr(&db->tmp.proteins), &start))) return rc;
 
   if ((rc = pack_protein(&db->tmp.proteins, arg))) return rc;
 
   long end = 0;
-  if ((rc = fs_tell(lip_file_ptr(&db->tmp.proteins), &end))) return rc;
+  if ((rc = dcp_fs_tell(lip_file_ptr(&db->tmp.proteins), &end))) return rc;
 
   if ((end - start) > UINT_MAX) return DCP_ELARGEPROTEIN;
 
@@ -132,7 +132,7 @@ static int pack_header(struct db_writer *db)
   if (!lip_write_map_size(file, db->header_size + 1)) return DCP_EFWRITE;
 
   rewind(lip_file_ptr(&db->tmp.header));
-  int rc = fs_copy(lip_file_ptr(file), lip_file_ptr(&db->tmp.header));
+  int rc = dcp_fs_copy(lip_file_ptr(file), lip_file_ptr(&db->tmp.header));
   if (rc) return rc;
 
   if (!lip_write_cstr(file, "protein_sizes")) return DCP_EFWRITE;
@@ -146,7 +146,7 @@ static int pack_proteins(struct db_writer *db)
   if (!lip_write_array_size(&db->file, db->nproteins)) return DCP_EFWRITE;
 
   rewind(lip_file_ptr(&db->tmp.proteins));
-  return fs_copy(lip_file_ptr(&db->file), lip_file_ptr(&db->tmp.proteins));
+  return dcp_fs_copy(lip_file_ptr(&db->file), lip_file_ptr(&db->tmp.proteins));
 }
 
 int db_writer_close(struct db_writer *db)

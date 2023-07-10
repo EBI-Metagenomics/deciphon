@@ -1,6 +1,6 @@
 #include "hmmer_result.h"
-#include "deciphon/errno.h"
 #include "h3client/h3client.h"
+#include "rc.h"
 #include <math.h>
 #include <stddef.h>
 

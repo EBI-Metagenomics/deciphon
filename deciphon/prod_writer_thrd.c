@@ -1,13 +1,13 @@
 #include "prod_writer_thrd.h"
 #include "array_size.h"
 #include "array_size_field.h"
-#include "deciphon/errno.h"
 #include "defer_return.h"
 #include "fmt.h"
 #include "fs.h"
 #include "hmmer_result.h"
 #include "match.h"
 #include "match_iter.h"
+#include "rc.h"
 #include <string.h>
 
 /* Reference: https://stackoverflow.com/a/21162120 */
@@ -37,7 +37,7 @@ int prod_writer_thrd_init(struct prod_writer_thrd *x, int idx, char const *dir)
   x->dirname = dir;
   size_t n = array_size_field(struct prod_writer_thrd, prodname);
   if ((rc = fmt(x->prodname, n, "%s/.products.%03d.tsv", dir, idx))) return rc;
-  if ((rc = fs_touch(x->prodname))) return rc;
+  if ((rc = dcp_fs_touch(x->prodname))) return rc;
   prod_match_init(&x->match);
   return 0;
 }
@@ -82,7 +82,7 @@ int prod_writer_thrd_put_hmmer(struct prod_writer_thrd *x,
   char const *dirname = x->dirname;
 
   if ((rc = FMT(file, "%s/hmmer/%ld", dirname, x->match.seq_id))) return rc;
-  if ((rc = fs_mkdir(file, true))) return rc;
+  if ((rc = dcp_fs_mkdir(file, true))) return rc;
 
   if ((rc = FMT(file, "%s/hmmer/%ld/%s.h3r", dirname, x->match.seq_id,
                 x->match.protein)))

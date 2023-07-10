@@ -1,7 +1,7 @@
 #include "hmmer_dialer.h"
-#include "deciphon/errno.h"
 #include "h3client/h3client.h"
 #include "hmmer.h"
+#include "rc.h"
 #include <stdlib.h>
 
 int hmmer_dialer_init(struct hmmer_dialer *x, int port)

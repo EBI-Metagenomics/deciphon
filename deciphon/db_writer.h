@@ -1,10 +1,10 @@
 #ifndef DECIPHON_DB_WRITER_H
 #define DECIPHON_DB_WRITER_H
 
-#include "deciphon/errno.h"
 #include "entry_dist.h"
 #include "lip/lip.h"
 #include "protein.h"
+#include "rc.h"
 #include <stdio.h>
 
 struct db_writer

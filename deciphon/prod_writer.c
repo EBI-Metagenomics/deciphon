@@ -1,9 +1,9 @@
 #include "prod_writer.h"
 #include "array_size_field.h"
-#include "deciphon/errno.h"
 #include "defer_return.h"
 #include "fmt.h"
 #include "fs.h"
+#include "rc.h"
 #include "strkcpy.h"
 
 void prod_writer_init(struct prod_writer *x) { x->nthreads = 0; }
@@ -22,8 +22,8 @@ int prod_writer_open(struct prod_writer *x, int nthreads, char const *dir)
   char hmmer_dir[DCP_SHORT_PATH_MAX] = {0};
   if ((rc = FMT(hmmer_dir, "%s/hmmer", x->dirname))) return rc;
 
-  if ((rc = fs_mkdir(x->dirname, true))) defer_return(rc);
-  if ((rc = fs_mkdir(hmmer_dir, true))) defer_return(rc);
+  if ((rc = dcp_fs_mkdir(x->dirname, true))) defer_return(rc);
+  if ((rc = dcp_fs_mkdir(hmmer_dir, true))) defer_return(rc);
 
   for (int i = 0; i < nthreads; ++i)
   {
@@ -34,8 +34,8 @@ int prod_writer_open(struct prod_writer *x, int nthreads, char const *dir)
   return rc;
 
 defer:
-  fs_rmdir(hmmer_dir);
-  fs_rmdir(x->dirname);
+  dcp_fs_rmdir(hmmer_dir);
+  dcp_fs_rmdir(x->dirname);
   return rc;
 }
 
@@ -63,7 +63,7 @@ int prod_writer_close(struct prod_writer *x)
     FILE *tmp = fopen(file, "rb");
     if (!tmp) defer_return(rc);
 
-    if ((rc = fs_copy(fp, tmp)))
+    if ((rc = dcp_fs_copy(fp, tmp)))
     {
       fclose(tmp);
       defer_return(rc);
@@ -71,7 +71,7 @@ int prod_writer_close(struct prod_writer *x)
 
     if (fclose(tmp)) defer_return(DCP_EFCLOSE);
 
-    if ((rc = fs_rmfile(file))) defer_return(rc);
+    if ((rc = dcp_fs_rmfile(file))) defer_return(rc);
   }
 
   return fclose(fp) ? DCP_EFCLOSE : 0;

@@ -1,11 +1,11 @@
 #include "protein.h"
 #include "array_size_field.h"
 #include "db_reader.h"
-#include "deciphon/errno.h"
 #include "expect.h"
 #include "lip/file/file.h"
 #include "lip/lip.h"
 #include "protein.h"
+#include "rc.h"
 #include "strlcpy.h"
 #include <assert.h>
 

@@ -1,9 +1,9 @@
 #include "hmmer.h"
-#include "deciphon/errno.h"
 #include "h3client/h3client.h"
 #include "hmmer_dialer.h"
 #include "hmmer_result.h"
 #include "ouch.h"
+#include "rc.h"
 #include <stdio.h>
 #include <stdlib.h>
 

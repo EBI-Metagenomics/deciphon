@@ -3,14 +3,14 @@
 #include "protein.h"
 #include "state.h"
 
-struct codec codec_init(struct protein const *protein,
-                        struct imm_path const *path)
+struct dcp_codec dcp_codec_init(struct protein const *protein,
+                                struct imm_path const *path)
 {
-  return (struct codec){0, 0, protein, path};
+  return (struct dcp_codec){0, 0, protein, path};
 }
 
-int codec_next(struct codec *codec, struct imm_seq const *seq,
-               struct imm_codon *codon)
+int dcp_codec_next(struct dcp_codec *codec, struct imm_seq const *seq,
+                   struct imm_codon *codon)
 {
   struct imm_step const *step = NULL;
 
@@ -20,7 +20,7 @@ int codec_next(struct codec *codec, struct imm_seq const *seq,
     if (!state_is_mute(step->state_id)) break;
   }
 
-  if (codec_end(codec)) return 0;
+  if (dcp_codec_end(codec)) return 0;
 
   unsigned size = step->seqlen;
   struct imm_seq frag = imm_subseq(seq, codec->start, size);
@@ -29,7 +29,7 @@ int codec_next(struct codec *codec, struct imm_seq const *seq,
   return protein_decode(codec->protein, &frag, step->state_id, codon);
 }
 
-bool codec_end(struct codec const *codec)
+bool dcp_codec_end(struct dcp_codec const *codec)
 {
   return codec->idx >= imm_path_nsteps(codec->path);
 }

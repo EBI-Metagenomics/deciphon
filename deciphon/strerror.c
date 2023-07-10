@@ -1,6 +1,6 @@
-#include "deciphon/strerror.h"
+#include "strerror.h"
 #include "array_size.h"
-#include "deciphon/errno.h"
+#include "rc.h"
 #include <stdio.h>
 
 static char const *msg[] = {

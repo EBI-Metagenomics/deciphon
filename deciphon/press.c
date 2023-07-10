@@ -1,10 +1,10 @@
 #include "deciphon/press.h"
 #include "array_size_field.h"
 #include "db_writer.h"
-#include "deciphon/errno.h"
 #include "defer_return.h"
 #include "fs.h"
 #include "h3reader.h"
+#include "rc.h"
 #include "sizeof_field.h"
 #include "strlcpy.h"
 #include <stdlib.h>
@@ -121,7 +121,7 @@ bool dcp_press_end(struct dcp_press const *press)
 
 int dcp_press_close(struct dcp_press *press)
 {
-  int rc_r = press->reader.fp ? fs_close(press->reader.fp) : 0;
+  int rc_r = press->reader.fp ? dcp_fs_close(press->reader.fp) : 0;
   int rc_w = finish_writer(press);
   press->writer.fp = NULL;
   press->reader.fp = NULL;
@@ -147,7 +147,7 @@ static int finish_writer(struct dcp_press *press)
   int rc = db_writer_close(&press->writer.db);
   if (rc) defer_return(rc);
 
-  return fs_close(press->writer.fp);
+  return dcp_fs_close(press->writer.fp);
 
 defer:
   fclose(press->writer.fp);

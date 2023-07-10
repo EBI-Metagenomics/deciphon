@@ -10,7 +10,7 @@
 
 #include "fs.h"
 #include "array_size.h"
-#include "deciphon/errno.h"
+#include "rc.h"
 #include <assert.h>
 #include <errno.h>
 #include <limits.h>
@@ -38,17 +38,17 @@
 
 #define BUFFSIZE (8 * 1024)
 
-int fs_tell(FILE *restrict fp, long *offset)
+int dcp_fs_tell(FILE *restrict fp, long *offset)
 {
   return (*offset = ftello(fp)) < 0 ? DCP_EFTELL : 0;
 }
 
-int fs_seek(FILE *restrict fp, long offset, int whence)
+int dcp_fs_seek(FILE *restrict fp, long offset, int whence)
 {
   return fseeko(fp, (off_t)offset, whence) < 0 ? DCP_EFSEEK : 0;
 }
 
-int fs_copy(FILE *restrict dst, FILE *restrict src)
+int dcp_fs_copy(FILE *restrict dst, FILE *restrict src)
 {
   static _Thread_local char buffer[BUFFSIZE];
   size_t n = 0;
@@ -63,15 +63,15 @@ int fs_copy(FILE *restrict dst, FILE *restrict src)
   return 0;
 }
 
-int fs_refopen(FILE *fp, char const *mode, FILE **out)
+int dcp_fs_refopen(FILE *restrict fp, char const *mode, FILE **out)
 {
   char filepath[FILENAME_MAX] = {0};
-  int rc = fs_getpath(fp, sizeof filepath, filepath);
+  int rc = dcp_fs_getpath(fp, sizeof filepath, filepath);
   if (rc) return rc;
   return (*out = fopen(filepath, mode)) ? 0 : DCP_EREFOPEN;
 }
 
-int fs_getpath(FILE *fp, unsigned size, char *filepath)
+int dcp_fs_getpath(FILE *restrict fp, unsigned size, char *filepath)
 {
   int fd = fileno(fp);
   if (fd < 0) return DCP_EGETPATH;
@@ -94,7 +94,7 @@ int fs_getpath(FILE *fp, unsigned size, char *filepath)
   return 0;
 }
 
-int fs_close(FILE *fp) { return fclose(fp) ? DCP_EFCLOSE : 0; }
+int dcp_fs_close(FILE *restrict fp) { return fclose(fp) ? DCP_EFCLOSE : 0; }
 
 static int fs_size(char const *filepath, long *size)
 {
@@ -104,7 +104,7 @@ static int fs_size(char const *filepath, long *size)
   return 0;
 }
 
-int fs_readall(char const *filepath, long *size, unsigned char **data)
+int dcp_fs_readall(char const *filepath, long *size, unsigned char **data)
 {
   *size = 0;
   *data = NULL;
@@ -132,9 +132,9 @@ int fs_readall(char const *filepath, long *size, unsigned char **data)
   return fclose(fp) ? DCP_EFCLOSE : 0;
 }
 
-int fs_tmpfile(FILE **out) { return (*out = tmpfile()) ? 0 : DCP_ETMPFILE; }
+int dcp_fs_tmpfile(FILE **out) { return (*out = tmpfile()) ? 0 : DCP_ETMPFILE; }
 
-int fs_copyp(FILE *restrict dst, FILE *restrict src)
+int dcp_fs_copyp(FILE *restrict dst, FILE *restrict src)
 {
   char buffer[8 * 1024];
   size_t n = 0;
@@ -169,7 +169,7 @@ static int fletcher16(FILE *fp, uint8_t *buf, size_t bufsize, long *chk)
   return 0;
 }
 
-int fs_cksum(char const *filepath, long *chk)
+int dcp_fs_cksum(char const *filepath, long *chk)
 {
   static _Thread_local uint8_t buffer[8 * 1024];
   FILE *fp = fopen(filepath, "rb");
@@ -180,16 +180,16 @@ int fs_cksum(char const *filepath, long *chk)
   return rc;
 }
 
-int fs_mkdir(char const *x, bool exist_ok)
+int dcp_fs_mkdir(char const *x, bool exist_ok)
 {
   return (mkdir(x, 0755) && !(errno == EEXIST && exist_ok)) ? DCP_EMKDIR : 0;
 }
 
-int fs_rmdir(char const *x) { return rmdir(x) < 0 ? DCP_ERMDIR : 0; }
+int dcp_fs_rmdir(char const *x) { return rmdir(x) < 0 ? DCP_ERMDIR : 0; }
 
-int fs_rmfile(char const *x) { return unlink(x) < 0 ? DCP_ERMFILE : 0; }
+int dcp_fs_rmfile(char const *x) { return unlink(x) < 0 ? DCP_ERMFILE : 0; }
 
-int fs_touch(char const *x)
+int dcp_fs_touch(char const *x)
 {
   if (access(x, F_OK) == 0) return 0;
   FILE *fp = fopen(x, "wb");

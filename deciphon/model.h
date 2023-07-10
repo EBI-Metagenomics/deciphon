@@ -1,12 +1,12 @@
 #ifndef DECIPHON_MODEL_H
 #define DECIPHON_MODEL_H
 
-#include "deciphon/errno.h"
 #include "entry_dist.h"
 #include "imm/imm.h"
 #include "model_summary.h"
 #include "node.h"
 #include "nuclt_dist.h"
+#include "rc.h"
 #include "state.h"
 #include "trans.h"
 #include "xnode.h"

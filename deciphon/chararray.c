@@ -1,5 +1,5 @@
 #include "chararray.h"
-#include "include/deciphon/errno.h"
+#include "rc.h"
 #include <stdlib.h>
 
 void chararray_init(struct chararray *x)
@@ -19,10 +19,6 @@ void chararray_cleanup(struct chararray *x)
     x->capacity = 0;
   }
 }
-
-size_t chararray_size(struct chararray const *x) { return x->size; }
-
-char *chararray_data(struct chararray *x) { return x->data; }
 
 static size_t next_capacity(size_t size);
 

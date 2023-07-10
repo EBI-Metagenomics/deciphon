@@ -76,7 +76,7 @@ void test_protein_uniform(void)
   state_name(imm_path_step(&prod.path, 13)->state_id, name);
   eq(name, "T");
 
-  struct codec codec = codec_init(&protein, &prod.path);
+  struct dcp_codec codec = dcp_codec_init(&protein, &prod.path);
   int rc = 0;
 
   nuclt = protein.nuclt_code->nuclt;
@@ -90,9 +90,9 @@ void test_protein_uniform(void)
   unsigned any = imm_abc_any_symbol_id(&nuclt->super);
   struct imm_codon codon = imm_codon(nuclt, any, any, any);
   unsigned i = 0;
-  while (!(rc = codec_next(&codec, &seq, &codon)))
+  while (!(rc = dcp_codec_next(&codec, &seq, &codon)))
   {
-    if (codec_end(&codec)) break;
+    if (dcp_codec_end(&codec)) break;
     eq(codons[i].a, codon.a);
     eq(codons[i].b, codon.b);
     eq(codons[i].c, codon.c);
@@ -169,7 +169,7 @@ void test_protein_occupancy(void)
   state_name(imm_path_step(&prod.path, 13)->state_id, name);
   eq(name, "T");
 
-  struct codec codec = codec_init(&protein, &prod.path);
+  struct dcp_codec codec = dcp_codec_init(&protein, &prod.path);
   int rc = 0;
 
   nuclt = protein.nuclt_code->nuclt;
@@ -183,9 +183,9 @@ void test_protein_occupancy(void)
   unsigned any = imm_abc_any_symbol_id(&nuclt->super);
   struct imm_codon codon = imm_codon(nuclt, any, any, any);
   unsigned i = 0;
-  while (!(rc = codec_next(&codec, &seq, &codon)))
+  while (!(rc = dcp_codec_next(&codec, &seq, &codon)))
   {
-    if (codec_end(&codec)) break;
+    if (dcp_codec_end(&codec)) break;
     eq(codons[i].a, codon.a);
     eq(codons[i].b, codon.b);
     eq(codons[i].c, codon.c);
