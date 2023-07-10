@@ -1,4 +1,4 @@
-#include "deciphon/scan.h"
+#include "scan.h"
 #include "array_size_field.h"
 #include "defer_return.h"
 #include "hmmer_dialer.h"
@@ -9,7 +9,6 @@
 #include "scan_thrd.h"
 #include "seq_iter.h"
 #include "sizes.h"
-#include "strlcpy.h"
 #include <stdlib.h>
 #include <string.h>
 

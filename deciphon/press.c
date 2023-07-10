@@ -1,4 +1,4 @@
-#include "deciphon/press.h"
+#include "press.h"
 #include "array_size_field.h"
 #include "db_writer.h"
 #include "defer_return.h"
@@ -6,7 +6,7 @@
 #include "h3reader.h"
 #include "rc.h"
 #include "sizeof_field.h"
-#include "strlcpy.h"
+#include "strkcpy.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -172,7 +172,8 @@ static int protein_write(struct dcp_press *x)
   if (rc) return rc;
 
   unsigned n = array_size_field(struct protein, accession);
-  dcp_strlcpy(x->protein.accession, x->reader.h3.protein.meta.acc, n);
+  if (!strkcpy(x->protein.accession, x->reader.h3.protein.meta.acc, n))
+    return DCP_EFORMAT;
 
   return db_writer_pack(&x->writer.db, &x->protein);
 }

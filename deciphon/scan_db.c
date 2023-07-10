@@ -1,7 +1,7 @@
 #include "scan_db.h"
 #include "array_size_field.h"
 #include "defer_return.h"
-#include "strlcpy.h"
+#include "strkcpy.h"
 
 void scan_db_init(struct scan_db *x)
 {
@@ -39,7 +39,7 @@ void scan_db_close(struct scan_db *x)
 int scan_db_set_filename(struct scan_db *x, char const *filename)
 {
   size_t n = array_size_field(struct scan_db, filename);
-  return dcp_strlcpy(x->filename, filename, n) < n ? 0 : DCP_ELONGPATH;
+  return strkcpy(x->filename, filename, n) ? 0 : DCP_ELONGPATH;
 }
 
 struct protein_reader *scan_db_reader(struct scan_db *x) { return &x->rdr; }
