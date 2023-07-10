@@ -1,10 +1,14 @@
 #include "prod_writer.h"
+#include "array_size.h"
 #include "array_size_field.h"
 #include "defer_return.h"
-#include "fmt.h"
+#include "format.h"
 #include "fs.h"
 #include "rc.h"
 #include "strkcpy.h"
+
+#define fmt(B, N, F, ...) dcp_format((B), (N), (F), __VA_ARGS__)
+#define FMT(buf, format, ...) fmt((buf), array_size(buf), (format), __VA_ARGS__)
 
 void prod_writer_init(struct prod_writer *x) { x->nthreads = 0; }
 

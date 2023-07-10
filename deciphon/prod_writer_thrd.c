@@ -2,16 +2,20 @@
 #include "array_size.h"
 #include "array_size_field.h"
 #include "defer_return.h"
-#include "fmt.h"
+#include "format.h"
 #include "fs.h"
 #include "hmmer_result.h"
 #include "match.h"
 #include "match_iter.h"
 #include "rc.h"
+#include <stdarg.h>
 #include <string.h>
 
 /* Reference: https://stackoverflow.com/a/21162120 */
 #define DBL_FMT "%.17g"
+
+#define fmt(B, N, F, ...) dcp_format((B), (N), (F), __VA_ARGS__)
+#define FMT(buf, format, ...) fmt((buf), array_size(buf), (format), __VA_ARGS__)
 
 /* Output example for two matches.
  *
