@@ -3,6 +3,6 @@
 
 struct tm;
 
-void now(struct tm *);
+void dcp_now(struct tm *);
 
 #endif

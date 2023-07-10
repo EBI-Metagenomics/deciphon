@@ -8,7 +8,7 @@
 void dcp_vfprintf(FILE *restrict fp, char const *restrict fmt, va_list params)
 {
   struct tm timeinfo = {0};
-  now(&timeinfo);
+  dcp_now(&timeinfo);
 
   char buff[512] = {0};
   strftime(buff, sizeof buff, "[%d %b %y %T]: ", &timeinfo);

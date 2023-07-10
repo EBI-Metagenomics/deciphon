@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <time.h>
 
-void now(struct tm *timeinfo)
+void dcp_now(struct tm *timeinfo)
 {
   time_t rawtime = {0};
   bool ok = true;
