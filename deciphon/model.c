@@ -383,7 +383,7 @@ struct imm_codon_lprob codon_lprob(struct imm_gencode const *gc,
   unsigned count[] = {[0 ... 254] = 0};
 
   for (unsigned i = 0; i < imm_gencode_size(gc); ++i)
-    count[(unsigned)imm_gencode_aa(gc, i)] += 1;
+    count[(unsigned)imm_gencode_amino(gc, i)] += 1;
 
   struct imm_abc const *abc = &amino->super;
   /* TODO: We don't need 255 positions*/
@@ -403,7 +403,7 @@ struct imm_codon_lprob codon_lprob(struct imm_gencode const *gc,
   struct imm_codon_lprob codonp = imm_codon_lprob(&imm_gencode_dna->super);
   for (unsigned i = 0; i < imm_gencode_size(gc); ++i)
   {
-    char aa = imm_gencode_aa(gc, i);
+    char aa = imm_gencode_amino(gc, i);
     imm_codon_lprob_set(&codonp, imm_gencode_codon(gc, i),
                         lprobs[(unsigned)aa]);
   }

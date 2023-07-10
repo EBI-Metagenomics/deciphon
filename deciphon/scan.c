@@ -11,6 +11,7 @@
 #include "seq_iter.h"
 #include "strlcpy.h"
 #include <stdlib.h>
+#include <string.h>
 
 struct dcp_scan
 {
