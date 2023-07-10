@@ -1,19 +1,18 @@
 #ifndef DECIPHON_HMMER_H
 #define DECIPHON_HMMER_H
 
-#include "elapsed/elapsed.h"
 #include "hmmer_result.h"
 
-struct hmmer
+struct dcp_hmmer
 {
   struct h3client_stream *stream;
-  struct hmmer_result result;
-  struct elapsed elapsed;
+  struct dcp_hmmer_result result;
 };
 
-int hmmer_init(struct hmmer *);
-void hmmer_cleanup(struct hmmer *);
-int hmmer_warmup(struct hmmer *);
-int hmmer_get(struct hmmer *, int hmmidx, char const *name, char const *seq);
+int dcp_hmmer_init(struct dcp_hmmer *);
+void dcp_hmmer_cleanup(struct dcp_hmmer *);
+int dcp_hmmer_warmup(struct dcp_hmmer *);
+int dcp_hmmer_get(struct dcp_hmmer *, int hmmidx, char const *name,
+                  char const *seq);
 
 #endif

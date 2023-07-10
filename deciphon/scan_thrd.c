@@ -30,9 +30,9 @@ int scan_thrd_init(struct scan_thrd *x, struct protein_reader *reader,
   chararray_init(&x->amino);
 
   int rc = 0;
-  if ((rc = hmmer_init(&x->hmmer))) defer_return(rc);
-  if ((rc = hmmer_dialer_dial(dialer, &x->hmmer))) defer_return(rc);
-  if ((rc = hmmer_warmup(&x->hmmer))) defer_return(rc);
+  if ((rc = dcp_hmmer_init(&x->hmmer))) defer_return(rc);
+  if ((rc = dcp_hmmer_dialer_dial(dialer, &x->hmmer))) defer_return(rc);
+  if ((rc = dcp_hmmer_warmup(&x->hmmer))) defer_return(rc);
 
   return rc;
 
@@ -46,7 +46,7 @@ void scan_thrd_cleanup(struct scan_thrd *x)
 {
   protein_cleanup(&x->protein);
   chararray_cleanup(&x->amino);
-  hmmer_cleanup(&x->hmmer);
+  dcp_hmmer_cleanup(&x->hmmer);
 }
 
 void scan_thrd_set_lrt_threshold(struct scan_thrd *x, double lrt)
@@ -112,11 +112,11 @@ int scan_thrd_run(struct scan_thrd *x, struct iseq const *seq)
 
     match_iter_init(&mit, &seq->iseq, &alt.prod.path);
     if ((rc = infer_amino(&x->amino, &match, &mit))) break;
-    if ((rc = hmmer_get(&x->hmmer, protein_iter_idx(it), seq->name,
-                        x->amino.data)))
+    if ((rc = dcp_hmmer_get(&x->hmmer, protein_iter_idx(it), seq->name,
+                            x->amino.data)))
       break;
-    if (hmmer_result_nhits(&x->hmmer.result) == 0) continue;
-    x->prod_thrd->match.evalue = hmmer_result_evalue_ln(&x->hmmer.result);
+    if (dcp_hmmer_result_nhits(&x->hmmer.result) == 0) continue;
+    x->prod_thrd->match.evalue = dcp_hmmer_result_evalue_ln(&x->hmmer.result);
     if ((rc = prod_writer_thrd_put_hmmer(x->prod_thrd, &x->hmmer.result)))
       break;
 
@@ -188,11 +188,11 @@ int scan_thrd_run0(struct scan_thrd *x, struct iseq const *seq)
 
     match_iter_init(&mit, &seq->iseq, &alt.prod.path);
     if ((rc = infer_amino(&x->amino, &match, &mit))) break;
-    if ((rc = hmmer_get(&x->hmmer, protein_iter_idx(it), seq->name,
-                        x->amino.data)))
+    if ((rc = dcp_hmmer_get(&x->hmmer, protein_iter_idx(it), seq->name,
+                            x->amino.data)))
       break;
-    if (hmmer_result_nhits(&x->hmmer.result) == 0) continue;
-    x->prod_thrd->match.evalue = hmmer_result_evalue_ln(&x->hmmer.result);
+    if (dcp_hmmer_result_nhits(&x->hmmer.result) == 0) continue;
+    x->prod_thrd->match.evalue = dcp_hmmer_result_evalue_ln(&x->hmmer.result);
     if ((rc = prod_writer_thrd_put_hmmer(x->prod_thrd, &x->hmmer.result)))
       break;
 

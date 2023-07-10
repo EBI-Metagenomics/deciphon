@@ -40,7 +40,7 @@ struct dcp_scan *dcp_scan_new(int port)
   scan_db_init(&x->db);
   seq_iter_init(&x->seqit, NULL, NULL);
   prod_writer_init(&x->prod_writer);
-  if (hmmer_dialer_init(&x->dialer, port))
+  if (dcp_hmmer_dialer_init(&x->dialer, port))
   {
     free(x);
     return NULL;
@@ -52,7 +52,7 @@ void dcp_scan_del(struct dcp_scan const *x)
 {
   if (x)
   {
-    hmmer_dialer_cleanup((struct hmmer_dialer *)&x->dialer);
+    dcp_hmmer_dialer_cleanup((struct hmmer_dialer *)&x->dialer);
     free((void *)x);
   }
 }

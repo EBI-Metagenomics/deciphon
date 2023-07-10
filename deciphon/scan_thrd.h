@@ -21,7 +21,7 @@ struct scan_thrd
 
   struct prod_writer_thrd *prod_thrd;
   struct chararray amino;
-  struct hmmer hmmer;
+  struct dcp_hmmer hmmer;
 };
 
 struct hmmer_dialer;

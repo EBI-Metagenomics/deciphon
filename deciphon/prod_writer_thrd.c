@@ -75,7 +75,7 @@ defer:
 }
 
 int prod_writer_thrd_put_hmmer(struct prod_writer_thrd *x,
-                               struct hmmer_result const *result)
+                               struct dcp_hmmer_result const *result)
 {
   char file[DCP_SHORT_PATH_MAX] = {0};
   int rc = 0;
@@ -91,7 +91,7 @@ int prod_writer_thrd_put_hmmer(struct prod_writer_thrd *x,
   FILE *fp = fopen(file, "wb");
   if (!fp) return DCP_EFOPEN;
 
-  if ((rc = hmmer_result_pack(result, fp)))
+  if ((rc = dcp_hmmer_result_pack(result, fp)))
   {
     fclose(fp);
     return rc;

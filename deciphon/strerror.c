@@ -49,17 +49,17 @@ static char const *msg[] = {
     [DCP_ETMPFILE] = "failed to create temporary file",
     [DCP_EFFLUSH] = "failed to flush file",
     [DCP_EMKDIR] = "failed to create directory",
-    [DCP_EH3CDIAL] = "failed to dial to h3daemon",
-    [DCP_EH3CPUT] = "failed to send to h3daemon",
-    [DCP_EH3CPOP] = "failed to get from h3daemon",
-    [DCP_EH3CPACK] = "failed to package h3daemon file",
     [DCP_EFORMAT] = "wrong file format",
     [DCP_ERMDIR] = "failed to remove directory",
     [DCP_ERMFILE] = "failed to remove file",
     [DCP_ESETGENCODE] = "must set gencode first",
     [DCP_EGENCODEID] = "invalid gencode id",
-    [DCP_EELAPSED] = "elapsed library failed",
-    [DCP_EMAXRETRY] = "reached maximum number of retries",
+    [DCP_EH3CDIAL] = "dialing to hmmer daemon failed",
+    [DCP_EH3CPUT] = "failed to put a task to the hmmer daemon",
+    [DCP_EH3CPOP] = "failed to pop a task from the hmmer daemon",
+    [DCP_EH3CPACK] = "failed to pack hmmer result",
+    [DCP_EH3CMAXRETRY] = "reached maximum number of retries on hmmer daemon",
+    [DCP_EH3CWARMUP] = "failed to warmup hmmer daemon",
 };
 
 char const *dcp_strerror(int errno)

@@ -6,7 +6,7 @@
 
 struct match;
 struct match_iter;
-struct hmmer_result;
+struct dcp_hmmer_result;
 
 struct prod_writer_thrd
 {
@@ -21,6 +21,6 @@ int prod_writer_thrd_init(struct prod_writer_thrd *, int idx,
 int prod_writer_thrd_put(struct prod_writer_thrd *, struct match *,
                          struct match_iter *);
 int prod_writer_thrd_put_hmmer(struct prod_writer_thrd *,
-                               struct hmmer_result const *);
+                               struct dcp_hmmer_result const *);
 
 #endif
