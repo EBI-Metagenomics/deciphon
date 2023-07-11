@@ -13,14 +13,14 @@
 #include "protein_iter.h"
 #include "protein_reader.h"
 
-int scan_thrd_init(struct scan_thrd *x, struct protein_reader *reader,
+int scan_thrd_init(struct scan_thrd *x, struct dcp_protein_reader *reader,
                    int partition, struct prod_writer_thrd *prod_thrd,
                    struct hmmer_dialer *dialer)
 {
   struct dcp_db_reader const *db = reader->db;
   protein_init(&x->protein, NULL, &db->amino, &db->code, db->entry_dist,
                db->epsilon);
-  protein_reader_iter(reader, partition, &x->iter);
+  dcp_protein_reader_iter(reader, partition, &x->iter);
 
   x->prod_thrd = prod_thrd;
   struct imm_abc const *abc = &db->nuclt.super;
@@ -73,14 +73,14 @@ int scan_thrd_run(struct scan_thrd *x, struct iseq const *seq)
   struct scan_task null = {0};
   struct scan_task alt = {0};
 
-  struct protein_iter *it = &x->iter;
+  struct dcp_proteiniter *it = &x->iter;
   x->prod_thrd->match.seq_id = seq->id;
 
-  if ((rc = protein_iter_rewind(it))) goto cleanup;
+  if ((rc = dcp_proteiniter_rewind(it))) goto cleanup;
 
-  while (!(rc = protein_iter_next(it, &x->protein)))
+  while (!(rc = dcp_proteiniter_next(it, &x->protein)))
   {
-    if (protein_iter_end(it)) break;
+    if (dcp_proteiniter_end(it)) break;
 
     struct imm_dp const *null_dp = &x->protein.null.dp;
     struct imm_dp const *alt_dp = &x->protein.alts.full.dp;
@@ -138,14 +138,14 @@ int scan_thrd_run0(struct scan_thrd *x, struct iseq const *seq)
   struct scan_task alt0 = {0};
   struct scan_task alt = {0};
 
-  struct protein_iter *it = &x->iter;
+  struct dcp_proteiniter *it = &x->iter;
   x->prod_thrd->match.seq_id = seq->id;
 
-  if ((rc = protein_iter_rewind(it))) goto cleanup;
+  if ((rc = dcp_proteiniter_rewind(it))) goto cleanup;
 
-  while (!(rc = protein_iter_next(it, &x->protein)))
+  while (!(rc = dcp_proteiniter_next(it, &x->protein)))
   {
-    if (protein_iter_end(it)) break;
+    if (dcp_proteiniter_end(it)) break;
 
     struct imm_dp const *null_dp = &x->protein.null.dp;
     struct imm_dp const *alt0_dp = &x->protein.alts.zero.dp;

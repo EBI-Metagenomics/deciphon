@@ -64,16 +64,16 @@ void test_protein_db_reader(void)
   unsigned nproteins = 0;
   struct imm_prod prod = imm_prod();
   int rc = 0;
-  struct protein_reader reader = {0};
-  eq(protein_reader_setup(&reader, &db, 1), 0);
-  struct protein_iter it = {0};
-  eq(protein_reader_iter(&reader, 0, &it), 0);
+  struct dcp_protein_reader reader = {0};
+  eq(dcp_protein_reader_setup(&reader, &db, 1), 0);
+  struct dcp_proteiniter it = {0};
+  eq(dcp_protein_reader_iter(&reader, 0, &it), 0);
   struct protein protein = {0};
   protein_init(&protein, imm_gencode_get(1), &db.amino, &db.code,
                ENTRY_DIST_OCCUPANCY, 0.01);
-  while (!(rc = protein_iter_next(&it, &protein)))
+  while (!(rc = dcp_proteiniter_next(&it, &protein)))
   {
-    if (protein_iter_end(&it)) break;
+    if (dcp_proteiniter_end(&it)) break;
 
     struct imm_task *task = imm_task_new(&protein.alts.full.dp);
     struct imm_seq seq = imm_seq(imm_str(imm_ex2_seq), abc);

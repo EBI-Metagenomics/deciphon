@@ -1,8 +1,7 @@
 #include "partition_size.h"
+#include "max.h"
 #include <assert.h>
 #include <limits.h>
-
-static inline long max(long a, long b) { return a > b ? a : b; }
 
 static inline long ceildiv(long x, long y)
 {
@@ -11,7 +10,7 @@ static inline long ceildiv(long x, long y)
   return (x + y - 1) / y;
 }
 
-long partition_size(long nelems, long nparts, long idx)
+long dcp_partition_size(long nelems, long nparts, long idx)
 {
-  return ceildiv(max(0, nelems - idx), nparts);
+  return ceildiv(dcp_max(0, nelems - idx), nparts);
 }

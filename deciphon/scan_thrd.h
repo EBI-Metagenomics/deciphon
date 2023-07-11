@@ -13,7 +13,7 @@ struct prod_writer_thrd;
 struct scan_thrd
 {
   struct protein protein;
-  struct protein_iter iter;
+  struct dcp_proteiniter iter;
 
   double lrt_threshold;
   bool multi_hits;
@@ -26,11 +26,12 @@ struct scan_thrd
 
 struct hmmer_dialer;
 struct prod_thrd;
-struct protein_reader;
+struct dcp_protein_reader;
 struct iseq;
 
-int scan_thrd_init(struct scan_thrd *, struct protein_reader *, int partition,
-                   struct prod_writer_thrd *, struct hmmer_dialer *);
+int scan_thrd_init(struct scan_thrd *, struct dcp_protein_reader *,
+                   int partition, struct prod_writer_thrd *,
+                   struct hmmer_dialer *);
 void scan_thrd_cleanup(struct scan_thrd *);
 
 void scan_thrd_set_lrt_threshold(struct scan_thrd *, double lrt);

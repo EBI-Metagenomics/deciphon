@@ -101,7 +101,7 @@ int dcp_scan_run(struct dcp_scan *x, char const *name)
   for (int i = 0; i < x->nthreads; ++i)
   {
     struct scan_thrd *t = x->threads + i;
-    struct protein_reader *r = scan_db_reader(&x->db);
+    struct dcp_protein_reader *r = scan_db_reader(&x->db);
     struct prod_writer_thrd *wt = prod_writer_thrd(&x->prod_writer, i);
     if ((rc = scan_thrd_init(t, r, i, wt, &x->dialer))) defer_return(rc);
     scan_thrd_set_lrt_threshold(t, x->lrt_threshold);

@@ -8,7 +8,7 @@ void scan_db_init(struct scan_db *x)
   x->filename[0] = 0;
   x->fp = NULL;
   dcp_db_reader_init(&x->db);
-  protein_reader_init(&x->rdr);
+  dcp_protein_reader_init(&x->rdr);
 }
 
 int scan_db_open(struct scan_db *x, int nthreads)
@@ -17,7 +17,8 @@ int scan_db_open(struct scan_db *x, int nthreads)
 
   if (!(x->fp = fopen(x->filename, "rb"))) defer_return(DCP_EOPENDB);
   if ((rc = dcp_db_reader_open(&x->db, x->fp))) defer_return(rc);
-  if ((rc = protein_reader_setup(&x->rdr, &x->db, nthreads))) defer_return(rc);
+  if ((rc = dcp_protein_reader_setup(&x->rdr, &x->db, nthreads)))
+    defer_return(rc);
 
   return 0;
 
@@ -42,7 +43,7 @@ int scan_db_set_filename(struct scan_db *x, char const *filename)
   return strkcpy(x->filename, filename, n) ? 0 : DCP_ELONGPATH;
 }
 
-struct protein_reader *scan_db_reader(struct scan_db *x) { return &x->rdr; }
+struct dcp_protein_reader *scan_db_reader(struct scan_db *x) { return &x->rdr; }
 
 struct imm_abc const *scan_db_abc(struct scan_db const *x)
 {

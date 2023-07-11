@@ -10,7 +10,7 @@ struct scan_db
   char filename[FILENAME_MAX];
   FILE *fp;
   struct dcp_db_reader db;
-  struct protein_reader rdr;
+  struct dcp_protein_reader rdr;
 };
 
 struct imm_abc;
@@ -20,7 +20,7 @@ int scan_db_open(struct scan_db *, int nthreads);
 void scan_db_close(struct scan_db *);
 
 int scan_db_set_filename(struct scan_db *, char const *);
-struct protein_reader *scan_db_reader(struct scan_db *);
+struct dcp_protein_reader *scan_db_reader(struct scan_db *);
 struct imm_abc const *scan_db_abc(struct scan_db const *);
 
 #endif
