@@ -35,7 +35,7 @@ int h3reader_next(struct h3reader *h3r)
   hmr_rc = hmr_next_node(&h3r->hmr, &h3r->protein);
   assert(hmr_rc != HMR_EOF);
 
-  struct trans t = {
+  struct dcp_trans t = {
       .MM = (float)h3r->protein.node.trans[HMR_TRANS_MM],
       .MI = (float)h3r->protein.node.trans[HMR_TRANS_MI],
       .MD = (float)h3r->protein.node.trans[HMR_TRANS_MD],
@@ -57,7 +57,7 @@ int h3reader_next(struct h3reader *h3r)
     rc = model_add_node(&h3r->model, match_lprobs, consensus);
     assert(!rc);
 
-    struct trans t2 = {
+    struct dcp_trans t2 = {
         .MM = (float)h3r->protein.node.trans[HMR_TRANS_MM],
         .MI = (float)h3r->protein.node.trans[HMR_TRANS_MI],
         .MD = (float)h3r->protein.node.trans[HMR_TRANS_MD],

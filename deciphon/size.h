@@ -1,7 +1,7 @@
 #ifndef DECIPHON_SIZES_H
 #define DECIPHON_SIZES_H
 
-enum dcp_sizes
+enum dcp_size
 {
   DCP_ABC_NAME_SIZE = 16,
   DCP_PROFILE_NAME_SIZE = 64,

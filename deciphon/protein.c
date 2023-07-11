@@ -57,7 +57,7 @@ void protein_setup(struct protein *protein, unsigned seq_size, bool multi_hits,
   float l1p = log(2 + q / (1 - q)) - log(L + 2 + q / (1 - q));
   float lr = log(L) - log(L + 1);
 
-  struct xtrans t = {0};
+  struct dcp_xtrans t = {0};
 
   t.NN = t.CC = t.JJ = lp;
   t.NB = t.CT = t.JB = l1p;
@@ -123,7 +123,7 @@ int protein_sample(struct protein *x, unsigned seed, unsigned core_size)
 
   for (unsigned i = 0; i < core_size + 1; ++i)
   {
-    struct trans t = {0};
+    struct dcp_trans t = {0};
     imm_lprob_sample(&rnd, TRANS_SIZE, t.data);
     if (i == 0) t.DD = IMM_LPROB_ZERO;
     if (i == core_size)

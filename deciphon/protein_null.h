@@ -12,7 +12,7 @@ struct protein_null
 };
 
 void protein_null_init(struct protein_null *, struct imm_nuclt_code const *);
-void protein_null_setup(struct protein_null *, struct xtrans const *);
+void protein_null_setup(struct protein_null *, struct dcp_xtrans const *);
 int protein_null_absorb(struct protein_null *, struct model const *,
                         struct model_summary const *);
 int protein_null_pack(struct protein_null const *, struct lip_file *);

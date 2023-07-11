@@ -25,8 +25,8 @@ struct model
   enum entry_dist entry_dist;
   float epsilon;
   unsigned core_size;
-  struct xnode xnode;
-  struct xtrans xtrans;
+  struct dcp_xnode xnode;
+  struct dcp_xtrans xtrans;
   char consensus[MODEL_MAX + 1];
 
   struct
@@ -42,7 +42,7 @@ struct model
     struct node *nodes;
     float *locc;
     unsigned trans_idx;
-    struct trans *trans;
+    struct dcp_trans *trans;
     struct imm_hmm hmm;
 
     struct
@@ -55,7 +55,7 @@ struct model
 int model_add_node(struct model *, float const lp[IMM_AMINO_SIZE],
                    char consensus);
 
-int model_add_trans(struct model *, struct trans);
+int model_add_trans(struct model *, struct dcp_trans);
 
 void model_del(struct model const *);
 

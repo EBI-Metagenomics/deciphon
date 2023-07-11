@@ -31,8 +31,8 @@ void init_delete(struct imm_mute_state *, struct model *);
 void init_insert(struct imm_frame_state *, struct model *);
 void init_match(struct imm_frame_state *, struct model *, struct nuclt_dist *);
 
-int init_null_xtrans(struct imm_hmm *, struct xnode_null *);
-int init_alt_xtrans(struct imm_hmm *, struct xnode_alt *);
+int init_null_xtrans(struct imm_hmm *, struct dcp_xnode_null *);
+int init_alt_xtrans(struct imm_hmm *, struct dcp_xnode_alt *);
 
 struct imm_nuclt_lprob nuclt_lprob(struct imm_gencode const *,
                                    struct imm_codon_lprob const *);
@@ -83,7 +83,7 @@ int model_add_node(struct model *m, float const lprobs[IMM_AMINO_SIZE],
   return 0;
 }
 
-int model_add_trans(struct model *m, struct trans trans)
+int model_add_trans(struct model *m, struct dcp_trans trans)
 {
   if (!have_called_setup(m)) return DCP_EFUNCUSE;
 
@@ -137,7 +137,7 @@ void model_init(struct model *m, struct imm_gencode const *gc,
   m->alt.locc = NULL;
   m->alt.trans_idx = UINT_MAX;
   m->alt.trans = NULL;
-  xtrans_init(&m->xtrans);
+  dcp_xtrans_init(&m->xtrans);
 }
 
 static void model_reset(struct model *model)
@@ -217,7 +217,7 @@ struct model_summary model_summary(struct model *m)
 
 int add_xnodes(struct model *m)
 {
-  struct xnode *n = &m->xnode;
+  struct dcp_xnode *n = &m->xnode;
 
   if (imm_hmm_add_state(&m->null.hmm, &n->null.R.super)) return DCP_EADDSTATE;
   if (imm_hmm_set_start(&m->null.hmm, &n->null.R.super, LOG1))
@@ -241,7 +241,7 @@ void init_xnodes(struct model *m)
   float e = m->epsilon;
   struct imm_nuclt_lprob const *nucltp = &m->null.nuclt_dist.nucltp;
   struct imm_codon_marg const *codonm = &m->null.nuclt_dist.codonm;
-  struct xnode *n = &m->xnode;
+  struct dcp_xnode *n = &m->xnode;
   struct imm_nuclt const *nuclt = m->code->nuclt;
 
   struct imm_span w = imm_span(1, 5);
@@ -258,7 +258,7 @@ void init_xnodes(struct model *m)
 
 void calculate_occupancy(struct model *m)
 {
-  struct trans *trans = m->alt.trans;
+  struct dcp_trans *trans = m->alt.trans;
   m->alt.locc[0] = imm_lprob_add(trans->MI, trans->MM);
   for (unsigned i = 1; i < m->core_size; ++i)
   {
@@ -315,14 +315,14 @@ void init_match(struct imm_frame_state *state, struct model *m,
   imm_frame_state_init(state, id, &d->nucltp, &d->codonm, e, imm_span(1, 5));
 }
 
-int init_null_xtrans(struct imm_hmm *hmm, struct xnode_null *n)
+int init_null_xtrans(struct imm_hmm *hmm, struct dcp_xnode_null *n)
 {
   if (imm_hmm_set_trans(hmm, &n->R.super, &n->R.super, LOG1))
     return DCP_ESETTRANS;
   return 0;
 }
 
-int init_alt_xtrans(struct imm_hmm *hmm, struct xnode_alt *n)
+int init_alt_xtrans(struct imm_hmm *hmm, struct dcp_xnode_alt *n)
 {
   if (imm_hmm_set_trans(hmm, &n->S.super, &n->B.super, LOG1))
     return DCP_ESETTRANS;
@@ -478,7 +478,7 @@ int setup_exit_trans(struct model *m)
 int setup_transitions(struct model *m)
 {
   struct imm_hmm *h = &m->alt.hmm;
-  struct trans *trans = m->alt.trans;
+  struct dcp_trans *trans = m->alt.trans;
 
   struct imm_state *B = &m->xnode.alt.B.super;
   struct imm_state *M1 = &m->alt.nodes[0].M.super;
@@ -489,7 +489,7 @@ int setup_transitions(struct model *m)
     struct node *p = m->alt.nodes + i;
     struct node *n = m->alt.nodes + i + 1;
     unsigned j = i + 1;
-    struct trans t = trans[j];
+    struct dcp_trans t = trans[j];
     if (imm_hmm_set_trans(h, &p->M.super, &p->I.super, t.MI))
       return DCP_ESETTRANS;
     if (imm_hmm_set_trans(h, &p->I.super, &p->I.super, t.II))

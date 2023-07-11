@@ -21,7 +21,7 @@ void protein_alts_init(struct protein_alts *x,
   x->zero.T = x->full.T = 0;
 }
 
-static void alt_setup(struct protein_alt *alt, struct xtrans const *t)
+static void alt_setup(struct protein_alt *alt, struct dcp_xtrans const *t)
 {
   struct imm_dp *dp = &alt->dp;
 
@@ -49,7 +49,7 @@ static void alt_setup(struct protein_alt *alt, struct xtrans const *t)
   imm_dp_change_trans(dp, imm_dp_trans_idx(dp, J, B), t->JB);
 }
 
-void protein_alts_setup(struct protein_alts *x, struct xtrans const *t)
+void protein_alts_setup(struct protein_alts *x, struct dcp_xtrans const *t)
 {
   alt_setup(&x->zero, t);
   alt_setup(&x->full, t);

@@ -1,14 +1,12 @@
 #ifndef DECIPHON_TRANS_H
 #define DECIPHON_TRANS_H
 
-#include "imm/imm.h"
-
 enum
 {
   TRANS_SIZE = 7
 };
 
-struct trans
+struct dcp_trans
 {
   union
   {

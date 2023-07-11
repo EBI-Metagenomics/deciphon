@@ -7,8 +7,8 @@
 #include "rc.h"
 #include "scan_db.h"
 #include "scan_thrd.h"
-#include "seq_iter.h"
-#include "sizes.h"
+#include "seqiter.h"
+#include "size.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -24,7 +24,7 @@ struct dcp_scan
   bool heuristic;
 
   struct scan_db db;
-  struct seq_iter seqit;
+  struct seqiter seqit;
   struct hmmer_dialer dialer;
 };
 
@@ -37,7 +37,7 @@ struct dcp_scan *dcp_scan_new(int port)
   x->hmmer3_compat = false;
   x->heuristic = false;
   scan_db_init(&x->db);
-  seq_iter_init(&x->seqit, NULL, NULL);
+  seqiter_init(&x->seqit, NULL, NULL);
   prod_writer_init(&x->prod_writer);
   if (dcp_hmmer_dialer_init(&x->dialer, port))
   {
@@ -91,7 +91,7 @@ int dcp_scan_set_db_file(struct dcp_scan *x, char const *filename)
 void dcp_scan_set_seq_iter(struct dcp_scan *x, dcp_seq_next_fn *callb,
                            void *arg)
 {
-  seq_iter_init(&x->seqit, callb, arg);
+  seqiter_init(&x->seqit, callb, arg);
 }
 
 int dcp_scan_run(struct dcp_scan *x, char const *name)
@@ -120,10 +120,10 @@ int dcp_scan_run(struct dcp_scan *x, char const *name)
       x->heuristic ? scan_thrd_run0 : scan_thrd_run};
 
   int seq_idx = 0;
-  while (seq_iter_next(&x->seqit) && !rc)
+  while (seqiter_next(&x->seqit) && !rc)
   {
     fprintf(stderr, "Scanning sequence %d\n", seq_idx++);
-    struct dcp_seq const *y = seq_iter_get(&x->seqit);
+    struct dcp_seq const *y = dcp_seqiter_get(&x->seqit);
     struct iseq seq = iseq_init(y->id, y->name, y->data, scan_db_abc(&x->db));
 
 #pragma omp parallel for default(none) shared(x, run_scan_thrd, seq, rc)

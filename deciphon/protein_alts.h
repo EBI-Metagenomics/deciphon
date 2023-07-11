@@ -26,7 +26,7 @@ struct protein_alts
 };
 
 void protein_alts_init(struct protein_alts *, struct imm_nuclt_code const *);
-void protein_alts_setup(struct protein_alts *, struct xtrans const *);
+void protein_alts_setup(struct protein_alts *, struct dcp_xtrans const *);
 int protein_alts_absorb(struct protein_alts *, struct model *,
                         struct model_summary const *);
 int protein_alts_pack(struct protein_alts const *, struct lip_file *);

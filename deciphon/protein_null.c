@@ -10,7 +10,7 @@ void protein_null_init(struct protein_null *x,
   x->R = 0;
 }
 
-void protein_null_setup(struct protein_null *x, struct xtrans const *t)
+void protein_null_setup(struct protein_null *x, struct dcp_xtrans const *t)
 {
   imm_dp_change_trans(&x->dp, imm_dp_trans_idx(&x->dp, x->R, x->R), t->RR);
 }

@@ -15,7 +15,7 @@ int main(void)
   float match_lprobs1[IMM_AMINO_SIZE];
   float match_lprobs2[IMM_AMINO_SIZE];
   float match_lprobs3[IMM_AMINO_SIZE];
-  struct trans t[4];
+  struct dcp_trans t[4];
 
   struct imm_rnd rnd = imm_rnd(942);
   imm_lprob_sample(&rnd, IMM_AMINO_SIZE, null_lprobs);

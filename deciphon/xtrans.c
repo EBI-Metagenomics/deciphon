@@ -1,6 +1,6 @@
 #include "xtrans.h"
 
-void xtrans_init(struct xtrans *t)
+void dcp_xtrans_init(struct dcp_xtrans *t)
 {
   t->NN = IMM_LPROB_ONE;
   t->NB = IMM_LPROB_ONE;
