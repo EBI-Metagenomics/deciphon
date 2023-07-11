@@ -18,8 +18,8 @@ int scan_thrd_init(struct scan_thrd *x, struct dcp_protein_reader *reader,
                    struct hmmer_dialer *dialer)
 {
   struct dcp_db_reader const *db = reader->db;
-  protein_init(&x->protein, NULL, &db->amino, &db->code, db->entry_dist,
-               db->epsilon);
+  dcp_protein_init(&x->protein, NULL, &db->amino, &db->code, db->entry_dist,
+                   db->epsilon);
   dcp_protein_reader_iter(reader, partition, &x->iter);
 
   x->prod_thrd = prod_thrd;
@@ -37,14 +37,14 @@ int scan_thrd_init(struct scan_thrd *x, struct dcp_protein_reader *reader,
   return rc;
 
 defer:
-  protein_cleanup(&x->protein);
+  dcp_protein_cleanup(&x->protein);
   chararray_cleanup(&x->amino);
   return rc;
 }
 
 void scan_thrd_cleanup(struct scan_thrd *x)
 {
-  protein_cleanup(&x->protein);
+  dcp_protein_cleanup(&x->protein);
   chararray_cleanup(&x->amino);
   dcp_hmmer_cleanup(&x->hmmer);
 }
@@ -91,7 +91,8 @@ int scan_thrd_run(struct scan_thrd *x, struct iseq const *seq)
     rc = scan_task_setup(&alt, &x->protein.alts.full.dp, seq);
     if (rc) goto cleanup;
 
-    protein_setup(&x->protein, iseq_size(seq), x->multi_hits, x->hmmer3_compat);
+    dcp_protein_setup(&x->protein, iseq_size(seq), x->multi_hits,
+                      x->hmmer3_compat);
 
     if (imm_dp_viterbi(null_dp, null.task, &null.prod)) goto cleanup;
     if (imm_dp_viterbi(alt_dp, alt.task, &alt.prod)) goto cleanup;
@@ -125,7 +126,7 @@ int scan_thrd_run(struct scan_thrd *x, struct iseq const *seq)
   }
 
 cleanup:
-  protein_cleanup(&x->protein);
+  dcp_protein_cleanup(&x->protein);
   scan_task_cleanup(&null);
   scan_task_cleanup(&alt);
   return rc;
@@ -156,7 +157,8 @@ int scan_thrd_run0(struct scan_thrd *x, struct iseq const *seq)
     rc = scan_task_setup(&alt0, alt0_dp, seq);
     if (rc) goto cleanup;
 
-    protein_setup(&x->protein, iseq_size(seq), x->multi_hits, x->hmmer3_compat);
+    dcp_protein_setup(&x->protein, iseq_size(seq), x->multi_hits,
+                      x->hmmer3_compat);
 
     if (imm_dp_viterbi(null_dp, null.task, &null.prod)) goto cleanup;
     if (imm_dp_viterbi(alt0_dp, alt0.task, &alt0.prod)) goto cleanup;
@@ -201,7 +203,7 @@ int scan_thrd_run0(struct scan_thrd *x, struct iseq const *seq)
   }
 
 cleanup:
-  protein_cleanup(&x->protein);
+  dcp_protein_cleanup(&x->protein);
   scan_task_cleanup(&null);
   scan_task_cleanup(&alt);
   scan_task_cleanup(&alt0);

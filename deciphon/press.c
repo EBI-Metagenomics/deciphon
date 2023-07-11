@@ -25,7 +25,7 @@ struct dcp_press
   } reader;
 
   unsigned count;
-  struct protein protein;
+  struct dcp_protein protein;
 
   char buffer[4 * 1024];
 };
@@ -65,12 +65,12 @@ int dcp_press_open(struct dcp_press *press, int gencode_id, char const *hmm,
 
   prepare_reader(press, gc);
 
-  protein_init(&press->protein, gc, &press->writer.db.amino,
-               &press->writer.db.code, press->writer.db.entry_dist,
-               press->writer.db.epsilon);
+  dcp_protein_init(&press->protein, gc, &press->writer.db.amino,
+                   &press->writer.db.code, press->writer.db.entry_dist,
+                   press->writer.db.epsilon);
 
   char const *acc = press->reader.h3.protein.meta.acc;
-  if ((rc = protein_set_accession(&press->protein, acc))) defer_return(rc);
+  if ((rc = dcp_protein_set_accession(&press->protein, acc))) defer_return(rc);
 
   return rc;
 
@@ -125,7 +125,7 @@ int dcp_press_close(struct dcp_press *press)
   int rc_w = finish_writer(press);
   press->writer.fp = NULL;
   press->reader.fp = NULL;
-  protein_cleanup(&press->protein);
+  dcp_protein_cleanup(&press->protein);
   h3reader_del(&press->reader.h3);
   return rc_r ? rc_r : (rc_w ? rc_w : 0);
 }
@@ -168,10 +168,10 @@ static void prepare_reader(struct dcp_press *press,
 
 static int protein_write(struct dcp_press *x)
 {
-  int rc = protein_absorb(&x->protein, &x->reader.h3.model);
+  int rc = dcp_protein_absorb(&x->protein, &x->reader.h3.model);
   if (rc) return rc;
 
-  unsigned n = array_size_field(struct protein, accession);
+  unsigned n = array_size_field(struct dcp_protein, accession);
   if (!strkcpy(x->protein.accession, x->reader.h3.protein.meta.acc, n))
     return DCP_EFORMAT;
 

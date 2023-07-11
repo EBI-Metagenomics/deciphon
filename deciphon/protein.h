@@ -9,7 +9,7 @@
 struct lip_file;
 struct dcp_db_reader;
 
-struct protein
+struct dcp_protein
 {
   struct imm_gencode const *gencode;
   char accession[32];
@@ -27,27 +27,28 @@ struct protein
   struct dcp_protein_alts alts;
 };
 
-void protein_init(struct protein *, struct imm_gencode const *,
-                  struct imm_amino const *, struct imm_nuclt_code const *,
-                  enum entry_dist, float epsilon);
+void dcp_protein_init(struct dcp_protein *, struct imm_gencode const *,
+                      struct imm_amino const *, struct imm_nuclt_code const *,
+                      enum entry_dist, float epsilon);
 
-int protein_set_accession(struct protein *, char const *);
+int dcp_protein_set_accession(struct dcp_protein *, char const *);
 
-void protein_setup(struct protein *, unsigned seq_size, bool multi_hits,
-                   bool hmmer3_compat);
+void dcp_protein_setup(struct dcp_protein *, unsigned seq_size, bool multi_hits,
+                       bool hmmer3_compat);
 
-int protein_absorb(struct protein *, struct dcp_model *model);
+int dcp_protein_absorb(struct dcp_protein *, struct dcp_model *model);
 
-int protein_sample(struct protein *, unsigned seed, unsigned core_size);
+int dcp_protein_sample(struct dcp_protein *, unsigned seed, unsigned core_size);
 
-int protein_decode(struct protein const *, struct imm_seq const *,
-                   unsigned state_id, struct imm_codon *codon);
+int dcp_protein_decode(struct dcp_protein const *, struct imm_seq const *,
+                       unsigned state_id, struct imm_codon *codon);
 
-void protein_write_dot(struct protein const *, struct imm_dp const *, FILE *);
+void dcp_protein_write_dot(struct dcp_protein const *, struct imm_dp const *,
+                           FILE *);
 
-int protein_pack(struct protein const *, struct lip_file *file);
-int protein_unpack(struct protein *, struct lip_file *file);
+int dcp_protein_pack(struct dcp_protein const *, struct lip_file *file);
+int dcp_protein_unpack(struct dcp_protein *, struct lip_file *file);
 
-void protein_cleanup(struct protein *);
+void dcp_protein_cleanup(struct dcp_protein *);
 
 #endif

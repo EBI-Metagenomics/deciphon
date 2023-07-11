@@ -30,19 +30,19 @@ void test_protein_db_writer(void)
   struct dcp_db_writer db = {0};
   eq(dcp_db_writer_open(&db, fp, amino, nuclt, ENTRY_DIST_OCCUPANCY, 0.01), 0);
 
-  struct protein protein = {0};
-  protein_init(&protein, imm_gencode_get(1), amino, &code, ENTRY_DIST_OCCUPANCY,
-               0.01);
-  protein_set_accession(&protein, "accession0");
+  struct dcp_protein protein = {0};
+  dcp_protein_init(&protein, imm_gencode_get(1), amino, &code,
+                   ENTRY_DIST_OCCUPANCY, 0.01);
+  dcp_protein_set_accession(&protein, "accession0");
 
   unsigned core_size = 2;
-  protein_sample(&protein, 1, core_size);
+  dcp_protein_sample(&protein, 1, core_size);
   eq(dcp_db_writer_pack(&db, &protein), 0);
 
-  protein_sample(&protein, 2, core_size);
+  dcp_protein_sample(&protein, 2, core_size);
   eq(dcp_db_writer_pack(&db, &protein), 0);
 
-  protein_cleanup(&protein);
+  dcp_protein_cleanup(&protein);
   eq(dcp_db_writer_close(&db), 0);
   fclose(fp);
 }
@@ -68,9 +68,9 @@ void test_protein_db_reader(void)
   eq(dcp_protein_reader_setup(&reader, &db, 1), 0);
   struct dcp_proteiniter it = {0};
   eq(dcp_protein_reader_iter(&reader, 0, &it), 0);
-  struct protein protein = {0};
-  protein_init(&protein, imm_gencode_get(1), &db.amino, &db.code,
-               ENTRY_DIST_OCCUPANCY, 0.01);
+  struct dcp_protein protein = {0};
+  dcp_protein_init(&protein, imm_gencode_get(1), &db.amino, &db.code,
+                   ENTRY_DIST_OCCUPANCY, 0.01);
   while (!(rc = dcp_proteiniter_next(&it, &protein)))
   {
     if (dcp_proteiniter_end(&it)) break;
@@ -87,7 +87,7 @@ void test_protein_db_reader(void)
   eq(nproteins, 2);
 
   imm_prod_cleanup(&prod);
-  protein_cleanup(&protein);
+  dcp_protein_cleanup(&protein);
   dcp_db_reader_close(&db);
   fclose(fp);
 }

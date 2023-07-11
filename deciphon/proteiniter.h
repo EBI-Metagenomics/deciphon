@@ -21,7 +21,7 @@ struct dcp_proteiniter
 void dcp_proteiniter_init(struct dcp_proteiniter *, struct dcp_protein_reader *,
                           int partition, int start_idx, long offset, FILE *);
 int dcp_proteiniter_rewind(struct dcp_proteiniter *);
-int dcp_proteiniter_next(struct dcp_proteiniter *, struct protein *);
+int dcp_proteiniter_next(struct dcp_proteiniter *, struct dcp_protein *);
 bool dcp_proteiniter_end(struct dcp_proteiniter const *);
 int dcp_protein_iter_idx(struct dcp_proteiniter const *);
 

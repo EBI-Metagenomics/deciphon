@@ -12,7 +12,7 @@ struct dcp_prod_writer_thrd;
 
 struct scan_thrd
 {
-  struct protein protein;
+  struct dcp_protein protein;
   struct dcp_proteiniter iter;
 
   double lrt_threshold;

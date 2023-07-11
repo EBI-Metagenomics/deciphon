@@ -31,7 +31,7 @@ int dcp_db_writer_open(struct dcp_db_writer *db, FILE *fp,
                        struct imm_nuclt const *nuclt, enum entry_dist,
                        float epsilon);
 
-int dcp_db_writer_pack(struct dcp_db_writer *db, struct protein const *);
+int dcp_db_writer_pack(struct dcp_db_writer *db, struct dcp_protein const *);
 
 int dcp_db_writer_close(struct dcp_db_writer *db);
 

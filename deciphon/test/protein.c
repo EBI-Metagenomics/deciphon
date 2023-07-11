@@ -20,16 +20,16 @@ void test_protein_uniform(void)
   struct imm_nuclt_code code;
   imm_nuclt_code_init(&code, nuclt);
 
-  struct protein protein = {0};
-  protein_init(&protein, imm_gencode_get(1), amino, &code, ENTRY_DIST_UNIFORM,
-               0.1);
-  protein_set_accession(&protein, "accession");
-  eq(protein_sample(&protein, 1, 2), 0);
+  struct dcp_protein protein = {0};
+  dcp_protein_init(&protein, imm_gencode_get(1), amino, &code,
+                   ENTRY_DIST_UNIFORM, 0.1);
+  dcp_protein_set_accession(&protein, "accession");
+  eq(dcp_protein_sample(&protein, 1, 2), 0);
 
   char const str[] = "ATGAAACGCATTAGCACCACCATTACCACCAC";
   struct imm_seq seq = imm_seq(IMM_STR(str), protein.imm_code->abc);
 
-  protein_setup(&protein, imm_seq_size(&seq), true, false);
+  dcp_protein_setup(&protein, imm_seq_size(&seq), true, false);
 
   struct imm_prod prod = imm_prod();
   struct imm_dp *dp = &protein.null.dp;
@@ -101,7 +101,7 @@ void test_protein_uniform(void)
   eq(rc, 0);
   eq(i, 10);
 
-  protein_cleanup(&protein);
+  dcp_protein_cleanup(&protein);
   imm_prod_cleanup(&prod);
   imm_task_del(task);
 }
@@ -113,16 +113,16 @@ void test_protein_occupancy(void)
   struct imm_nuclt_code code;
   imm_nuclt_code_init(&code, nuclt);
 
-  struct protein protein = {0};
-  protein_init(&protein, imm_gencode_get(1), amino, &code, ENTRY_DIST_OCCUPANCY,
-               0.1);
-  protein_set_accession(&protein, "accession");
-  eq(protein_sample(&protein, 1, 2), 0);
+  struct dcp_protein protein = {0};
+  dcp_protein_init(&protein, imm_gencode_get(1), amino, &code,
+                   ENTRY_DIST_OCCUPANCY, 0.1);
+  dcp_protein_set_accession(&protein, "accession");
+  eq(dcp_protein_sample(&protein, 1, 2), 0);
 
   char const str[] = "ATGAAACGCATTAGCACCACCATTACCACCAC";
   struct imm_seq seq = imm_seq(imm_str(str), protein.imm_code->abc);
 
-  protein_setup(&protein, imm_seq_size(&seq), true, false);
+  dcp_protein_setup(&protein, imm_seq_size(&seq), true, false);
 
   struct imm_prod prod = imm_prod();
   struct imm_dp *dp = &protein.null.dp;
@@ -194,7 +194,7 @@ void test_protein_occupancy(void)
   eq(rc, 0);
   eq(i, 10);
 
-  protein_cleanup(&protein);
+  dcp_protein_cleanup(&protein);
   imm_prod_cleanup(&prod);
   imm_task_del(task);
 }

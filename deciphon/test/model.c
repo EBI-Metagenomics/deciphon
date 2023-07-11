@@ -45,13 +45,13 @@ int main(void)
   eq(dcp_model_add_trans(&model, t[2]), 0);
   eq(dcp_model_add_trans(&model, t[3]), 0);
 
-  struct protein protein = {0};
-  protein_init(&protein, NULL, amino, &code, ENTRY_DIST_OCCUPANCY, 0.01);
-  protein_set_accession(&protein, "accession");
+  struct dcp_protein protein = {0};
+  dcp_protein_init(&protein, NULL, amino, &code, ENTRY_DIST_OCCUPANCY, 0.01);
+  dcp_protein_set_accession(&protein, "accession");
 
-  eq(protein_absorb(&protein, &model), 0);
+  eq(dcp_protein_absorb(&protein, &model), 0);
 
-  protein_cleanup(&protein);
+  dcp_protein_cleanup(&protein);
   dcp_model_del(&model);
   return hope_status();
 }

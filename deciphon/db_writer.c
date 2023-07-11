@@ -82,7 +82,7 @@ static int db_writer_pack_float_size(struct dcp_db_writer *db)
 
 static int pack_protein(struct lip_file *file, void const *protein)
 {
-  return protein_pack(protein, file);
+  return dcp_protein_pack(protein, file);
 }
 
 static int db_writer_pack_prof(struct dcp_db_writer *db, void const *arg)
@@ -200,7 +200,8 @@ defer:
   return rc;
 }
 
-int dcp_db_writer_pack(struct dcp_db_writer *db, struct protein const *protein)
+int dcp_db_writer_pack(struct dcp_db_writer *db,
+                       struct dcp_protein const *protein)
 {
   return db_writer_pack_prof(db, protein);
 }

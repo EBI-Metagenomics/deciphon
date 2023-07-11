@@ -10,13 +10,13 @@
 #include <assert.h>
 #include <string.h>
 
-void protein_init(struct protein *x, struct imm_gencode const *gc,
-                  struct imm_amino const *amino,
-                  struct imm_nuclt_code const *code, enum entry_dist entry_dist,
-                  float epsilon)
+void dcp_protein_init(struct dcp_protein *x, struct imm_gencode const *gc,
+                      struct imm_amino const *amino,
+                      struct imm_nuclt_code const *code,
+                      enum entry_dist entry_dist, float epsilon)
 {
   x->gencode = gc;
-  memset(x->accession, 0, array_size_field(struct protein, accession));
+  memset(x->accession, 0, array_size_field(struct dcp_protein, accession));
   x->state_name = dcp_state_name;
   x->imm_code = &code->super;
 
@@ -25,20 +25,20 @@ void protein_init(struct protein *x, struct imm_gencode const *gc,
   x->entry_dist = entry_dist;
   x->epsilon = epsilon;
   x->epsilon_frame = imm_frame_epsilon(epsilon);
-  memset(x->consensus, 0, array_size_field(struct protein, consensus));
+  memset(x->consensus, 0, array_size_field(struct dcp_protein, consensus));
 
   dcp_protein_null_init(&x->null, code);
   dcp_protein_alts_init(&x->alts, code);
 }
 
-int protein_set_accession(struct protein *x, char const *acc)
+int dcp_protein_set_accession(struct dcp_protein *x, char const *acc)
 {
-  unsigned n = array_size_field(struct protein, accession);
+  unsigned n = array_size_field(struct dcp_protein, accession);
   return strkcpy(x->accession, acc, n) ? 0 : DCP_ELONGACC;
 }
 
-void protein_setup(struct protein *protein, unsigned seq_size, bool multi_hits,
-                   bool hmmer3_compat)
+void dcp_protein_setup(struct dcp_protein *protein, unsigned seq_size,
+                       bool multi_hits, bool hmmer3_compat)
 {
   assert(seq_size > 0);
 
@@ -74,7 +74,7 @@ void protein_setup(struct protein *protein, unsigned seq_size, bool multi_hits,
   dcp_protein_alts_setup(&protein->alts, &t);
 }
 
-int protein_absorb(struct protein *x, struct dcp_model *m)
+int dcp_protein_absorb(struct dcp_protein *x, struct dcp_model *m)
 {
   int rc = 0;
 
@@ -83,7 +83,7 @@ int protein_absorb(struct protein *x, struct dcp_model *m)
   if (x->amino != dcp_model_amino(m)) return DCP_EDIFFABC;
   if (x->nuclt_code->nuclt != dcp_model_nuclt(m)) return DCP_EDIFFABC;
 
-  unsigned n = array_size_field(struct protein, consensus);
+  unsigned n = array_size_field(struct dcp_protein, consensus);
   if (!strkcpy(x->consensus, m->consensus, n)) return DCP_EFORMAT;
 
   struct dcp_model_summary s = dcp_model_summary(m);
@@ -93,7 +93,7 @@ int protein_absorb(struct protein *x, struct dcp_model *m)
   return 0;
 }
 
-int protein_sample(struct protein *x, unsigned seed, unsigned core_size)
+int dcp_protein_sample(struct dcp_protein *x, unsigned seed, unsigned core_size)
 {
   assert(core_size >= 2);
   if (!x->gencode) return DCP_ESETGENCODE;
@@ -135,15 +135,15 @@ int protein_sample(struct protein *x, unsigned seed, unsigned core_size)
     if ((rc = dcp_model_add_trans(&model, t))) goto cleanup;
   }
 
-  rc = protein_absorb(x, &model);
+  rc = dcp_protein_absorb(x, &model);
 
 cleanup:
   dcp_model_del(&model);
   return rc;
 }
 
-int protein_decode(struct protein const *x, struct imm_seq const *seq,
-                   unsigned state_id, struct imm_codon *codon)
+int dcp_protein_decode(struct dcp_protein const *x, struct imm_seq const *seq,
+                       unsigned state_id, struct imm_codon *codon)
 {
   assert(!state_is_mute(state_id));
 
@@ -169,13 +169,13 @@ int protein_decode(struct protein const *x, struct imm_seq const *seq,
   return 0;
 }
 
-void protein_write_dot(struct protein const *x, struct imm_dp const *dp,
-                       FILE *fp)
+void dcp_protein_write_dot(struct dcp_protein const *x, struct imm_dp const *dp,
+                           FILE *fp)
 {
   imm_dp_write_dot(dp, fp, x->state_name);
 }
 
-int protein_pack(struct protein const *x, struct lip_file *file)
+int dcp_protein_pack(struct dcp_protein const *x, struct lip_file *file)
 {
   int rc = 0;
   if (!x->gencode) return DCP_ESETGENCODE;
@@ -198,10 +198,12 @@ int protein_pack(struct protein const *x, struct lip_file *file)
   return 0;
 }
 
-int protein_unpack(struct protein *x, struct lip_file *file)
+int dcp_protein_unpack(struct dcp_protein *x, struct lip_file *file)
 {
-  unsigned const accession_size = array_size_field(struct protein, accession);
-  unsigned const consensus_size = array_size_field(struct protein, consensus);
+  unsigned const accession_size =
+      array_size_field(struct dcp_protein, accession);
+  unsigned const consensus_size =
+      array_size_field(struct dcp_protein, consensus);
 
   int rc = 0;
   if ((rc = dcp_expect_map_size(file, 5))) return rc;
@@ -226,7 +228,7 @@ int protein_unpack(struct protein *x, struct lip_file *file)
   return 0;
 }
 
-void protein_cleanup(struct protein *x)
+void dcp_protein_cleanup(struct dcp_protein *x)
 {
   if (x)
   {

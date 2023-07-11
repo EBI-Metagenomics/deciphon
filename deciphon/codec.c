@@ -3,7 +3,7 @@
 #include "protein.h"
 #include "state.h"
 
-struct dcp_codec dcp_codec_init(struct protein const *protein,
+struct dcp_codec dcp_codec_init(struct dcp_protein const *protein,
                                 struct imm_path const *path)
 {
   return (struct dcp_codec){0, 0, protein, path};
@@ -26,7 +26,7 @@ int dcp_codec_next(struct dcp_codec *codec, struct imm_seq const *seq,
   struct imm_seq frag = imm_subseq(seq, codec->start, size);
   codec->start += size;
   codec->idx++;
-  return protein_decode(codec->protein, &frag, step->state_id, codon);
+  return dcp_protein_decode(codec->protein, &frag, step->state_id, codon);
 }
 
 bool dcp_codec_end(struct dcp_codec const *codec)
