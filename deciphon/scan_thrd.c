@@ -14,7 +14,7 @@
 #include "protein_reader.h"
 
 int scan_thrd_init(struct scan_thrd *x, struct dcp_protein_reader *reader,
-                   int partition, struct prod_writer_thrd *prod_thrd,
+                   int partition, struct dcp_prod_writer_thrd *prod_thrd,
                    struct hmmer_dialer *dialer)
 {
   struct dcp_db_reader const *db = reader->db;
@@ -25,7 +25,7 @@ int scan_thrd_init(struct scan_thrd *x, struct dcp_protein_reader *reader,
   x->prod_thrd = prod_thrd;
   struct imm_abc const *abc = &db->nuclt.super;
   char const *abc_name = imm_abc_typeid_name(abc->typeid);
-  prod_match_set_abc(&x->prod_thrd->match, abc_name);
+  dcp_prod_match_set_abc(&x->prod_thrd->match, abc_name);
 
   chararray_init(&x->amino);
 
@@ -64,8 +64,8 @@ void scan_thrd_set_hmmer3_compat(struct scan_thrd *x, bool h3compat)
   x->hmmer3_compat = h3compat;
 }
 
-static int infer_amino(struct chararray *x, struct match *match,
-                       struct match_iter *it);
+static int infer_amino(struct chararray *x, struct dcp_match *match,
+                       struct dcp_matchiter *it);
 
 int scan_thrd_run(struct scan_thrd *x, struct iseq const *seq)
 {
@@ -99,29 +99,29 @@ int scan_thrd_run(struct scan_thrd *x, struct iseq const *seq)
     x->prod_thrd->match.null = null.prod.loglik;
     x->prod_thrd->match.alt = alt.prod.loglik;
 
-    float lrt = prod_match_get_lrt(&x->prod_thrd->match);
+    float lrt = dcp_prod_match_get_lrt(&x->prod_thrd->match);
 
     if (!imm_lprob_is_finite(lrt) || lrt < x->lrt_threshold) continue;
 
-    prod_match_set_protein(&x->prod_thrd->match, x->protein.accession);
+    dcp_prod_match_set_protein(&x->prod_thrd->match, x->protein.accession);
 
-    struct match match = {0};
-    match_init(&match, &x->protein);
+    struct dcp_match match = {0};
+    dcp_match_init(&match, &x->protein);
 
-    struct match_iter mit = {0};
+    struct dcp_matchiter mit = {0};
 
-    match_iter_init(&mit, &seq->iseq, &alt.prod.path);
+    dcp_matchiter_init(&mit, &seq->iseq, &alt.prod.path);
     if ((rc = infer_amino(&x->amino, &match, &mit))) break;
     if ((rc = dcp_hmmer_get(&x->hmmer, protein_iter_idx(it), seq->name,
                             x->amino.data)))
       break;
     if (dcp_hmmer_result_nhits(&x->hmmer.result) == 0) continue;
     x->prod_thrd->match.evalue = dcp_hmmer_result_evalue_ln(&x->hmmer.result);
-    if ((rc = prod_writer_thrd_put_hmmer(x->prod_thrd, &x->hmmer.result)))
+    if ((rc = dcp_prod_writer_thrd_put_hmmer(x->prod_thrd, &x->hmmer.result)))
       break;
 
-    match_iter_init(&mit, &seq->iseq, &alt.prod.path);
-    if ((rc = prod_writer_thrd_put(x->prod_thrd, &match, &mit))) break;
+    dcp_matchiter_init(&mit, &seq->iseq, &alt.prod.path);
+    if ((rc = dcp_prod_writer_thrd_put(x->prod_thrd, &match, &mit))) break;
   }
 
 cleanup:
@@ -175,29 +175,29 @@ int scan_thrd_run0(struct scan_thrd *x, struct iseq const *seq)
     x->prod_thrd->match.null = null.prod.loglik;
     x->prod_thrd->match.alt = alt.prod.loglik;
 
-    float lrt1 = prod_match_get_lrt(&x->prod_thrd->match);
+    float lrt1 = dcp_prod_match_get_lrt(&x->prod_thrd->match);
 
     if (!imm_lprob_is_finite(lrt1) || lrt1 < x->lrt_threshold) continue;
 
-    prod_match_set_protein(&x->prod_thrd->match, x->protein.accession);
+    dcp_prod_match_set_protein(&x->prod_thrd->match, x->protein.accession);
 
-    struct match match = {0};
-    match_init(&match, &x->protein);
+    struct dcp_match match = {0};
+    dcp_match_init(&match, &x->protein);
 
-    struct match_iter mit = {0};
+    struct dcp_matchiter mit = {0};
 
-    match_iter_init(&mit, &seq->iseq, &alt.prod.path);
+    dcp_matchiter_init(&mit, &seq->iseq, &alt.prod.path);
     if ((rc = infer_amino(&x->amino, &match, &mit))) break;
     if ((rc = dcp_hmmer_get(&x->hmmer, protein_iter_idx(it), seq->name,
                             x->amino.data)))
       break;
     if (dcp_hmmer_result_nhits(&x->hmmer.result) == 0) continue;
     x->prod_thrd->match.evalue = dcp_hmmer_result_evalue_ln(&x->hmmer.result);
-    if ((rc = prod_writer_thrd_put_hmmer(x->prod_thrd, &x->hmmer.result)))
+    if ((rc = dcp_prod_writer_thrd_put_hmmer(x->prod_thrd, &x->hmmer.result)))
       break;
 
-    match_iter_init(&mit, &seq->iseq, &alt.prod.path);
-    if ((rc = prod_writer_thrd_put(x->prod_thrd, &match, &mit))) break;
+    dcp_matchiter_init(&mit, &seq->iseq, &alt.prod.path);
+    if ((rc = dcp_prod_writer_thrd_put(x->prod_thrd, &match, &mit))) break;
   }
 
 cleanup:
@@ -208,17 +208,17 @@ cleanup:
   return rc;
 }
 
-static int infer_amino(struct chararray *x, struct match *match,
-                       struct match_iter *it)
+static int infer_amino(struct chararray *x, struct dcp_match *match,
+                       struct dcp_matchiter *it)
 {
   int rc = 0;
 
   chararray_reset(x);
-  while (!(rc = match_iter_next(it, match)))
+  while (!(rc = dcp_matchiter_next(it, match)))
   {
-    if (match_iter_end(it)) break;
-    if (match_state_is_mute(match)) continue;
-    if ((rc = chararray_append(x, match_amino(match)))) return rc;
+    if (dcp_matchiter_end(it)) break;
+    if (dcp_match_state_is_mute(match)) continue;
+    if ((rc = chararray_append(x, dcp_match_amino(match)))) return rc;
   }
 
   return chararray_append(x, '\0');

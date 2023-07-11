@@ -4,23 +4,23 @@
 #include "prod_match.h"
 #include <stdio.h>
 
-struct match;
-struct match_iter;
+struct dcp_match;
+struct dcp_matchiter;
 struct dcp_hmmer_result;
 
-struct prod_writer_thrd
+struct dcp_prod_writer_thrd
 {
   int idx;
   char const *dirname;
   char prodname[DCP_SHORT_PATH_MAX];
-  struct prod_match match;
+  struct dcp_prod_match match;
 };
 
-int prod_writer_thrd_init(struct prod_writer_thrd *, int idx,
-                          char const *dirname);
-int prod_writer_thrd_put(struct prod_writer_thrd *, struct match *,
-                         struct match_iter *);
-int prod_writer_thrd_put_hmmer(struct prod_writer_thrd *,
-                               struct dcp_hmmer_result const *);
+int dcp_prod_writer_thrd_init(struct dcp_prod_writer_thrd *, int idx,
+                              char const *dirname);
+int dcp_prod_writer_thrd_put(struct dcp_prod_writer_thrd *, struct dcp_match *,
+                             struct dcp_matchiter *);
+int dcp_prod_writer_thrd_put_hmmer(struct dcp_prod_writer_thrd *,
+                                   struct dcp_hmmer_result const *);
 
 #endif

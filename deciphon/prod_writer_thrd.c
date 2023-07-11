@@ -34,25 +34,26 @@
  *                      ---------------
  */
 
-int prod_writer_thrd_init(struct prod_writer_thrd *x, int idx, char const *dir)
+int dcp_prod_writer_thrd_init(struct dcp_prod_writer_thrd *x, int idx,
+                              char const *dir)
 {
   int rc = 0;
   x->idx = idx;
   x->dirname = dir;
-  size_t n = array_size_field(struct prod_writer_thrd, prodname);
+  size_t n = array_size_field(struct dcp_prod_writer_thrd, prodname);
   if ((rc = fmt(x->prodname, n, "%s/.products.%03d.tsv", dir, idx))) return rc;
   if ((rc = dcp_fs_touch(x->prodname))) return rc;
-  prod_match_init(&x->match);
+  dcp_prod_match_init(&x->match);
   return 0;
 }
 
-static int write_begin(FILE *, struct prod_match const *);
-static int write_match(FILE *, struct match const *);
+static int write_begin(FILE *, struct dcp_prod_match const *);
+static int write_match(FILE *, struct dcp_match const *);
 static int write_sep(FILE *);
 static int write_end(FILE *);
 
-int prod_writer_thrd_put(struct prod_writer_thrd *x, struct match *match,
-                         struct match_iter *it)
+int dcp_prod_writer_thrd_put(struct dcp_prod_writer_thrd *x,
+                             struct dcp_match *match, struct dcp_matchiter *it)
 {
   int rc = 0;
 
@@ -62,9 +63,9 @@ int prod_writer_thrd_put(struct prod_writer_thrd *x, struct match *match,
   if ((rc = write_begin(fp, &x->match))) defer_return(rc);
 
   int i = 0;
-  while (!(rc = match_iter_next(it, match)))
+  while (!(rc = dcp_matchiter_next(it, match)))
   {
-    if (match_iter_end(it)) break;
+    if (dcp_matchiter_end(it)) break;
     if (i++ && (rc = write_sep(fp))) defer_return(rc);
     if ((rc = write_match(fp, match))) defer_return(rc);
   }
@@ -78,8 +79,8 @@ defer:
   return rc;
 }
 
-int prod_writer_thrd_put_hmmer(struct prod_writer_thrd *x,
-                               struct dcp_hmmer_result const *result)
+int dcp_prod_writer_thrd_put_hmmer(struct dcp_prod_writer_thrd *x,
+                                   struct dcp_hmmer_result const *result)
 {
   char file[DCP_SHORT_PATH_MAX] = {0};
   int rc = 0;
@@ -104,7 +105,7 @@ int prod_writer_thrd_put_hmmer(struct prod_writer_thrd *x,
   return fclose(fp) ? DCP_EFCLOSE : 0;
 }
 
-static int write_begin(FILE *fp, struct prod_match const *y)
+static int write_begin(FILE *fp, struct dcp_prod_match const *y)
 {
   if (fprintf(fp, "%ld\t", y->seq_id) < 0) return DCP_EWRITEPROD;
 
@@ -118,7 +119,7 @@ static int write_begin(FILE *fp, struct prod_match const *y)
   return 0;
 }
 
-static int write_match(FILE *fp, struct match const *m)
+static int write_match(FILE *fp, struct dcp_match const *m)
 {
   char buff[IMM_STATE_NAME_SIZE + 20] = {0};
 
@@ -127,13 +128,13 @@ static int write_match(FILE *fp, struct match const *m)
   ptr += m->seq.size;
   *ptr++ = ',';
 
-  match_state_name(m, ptr);
+  dcp_match_state_name(m, ptr);
   ptr += strlen(ptr);
   *ptr++ = ',';
 
-  if (!match_state_is_mute(m))
+  if (!dcp_match_state_is_mute(m))
   {
-    struct imm_codon codon = match_codon(m);
+    struct imm_codon codon = dcp_match_codon(m);
     *ptr++ = imm_codon_asym(&codon);
     *ptr++ = imm_codon_bsym(&codon);
     *ptr++ = imm_codon_csym(&codon);
@@ -141,7 +142,7 @@ static int write_match(FILE *fp, struct match const *m)
 
   *ptr++ = ',';
 
-  if (!match_state_is_mute(m)) *ptr++ = match_amino(m);
+  if (!dcp_match_state_is_mute(m)) *ptr++ = dcp_match_amino(m);
 
   *ptr = '\0';
 

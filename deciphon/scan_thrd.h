@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 struct chararray;
-struct prod_writer_thrd;
+struct dcp_prod_writer_thrd;
 
 struct scan_thrd
 {
@@ -19,7 +19,7 @@ struct scan_thrd
   bool multi_hits;
   bool hmmer3_compat;
 
-  struct prod_writer_thrd *prod_thrd;
+  struct dcp_prod_writer_thrd *prod_thrd;
   struct chararray amino;
   struct dcp_hmmer hmmer;
 };
@@ -30,7 +30,7 @@ struct dcp_protein_reader;
 struct iseq;
 
 int scan_thrd_init(struct scan_thrd *, struct dcp_protein_reader *,
-                   int partition, struct prod_writer_thrd *,
+                   int partition, struct dcp_prod_writer_thrd *,
                    struct hmmer_dialer *);
 void scan_thrd_cleanup(struct scan_thrd *);
 

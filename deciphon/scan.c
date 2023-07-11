@@ -16,7 +16,7 @@ struct dcp_scan
 {
   int nthreads;
   struct scan_thrd threads[DCP_NTHREADS_MAX];
-  struct prod_writer prod_writer;
+  struct dcp_prod_writer prod_writer;
 
   double lrt_threshold;
   bool multi_hits;
@@ -36,7 +36,7 @@ struct dcp_scan *dcp_scan_new(int port)
   x->hmmer3_compat = false;
   scan_db_init(&x->db);
   dcp_seqiter_init(&x->seqit);
-  prod_writer_init(&x->prod_writer);
+  dcp_prod_writer_init(&x->prod_writer);
   if (dcp_hmmer_dialer_init(&x->dialer, port))
   {
     free(x);
@@ -95,14 +95,14 @@ int dcp_scan_run(struct dcp_scan *x, char const *name)
 
   if ((rc = scan_db_open(&x->db, x->nthreads))) defer_return(rc);
 
-  if ((rc = prod_writer_open(&x->prod_writer, x->nthreads, name)))
+  if ((rc = dcp_prod_writer_open(&x->prod_writer, x->nthreads, name)))
     defer_return(rc);
 
   for (int i = 0; i < x->nthreads; ++i)
   {
     struct scan_thrd *t = x->threads + i;
     struct dcp_protein_reader *r = scan_db_reader(&x->db);
-    struct prod_writer_thrd *wt = prod_writer_thrd(&x->prod_writer, i);
+    struct dcp_prod_writer_thrd *wt = dcp_prod_writer_thrd(&x->prod_writer, i);
     if ((rc = scan_thrd_init(t, r, i, wt, &x->dialer))) defer_return(rc);
     scan_thrd_set_lrt_threshold(t, x->lrt_threshold);
     scan_thrd_set_multi_hits(t, x->multi_hits);
@@ -129,10 +129,10 @@ int dcp_scan_run(struct dcp_scan *x, char const *name)
   scan_db_close(&x->db);
   for (int i = 0; i < x->nthreads; ++i)
     scan_thrd_cleanup(x->threads + i);
-  return prod_writer_close(&x->prod_writer);
+  return dcp_prod_writer_close(&x->prod_writer);
 
 defer:
-  prod_writer_close(&x->prod_writer);
+  dcp_prod_writer_close(&x->prod_writer);
   scan_db_close(&x->db);
   for (int i = 0; i < x->nthreads; ++i)
     scan_thrd_cleanup(x->threads + i);

@@ -10,15 +10,17 @@
 #define fmt(B, N, F, ...) dcp_format((B), (N), (F), __VA_ARGS__)
 #define FMT(buf, format, ...) fmt((buf), array_size(buf), (format), __VA_ARGS__)
 
-void prod_writer_init(struct prod_writer *x) { x->nthreads = 0; }
+void dcp_prod_writer_init(struct dcp_prod_writer *x) { x->nthreads = 0; }
 
-int prod_writer_open(struct prod_writer *x, int nthreads, char const *dir)
+int dcp_prod_writer_open(struct dcp_prod_writer *x, int nthreads,
+                         char const *dir)
 {
-  if (nthreads > (int)array_size_field(struct prod_writer, threads))
+  if (nthreads > (int)array_size_field(struct dcp_prod_writer, threads))
     return DCP_EMANYTHREADS;
   x->nthreads = nthreads;
 
-  if (!strkcpy(x->dirname, dir, array_size_field(struct prod_writer, dirname)))
+  if (!strkcpy(x->dirname, dir,
+               array_size_field(struct dcp_prod_writer, dirname)))
     return DCP_ELONGPATH;
 
   int rc = 0;
@@ -31,7 +33,7 @@ int prod_writer_open(struct prod_writer *x, int nthreads, char const *dir)
 
   for (int i = 0; i < nthreads; ++i)
   {
-    if ((rc = prod_writer_thrd_init(x->threads + i, i, x->dirname)))
+    if ((rc = dcp_prod_writer_thrd_init(x->threads + i, i, x->dirname)))
       defer_return(rc);
   }
 
@@ -43,7 +45,7 @@ defer:
   return rc;
 }
 
-int prod_writer_close(struct prod_writer *x)
+int dcp_prod_writer_close(struct dcp_prod_writer *x)
 {
   char filename[DCP_SHORT_PATH_MAX] = {0};
   int rc = 0;
@@ -85,7 +87,8 @@ defer:
   return rc;
 }
 
-struct prod_writer_thrd *prod_writer_thrd(struct prod_writer *x, int idx)
+struct dcp_prod_writer_thrd *dcp_prod_writer_thrd(struct dcp_prod_writer *x,
+                                                  int idx)
 {
   return x->threads + idx;
 }

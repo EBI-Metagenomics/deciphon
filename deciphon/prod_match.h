@@ -3,7 +3,7 @@
 
 #include "size.h"
 
-struct prod_match
+struct dcp_prod_match
 {
   long id;
 
@@ -17,9 +17,9 @@ struct prod_match
   double evalue;
 };
 
-void prod_match_init(struct prod_match *);
-void prod_match_set_protein(struct prod_match *, char const *);
-void prod_match_set_abc(struct prod_match *, char const *);
-double prod_match_get_lrt(struct prod_match const *);
+void dcp_prod_match_init(struct dcp_prod_match *);
+void dcp_prod_match_set_protein(struct dcp_prod_match *, char const *);
+void dcp_prod_match_set_abc(struct dcp_prod_match *, char const *);
+double dcp_prod_match_get_lrt(struct dcp_prod_match const *);
 
 #endif
