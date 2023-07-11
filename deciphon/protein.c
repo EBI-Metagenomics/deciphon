@@ -13,7 +13,7 @@
 void dcp_protein_init(struct dcp_protein *x, struct imm_gencode const *gc,
                       struct imm_amino const *amino,
                       struct imm_nuclt_code const *code,
-                      enum entry_dist entry_dist, float epsilon)
+                      enum dcp_entry_dist entry_dist, float epsilon)
 {
   x->gencode = gc;
   memset(x->accession, 0, array_size_field(struct dcp_protein, accession));

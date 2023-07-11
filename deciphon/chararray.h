@@ -3,17 +3,17 @@
 
 #include <stddef.h>
 
-struct chararray
+struct dcp_chararray
 {
   size_t size;
   size_t capacity;
   char *data;
 };
 
-void chararray_init(struct chararray *);
-void chararray_cleanup(struct chararray *);
+void dcp_chararray_init(struct dcp_chararray *);
+void dcp_chararray_cleanup(struct dcp_chararray *);
 
-int chararray_append(struct chararray *, char);
-void chararray_reset(struct chararray *);
+int dcp_chararray_append(struct dcp_chararray *, char);
+void dcp_chararray_reset(struct dcp_chararray *);
 
 #endif

@@ -27,7 +27,7 @@ int scan_thrd_init(struct scan_thrd *x, struct dcp_protein_reader *reader,
   char const *abc_name = imm_abc_typeid_name(abc->typeid);
   dcp_prod_match_set_abc(&x->prod_thrd->match, abc_name);
 
-  chararray_init(&x->amino);
+  dcp_chararray_init(&x->amino);
 
   int rc = 0;
   if ((rc = dcp_hmmer_init(&x->hmmer))) defer_return(rc);
@@ -38,14 +38,14 @@ int scan_thrd_init(struct scan_thrd *x, struct dcp_protein_reader *reader,
 
 defer:
   dcp_protein_cleanup(&x->protein);
-  chararray_cleanup(&x->amino);
+  dcp_chararray_cleanup(&x->amino);
   return rc;
 }
 
 void scan_thrd_cleanup(struct scan_thrd *x)
 {
   dcp_protein_cleanup(&x->protein);
-  chararray_cleanup(&x->amino);
+  dcp_chararray_cleanup(&x->amino);
   dcp_hmmer_cleanup(&x->hmmer);
 }
 
@@ -64,7 +64,7 @@ void scan_thrd_set_hmmer3_compat(struct scan_thrd *x, bool h3compat)
   x->hmmer3_compat = h3compat;
 }
 
-static int infer_amino(struct chararray *x, struct dcp_match *match,
+static int infer_amino(struct dcp_chararray *x, struct dcp_match *match,
                        struct dcp_matchiter *it);
 
 int scan_thrd_run(struct scan_thrd *x, struct iseq const *seq)
@@ -210,18 +210,18 @@ cleanup:
   return rc;
 }
 
-static int infer_amino(struct chararray *x, struct dcp_match *match,
+static int infer_amino(struct dcp_chararray *x, struct dcp_match *match,
                        struct dcp_matchiter *it)
 {
   int rc = 0;
 
-  chararray_reset(x);
+  dcp_chararray_reset(x);
   while (!(rc = dcp_matchiter_next(it, match)))
   {
     if (dcp_matchiter_end(it)) break;
     if (dcp_match_state_is_mute(match)) continue;
-    if ((rc = chararray_append(x, dcp_match_amino(match)))) return rc;
+    if ((rc = dcp_chararray_append(x, dcp_match_amino(match)))) return rc;
   }
 
-  return chararray_append(x, '\0');
+  return dcp_chararray_append(x, '\0');
 }

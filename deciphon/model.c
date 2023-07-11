@@ -108,7 +108,7 @@ void dcp_model_del(struct dcp_model const *model)
 void dcp_model_init(struct dcp_model *m, struct imm_gencode const *gc,
                     struct imm_amino const *amino,
                     struct imm_nuclt_code const *code,
-                    enum entry_dist entry_dist, float epsilon,
+                    enum dcp_entry_dist entry_dist, float epsilon,
                     float const null_lprobs[IMM_AMINO_SIZE])
 
 {

@@ -22,13 +22,13 @@ struct dcp_db_writer
   struct imm_amino amino;
   struct imm_nuclt nuclt;
   struct imm_nuclt_code code;
-  enum entry_dist entry_dist;
+  enum dcp_entry_dist entry_dist;
   float epsilon;
 };
 
 int dcp_db_writer_open(struct dcp_db_writer *db, FILE *fp,
                        struct imm_amino const *amino,
-                       struct imm_nuclt const *nuclt, enum entry_dist,
+                       struct imm_nuclt const *nuclt, enum dcp_entry_dist,
                        float epsilon);
 
 int dcp_db_writer_pack(struct dcp_db_writer *db, struct dcp_protein const *);

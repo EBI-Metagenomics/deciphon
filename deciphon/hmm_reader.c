@@ -1,13 +1,15 @@
-#include "h3reader.h"
+#include "hmm_reader.h"
 #include "compiler.h"
 #include "rc.h"
 
 static void init_null_lprobs(float[IMM_AMINO_SIZE]);
 
-void h3reader_init(struct h3reader *reader, struct imm_gencode const *gc,
-                   struct imm_amino const *amino,
-                   struct imm_nuclt_code const *code,
-                   enum entry_dist entry_dist, float epsilon, FILE *fp)
+void dcp_hmm_reader_init(struct dcp_hmm_reader *reader,
+                         struct imm_gencode const *gc,
+                         struct imm_amino const *amino,
+                         struct imm_nuclt_code const *code,
+                         enum dcp_entry_dist entry_dist, float epsilon,
+                         FILE *fp)
 {
   hmr_init(&reader->hmr, fp);
   hmr_prof_init(&reader->protein, &reader->hmr);
@@ -17,7 +19,7 @@ void h3reader_init(struct h3reader *reader, struct imm_gencode const *gc,
   reader->end = false;
 }
 
-int h3reader_next(struct h3reader *h3r)
+int dcp_hmm_reader_next(struct dcp_hmm_reader *h3r)
 {
   int hmr_rc = hmr_next_prof(&h3r->hmr, &h3r->protein);
   if (hmr_rc == HMR_EOF)
@@ -74,9 +76,12 @@ int h3reader_next(struct h3reader *h3r)
   return 0;
 }
 
-bool h3reader_end(struct h3reader const *reader) { return reader->end; }
+bool dcp_hmm_reader_end(struct dcp_hmm_reader const *reader)
+{
+  return reader->end;
+}
 
-void h3reader_del(struct h3reader const *reader)
+void dcp_hmm_reader_del(struct dcp_hmm_reader const *reader)
 {
   dcp_model_del(&reader->model);
 }

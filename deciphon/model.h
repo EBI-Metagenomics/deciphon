@@ -22,7 +22,7 @@ struct dcp_model
   struct imm_gencode const *gencode;
   struct imm_amino const *amino;
   struct imm_nuclt_code const *code;
-  enum entry_dist entry_dist;
+  enum dcp_entry_dist entry_dist;
   float epsilon;
   unsigned core_size;
   struct dcp_xnode xnode;
@@ -61,7 +61,7 @@ void dcp_model_del(struct dcp_model const *);
 
 void dcp_model_init(struct dcp_model *, struct imm_gencode const *,
                     struct imm_amino const *, struct imm_nuclt_code const *,
-                    enum entry_dist, float epsilon,
+                    enum dcp_entry_dist, float epsilon,
                     float const null_lprobs[IMM_AMINO_SIZE]);
 
 int dcp_model_setup(struct dcp_model *, unsigned core_size);

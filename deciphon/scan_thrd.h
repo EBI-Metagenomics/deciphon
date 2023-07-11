@@ -7,7 +7,7 @@
 #include "scan_task.h"
 #include <stdio.h>
 
-struct chararray;
+struct dcp_chararray;
 struct dcp_prod_writer_thrd;
 
 struct scan_thrd
@@ -20,7 +20,7 @@ struct scan_thrd
   bool hmmer3_compat;
 
   struct dcp_prod_writer_thrd *prod_thrd;
-  struct chararray amino;
+  struct dcp_chararray amino;
   struct dcp_hmmer hmmer;
 };
 

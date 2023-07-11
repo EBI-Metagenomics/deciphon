@@ -2,14 +2,14 @@
 #include "rc.h"
 #include <stdlib.h>
 
-void chararray_init(struct chararray *x)
+void dcp_chararray_init(struct dcp_chararray *x)
 {
   x->size = 0;
   x->capacity = 0;
   x->data = NULL;
 }
 
-void chararray_cleanup(struct chararray *x)
+void dcp_chararray_cleanup(struct dcp_chararray *x)
 {
   if (x)
   {
@@ -22,7 +22,7 @@ void chararray_cleanup(struct chararray *x)
 
 static size_t next_capacity(size_t size);
 
-int chararray_append(struct chararray *x, char c)
+int dcp_chararray_append(struct dcp_chararray *x, char c)
 {
   if (x->size + 1 > x->capacity)
   {
@@ -37,7 +37,7 @@ int chararray_append(struct chararray *x, char c)
   return 0;
 }
 
-void chararray_reset(struct chararray *x) { x->size = 0; }
+void dcp_chararray_reset(struct dcp_chararray *x) { x->size = 0; }
 
 static size_t next_capacity(size_t x)
 {

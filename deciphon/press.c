@@ -21,7 +21,7 @@ struct dcp_press
   struct
   {
     FILE *fp;
-    struct h3reader h3;
+    struct dcp_hmm_reader h3;
   } reader;
 
   unsigned count;
@@ -106,17 +106,17 @@ static int count_proteins(struct dcp_press *press)
 
 int dcp_press_next(struct dcp_press *press)
 {
-  int rc = h3reader_next(&press->reader.h3);
+  int rc = dcp_hmm_reader_next(&press->reader.h3);
   if (rc) return rc;
 
-  if (h3reader_end(&press->reader.h3)) return 0;
+  if (dcp_hmm_reader_end(&press->reader.h3)) return 0;
 
   return protein_write(press);
 }
 
 bool dcp_press_end(struct dcp_press const *press)
 {
-  return h3reader_end(&press->reader.h3);
+  return dcp_hmm_reader_end(&press->reader.h3);
 }
 
 int dcp_press_close(struct dcp_press *press)
@@ -126,7 +126,7 @@ int dcp_press_close(struct dcp_press *press)
   press->writer.fp = NULL;
   press->reader.fp = NULL;
   dcp_protein_cleanup(&press->protein);
-  h3reader_del(&press->reader.h3);
+  dcp_hmm_reader_del(&press->reader.h3);
   return rc_r ? rc_r : (rc_w ? rc_w : 0);
 }
 
@@ -159,11 +159,11 @@ static void prepare_reader(struct dcp_press *press,
 {
   struct imm_amino const *amino = &press->writer.db.amino;
   struct imm_nuclt_code const *code = &press->writer.db.code;
-  enum entry_dist entry_dist = press->writer.db.entry_dist;
+  enum dcp_entry_dist entry_dist = press->writer.db.entry_dist;
   float epsilon = press->writer.db.epsilon;
 
-  h3reader_init(&press->reader.h3, gc, amino, code, entry_dist, epsilon,
-                press->reader.fp);
+  dcp_hmm_reader_init(&press->reader.h3, gc, amino, code, entry_dist, epsilon,
+                      press->reader.fp);
 }
 
 static int protein_write(struct dcp_press *x)

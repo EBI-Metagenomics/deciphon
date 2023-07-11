@@ -18,7 +18,7 @@ struct dcp_protein
 
   struct imm_amino const *amino;
   struct imm_nuclt_code const *nuclt_code;
-  enum entry_dist entry_dist;
+  enum dcp_entry_dist entry_dist;
   float epsilon;
   struct imm_frame_epsilon epsilon_frame;
   char consensus[MODEL_MAX + 1];
@@ -29,7 +29,7 @@ struct dcp_protein
 
 void dcp_protein_init(struct dcp_protein *, struct imm_gencode const *,
                       struct imm_amino const *, struct imm_nuclt_code const *,
-                      enum entry_dist, float epsilon);
+                      enum dcp_entry_dist, float epsilon);
 
 int dcp_protein_set_accession(struct dcp_protein *, char const *);
 

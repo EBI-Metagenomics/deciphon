@@ -5,7 +5,8 @@
 #include "magic_number.h"
 #include "rc.h"
 
-static int pack_entry_dist(struct lip_file *file, enum entry_dist const *edist)
+static int pack_entry_dist(struct lip_file *file,
+                           enum dcp_entry_dist const *edist)
 {
   if (!lip_write_cstr(file, "entry_dist")) return DCP_EFWRITE;
   if (!lip_write_int(file, *edist)) return DCP_EFWRITE;
@@ -168,7 +169,7 @@ defer:
 int dcp_db_writer_open(struct dcp_db_writer *db, FILE *fp,
                        struct imm_amino const *amino,
                        struct imm_nuclt const *nuclt,
-                       enum entry_dist entry_dist, float epsilon)
+                       enum dcp_entry_dist entry_dist, float epsilon)
 {
   int rc = 0;
 

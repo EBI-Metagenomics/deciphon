@@ -7,7 +7,7 @@
 #include "rc.h"
 #include <stdlib.h>
 
-static int unpack_entry_dist(struct lip_file *file, enum entry_dist *ed)
+static int unpack_entry_dist(struct lip_file *file, enum dcp_entry_dist *ed)
 {
   int rc = 0;
   if ((rc = dcp_expect_map_key(file, "entry_dist"))) return rc;

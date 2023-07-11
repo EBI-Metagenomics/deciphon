@@ -14,7 +14,7 @@ struct dcp_db_reader
   struct imm_amino amino;
   struct imm_nuclt nuclt;
   struct imm_nuclt_code code;
-  enum entry_dist entry_dist;
+  enum dcp_entry_dist entry_dist;
   float epsilon;
 };
 
