@@ -12,8 +12,8 @@ void h3reader_init(struct h3reader *reader, struct imm_gencode const *gc,
   hmr_init(&reader->hmr, fp);
   hmr_prof_init(&reader->protein, &reader->hmr);
   init_null_lprobs(reader->null_lprobs);
-  model_init(&reader->model, gc, amino, code, entry_dist, epsilon,
-             reader->null_lprobs);
+  dcp_model_init(&reader->model, gc, amino, code, entry_dist, epsilon,
+                 reader->null_lprobs);
   reader->end = false;
 }
 
@@ -30,7 +30,7 @@ int h3reader_next(struct h3reader *h3r)
 
   unsigned core_size = hmr_prof_length(&h3r->protein);
   int rc = 0;
-  if ((rc = model_setup(&h3r->model, core_size))) return rc;
+  if ((rc = dcp_model_setup(&h3r->model, core_size))) return rc;
 
   hmr_rc = hmr_next_node(&h3r->hmr, &h3r->protein);
   assert(hmr_rc != HMR_EOF);
@@ -44,7 +44,7 @@ int h3reader_next(struct h3reader *h3r)
       .DM = (float)h3r->protein.node.trans[HMR_TRANS_DM],
       .DD = (float)h3r->protein.node.trans[HMR_TRANS_DD],
   };
-  rc = model_add_trans(&h3r->model, t);
+  rc = dcp_model_add_trans(&h3r->model, t);
   assert(!rc);
 
   while (!(hmr_rc = hmr_next_node(&h3r->hmr, &h3r->protein)))
@@ -54,7 +54,7 @@ int h3reader_next(struct h3reader *h3r)
       match_lprobs[i] = (float)h3r->protein.node.match[i];
 
     char consensus = h3r->protein.node.excess.cons;
-    rc = model_add_node(&h3r->model, match_lprobs, consensus);
+    rc = dcp_model_add_node(&h3r->model, match_lprobs, consensus);
     assert(!rc);
 
     struct dcp_trans t2 = {
@@ -66,7 +66,7 @@ int h3reader_next(struct h3reader *h3r)
         .DM = (float)h3r->protein.node.trans[HMR_TRANS_DM],
         .DD = (float)h3r->protein.node.trans[HMR_TRANS_DD],
     };
-    rc = model_add_trans(&h3r->model, t2);
+    rc = dcp_model_add_trans(&h3r->model, t2);
     assert(!rc);
   }
   assert(hmr_rc == HMR_END);
@@ -76,7 +76,10 @@ int h3reader_next(struct h3reader *h3r)
 
 bool h3reader_end(struct h3reader const *reader) { return reader->end; }
 
-void h3reader_del(struct h3reader const *reader) { model_del(&reader->model); }
+void h3reader_del(struct h3reader const *reader)
+{
+  dcp_model_del(&reader->model);
+}
 
 static void init_null_lprobs(float lprobs[IMM_AMINO_SIZE])
 {

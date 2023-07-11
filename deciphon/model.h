@@ -17,7 +17,7 @@ enum
   MODEL_MAX = 4096,
 };
 
-struct model
+struct dcp_model
 {
   struct imm_gencode const *gencode;
   struct imm_amino const *amino;
@@ -52,24 +52,24 @@ struct model
   } alt;
 };
 
-int model_add_node(struct model *, float const lp[IMM_AMINO_SIZE],
-                   char consensus);
+int dcp_model_add_node(struct dcp_model *, float const lp[IMM_AMINO_SIZE],
+                       char consensus);
 
-int model_add_trans(struct model *, struct dcp_trans);
+int dcp_model_add_trans(struct dcp_model *, struct dcp_trans);
 
-void model_del(struct model const *);
+void dcp_model_del(struct dcp_model const *);
 
-void model_init(struct model *, struct imm_gencode const *,
-                struct imm_amino const *, struct imm_nuclt_code const *,
-                enum entry_dist, float epsilon,
-                float const null_lprobs[IMM_AMINO_SIZE]);
+void dcp_model_init(struct dcp_model *, struct imm_gencode const *,
+                    struct imm_amino const *, struct imm_nuclt_code const *,
+                    enum entry_dist, float epsilon,
+                    float const null_lprobs[IMM_AMINO_SIZE]);
 
-int model_setup(struct model *, unsigned core_size);
+int dcp_model_setup(struct dcp_model *, unsigned core_size);
 
-void model_write_dot(struct model const *, FILE *);
+void dcp_model_write_dot(struct dcp_model const *, FILE *);
 
-struct imm_amino const *model_amino(struct model const *);
-struct imm_nuclt const *model_nuclt(struct model const *);
-struct model_summary model_summary(struct model *);
+struct imm_amino const *dcp_model_amino(struct dcp_model const *);
+struct imm_nuclt const *dcp_model_nuclt(struct dcp_model const *);
+struct dcp_model_summary dcp_model_summary(struct dcp_model *);
 
 #endif

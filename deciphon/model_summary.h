@@ -1,7 +1,7 @@
 #ifndef DECIPHON_MODEL_SUMMARY_H
 #define DECIPHON_MODEL_SUMMARY_H
 
-struct model_summary
+struct dcp_model_summary
 {
   struct
   {

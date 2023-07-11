@@ -12,7 +12,7 @@ struct h3reader
   struct hmr hmr;
   struct hmr_prof protein;
   float null_lprobs[IMM_AMINO_SIZE];
-  struct model model;
+  struct dcp_model model;
   bool end;
 };
 

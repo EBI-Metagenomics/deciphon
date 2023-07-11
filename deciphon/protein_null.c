@@ -17,8 +17,9 @@ void dcp_protein_null_setup(struct dcp_protein_null *x,
   imm_dp_change_trans(&x->dp, imm_dp_trans_idx(&x->dp, x->R, x->R), t->RR);
 }
 
-int dcp_protein_null_absorb(struct dcp_protein_null *x, struct model const *m,
-                            struct model_summary const *s)
+int dcp_protein_null_absorb(struct dcp_protein_null *x,
+                            struct dcp_model const *m,
+                            struct dcp_model_summary const *s)
 {
   struct imm_hmm const *hmm = s->null.hmm;
   if (imm_hmm_reset_dp(hmm, &s->null.R->super, &x->dp)) return DCP_EDPRESET;

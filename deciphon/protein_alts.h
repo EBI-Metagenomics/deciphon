@@ -29,8 +29,8 @@ void dcp_protein_alts_init(struct dcp_protein_alts *,
                            struct imm_nuclt_code const *);
 void dcp_protein_alts_setup(struct dcp_protein_alts *,
                             struct dcp_xtrans const *);
-int dcp_protein_alts_absorb(struct dcp_protein_alts *, struct model *,
-                            struct model_summary const *);
+int dcp_protein_alts_absorb(struct dcp_protein_alts *, struct dcp_model *,
+                            struct dcp_model_summary const *);
 int dcp_protein_alts_pack(struct dcp_protein_alts const *, struct lip_file *);
 int dcp_protein_alts_unpack(struct dcp_protein_alts *, struct lip_file *);
 void dcp_protein_alts_cleanup(struct dcp_protein_alts *);

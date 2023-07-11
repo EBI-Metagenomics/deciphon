@@ -30,20 +30,20 @@ int main(void)
     imm_lprob_normalize(TRANS_SIZE, t[i].data);
   }
 
-  struct model model;
-  model_init(&model, imm_gencode_get(1), amino, &code, ENTRY_DIST_OCCUPANCY,
-             0.01, null_lprobs);
+  struct dcp_model model;
+  dcp_model_init(&model, imm_gencode_get(1), amino, &code, ENTRY_DIST_OCCUPANCY,
+                 0.01, null_lprobs);
 
-  eq(model_setup(&model, core_size), 0);
+  eq(dcp_model_setup(&model, core_size), 0);
 
-  eq(model_add_node(&model, match_lprobs1, '-'), 0);
-  eq(model_add_node(&model, match_lprobs2, '-'), 0);
-  eq(model_add_node(&model, match_lprobs3, '-'), 0);
+  eq(dcp_model_add_node(&model, match_lprobs1, '-'), 0);
+  eq(dcp_model_add_node(&model, match_lprobs2, '-'), 0);
+  eq(dcp_model_add_node(&model, match_lprobs3, '-'), 0);
 
-  eq(model_add_trans(&model, t[0]), 0);
-  eq(model_add_trans(&model, t[1]), 0);
-  eq(model_add_trans(&model, t[2]), 0);
-  eq(model_add_trans(&model, t[3]), 0);
+  eq(dcp_model_add_trans(&model, t[0]), 0);
+  eq(dcp_model_add_trans(&model, t[1]), 0);
+  eq(dcp_model_add_trans(&model, t[2]), 0);
+  eq(dcp_model_add_trans(&model, t[3]), 0);
 
   struct protein protein = {0};
   protein_init(&protein, NULL, amino, &code, ENTRY_DIST_OCCUPANCY, 0.01);
@@ -52,6 +52,6 @@ int main(void)
   eq(protein_absorb(&protein, &model), 0);
 
   protein_cleanup(&protein);
-  model_del(&model);
+  dcp_model_del(&model);
   return hope_status();
 }

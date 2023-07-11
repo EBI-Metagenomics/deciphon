@@ -36,7 +36,7 @@ int protein_set_accession(struct protein *, char const *);
 void protein_setup(struct protein *, unsigned seq_size, bool multi_hits,
                    bool hmmer3_compat);
 
-int protein_absorb(struct protein *, struct model *model);
+int protein_absorb(struct protein *, struct dcp_model *model);
 
 int protein_sample(struct protein *, unsigned seed, unsigned core_size);
 

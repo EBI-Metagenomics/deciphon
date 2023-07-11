@@ -57,7 +57,7 @@ void dcp_protein_alts_setup(struct dcp_protein_alts *x,
 }
 
 static int absorb_alt_dp(struct dcp_protein_alt *x,
-                         struct model_summary const *s)
+                         struct dcp_model_summary const *s)
 {
   if (imm_hmm_reset_dp(s->alt.hmm, &s->alt.T->super, &x->dp))
     return DCP_EDPRESET;
@@ -73,7 +73,8 @@ static int absorb_alt_dp(struct dcp_protein_alt *x,
   return 0;
 }
 
-static int remove_del_ins_states(struct model *x, struct model_summary const *s)
+static int remove_del_ins_states(struct dcp_model *x,
+                                 struct dcp_model_summary const *s)
 {
   int rc = 0;
   for (unsigned i = 0; i < x->core_size; ++i)
@@ -98,8 +99,8 @@ static int alloc_match_nuclt_dists(struct dcp_protein_alts *x)
   return 0;
 }
 
-int dcp_protein_alts_absorb(struct dcp_protein_alts *x, struct model *m,
-                            struct model_summary const *s)
+int dcp_protein_alts_absorb(struct dcp_protein_alts *x, struct dcp_model *m,
+                            struct dcp_model_summary const *s)
 {
   int rc = 0;
   x->core_size = m->core_size;

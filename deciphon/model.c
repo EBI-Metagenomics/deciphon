@@ -19,17 +19,18 @@ static float const uniform_lprobs[IMM_NUCLT_SIZE] = {LOGN2, LOGN2, LOGN2,
 /* Compute log(1 - p) given log(p). */
 static inline float log1_p(float logp) { return log1p(-exp(logp)); }
 
-int add_xnodes(struct model *);
-void init_xnodes(struct model *);
+int add_xnodes(struct dcp_model *);
+void init_xnodes(struct dcp_model *);
 
-void calculate_occupancy(struct model *);
+void calculate_occupancy(struct dcp_model *);
 
-bool have_called_setup(struct model *);
-bool have_finished_add(struct model const *);
+bool have_called_setup(struct dcp_model *);
+bool have_finished_add(struct dcp_model const *);
 
-void init_delete(struct imm_mute_state *, struct model *);
-void init_insert(struct imm_frame_state *, struct model *);
-void init_match(struct imm_frame_state *, struct model *, struct nuclt_dist *);
+void init_delete(struct imm_mute_state *, struct dcp_model *);
+void init_insert(struct imm_frame_state *, struct dcp_model *);
+void init_match(struct imm_frame_state *, struct dcp_model *,
+                struct nuclt_dist *);
 
 int init_null_xtrans(struct imm_hmm *, struct dcp_xnode_null *);
 int init_alt_xtrans(struct imm_hmm *, struct dcp_xnode_alt *);
@@ -45,12 +46,12 @@ void setup_nuclt_dist(struct imm_gencode const *, struct nuclt_dist *,
                       struct imm_amino const *, struct imm_nuclt const *,
                       float const[IMM_AMINO_SIZE]);
 
-int setup_entry_trans(struct model *);
-int setup_exit_trans(struct model *);
-int setup_transitions(struct model *);
+int setup_entry_trans(struct dcp_model *);
+int setup_exit_trans(struct dcp_model *);
+int setup_transitions(struct dcp_model *);
 
-int model_add_node(struct model *m, float const lprobs[IMM_AMINO_SIZE],
-                   char consensus)
+int dcp_model_add_node(struct dcp_model *m, float const lprobs[IMM_AMINO_SIZE],
+                       char consensus)
 {
   if (!have_called_setup(m)) return DCP_EFUNCUSE;
 
@@ -83,7 +84,7 @@ int model_add_node(struct model *m, float const lprobs[IMM_AMINO_SIZE],
   return 0;
 }
 
-int model_add_trans(struct model *m, struct dcp_trans trans)
+int dcp_model_add_trans(struct dcp_model *m, struct dcp_trans trans)
 {
   if (!have_called_setup(m)) return DCP_EFUNCUSE;
 
@@ -94,7 +95,7 @@ int model_add_trans(struct model *m, struct dcp_trans trans)
   return 0;
 }
 
-void model_del(struct model const *model)
+void dcp_model_del(struct dcp_model const *model)
 {
   if (model)
   {
@@ -104,10 +105,11 @@ void model_del(struct model const *model)
   }
 }
 
-void model_init(struct model *m, struct imm_gencode const *gc,
-                struct imm_amino const *amino,
-                struct imm_nuclt_code const *code, enum entry_dist entry_dist,
-                float epsilon, float const null_lprobs[IMM_AMINO_SIZE])
+void dcp_model_init(struct dcp_model *m, struct imm_gencode const *gc,
+                    struct imm_amino const *amino,
+                    struct imm_nuclt_code const *code,
+                    enum entry_dist entry_dist, float epsilon,
+                    float const null_lprobs[IMM_AMINO_SIZE])
 
 {
   m->gencode = gc;
@@ -140,7 +142,7 @@ void model_init(struct model *m, struct imm_gencode const *gc,
   dcp_xtrans_init(&m->xtrans);
 }
 
-static void model_reset(struct model *model)
+static void model_reset(struct dcp_model *model)
 {
   imm_hmm_reset(&model->null.hmm);
   imm_hmm_reset(&model->alt.hmm);
@@ -156,7 +158,7 @@ static void model_reset(struct model *model)
   imm_state_detach(&model->xnode.alt.T.super);
 }
 
-int model_setup(struct model *m, unsigned core_size)
+int dcp_model_setup(struct dcp_model *m, unsigned core_size)
 {
   if (core_size == 0) return DCP_EZEROMODEL;
 
@@ -186,22 +188,25 @@ int model_setup(struct model *m, unsigned core_size)
   return add_xnodes(m);
 }
 
-void model_write_dot(struct model const *m, FILE *fp)
+void dcp_model_write_dot(struct dcp_model const *m, FILE *fp)
 {
   imm_hmm_write_dot(&m->alt.hmm, fp, dcp_state_name);
 }
 
-struct imm_amino const *model_amino(struct model const *m) { return m->amino; }
+struct imm_amino const *dcp_model_amino(struct dcp_model const *m)
+{
+  return m->amino;
+}
 
-struct imm_nuclt const *model_nuclt(struct model const *m)
+struct imm_nuclt const *dcp_model_nuclt(struct dcp_model const *m)
 {
   return m->code->nuclt;
 }
 
-struct model_summary model_summary(struct model *m)
+struct dcp_model_summary dcp_model_summary(struct dcp_model *m)
 {
   assert(have_finished_add(m));
-  return (struct model_summary){
+  return (struct dcp_model_summary){
       .null = {.hmm = &m->null.hmm, .R = &m->xnode.null.R},
       .alt = {
           .hmm = &m->alt.hmm,
@@ -215,7 +220,7 @@ struct model_summary model_summary(struct model *m)
       }};
 }
 
-int add_xnodes(struct model *m)
+int add_xnodes(struct dcp_model *m)
 {
   struct dcp_xnode *n = &m->xnode;
 
@@ -236,7 +241,7 @@ int add_xnodes(struct model *m)
   return 0;
 }
 
-void init_xnodes(struct model *m)
+void init_xnodes(struct dcp_model *m)
 {
   float e = m->epsilon;
   struct imm_nuclt_lprob const *nucltp = &m->null.nuclt_dist.nucltp;
@@ -256,7 +261,7 @@ void init_xnodes(struct model *m)
   imm_mute_state_init(&n->alt.T, STATE_T, &nuclt->super);
 }
 
-void calculate_occupancy(struct model *m)
+void calculate_occupancy(struct dcp_model *m)
 {
   struct dcp_trans *trans = m->alt.trans;
   m->alt.locc[0] = imm_lprob_add(trans->MI, trans->MM);
@@ -283,21 +288,21 @@ void calculate_occupancy(struct model *m)
   assert(!imm_lprob_is_nan(logZ));
 }
 
-bool have_called_setup(struct model *m) { return m->core_size > 0; }
+bool have_called_setup(struct dcp_model *m) { return m->core_size > 0; }
 
-bool have_finished_add(struct model const *m)
+bool have_finished_add(struct dcp_model const *m)
 {
   unsigned core_size = m->core_size;
   return m->alt.node_idx == core_size && m->alt.trans_idx == (core_size + 1);
 }
 
-void init_delete(struct imm_mute_state *state, struct model *m)
+void init_delete(struct imm_mute_state *state, struct dcp_model *m)
 {
   unsigned id = STATE_DELETE | (m->alt.node_idx + 1);
   imm_mute_state_init(state, id, &m->code->nuclt->super);
 }
 
-void init_insert(struct imm_frame_state *state, struct model *m)
+void init_insert(struct imm_frame_state *state, struct dcp_model *m)
 {
   float e = m->epsilon;
   unsigned id = STATE_INSERT | (m->alt.node_idx + 1);
@@ -307,7 +312,7 @@ void init_insert(struct imm_frame_state *state, struct model *m)
   imm_frame_state_init(state, id, nucltp, codonm, e, imm_span(1, 5));
 }
 
-void init_match(struct imm_frame_state *state, struct model *m,
+void init_match(struct imm_frame_state *state, struct dcp_model *m,
                 struct nuclt_dist *d)
 {
   float e = m->epsilon;
@@ -426,7 +431,7 @@ void setup_nuclt_dist(struct imm_gencode const *gc, struct nuclt_dist *dist,
   dist->codonm = imm_codon_marg(&codonp);
 }
 
-int setup_entry_trans(struct model *m)
+int setup_entry_trans(struct dcp_model *m)
 {
   if (m->entry_dist == ENTRY_DIST_UNIFORM)
   {
@@ -456,7 +461,7 @@ int setup_entry_trans(struct model *m)
   return 0;
 }
 
-int setup_exit_trans(struct model *m)
+int setup_exit_trans(struct dcp_model *m)
 {
   struct imm_state *E = &m->xnode.alt.E.super;
 
@@ -475,7 +480,7 @@ int setup_exit_trans(struct model *m)
   return 0;
 }
 
-int setup_transitions(struct model *m)
+int setup_transitions(struct dcp_model *m)
 {
   struct imm_hmm *h = &m->alt.hmm;
   struct dcp_trans *trans = m->alt.trans;

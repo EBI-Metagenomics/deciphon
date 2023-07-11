@@ -74,19 +74,19 @@ void protein_setup(struct protein *protein, unsigned seq_size, bool multi_hits,
   dcp_protein_alts_setup(&protein->alts, &t);
 }
 
-int protein_absorb(struct protein *x, struct model *m)
+int protein_absorb(struct protein *x, struct dcp_model *m)
 {
   int rc = 0;
 
   x->gencode = m->gencode;
 
-  if (x->amino != model_amino(m)) return DCP_EDIFFABC;
-  if (x->nuclt_code->nuclt != model_nuclt(m)) return DCP_EDIFFABC;
+  if (x->amino != dcp_model_amino(m)) return DCP_EDIFFABC;
+  if (x->nuclt_code->nuclt != dcp_model_nuclt(m)) return DCP_EDIFFABC;
 
   unsigned n = array_size_field(struct protein, consensus);
   if (!strkcpy(x->consensus, m->consensus, n)) return DCP_EFORMAT;
 
-  struct model_summary s = model_summary(m);
+  struct dcp_model_summary s = dcp_model_summary(m);
   if ((rc = dcp_protein_null_absorb(&x->null, m, &s))) return rc;
   if ((rc = dcp_protein_alts_absorb(&x->alts, m, &s))) return rc;
 
@@ -106,19 +106,19 @@ int protein_sample(struct protein *x, unsigned seed, unsigned core_size)
   imm_lprob_sample(&rnd, IMM_AMINO_SIZE, lprobs);
   imm_lprob_normalize(IMM_AMINO_SIZE, lprobs);
 
-  struct model model = {0};
-  model_init(&model, x->gencode, x->amino, x->nuclt_code, x->entry_dist,
-             x->epsilon, lprobs);
+  struct dcp_model model = {0};
+  dcp_model_init(&model, x->gencode, x->amino, x->nuclt_code, x->entry_dist,
+                 x->epsilon, lprobs);
 
   int rc = 0;
 
-  if ((rc = model_setup(&model, core_size))) goto cleanup;
+  if ((rc = dcp_model_setup(&model, core_size))) goto cleanup;
 
   for (unsigned i = 0; i < core_size; ++i)
   {
     imm_lprob_sample(&rnd, IMM_AMINO_SIZE, lprobs);
     imm_lprob_normalize(IMM_AMINO_SIZE, lprobs);
-    if ((rc = model_add_node(&model, lprobs, '-'))) goto cleanup;
+    if ((rc = dcp_model_add_node(&model, lprobs, '-'))) goto cleanup;
   }
 
   for (unsigned i = 0; i < core_size + 1; ++i)
@@ -132,13 +132,13 @@ int protein_sample(struct protein *x, unsigned seed, unsigned core_size)
       t.DD = IMM_LPROB_ZERO;
     }
     imm_lprob_normalize(TRANS_SIZE, t.data);
-    if ((rc = model_add_trans(&model, t))) goto cleanup;
+    if ((rc = dcp_model_add_trans(&model, t))) goto cleanup;
   }
 
   rc = protein_absorb(x, &model);
 
 cleanup:
-  model_del(&model);
+  dcp_model_del(&model);
   return rc;
 }
 
