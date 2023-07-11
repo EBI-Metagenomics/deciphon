@@ -7,7 +7,7 @@
 #include "scan_db.h"
 #include "scan_thrd.h"
 #include "seq.h"
-#include "seqiter.h"
+#include "seq_iter.h"
 #include "size.h"
 #include <stdlib.h>
 #include <string.h>
@@ -15,7 +15,7 @@
 struct dcp_scan
 {
   int nthreads;
-  struct scan_thrd threads[DCP_NTHREADS_MAX];
+  struct dcp_scan_thrd threads[DCP_NTHREADS_MAX];
   struct dcp_prod_writer prod_writer;
 
   double lrt_threshold;
@@ -23,7 +23,7 @@ struct dcp_scan
   bool hmmer3_compat;
 
   struct dcp_scan_db db;
-  struct seqiter seqit;
+  struct dcp_seq_iter seqit;
   struct hmmer_dialer dialer;
 };
 
@@ -35,7 +35,7 @@ struct dcp_scan *dcp_scan_new(int port)
   x->multi_hits = true;
   x->hmmer3_compat = false;
   dcp_scan_db_init(&x->db);
-  dcp_seqiter_init(&x->seqit);
+  dcp_seq_iter_init(&x->seqit);
   dcp_prod_writer_init(&x->prod_writer);
   if (dcp_hmmer_dialer_init(&x->dialer, port))
   {
@@ -84,7 +84,7 @@ int dcp_scan_set_proteins(struct dcp_scan *x, char const *dbfile)
 void dcp_scan_set_sequences(struct dcp_scan *x, dcp_seq_next_fn *callb,
                             void *arg)
 {
-  dcp_seqiter_set_callback(&x->seqit, callb, arg);
+  dcp_seq_iter_set_callback(&x->seqit, callb, arg);
 }
 
 int dcp_scan_run(struct dcp_scan *x, char const *name)
@@ -100,26 +100,26 @@ int dcp_scan_run(struct dcp_scan *x, char const *name)
 
   for (int i = 0; i < x->nthreads; ++i)
   {
-    struct scan_thrd *t = x->threads + i;
+    struct dcp_scan_thrd *t = x->threads + i;
     struct dcp_protein_reader *r = dcp_scan_db_reader(&x->db);
     struct dcp_prod_writer_thrd *wt = dcp_prod_writer_thrd(&x->prod_writer, i);
-    if ((rc = scan_thrd_init(t, r, i, wt, &x->dialer))) defer_return(rc);
-    scan_thrd_set_lrt_threshold(t, x->lrt_threshold);
-    scan_thrd_set_multi_hits(t, x->multi_hits);
-    scan_thrd_set_hmmer3_compat(t, x->hmmer3_compat);
+    if ((rc = dcp_scan_thrd_init(t, r, i, wt, &x->dialer))) defer_return(rc);
+    dcp_scan_thrd_set_lrt_threshold(t, x->lrt_threshold);
+    dcp_scan_thrd_set_multi_hits(t, x->multi_hits);
+    dcp_scan_thrd_set_hmmer3_compat(t, x->hmmer3_compat);
   }
 
   int seq_idx = 0;
-  while (dcp_seqiter_next(&x->seqit) && !rc)
+  while (dcp_seq_iter_next(&x->seqit) && !rc)
   {
     fprintf(stderr, "Scanning sequence %d\n", seq_idx++);
-    struct dcp_seq const *y = dcp_seqiter_get(&x->seqit);
+    struct dcp_seq const *y = dcp_seq_iter_get(&x->seqit);
     struct iseq seq = iseq_init(y->id, y->name, y->data, scan_db_abc(&x->db));
 
 #pragma omp parallel for default(none) shared(x, seq, rc)
     for (int i = 0; i < x->nthreads; ++i)
     {
-      int r = scan_thrd_run(x->threads + i, &seq);
+      int r = dcp_scan_thrd_run(x->threads + i, &seq);
 #pragma omp critical
       if (r && !rc) rc = r;
     }
@@ -128,13 +128,13 @@ int dcp_scan_run(struct dcp_scan *x, char const *name)
 
   dcp_scan_db_close(&x->db);
   for (int i = 0; i < x->nthreads; ++i)
-    scan_thrd_cleanup(x->threads + i);
+    dcp_scan_thrd_cleanup(x->threads + i);
   return dcp_prod_writer_close(&x->prod_writer);
 
 defer:
   dcp_prod_writer_close(&x->prod_writer);
   dcp_scan_db_close(&x->db);
   for (int i = 0; i < x->nthreads; ++i)
-    scan_thrd_cleanup(x->threads + i);
+    dcp_scan_thrd_cleanup(x->threads + i);
   return rc;
 }

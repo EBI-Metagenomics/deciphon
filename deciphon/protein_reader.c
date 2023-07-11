@@ -5,7 +5,7 @@
 #include "expect.h"
 #include "fs.h"
 #include "partition_size.h"
-#include "proteiniter.h"
+#include "protein_iter.h"
 #include "rc.h"
 #include <string.h>
 
@@ -63,7 +63,7 @@ int dcp_protein_reader_size(struct dcp_protein_reader const *x)
 }
 
 int dcp_protein_reader_iter(struct dcp_protein_reader *x, int partition,
-                            struct dcp_proteiniter *it)
+                            struct dcp_protein_iter *it)
 {
   if (partition < 0 || x->npartitions < partition) return DCP_EINVALPART;
 
@@ -76,7 +76,7 @@ int dcp_protein_reader_iter(struct dcp_protein_reader *x, int partition,
   if ((rc = dcp_fs_seek(newfp, offset, SEEK_SET))) defer_return(rc);
 
   int start_idx = x->partition_csum[partition];
-  dcp_proteiniter_init(it, x, partition, start_idx, offset, newfp);
+  dcp_protein_iter_init(it, x, partition, start_idx, offset, newfp);
 
   return rc;
 

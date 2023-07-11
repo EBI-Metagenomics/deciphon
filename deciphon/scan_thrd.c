@@ -3,7 +3,6 @@
 #include "db_reader.h"
 #include "defer_return.h"
 #include "hmmer_dialer.h"
-#include "iseq.h"
 #include "lrt.h"
 #include "match.h"
 #include "match_iter.h"
@@ -13,9 +12,10 @@
 #include "protein_iter.h"
 #include "protein_reader.h"
 
-int scan_thrd_init(struct scan_thrd *x, struct dcp_protein_reader *reader,
-                   int partition, struct dcp_prod_writer_thrd *prod_thrd,
-                   struct hmmer_dialer *dialer)
+int dcp_scan_thrd_init(struct dcp_scan_thrd *x,
+                       struct dcp_protein_reader *reader, int partition,
+                       struct dcp_prod_writer_thrd *prod_thrd,
+                       struct hmmer_dialer *dialer)
 {
   struct dcp_db_reader const *db = reader->db;
   dcp_protein_init(&x->protein, NULL, &db->amino, &db->code, db->entry_dist,
@@ -42,45 +42,45 @@ defer:
   return rc;
 }
 
-void scan_thrd_cleanup(struct scan_thrd *x)
+void dcp_scan_thrd_cleanup(struct dcp_scan_thrd *x)
 {
   dcp_protein_cleanup(&x->protein);
   dcp_chararray_cleanup(&x->amino);
   dcp_hmmer_cleanup(&x->hmmer);
 }
 
-void scan_thrd_set_lrt_threshold(struct scan_thrd *x, double lrt)
+void dcp_scan_thrd_set_lrt_threshold(struct dcp_scan_thrd *x, double lrt)
 {
   x->lrt_threshold = lrt;
 }
 
-void scan_thrd_set_multi_hits(struct scan_thrd *x, bool multihits)
+void dcp_scan_thrd_set_multi_hits(struct dcp_scan_thrd *x, bool multihits)
 {
   x->multi_hits = multihits;
 }
 
-void scan_thrd_set_hmmer3_compat(struct scan_thrd *x, bool h3compat)
+void dcp_scan_thrd_set_hmmer3_compat(struct dcp_scan_thrd *x, bool h3compat)
 {
   x->hmmer3_compat = h3compat;
 }
 
 static int infer_amino(struct dcp_chararray *x, struct dcp_match *match,
-                       struct dcp_matchiter *it);
+                       struct dcp_match_iter *it);
 
-int scan_thrd_run(struct scan_thrd *x, struct iseq const *seq)
+int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct iseq const *seq)
 {
   int rc = 0;
   struct scan_task null = {0};
   struct scan_task alt = {0};
 
-  struct dcp_proteiniter *it = &x->iter;
+  struct dcp_protein_iter *it = &x->iter;
   x->prod_thrd->match.seq_id = seq->id;
 
-  if ((rc = dcp_proteiniter_rewind(it))) goto cleanup;
+  if ((rc = dcp_protein_iter_rewind(it))) goto cleanup;
 
-  while (!(rc = dcp_proteiniter_next(it, &x->protein)))
+  while (!(rc = dcp_protein_iter_next(it, &x->protein)))
   {
-    if (dcp_proteiniter_end(it)) break;
+    if (dcp_protein_iter_end(it)) break;
 
     struct imm_dp const *null_dp = &x->protein.null.dp;
     struct imm_dp const *alt_dp = &x->protein.alts.full.dp;
@@ -109,7 +109,7 @@ int scan_thrd_run(struct scan_thrd *x, struct iseq const *seq)
     struct dcp_match match = {0};
     dcp_match_init(&match, &x->protein);
 
-    struct dcp_matchiter mit = {0};
+    struct dcp_match_iter mit = {0};
 
     dcp_matchiter_init(&mit, &seq->iseq, &alt.prod.path);
     if ((rc = infer_amino(&x->amino, &match, &mit))) break;
@@ -132,21 +132,21 @@ cleanup:
   return rc;
 }
 
-int scan_thrd_run0(struct scan_thrd *x, struct iseq const *seq)
+int dcp_scan_thrd_run0(struct dcp_scan_thrd *x, struct iseq const *seq)
 {
   int rc = 0;
   struct scan_task null = {0};
   struct scan_task alt0 = {0};
   struct scan_task alt = {0};
 
-  struct dcp_proteiniter *it = &x->iter;
+  struct dcp_protein_iter *it = &x->iter;
   x->prod_thrd->match.seq_id = seq->id;
 
-  if ((rc = dcp_proteiniter_rewind(it))) goto cleanup;
+  if ((rc = dcp_protein_iter_rewind(it))) goto cleanup;
 
-  while (!(rc = dcp_proteiniter_next(it, &x->protein)))
+  while (!(rc = dcp_protein_iter_next(it, &x->protein)))
   {
-    if (dcp_proteiniter_end(it)) break;
+    if (dcp_protein_iter_end(it)) break;
 
     struct imm_dp const *null_dp = &x->protein.null.dp;
     struct imm_dp const *alt0_dp = &x->protein.alts.zero.dp;
@@ -186,7 +186,7 @@ int scan_thrd_run0(struct scan_thrd *x, struct iseq const *seq)
     struct dcp_match match = {0};
     dcp_match_init(&match, &x->protein);
 
-    struct dcp_matchiter mit = {0};
+    struct dcp_match_iter mit = {0};
 
     dcp_matchiter_init(&mit, &seq->iseq, &alt.prod.path);
     if ((rc = infer_amino(&x->amino, &match, &mit))) break;
@@ -211,7 +211,7 @@ cleanup:
 }
 
 static int infer_amino(struct dcp_chararray *x, struct dcp_match *match,
-                       struct dcp_matchiter *it)
+                       struct dcp_match_iter *it)
 {
   int rc = 0;
 

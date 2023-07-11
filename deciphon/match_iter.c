@@ -1,9 +1,9 @@
-#include "matchiter.h"
+#include "match_iter.h"
 #include "match.h"
 #include "protein.h"
 
-void dcp_matchiter_init(struct dcp_matchiter *x, struct imm_seq const *seq,
-                        struct imm_path const *path)
+void dcp_match_iter_init(struct dcp_match_iter *x, struct imm_seq const *seq,
+                         struct imm_path const *path)
 {
   x->seq = seq;
   x->path = path;
@@ -11,10 +11,10 @@ void dcp_matchiter_init(struct dcp_matchiter *x, struct imm_seq const *seq,
   x->offset = 0;
 }
 
-int dcp_matchiter_next(struct dcp_matchiter *x, struct dcp_match *match)
+int dcp_match_iter_next(struct dcp_match_iter *x, struct dcp_match *match)
 {
   x->idx += 1;
-  if (dcp_matchiter_end(x)) return 0;
+  if (dcp_match_iter_end(x)) return 0;
 
   struct imm_path const *path = x->path;
 
@@ -26,7 +26,7 @@ int dcp_matchiter_next(struct dcp_matchiter *x, struct dcp_match *match)
   return dcp_match_setup(match, *step, seq);
 }
 
-bool dcp_matchiter_end(struct dcp_matchiter const *x)
+bool dcp_match_iter_end(struct dcp_match_iter const *x)
 {
   return x->idx >= (int)imm_path_nsteps(x->path);
 }

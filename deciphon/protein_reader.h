@@ -4,7 +4,7 @@
 #include "size.h"
 
 struct dcp_db_reader;
-struct dcp_proteiniter;
+struct dcp_protein_iter;
 
 struct dcp_protein_reader
 {
@@ -23,6 +23,6 @@ int dcp_protein_reader_partition_size(struct dcp_protein_reader const *,
                                       int partition);
 int dcp_protein_reader_size(struct dcp_protein_reader const *);
 int dcp_protein_reader_iter(struct dcp_protein_reader *, int partition,
-                            struct dcp_proteiniter *);
+                            struct dcp_protein_iter *);
 
 #endif

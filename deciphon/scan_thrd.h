@@ -10,10 +10,10 @@
 struct dcp_chararray;
 struct dcp_prod_writer_thrd;
 
-struct scan_thrd
+struct dcp_scan_thrd
 {
   struct dcp_protein protein;
-  struct dcp_proteiniter iter;
+  struct dcp_protein_iter iter;
 
   double lrt_threshold;
   bool multi_hits;
@@ -29,15 +29,15 @@ struct prod_thrd;
 struct dcp_protein_reader;
 struct iseq;
 
-int scan_thrd_init(struct scan_thrd *, struct dcp_protein_reader *,
-                   int partition, struct dcp_prod_writer_thrd *,
-                   struct hmmer_dialer *);
-void scan_thrd_cleanup(struct scan_thrd *);
+int dcp_scan_thrd_init(struct dcp_scan_thrd *, struct dcp_protein_reader *,
+                       int partition, struct dcp_prod_writer_thrd *,
+                       struct hmmer_dialer *);
+void dcp_scan_thrd_cleanup(struct dcp_scan_thrd *);
 
-void scan_thrd_set_lrt_threshold(struct scan_thrd *, double lrt);
-void scan_thrd_set_multi_hits(struct scan_thrd *, bool multihits);
-void scan_thrd_set_hmmer3_compat(struct scan_thrd *, bool h3compat);
-int scan_thrd_run(struct scan_thrd *, struct iseq const *);
-int scan_thrd_run0(struct scan_thrd *, struct iseq const *);
+void dcp_scan_thrd_set_lrt_threshold(struct dcp_scan_thrd *, double lrt);
+void dcp_scan_thrd_set_multi_hits(struct dcp_scan_thrd *, bool multihits);
+void dcp_scan_thrd_set_hmmer3_compat(struct dcp_scan_thrd *, bool h3compat);
+int dcp_scan_thrd_run(struct dcp_scan_thrd *, struct iseq const *);
+int dcp_scan_thrd_run0(struct dcp_scan_thrd *, struct iseq const *);
 
 #endif

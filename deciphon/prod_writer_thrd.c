@@ -53,7 +53,7 @@ static int write_sep(FILE *);
 static int write_end(FILE *);
 
 int dcp_prod_writer_thrd_put(struct dcp_prod_writer_thrd *x,
-                             struct dcp_match *match, struct dcp_matchiter *it)
+                             struct dcp_match *match, struct dcp_match_iter *it)
 {
   int rc = 0;
 
@@ -63,9 +63,9 @@ int dcp_prod_writer_thrd_put(struct dcp_prod_writer_thrd *x,
   if ((rc = write_begin(fp, &x->match))) defer_return(rc);
 
   int i = 0;
-  while (!(rc = dcp_matchiter_next(it, match)))
+  while (!(rc = dcp_match_iter_next(it, match)))
   {
-    if (dcp_matchiter_end(it)) break;
+    if (dcp_match_iter_end(it)) break;
     if (i++ && (rc = write_sep(fp))) defer_return(rc);
     if ((rc = write_match(fp, match))) defer_return(rc);
   }
