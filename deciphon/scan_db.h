@@ -5,7 +5,7 @@
 #include "protein_reader.h"
 #include <stdio.h>
 
-struct scan_db
+struct dcp_scan_db
 {
   char filename[FILENAME_MAX];
   FILE *fp;
@@ -15,12 +15,12 @@ struct scan_db
 
 struct imm_abc;
 
-void scan_db_init(struct scan_db *);
-int scan_db_open(struct scan_db *, int nthreads);
-void scan_db_close(struct scan_db *);
+void dcp_scan_db_init(struct dcp_scan_db *);
+int dcp_scan_db_open(struct dcp_scan_db *, int nthreads);
+void dcp_scan_db_close(struct dcp_scan_db *);
 
-int scan_db_set_filename(struct scan_db *, char const *);
-struct dcp_protein_reader *scan_db_reader(struct scan_db *);
-struct imm_abc const *scan_db_abc(struct scan_db const *);
+int dcp_scan_db_set_filename(struct dcp_scan_db *, char const *);
+struct dcp_protein_reader *dcp_scan_db_reader(struct dcp_scan_db *);
+struct imm_abc const *dcp_scan_db_abc(struct dcp_scan_db const *);
 
 #endif

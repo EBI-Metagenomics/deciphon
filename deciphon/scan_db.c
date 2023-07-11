@@ -1,9 +1,10 @@
 #include "scan_db.h"
 #include "array_size_field.h"
 #include "defer_return.h"
+#include "rc.h"
 #include "strkcpy.h"
 
-void scan_db_init(struct scan_db *x)
+void dcp_scan_db_init(struct dcp_scan_db *x)
 {
   x->filename[0] = 0;
   x->fp = NULL;
@@ -11,7 +12,7 @@ void scan_db_init(struct scan_db *x)
   dcp_protein_reader_init(&x->rdr);
 }
 
-int scan_db_open(struct scan_db *x, int nthreads)
+int dcp_scan_db_open(struct dcp_scan_db *x, int nthreads)
 {
   int rc = 0;
 
@@ -23,11 +24,11 @@ int scan_db_open(struct scan_db *x, int nthreads)
   return 0;
 
 defer:
-  scan_db_close(x);
+  dcp_scan_db_close(x);
   return rc;
 }
 
-void scan_db_close(struct scan_db *x)
+void dcp_scan_db_close(struct dcp_scan_db *x)
 {
   dcp_db_reader_close(&x->db);
   if (x->fp)
@@ -37,15 +38,18 @@ void scan_db_close(struct scan_db *x)
   }
 }
 
-int scan_db_set_filename(struct scan_db *x, char const *filename)
+int dcp_scan_db_set_filename(struct dcp_scan_db *x, char const *filename)
 {
-  size_t n = array_size_field(struct scan_db, filename);
+  size_t n = array_size_field(struct dcp_scan_db, filename);
   return strkcpy(x->filename, filename, n) ? 0 : DCP_ELONGPATH;
 }
 
-struct dcp_protein_reader *scan_db_reader(struct scan_db *x) { return &x->rdr; }
+struct dcp_protein_reader *dcp_scan_db_reader(struct dcp_scan_db *x)
+{
+  return &x->rdr;
+}
 
-struct imm_abc const *scan_db_abc(struct scan_db const *x)
+struct imm_abc const *dcp_scan_db_abc(struct dcp_scan_db const *x)
 {
   return (struct imm_abc const *)&x->db.nuclt;
 }

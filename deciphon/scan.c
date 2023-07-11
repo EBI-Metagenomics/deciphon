@@ -22,7 +22,7 @@ struct dcp_scan
   bool multi_hits;
   bool hmmer3_compat;
 
-  struct scan_db db;
+  struct dcp_scan_db db;
   struct seqiter seqit;
   struct hmmer_dialer dialer;
 };
@@ -34,7 +34,7 @@ struct dcp_scan *dcp_scan_new(int port)
   x->lrt_threshold = 10.;
   x->multi_hits = true;
   x->hmmer3_compat = false;
-  scan_db_init(&x->db);
+  dcp_scan_db_init(&x->db);
   dcp_seqiter_init(&x->seqit);
   dcp_prod_writer_init(&x->prod_writer);
   if (dcp_hmmer_dialer_init(&x->dialer, port))
@@ -78,7 +78,7 @@ void dcp_scan_set_hmmer3_compat(struct dcp_scan *x, bool h3compat)
 
 int dcp_scan_set_proteins(struct dcp_scan *x, char const *dbfile)
 {
-  return scan_db_set_filename(&x->db, dbfile);
+  return dcp_scan_db_set_filename(&x->db, dbfile);
 }
 
 void dcp_scan_set_sequences(struct dcp_scan *x, dcp_seq_next_fn *callb,
@@ -93,7 +93,7 @@ int dcp_scan_run(struct dcp_scan *x, char const *name)
   for (int i = 0; i < x->nthreads; ++i)
     memset(&x->threads[i], 0, sizeof(x->threads[i]));
 
-  if ((rc = scan_db_open(&x->db, x->nthreads))) defer_return(rc);
+  if ((rc = dcp_scan_db_open(&x->db, x->nthreads))) defer_return(rc);
 
   if ((rc = dcp_prod_writer_open(&x->prod_writer, x->nthreads, name)))
     defer_return(rc);
@@ -101,7 +101,7 @@ int dcp_scan_run(struct dcp_scan *x, char const *name)
   for (int i = 0; i < x->nthreads; ++i)
   {
     struct scan_thrd *t = x->threads + i;
-    struct dcp_protein_reader *r = scan_db_reader(&x->db);
+    struct dcp_protein_reader *r = dcp_scan_db_reader(&x->db);
     struct dcp_prod_writer_thrd *wt = dcp_prod_writer_thrd(&x->prod_writer, i);
     if ((rc = scan_thrd_init(t, r, i, wt, &x->dialer))) defer_return(rc);
     scan_thrd_set_lrt_threshold(t, x->lrt_threshold);
@@ -126,14 +126,14 @@ int dcp_scan_run(struct dcp_scan *x, char const *name)
   }
   if (rc) defer_return(rc);
 
-  scan_db_close(&x->db);
+  dcp_scan_db_close(&x->db);
   for (int i = 0; i < x->nthreads; ++i)
     scan_thrd_cleanup(x->threads + i);
   return dcp_prod_writer_close(&x->prod_writer);
 
 defer:
   dcp_prod_writer_close(&x->prod_writer);
-  scan_db_close(&x->db);
+  dcp_scan_db_close(&x->db);
   for (int i = 0; i < x->nthreads; ++i)
     scan_thrd_cleanup(x->threads + i);
   return rc;
