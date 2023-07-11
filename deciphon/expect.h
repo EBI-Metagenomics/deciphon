@@ -3,7 +3,7 @@
 
 struct lip_file;
 
-int dcp_expect_map_size(struct lip_file *file, unsigned size);
-int dcp_expect_map_key(struct lip_file *file, char const key[]);
+int dcp_expect_map_size(struct lip_file *, unsigned size);
+int dcp_expect_map_key(struct lip_file *, char const key[]);
 
 #endif

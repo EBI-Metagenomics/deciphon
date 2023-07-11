@@ -16,7 +16,7 @@ struct node
     struct
     {
       struct imm_frame_state state;
-      struct nuclt_dist nucltd;
+      struct dcp_nuclt_dist nucltd;
     } match;
   };
   struct imm_frame_state I;

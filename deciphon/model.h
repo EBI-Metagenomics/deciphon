@@ -32,7 +32,7 @@ struct dcp_model
   struct
   {
     float lprobs[IMM_AMINO_SIZE];
-    struct nuclt_dist nuclt_dist;
+    struct dcp_nuclt_dist nuclt_dist;
     struct imm_hmm hmm;
   } null;
 
@@ -47,7 +47,7 @@ struct dcp_model
 
     struct
     {
-      struct nuclt_dist nucltd;
+      struct dcp_nuclt_dist nucltd;
     } insert;
   } alt;
 };

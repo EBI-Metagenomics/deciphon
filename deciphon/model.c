@@ -30,7 +30,7 @@ bool have_finished_add(struct dcp_model const *);
 void init_delete(struct imm_mute_state *, struct dcp_model *);
 void init_insert(struct imm_frame_state *, struct dcp_model *);
 void init_match(struct imm_frame_state *, struct dcp_model *,
-                struct nuclt_dist *);
+                struct dcp_nuclt_dist *);
 
 int init_null_xtrans(struct imm_hmm *, struct dcp_xnode_null *);
 int init_alt_xtrans(struct imm_hmm *, struct dcp_xnode_alt *);
@@ -42,7 +42,7 @@ struct imm_codon_lprob codon_lprob(struct imm_gencode const *,
                                    struct imm_amino_lprob const *,
                                    struct imm_nuclt const *);
 
-void setup_nuclt_dist(struct imm_gencode const *, struct nuclt_dist *,
+void setup_nuclt_dist(struct imm_gencode const *, struct dcp_nuclt_dist *,
                       struct imm_amino const *, struct imm_nuclt const *,
                       float const[IMM_AMINO_SIZE]);
 
@@ -313,7 +313,7 @@ void init_insert(struct imm_frame_state *state, struct dcp_model *m)
 }
 
 void init_match(struct imm_frame_state *state, struct dcp_model *m,
-                struct nuclt_dist *d)
+                struct dcp_nuclt_dist *d)
 {
   float e = m->epsilon;
   unsigned id = STATE_MATCH | (m->alt.node_idx + 1);
@@ -416,7 +416,7 @@ struct imm_codon_lprob codon_lprob(struct imm_gencode const *gc,
   return codonp;
 }
 
-void setup_nuclt_dist(struct imm_gencode const *gc, struct nuclt_dist *dist,
+void setup_nuclt_dist(struct imm_gencode const *gc, struct dcp_nuclt_dist *dist,
                       struct imm_amino const *amino,
                       struct imm_nuclt const *nuclt,
                       float const lprobs[IMM_AMINO_SIZE])

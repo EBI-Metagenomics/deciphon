@@ -147,7 +147,7 @@ int protein_decode(struct protein const *x, struct imm_seq const *seq,
 {
   assert(!state_is_mute(state_id));
 
-  struct nuclt_dist const *nucltd = NULL;
+  struct dcp_nuclt_dist const *nucltd = NULL;
   if (dcp_state_is_insert(state_id))
   {
     nucltd = &x->alts.insert_nuclt_dist;

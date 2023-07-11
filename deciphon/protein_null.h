@@ -6,7 +6,7 @@
 
 struct dcp_protein_null
 {
-  struct nuclt_dist nuclt_dist;
+  struct dcp_nuclt_dist nuclt_dist;
   struct imm_dp dp;
   unsigned R;
 };

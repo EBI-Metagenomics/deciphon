@@ -6,7 +6,7 @@
 void dcp_protein_null_init(struct dcp_protein_null *x,
                            struct imm_nuclt_code const *code)
 {
-  nuclt_dist_init(&x->nuclt_dist, code->nuclt);
+  dcp_nuclt_dist_init(&x->nuclt_dist, code->nuclt);
   imm_dp_init(&x->dp, &code->super);
   x->R = 0;
 }
@@ -38,7 +38,7 @@ int dcp_protein_null_pack(struct dcp_protein_null const *x,
   if (imm_dp_pack(&x->dp, file)) return DCP_EDPPACK;
 
   if (!lip_write_cstr(file, "nuclt_dist")) return DCP_EFWRITE;
-  if ((rc = nuclt_dist_pack(&x->nuclt_dist, file))) return rc;
+  if ((rc = dcp_nuclt_dist_pack(&x->nuclt_dist, file))) return rc;
 
   if (!lip_write_cstr(file, "R")) return DCP_EFWRITE;
   if (!lip_write_int(file, x->R)) return DCP_EFWRITE;
@@ -54,7 +54,7 @@ int dcp_protein_null_unpack(struct dcp_protein_null *x, struct lip_file *file)
   if (imm_dp_unpack(&x->dp, file)) return DCP_EDPUNPACK;
 
   if ((rc = dcp_expect_map_key(file, "nuclt_dist"))) return rc;
-  if ((rc = nuclt_dist_unpack(&x->nuclt_dist, file))) return rc;
+  if ((rc = dcp_nuclt_dist_unpack(&x->nuclt_dist, file))) return rc;
 
   if ((rc = dcp_expect_map_key(file, "R"))) return rc;
   if (!lip_read_int(file, &x->R)) return DCP_EFREAD;

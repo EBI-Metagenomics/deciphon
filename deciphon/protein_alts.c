@@ -8,7 +8,7 @@ void dcp_protein_alts_init(struct dcp_protein_alts *x,
 {
   x->core_size = 0;
   x->match_nuclt_dists = NULL;
-  nuclt_dist_init(&x->insert_nuclt_dist, code->nuclt);
+  dcp_nuclt_dist_init(&x->insert_nuclt_dist, code->nuclt);
   imm_dp_init(&x->zero.dp, &code->super);
   imm_dp_init(&x->full.dp, &code->super);
 
@@ -127,13 +127,13 @@ static int pack_alt_shared(struct dcp_protein_alts const *x,
   if (!lip_write_int(file, x->core_size)) return DCP_EFWRITE;
 
   if (!lip_write_cstr(file, "insert_nuclt_dist")) return DCP_EFWRITE;
-  if ((rc = nuclt_dist_pack(&x->insert_nuclt_dist, file))) return rc;
+  if ((rc = dcp_nuclt_dist_pack(&x->insert_nuclt_dist, file))) return rc;
 
   if (!lip_write_cstr(file, "match_nuclt_dist")) return DCP_EFWRITE;
   if (!lip_write_array_size(file, x->core_size)) return DCP_EFWRITE;
   for (unsigned i = 0; i < x->core_size; ++i)
   {
-    if ((rc = nuclt_dist_pack(x->match_nuclt_dists + i, file))) return rc;
+    if ((rc = dcp_nuclt_dist_pack(x->match_nuclt_dists + i, file))) return rc;
   }
   return 0;
 }
@@ -197,7 +197,7 @@ static int unpack_alt_shared(struct dcp_protein_alts *x, struct lip_file *file)
   if ((rc = alloc_match_nuclt_dists(x))) return rc;
 
   if ((rc = dcp_expect_map_key(file, "insert_nuclt_dist"))) return rc;
-  if ((rc = nuclt_dist_unpack(&x->insert_nuclt_dist, file))) return rc;
+  if ((rc = dcp_nuclt_dist_unpack(&x->insert_nuclt_dist, file))) return rc;
 
   unsigned size = 0;
   if ((rc = dcp_expect_map_key(file, "match_nuclt_dist"))) return rc;
@@ -205,9 +205,9 @@ static int unpack_alt_shared(struct dcp_protein_alts *x, struct lip_file *file)
   if (size != x->core_size) return DCP_EFREAD;
   for (unsigned i = 0; i < x->core_size; ++i)
   {
-    if ((rc = nuclt_dist_unpack(x->match_nuclt_dists + i, file))) return rc;
-    nuclt_dist_init(x->match_nuclt_dists + i,
-                    x->insert_nuclt_dist.nucltp.nuclt);
+    if ((rc = dcp_nuclt_dist_unpack(x->match_nuclt_dists + i, file))) return rc;
+    dcp_nuclt_dist_init(x->match_nuclt_dists + i,
+                        x->insert_nuclt_dist.nucltp.nuclt);
   }
 
   return 0;
