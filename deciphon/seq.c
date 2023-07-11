@@ -26,6 +26,19 @@ int dcp_seq_set_abc(struct dcp_seq *x, struct imm_abc const *abc)
   return imm_eseq_setup(&x->imm_eseq, &x->imm_seq) ? DCP_ESEQABC : 0;
 }
 
-unsigned dcp_seq_size(struct dcp_seq *x) { return imm_seq_size(&x->imm_seq); }
+struct imm_seq const *dcp_seq_imm_seq(struct dcp_seq const *x)
+{
+  return &x->imm_seq;
+}
 
-char const *dcp_seq_data(struct dcp_seq *x) { return imm_seq_str(&x->imm_seq); }
+long dcp_seq_id(struct dcp_seq const *x) { return x->id; }
+
+unsigned dcp_seq_size(struct dcp_seq const *x)
+{
+  return imm_seq_size(&x->imm_seq);
+}
+
+char const *dcp_seq_data(struct dcp_seq const *x)
+{
+  return imm_seq_str(&x->imm_seq);
+}

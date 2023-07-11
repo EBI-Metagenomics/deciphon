@@ -2,18 +2,18 @@
 #include "rc.h"
 #include "seq.h"
 
-void scan_task_init(struct scan_task *x) { x->task = NULL; }
+void dcp_scan_task_init(struct dcp_scan_task *x) { x->task = NULL; }
 
-int scan_task_setup(struct scan_task *x, struct imm_dp const *dp,
-                    struct iseq const *seq)
+int dcp_scan_task_setup(struct dcp_scan_task *x, struct imm_dp const *dp,
+                        struct dcp_seq const *seq)
 {
   if (x->task && imm_task_reset(x->task, dp)) return DCP_EIMMRESETTASK;
   if (!x->task && !(x->task = imm_task_new(dp))) return DCP_EIMMNEWTASK;
-  if (imm_task_setup(x->task, &seq->iseq)) return DCP_EIMMSETUPTASK;
+  if (imm_task_setup(x->task, dcp_seq_imm_eseq(seq))) return DCP_EIMMSETUPTASK;
   return 0;
 }
 
-void scan_task_cleanup(struct scan_task *x)
+void dcp_scan_task_cleanup(struct dcp_scan_task *x)
 {
   if (x)
   {

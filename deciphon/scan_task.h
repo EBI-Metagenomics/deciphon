@@ -3,17 +3,17 @@
 
 #include "imm/imm.h"
 
-struct iseq;
+struct dcp_seq;
 
-struct scan_task
+struct dcp_scan_task
 {
   struct imm_task *task;
   struct imm_prod prod;
 };
 
-void scan_task_init(struct scan_task *);
-int scan_task_setup(struct scan_task *, struct imm_dp const *,
-                    struct iseq const *);
-void scan_task_cleanup(struct scan_task *);
+void dcp_scan_task_init(struct dcp_scan_task *);
+int dcp_scan_task_setup(struct dcp_scan_task *, struct imm_dp const *,
+                        struct dcp_seq const *);
+void dcp_scan_task_cleanup(struct dcp_scan_task *);
 
 #endif

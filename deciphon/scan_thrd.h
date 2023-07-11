@@ -24,20 +24,19 @@ struct dcp_scan_thrd
   struct dcp_hmmer hmmer;
 };
 
-struct hmmer_dialer;
+struct dcp_hmmer_dialer;
 struct prod_thrd;
 struct dcp_protein_reader;
-struct iseq;
+struct dcp_seq;
 
 int dcp_scan_thrd_init(struct dcp_scan_thrd *, struct dcp_protein_reader *,
                        int partition, struct dcp_prod_writer_thrd *,
-                       struct hmmer_dialer *);
+                       struct dcp_hmmer_dialer *);
 void dcp_scan_thrd_cleanup(struct dcp_scan_thrd *);
 
 void dcp_scan_thrd_set_lrt_threshold(struct dcp_scan_thrd *, double lrt);
 void dcp_scan_thrd_set_multi_hits(struct dcp_scan_thrd *, bool multihits);
 void dcp_scan_thrd_set_hmmer3_compat(struct dcp_scan_thrd *, bool h3compat);
-int dcp_scan_thrd_run(struct dcp_scan_thrd *, struct iseq const *);
-int dcp_scan_thrd_run0(struct dcp_scan_thrd *, struct iseq const *);
+int dcp_scan_thrd_run(struct dcp_scan_thrd *, struct dcp_seq const *);
 
 #endif

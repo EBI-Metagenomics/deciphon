@@ -1,4 +1,5 @@
 #include "xtrans.h"
+#include "imm/imm.h"
 
 void dcp_xtrans_init(struct dcp_xtrans *t)
 {
