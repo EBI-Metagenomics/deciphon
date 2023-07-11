@@ -2,27 +2,27 @@
 #include "model.h"
 #include "u16toa.h"
 
-unsigned state_id_msb(unsigned id) { return id & (3U << (STATE_ID_BITS - 2)); }
+static unsigned id_msb(unsigned id) { return id & (3U << (STATE_ID_BITS - 2)); }
 
-bool state_is_match(unsigned id) { return state_id_msb(id) == STATE_MATCH; }
+bool dcp_state_is_match(unsigned id) { return id_msb(id) == STATE_MATCH; }
 
-bool state_is_insert(unsigned id) { return state_id_msb(id) == STATE_INSERT; }
+bool dcp_state_is_insert(unsigned id) { return id_msb(id) == STATE_INSERT; }
 
-bool state_is_delete(unsigned id) { return state_id_msb(id) == STATE_DELETE; }
+bool dcp_state_is_delete(unsigned id) { return id_msb(id) == STATE_DELETE; }
 
-bool state_is_mute(unsigned id)
+bool dcp_state_is_mute(unsigned id)
 {
-  unsigned msb = state_id_msb(id);
+  unsigned msb = id_msb(id);
   return (msb == STATE_EXT) ? ((id == STATE_S || id == STATE_B ||
                                 id == STATE_E || id == STATE_T))
                             : msb == STATE_DELETE;
 }
 
-unsigned state_idx(unsigned id) { return (id & (0xFFFF >> 2)) - 1; }
+unsigned dcp_state_idx(unsigned id) { return (id & (0xFFFF >> 2)) - 1; }
 
-char *state_name(unsigned id, char name[IMM_STATE_NAME_SIZE])
+char *dcp_state_name(unsigned id, char *name)
 {
-  unsigned msb = state_id_msb(id);
+  unsigned msb = id_msb(id);
   if (msb == STATE_EXT)
   {
     if (id == STATE_R)
@@ -52,7 +52,7 @@ char *state_name(unsigned id, char name[IMM_STATE_NAME_SIZE])
       name[0] = 'I';
     else if (msb == STATE_DELETE)
       name[0] = 'D';
-    u16toa(name + 1, (uint16_t)(state_idx(id) + 1));
+    dcp_u16toa(name + 1, (uint16_t)(dcp_state_idx(id) + 1));
     return name;
   }
 }

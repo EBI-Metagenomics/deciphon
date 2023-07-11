@@ -17,7 +17,7 @@ void protein_init(struct protein *x, struct imm_gencode const *gc,
 {
   x->gencode = gc;
   memset(x->accession, 0, array_size_field(struct protein, accession));
-  x->state_name = state_name;
+  x->state_name = dcp_state_name;
   x->imm_code = &code->super;
 
   x->amino = amino;
@@ -27,8 +27,8 @@ void protein_init(struct protein *x, struct imm_gencode const *gc,
   x->epsilon_frame = imm_frame_epsilon(epsilon);
   memset(x->consensus, 0, array_size_field(struct protein, consensus));
 
-  protein_null_init(&x->null, code);
-  protein_alts_init(&x->alts, code);
+  dcp_protein_null_init(&x->null, code);
+  dcp_protein_alts_init(&x->alts, code);
 }
 
 int protein_set_accession(struct protein *x, char const *acc)
@@ -70,8 +70,8 @@ void protein_setup(struct protein *protein, unsigned seq_size, bool multi_hits,
     t.NN = t.CC = t.JJ = log(1);
   }
 
-  protein_null_setup(&protein->null, &t);
-  protein_alts_setup(&protein->alts, &t);
+  dcp_protein_null_setup(&protein->null, &t);
+  dcp_protein_alts_setup(&protein->alts, &t);
 }
 
 int protein_absorb(struct protein *x, struct model *m)
@@ -87,8 +87,8 @@ int protein_absorb(struct protein *x, struct model *m)
   if (!strkcpy(x->consensus, m->consensus, n)) return DCP_EFORMAT;
 
   struct model_summary s = model_summary(m);
-  if ((rc = protein_null_absorb(&x->null, m, &s))) return rc;
-  if ((rc = protein_alts_absorb(&x->alts, m, &s))) return rc;
+  if ((rc = dcp_protein_null_absorb(&x->null, m, &s))) return rc;
+  if ((rc = dcp_protein_alts_absorb(&x->alts, m, &s))) return rc;
 
   return 0;
 }
@@ -148,13 +148,13 @@ int protein_decode(struct protein const *x, struct imm_seq const *seq,
   assert(!state_is_mute(state_id));
 
   struct nuclt_dist const *nucltd = NULL;
-  if (state_is_insert(state_id))
+  if (dcp_state_is_insert(state_id))
   {
     nucltd = &x->alts.insert_nuclt_dist;
   }
-  else if (state_is_match(state_id))
+  else if (dcp_state_is_match(state_id))
   {
-    unsigned idx = state_idx(state_id);
+    unsigned idx = dcp_state_idx(state_id);
     nucltd = x->alts.match_nuclt_dists + idx;
   }
   else
@@ -191,10 +191,10 @@ int protein_pack(struct protein const *x, struct lip_file *file)
   if (!lip_write_cstr(file, x->consensus)) return DCP_EFWRITE;
 
   if (!lip_write_cstr(file, "null")) return DCP_EFWRITE;
-  if ((rc = protein_null_pack(&x->null, file))) return rc;
+  if ((rc = dcp_protein_null_pack(&x->null, file))) return rc;
 
   if (!lip_write_cstr(file, "alts")) return DCP_EFWRITE;
-  if ((rc = protein_alts_pack(&x->alts, file))) return rc;
+  if ((rc = dcp_protein_alts_pack(&x->alts, file))) return rc;
   return 0;
 }
 
@@ -204,24 +204,24 @@ int protein_unpack(struct protein *x, struct lip_file *file)
   unsigned const consensus_size = array_size_field(struct protein, consensus);
 
   int rc = 0;
-  if ((rc = expect_map_size(file, 5))) return rc;
+  if ((rc = dcp_expect_map_size(file, 5))) return rc;
 
-  if ((rc = expect_map_key(file, "accession"))) return rc;
+  if ((rc = dcp_expect_map_key(file, "accession"))) return rc;
   if (!lip_read_cstr(file, accession_size, x->accession)) return DCP_EFREAD;
 
   unsigned gencode_id = 0;
-  if ((rc = expect_map_key(file, "gencode"))) return rc;
+  if ((rc = dcp_expect_map_key(file, "gencode"))) return rc;
   if (!lip_read_int(file, &gencode_id)) return DCP_EFREAD;
   if (!(x->gencode = imm_gencode_get(gencode_id))) return DCP_EFREAD;
 
-  if ((rc = expect_map_key(file, "consensus"))) return rc;
+  if ((rc = dcp_expect_map_key(file, "consensus"))) return rc;
   if (!lip_read_cstr(file, consensus_size, x->consensus)) return DCP_EFREAD;
 
-  if ((rc = expect_map_key(file, "null"))) return rc;
-  if ((rc = protein_null_unpack(&x->null, file))) return rc;
+  if ((rc = dcp_expect_map_key(file, "null"))) return rc;
+  if ((rc = dcp_protein_null_unpack(&x->null, file))) return rc;
 
-  if ((rc = expect_map_key(file, "alts"))) return rc;
-  if ((rc = protein_alts_unpack(&x->alts, file))) return rc;
+  if ((rc = dcp_expect_map_key(file, "alts"))) return rc;
+  if ((rc = dcp_protein_alts_unpack(&x->alts, file))) return rc;
 
   return 0;
 }
@@ -231,7 +231,7 @@ void protein_cleanup(struct protein *x)
   if (x)
   {
     x->gencode = NULL;
-    protein_null_cleanup(&x->null);
-    protein_alts_cleanup(&x->alts);
+    dcp_protein_null_cleanup(&x->null);
+    dcp_protein_alts_cleanup(&x->alts);
   }
 }

@@ -10,7 +10,7 @@
 static int unpack_entry_dist(struct lip_file *file, enum entry_dist *ed)
 {
   int rc = 0;
-  if ((rc = expect_map_key(file, "entry_dist"))) return rc;
+  if ((rc = dcp_expect_map_key(file, "entry_dist"))) return rc;
   if (!lip_read_int(file, ed)) return DCP_EFREAD;
   if (*ed <= ENTRY_DIST_NULL || *ed > ENTRY_DIST_OCCUPANCY) return DCP_EFDATA;
   return 0;
@@ -19,7 +19,7 @@ static int unpack_entry_dist(struct lip_file *file, enum entry_dist *ed)
 static int unpack_epsilon(struct lip_file *file, float *epsilon)
 {
   int rc = 0;
-  if ((rc = expect_map_key(file, "epsilon"))) return rc;
+  if ((rc = dcp_expect_map_key(file, "epsilon"))) return rc;
   if (!lip_read_float(file, epsilon)) return DCP_EFREAD;
 
   return (*epsilon < 0 || *epsilon > 1) ? DCP_EFDATA : 0;
@@ -28,7 +28,7 @@ static int unpack_epsilon(struct lip_file *file, float *epsilon)
 static int unpack_nuclt(struct lip_file *file, struct imm_nuclt *nuclt)
 {
   int rc = 0;
-  if ((rc = expect_map_key(file, "abc"))) return rc;
+  if ((rc = dcp_expect_map_key(file, "abc"))) return rc;
   if (imm_abc_unpack(&nuclt->super, file)) return DCP_EFREAD;
   return 0;
 }
@@ -36,7 +36,7 @@ static int unpack_nuclt(struct lip_file *file, struct imm_nuclt *nuclt)
 static int unpack_amino(struct lip_file *file, struct imm_amino *amino)
 {
   int rc = 0;
-  if ((rc = expect_map_key(file, "amino"))) return rc;
+  if ((rc = dcp_expect_map_key(file, "amino"))) return rc;
   if (imm_abc_unpack(&amino->super, file)) return DCP_EFREAD;
   return 0;
 }
@@ -55,9 +55,9 @@ int dcp_db_reader_open(struct dcp_db_reader *x, FILE *fp)
   x->protein_sizes = NULL;
   lip_file_init(&x->file, fp);
 
-  if ((rc = expect_map_size(&x->file, 2))) return rc;
-  if ((rc = expect_map_key(&x->file, "header"))) return rc;
-  if ((rc = expect_map_size(&x->file, 7))) return rc;
+  if ((rc = dcp_expect_map_size(&x->file, 2))) return rc;
+  if ((rc = dcp_expect_map_key(&x->file, "header"))) return rc;
+  if ((rc = dcp_expect_map_size(&x->file, 7))) return rc;
   if ((rc = dcp_db_reader_unpack_magic_number(x))) defer_return(rc);
   if ((rc = dcp_db_reader_unpack_float_size(x))) defer_return(rc);
   if ((rc = unpack_entry_dist(&x->file, &x->entry_dist))) defer_return(rc);
@@ -84,7 +84,7 @@ int dcp_db_reader_unpack_magic_number(struct dcp_db_reader *x)
 {
   int rc = 0;
 
-  if ((rc = expect_map_key(&x->file, "magic_number"))) return rc;
+  if ((rc = dcp_expect_map_key(&x->file, "magic_number"))) return rc;
 
   unsigned number = 0;
   if (!lip_read_int(&x->file, &number)) return DCP_EFREAD;
@@ -95,7 +95,7 @@ int dcp_db_reader_unpack_magic_number(struct dcp_db_reader *x)
 int dcp_db_reader_unpack_float_size(struct dcp_db_reader *x)
 {
   int rc = 0;
-  if ((rc = expect_map_key(&x->file, "float_size"))) return rc;
+  if ((rc = dcp_expect_map_key(&x->file, "float_size"))) return rc;
 
   unsigned size = 0;
   if (!lip_read_int(&x->file, &size)) return DCP_EFREAD;
@@ -131,6 +131,6 @@ static int unpack_header_protein_sizes(struct dcp_db_reader *x)
 int dcp_db_reader_unpack_prot_sizes(struct dcp_db_reader *x)
 {
   int rc = 0;
-  if ((rc = expect_map_key(&x->file, "protein_sizes"))) return rc;
+  if ((rc = dcp_expect_map_key(&x->file, "protein_sizes"))) return rc;
   return unpack_header_protein_sizes(x);
 }

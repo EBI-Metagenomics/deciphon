@@ -45,12 +45,12 @@ void test_protein_uniform(void)
 
   eq(imm_path_step(&prod.path, 0)->seqlen, 3);
   eq(imm_path_step(&prod.path, 0)->state_id, STATE_R);
-  state_name(imm_path_step(&prod.path, 0)->state_id, name);
+  dcp_state_name(imm_path_step(&prod.path, 0)->state_id, name);
   eq(name, "R");
 
   eq(imm_path_step(&prod.path, 10)->seqlen, 2);
   eq(imm_path_step(&prod.path, 10)->state_id, STATE_R);
-  state_name(imm_path_step(&prod.path, 10)->state_id, name);
+  dcp_state_name(imm_path_step(&prod.path, 10)->state_id, name);
   eq(name, "R");
 
   imm_prod_reset(&prod);
@@ -68,12 +68,12 @@ void test_protein_uniform(void)
 
   eq(imm_path_step(&prod.path, 0)->seqlen, 0);
   eq(imm_path_step(&prod.path, 0)->state_id, STATE_S);
-  state_name(imm_path_step(&prod.path, 0)->state_id, name);
+  dcp_state_name(imm_path_step(&prod.path, 0)->state_id, name);
   eq(name, "S");
 
   eq(imm_path_step(&prod.path, 13)->seqlen, 0);
   eq(imm_path_step(&prod.path, 13)->state_id, STATE_T);
-  state_name(imm_path_step(&prod.path, 13)->state_id, name);
+  dcp_state_name(imm_path_step(&prod.path, 13)->state_id, name);
   eq(name, "T");
 
   struct dcp_codec codec = dcp_codec_init(&protein, &prod.path);
@@ -138,12 +138,12 @@ void test_protein_occupancy(void)
 
   eq(imm_path_step(&prod.path, 0)->seqlen, 3);
   eq(imm_path_step(&prod.path, 0)->state_id, STATE_R);
-  state_name(imm_path_step(&prod.path, 0)->state_id, name);
+  dcp_state_name(imm_path_step(&prod.path, 0)->state_id, name);
   eq(name, "R");
 
   eq(imm_path_step(&prod.path, 10)->seqlen, 2);
   eq(imm_path_step(&prod.path, 10)->state_id, STATE_R);
-  state_name(imm_path_step(&prod.path, 10)->state_id, name);
+  dcp_state_name(imm_path_step(&prod.path, 10)->state_id, name);
   eq(name, "R");
 
   imm_prod_reset(&prod);
@@ -161,12 +161,12 @@ void test_protein_occupancy(void)
 
   eq(imm_path_step(&prod.path, 0)->seqlen, 0);
   eq(imm_path_step(&prod.path, 0)->state_id, STATE_S);
-  state_name(imm_path_step(&prod.path, 0)->state_id, name);
+  dcp_state_name(imm_path_step(&prod.path, 0)->state_id, name);
   eq(name, "S");
 
   eq(imm_path_step(&prod.path, 13)->seqlen, 0);
   eq(imm_path_step(&prod.path, 13)->state_id, STATE_T);
-  state_name(imm_path_step(&prod.path, 13)->state_id, name);
+  dcp_state_name(imm_path_step(&prod.path, 13)->state_id, name);
   eq(name, "T");
 
   struct dcp_codec codec = dcp_codec_init(&protein, &prod.path);

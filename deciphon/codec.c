@@ -17,7 +17,7 @@ int dcp_codec_next(struct dcp_codec *codec, struct imm_seq const *seq,
   for (; codec->idx < imm_path_nsteps(codec->path); codec->idx++)
   {
     step = imm_path_step(codec->path, codec->idx);
-    if (!state_is_mute(step->state_id)) break;
+    if (!dcp_state_is_mute(step->state_id)) break;
   }
 
   if (dcp_codec_end(codec)) return 0;

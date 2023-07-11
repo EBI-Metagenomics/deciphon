@@ -188,7 +188,7 @@ int model_setup(struct model *m, unsigned core_size)
 
 void model_write_dot(struct model const *m, FILE *fp)
 {
-  imm_hmm_write_dot(&m->alt.hmm, fp, state_name);
+  imm_hmm_write_dot(&m->alt.hmm, fp, dcp_state_name);
 }
 
 struct imm_amino const *model_amino(struct model const *m) { return m->amino; }

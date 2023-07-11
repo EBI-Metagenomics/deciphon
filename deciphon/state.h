@@ -1,14 +1,14 @@
 #ifndef DECIPHON_STATE_H
 #define DECIPHON_STATE_H
 
-#include "imm/imm.h"
+#include <stdbool.h>
 
 enum
 {
   STATE_ID_BITS = 16
 };
 
-enum state_id
+enum dcp_state_id
 {
   STATE_MATCH = (0 << (STATE_ID_BITS - 2)),
   STATE_INSERT = (1 << (STATE_ID_BITS - 2)),
@@ -24,12 +24,11 @@ enum state_id
   STATE_T = (STATE_EXT | 7),
 };
 
-unsigned state_id_msb(unsigned id);
-bool state_is_match(unsigned id);
-bool state_is_insert(unsigned id);
-bool state_is_delete(unsigned id);
-bool state_is_mute(unsigned id);
-unsigned state_idx(unsigned id);
-char *state_name(unsigned id, char name[IMM_STATE_NAME_SIZE]);
+bool dcp_state_is_match(unsigned id);
+bool dcp_state_is_insert(unsigned id);
+bool dcp_state_is_delete(unsigned id);
+bool dcp_state_is_mute(unsigned id);
+unsigned dcp_state_idx(unsigned id);
+char *dcp_state_name(unsigned id, char *name);
 
 #endif

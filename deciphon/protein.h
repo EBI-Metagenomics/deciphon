@@ -23,8 +23,8 @@ struct protein
   struct imm_frame_epsilon epsilon_frame;
   char consensus[MODEL_MAX + 1];
 
-  struct protein_null null;
-  struct protein_alts alts;
+  struct dcp_protein_null null;
+  struct dcp_protein_alts alts;
 };
 
 void protein_init(struct protein *, struct imm_gencode const *,

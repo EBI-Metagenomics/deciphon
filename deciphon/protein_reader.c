@@ -32,7 +32,7 @@ int dcp_protein_reader_setup(struct dcp_protein_reader *x,
   if (npartitions > DCP_NPARTITIONS_MAX) return DCP_EMANYPARTS;
   x->npartitions = min(npartitions, db->nproteins);
 
-  if ((rc = expect_map_key(&db->file, "proteins"))) return rc;
+  if ((rc = dcp_expect_map_key(&db->file, "proteins"))) return rc;
 
   unsigned n = 0;
   if (!lip_read_array_size(&db->file, &n)) return DCP_EFREAD;
