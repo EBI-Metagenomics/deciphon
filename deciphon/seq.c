@@ -31,6 +31,11 @@ struct imm_seq const *dcp_seq_imm_seq(struct dcp_seq const *x)
   return &x->imm_seq;
 }
 
+struct imm_eseq const *dcp_seq_imm_eseq(struct dcp_seq const *x)
+{
+  return &x->imm_eseq;
+}
+
 long dcp_seq_id(struct dcp_seq const *x) { return x->id; }
 
 unsigned dcp_seq_size(struct dcp_seq const *x)

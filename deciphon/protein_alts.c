@@ -1,5 +1,6 @@
 #include "protein_alts.h"
 #include "expect.h"
+#include "lip/lip.h"
 #include "xtrans.h"
 #include <stdlib.h>
 

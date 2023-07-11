@@ -24,7 +24,7 @@ struct dcp_scan
 
   struct dcp_scan_db db;
   struct dcp_seq_iter seqit;
-  struct hmmer_dialer dialer;
+  struct dcp_hmmer_dialer dialer;
 };
 
 struct dcp_scan *dcp_scan_new(int port)
@@ -49,7 +49,7 @@ void dcp_scan_del(struct dcp_scan const *x)
 {
   if (x)
   {
-    dcp_hmmer_dialer_cleanup((struct hmmer_dialer *)&x->dialer);
+    dcp_hmmer_dialer_cleanup((struct dcp_hmmer_dialer *)&x->dialer);
     free((void *)x);
   }
 }
@@ -113,13 +113,12 @@ int dcp_scan_run(struct dcp_scan *x, char const *name)
   while (dcp_seq_iter_next(&x->seqit) && !rc)
   {
     fprintf(stderr, "Scanning sequence %d\n", seq_idx++);
-    struct dcp_seq const *y = dcp_seq_iter_get(&x->seqit);
-    struct iseq seq = iseq_init(y->id, y->name, y->data, scan_db_abc(&x->db));
+    struct dcp_seq const *seq = dcp_seq_iter_get(&x->seqit);
 
 #pragma omp parallel for default(none) shared(x, seq, rc)
     for (int i = 0; i < x->nthreads; ++i)
     {
-      int r = dcp_scan_thrd_run(x->threads + i, &seq);
+      int r = dcp_scan_thrd_run(x->threads + i, seq);
 #pragma omp critical
       if (r && !rc) rc = r;
     }
