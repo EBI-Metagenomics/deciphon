@@ -1,9 +1,9 @@
 #ifndef DECIPHON_PROTEIN_READER_H
 #define DECIPHON_PROTEIN_READER_H
 
-#include "deciphon/limits.h"
+#include "size.h"
 
-struct db_reader;
+struct dcp_db_reader;
 struct protein_iter;
 
 struct protein_reader
@@ -11,11 +11,11 @@ struct protein_reader
   int npartitions;
   int partition_csum[DCP_NPARTITIONS_MAX + 1];
   long partition_offset[DCP_NPARTITIONS_MAX + 1];
-  struct db_reader *db;
+  struct dcp_db_reader *db;
 };
 
 void protein_reader_init(struct protein_reader *);
-int protein_reader_setup(struct protein_reader *, struct db_reader *,
+int protein_reader_setup(struct protein_reader *, struct dcp_db_reader *,
                          int npartitions);
 
 int protein_reader_npartitions(struct protein_reader const *);

@@ -17,7 +17,7 @@ int scan_thrd_init(struct scan_thrd *x, struct protein_reader *reader,
                    int partition, struct prod_writer_thrd *prod_thrd,
                    struct hmmer_dialer *dialer)
 {
-  struct db_reader const *db = reader->db;
+  struct dcp_db_reader const *db = reader->db;
   protein_init(&x->protein, NULL, &db->amino, &db->code, db->entry_dist,
                db->epsilon);
   protein_reader_iter(reader, partition, &x->iter);

@@ -7,7 +7,7 @@ void scan_db_init(struct scan_db *x)
 {
   x->filename[0] = 0;
   x->fp = NULL;
-  db_reader_init(&x->db);
+  dcp_db_reader_init(&x->db);
   protein_reader_init(&x->rdr);
 }
 
@@ -16,7 +16,7 @@ int scan_db_open(struct scan_db *x, int nthreads)
   int rc = 0;
 
   if (!(x->fp = fopen(x->filename, "rb"))) defer_return(DCP_EOPENDB);
-  if ((rc = db_reader_open(&x->db, x->fp))) defer_return(rc);
+  if ((rc = dcp_db_reader_open(&x->db, x->fp))) defer_return(rc);
   if ((rc = protein_reader_setup(&x->rdr, &x->db, nthreads))) defer_return(rc);
 
   return 0;
@@ -28,7 +28,7 @@ defer:
 
 void scan_db_close(struct scan_db *x)
 {
-  db_reader_close(&x->db);
+  dcp_db_reader_close(&x->db);
   if (x->fp)
   {
     fclose(x->fp);

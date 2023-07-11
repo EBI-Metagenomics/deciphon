@@ -1,6 +1,6 @@
 #include "scan_task.h"
-#include "iseq.h"
 #include "rc.h"
+#include "seq.h"
 
 void scan_task_init(struct scan_task *x) { x->task = NULL; }
 

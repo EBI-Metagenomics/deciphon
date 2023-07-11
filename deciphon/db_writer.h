@@ -7,7 +7,7 @@
 #include "rc.h"
 #include <stdio.h>
 
-struct db_writer
+struct dcp_db_writer
 {
   unsigned nproteins;
   unsigned header_size;
@@ -26,12 +26,13 @@ struct db_writer
   float epsilon;
 };
 
-int db_writer_open(struct db_writer *db, FILE *fp,
-                   struct imm_amino const *amino, struct imm_nuclt const *nuclt,
-                   enum entry_dist, float epsilon);
+int dcp_db_writer_open(struct dcp_db_writer *db, FILE *fp,
+                       struct imm_amino const *amino,
+                       struct imm_nuclt const *nuclt, enum entry_dist,
+                       float epsilon);
 
-int db_writer_pack(struct db_writer *db, struct protein const *);
+int dcp_db_writer_pack(struct dcp_db_writer *db, struct protein const *);
 
-int db_writer_close(struct db_writer *db);
+int dcp_db_writer_close(struct dcp_db_writer *db);
 
 #endif

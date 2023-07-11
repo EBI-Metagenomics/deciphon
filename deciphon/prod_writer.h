@@ -1,8 +1,8 @@
 #ifndef DECIPHON_PROD_WRITER_H
 #define DECIPHON_PROD_WRITER_H
 
-#include "deciphon/limits.h"
 #include "prod_writer_thrd.h"
+#include "size.h"
 
 struct prod_writer
 {

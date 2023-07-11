@@ -1,7 +1,7 @@
 #ifndef DECIPHON_PROD_MATCH_H
 #define DECIPHON_PROD_MATCH_H
 
-#include "deciphon/limits.h"
+#include "size.h"
 
 struct prod_match
 {

@@ -27,8 +27,8 @@ void test_protein_db_writer(void)
   FILE *fp = fopen(TMPDIR "/db.dcp", "wb");
   notnull(fp);
 
-  struct db_writer db = {0};
-  eq(db_writer_open(&db, fp, amino, nuclt, ENTRY_DIST_OCCUPANCY, 0.01), 0);
+  struct dcp_db_writer db = {0};
+  eq(dcp_db_writer_open(&db, fp, amino, nuclt, ENTRY_DIST_OCCUPANCY, 0.01), 0);
 
   struct protein protein = {0};
   protein_init(&protein, imm_gencode_get(1), amino, &code, ENTRY_DIST_OCCUPANCY,
@@ -37,13 +37,13 @@ void test_protein_db_writer(void)
 
   unsigned core_size = 2;
   protein_sample(&protein, 1, core_size);
-  eq(db_writer_pack(&db, &protein), 0);
+  eq(dcp_db_writer_pack(&db, &protein), 0);
 
   protein_sample(&protein, 2, core_size);
-  eq(db_writer_pack(&db, &protein), 0);
+  eq(dcp_db_writer_pack(&db, &protein), 0);
 
   protein_cleanup(&protein);
-  eq(db_writer_close(&db), 0);
+  eq(dcp_db_writer_close(&db), 0);
   fclose(fp);
 }
 
@@ -51,8 +51,8 @@ void test_protein_db_reader(void)
 {
   FILE *fp = fopen(TMPDIR "/db.dcp", "rb");
   notnull(fp);
-  struct db_reader db = {0};
-  eq(db_reader_open(&db, fp), 0);
+  struct dcp_db_reader db = {0};
+  eq(dcp_db_reader_open(&db, fp), 0);
 
   eq(db.nproteins, 2);
 
@@ -88,6 +88,6 @@ void test_protein_db_reader(void)
 
   imm_prod_cleanup(&prod);
   protein_cleanup(&protein);
-  db_reader_close(&db);
+  dcp_db_reader_close(&db);
   fclose(fp);
 }

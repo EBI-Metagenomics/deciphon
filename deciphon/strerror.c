@@ -60,6 +60,7 @@ static char const *msg[] = {
     [DCP_EH3CPACK] = "failed to pack hmmer result",
     [DCP_EH3CMAXRETRY] = "reached maximum number of retries on hmmer daemon",
     [DCP_EH3CWARMUP] = "failed to warmup hmmer daemon",
+    [DCP_ESEQABC] = "failed to set sequence alphabet",
 };
 
 char const *dcp_strerror(int errno)

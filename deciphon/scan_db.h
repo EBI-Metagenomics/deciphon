@@ -9,7 +9,7 @@ struct scan_db
 {
   char filename[FILENAME_MAX];
   FILE *fp;
-  struct db_reader db;
+  struct dcp_db_reader db;
   struct protein_reader rdr;
 };
 

@@ -15,7 +15,7 @@ struct dcp_press
   struct
   {
     FILE *fp;
-    struct db_writer db;
+    struct dcp_db_writer db;
   } writer;
 
   struct
@@ -136,15 +136,15 @@ static int prepare_writer(struct dcp_press *press)
 {
   struct imm_amino const *a = &imm_amino_iupac;
   struct imm_nuclt const *n = &imm_dna_iupac.super;
-  return db_writer_open(&press->writer.db, press->writer.fp, a, n,
-                        ENTRY_DIST_OCCUPANCY, 0.01);
+  return dcp_db_writer_open(&press->writer.db, press->writer.fp, a, n,
+                            ENTRY_DIST_OCCUPANCY, 0.01);
 }
 
 static int finish_writer(struct dcp_press *press)
 {
   if (!press->writer.fp) return 0;
 
-  int rc = db_writer_close(&press->writer.db);
+  int rc = dcp_db_writer_close(&press->writer.db);
   if (rc) defer_return(rc);
 
   return dcp_fs_close(press->writer.fp);
@@ -175,5 +175,5 @@ static int protein_write(struct dcp_press *x)
   if (!strkcpy(x->protein.accession, x->reader.h3.protein.meta.acc, n))
     return DCP_EFORMAT;
 
-  return db_writer_pack(&x->writer.db, &x->protein);
+  return dcp_db_writer_pack(&x->writer.db, &x->protein);
 }

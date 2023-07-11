@@ -8,9 +8,16 @@ static bool noop(struct dcp_seq *x, void *arg)
   return false;
 }
 
-void dcp_seqiter_init(struct seqiter *x, dcp_seq_next_fn *callb, void *arg)
+void dcp_seqiter_init(struct seqiter *x)
 {
-  dcp_seq_init(&x->seq, 0, "", "");
+  dcp_seq_init(&x->seq);
+  x->next_callb = noop;
+  x->arg = NULL;
+}
+
+void dcp_seqiter_set_callback(struct seqiter *x, dcp_seq_next_fn *callb,
+                              void *arg)
+{
   x->next_callb = callb ? callb : noop;
   x->arg = arg;
 }

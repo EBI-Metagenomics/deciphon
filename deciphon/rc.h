@@ -62,6 +62,7 @@ enum dcp_rc
   DCP_EH3CPACK      = 54,
   DCP_EH3CMAXRETRY  = 55,
   DCP_EH3CWARMUP    = 56,
+  DCP_ESEQABC       = 57,
 };
 // clang-format on
 

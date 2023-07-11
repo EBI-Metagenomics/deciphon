@@ -22,7 +22,7 @@ void protein_reader_init(struct protein_reader *x)
 static void partition_it(struct protein_reader *);
 static inline long min(long a, long b) { return a < b ? a : b; }
 
-int protein_reader_setup(struct protein_reader *x, struct db_reader *db,
+int protein_reader_setup(struct protein_reader *x, struct dcp_db_reader *db,
                          int npartitions)
 {
   int rc = 0;

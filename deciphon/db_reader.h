@@ -4,9 +4,8 @@
 #include "entry_dist.h"
 #include "imm/imm.h"
 #include "lip/lip.h"
-#include "protein.h"
 
-struct db_reader
+struct dcp_db_reader
 {
   int nproteins;
   uint32_t *protein_sizes;
@@ -19,12 +18,12 @@ struct db_reader
   float epsilon;
 };
 
-void db_reader_init(struct db_reader *);
-int db_reader_open(struct db_reader *, FILE *);
-void db_reader_close(struct db_reader *);
+void dcp_db_reader_init(struct dcp_db_reader *);
+int dcp_db_reader_open(struct dcp_db_reader *, FILE *);
+void dcp_db_reader_close(struct dcp_db_reader *);
 
-int db_reader_unpack_magic_number(struct db_reader *);
-int db_reader_unpack_float_size(struct db_reader *);
-int db_reader_unpack_prot_sizes(struct db_reader *);
+int dcp_db_reader_unpack_magic_number(struct dcp_db_reader *);
+int dcp_db_reader_unpack_float_size(struct dcp_db_reader *);
+int dcp_db_reader_unpack_prot_sizes(struct dcp_db_reader *);
 
 #endif

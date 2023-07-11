@@ -39,9 +39,9 @@ static void test_scan1(void)
   dcp_scan_set_multi_hits(scan, true);
   dcp_scan_set_hmmer3_compat(scan, false);
 
-  eq(dcp_scan_set_db_file(scan, ASSETS "/minifam.dcp"), 0);
+  eq(dcp_scan_set_proteins(scan, ASSETS "/minifam.dcp"), 0);
   seq_init();
-  dcp_scan_set_seq_iter(scan, seq_next, NULL);
+  dcp_scan_set_sequences(scan, seq_next, NULL);
 
   eq(dcp_scan_run(scan, "prod1"), 0);
   eq(fs_size("prod1/products.tsv"), 8646);
@@ -59,9 +59,9 @@ static void test_scan2(void)
   dcp_scan_set_multi_hits(scan, true);
   dcp_scan_set_hmmer3_compat(scan, false);
 
-  eq(dcp_scan_set_db_file(scan, ASSETS "/minifam.dcp"), 0);
+  eq(dcp_scan_set_proteins(scan, ASSETS "/minifam.dcp"), 0);
   seq_init();
-  dcp_scan_set_seq_iter(scan, seq_next, NULL);
+  dcp_scan_set_sequences(scan, seq_next, NULL);
 
   eq(dcp_scan_run(scan, "prod2"), 0);
   eq(fs_size("prod2/products.tsv"), 8646);
@@ -80,9 +80,9 @@ static void test_scan3(void)
   dcp_scan_set_hmmer3_compat(scan, false);
   dcp_scan_set_heuristic(scan, true);
 
-  eq(dcp_scan_set_db_file(scan, ASSETS "/minifam.dcp"), 0);
+  eq(dcp_scan_set_proteins(scan, ASSETS "/minifam.dcp"), 0);
   seq_init();
-  dcp_scan_set_seq_iter(scan, seq_next, NULL);
+  dcp_scan_set_sequences(scan, seq_next, NULL);
 
   eq(dcp_scan_run(scan, "prod3"), 0);
   eq(fs_size("prod3/products.tsv"), 8646);

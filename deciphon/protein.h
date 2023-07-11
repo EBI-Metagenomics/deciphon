@@ -7,7 +7,7 @@
 #include "protein_null.h"
 
 struct lip_file;
-struct db_reader;
+struct dcp_db_reader;
 
 struct protein
 {
