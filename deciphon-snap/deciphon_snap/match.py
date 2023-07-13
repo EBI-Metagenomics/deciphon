@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from functools import lru_cache
 from typing import List
-from deciphon_snap.interval import PyInterval
-from deciphon_snap.amino import AminoInterval
 
-from pydantic import BaseModel, RootModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, RootModel
+
+from deciphon_snap.amino import AminoInterval
+from deciphon_snap.interval import PyInterval
 
 __all__ = ["Match", "MatchList", "LazyMatchList", "MatchListInterval"]
 
@@ -15,11 +16,21 @@ class Match(BaseModel):
     state: str
     codon: str
     amino: str
+    _position: int | None
 
     @classmethod
     def from_string(cls, x: str):
         y = x.split(",", 3)
         return cls(query=y[0], state=y[1], codon=y[2], amino=y[3])
+
+    @property
+    def position(self):
+        assert self._position
+        return self._position
+
+    @position.setter
+    def position(self, x: int):
+        self._position = x
 
     def __str__(self):
         query = self.query if len(self.query) > 0 else "∅"

@@ -109,5 +109,18 @@ def test_align(files_path: Path):
     assert prod.match_list[sl].codon[:12] == matchs.codon[:12]
     assert prod.match_list[sl].codon[:-42][-12:] == matchs.codon[-12:]
 
-    # assert matchs.codon[:12] == "TTTATTTACGGT"
-    # assert matchs.codon[-12:] == "GGACATAAACAA"
+    for prodi, prod in enumerate(snap_file.products):
+        for hiti, hit in enumerate(prod.hits):
+            if prodi == 0 and hiti == 0:
+                assert hit.interval.start == 453
+                assert hit.interval.stop == 738
+            if prodi == 1 and hiti == 0:
+                assert hit.interval.start == 450
+                assert hit.interval.stop == 606
+            for xi, x in enumerate(hit.matchs):
+                if prodi == 0 and hiti == 0 and xi == 1:
+                    assert str(x) == "(ATT,M3,ATT,I)"
+                    assert x.position == 456
+                if prodi == 1 and hiti == 0 and xi == 3:
+                    assert str(x) == "(TAC,M67,TAC,Y)"
+                    assert x.position == 459

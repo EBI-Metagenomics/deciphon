@@ -3,6 +3,8 @@ from typing import List
 
 from deciphon_snap.hmmer import H3Result
 from deciphon_snap.match import LazyMatchList
+from deciphon_snap.query_interval import QueryIntervalBuilder
+from deciphon_snap.hit import HitList
 
 __all__ = ["Prod"]
 
@@ -17,6 +19,16 @@ class Prod(BaseModel):
     evalue: float
     match_list: LazyMatchList
     h3result: H3Result | None = None
+
+    @property
+    def hits(self):
+        qibuilder = QueryIntervalBuilder(self.match_list)
+        hits = []
+        for hit in HitList.make(self.match_list):
+            hit.interval = qibuilder.make(hit.match_list_interval)
+            hit.match_list = self.match_list.evaluate()
+            hits.append(hit)
+        return hits
 
     @property
     def hmmer(self):

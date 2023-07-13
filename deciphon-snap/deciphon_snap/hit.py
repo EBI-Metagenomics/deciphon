@@ -3,6 +3,7 @@ from typing import List
 from pydantic import BaseModel, RootModel
 
 from deciphon_snap.match import MatchList, MatchListInterval
+from deciphon_snap.query_interval import QueryInterval
 
 __all__ = ["Hit", "HitList"]
 
@@ -10,6 +11,41 @@ __all__ = ["Hit", "HitList"]
 class Hit(BaseModel):
     id: int
     match_list_interval: MatchListInterval
+    _interval: QueryInterval | None
+    _match_list: MatchList | None
+
+    @property
+    def interval(self):
+        assert self._interval
+        return self._interval
+
+    @interval.setter
+    def interval(self, x: QueryInterval):
+        self._interval = x
+
+    @property
+    def match_list(self):
+        assert self._match_list
+        return self._match_list
+
+    @match_list.setter
+    def match_list(self, x: MatchList):
+        self._match_list = x
+
+    @property
+    def matchs(self):
+        assert self._interval
+        assert self._match_list
+        matchs = []
+        offset = self._interval.pyinterval.start
+        for x in self._match_list[self.match_list_interval.slice]:
+            x.position = offset
+            if x.state.startswith("I"):
+                offset += len(x.query)
+            if x.state.startswith("M"):
+                offset += len(x.query)
+            matchs.append(x)
+        return matchs
 
 
 class HitList(RootModel):
