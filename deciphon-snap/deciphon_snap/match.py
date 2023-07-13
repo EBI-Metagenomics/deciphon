@@ -25,7 +25,7 @@ class Match(BaseModel):
 
     @property
     def position(self):
-        assert self._position
+        assert self._position is not None
         return self._position
 
     @position.setter

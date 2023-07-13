@@ -16,7 +16,7 @@ class Hit(BaseModel):
 
     @property
     def interval(self):
-        assert self._interval
+        assert self._interval is not None
         return self._interval
 
     @interval.setter
@@ -25,7 +25,7 @@ class Hit(BaseModel):
 
     @property
     def match_list(self):
-        assert self._match_list
+        assert self._match_list is not None
         return self._match_list
 
     @match_list.setter
@@ -34,8 +34,8 @@ class Hit(BaseModel):
 
     @property
     def matchs(self):
-        assert self._interval
-        assert self._match_list
+        assert self._interval is not None
+        assert self._match_list is not None
         matchs = []
         offset = self._interval.pyinterval.start
         for x in self._match_list[self.match_list_interval.slice]:

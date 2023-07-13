@@ -32,7 +32,7 @@ class Prod(BaseModel):
 
     @property
     def hmmer(self):
-        assert self.h3result
+        assert self.h3result is not None
         return self.h3result
 
     @property
