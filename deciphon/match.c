@@ -16,7 +16,7 @@ int dcp_match_setup(struct dcp_match *x, struct imm_step step,
 
   if (!dcp_state_is_mute(step.state_id))
   {
-    x->codon = imm_codon_any(x->protein->nuclt_code->nuclt);
+    x->codon = imm_codon_any(x->protein->params.code->nuclt);
     return dcp_protein_decode(x->protein, &seq, step.state_id, &x->codon);
   }
   return 0;
@@ -34,7 +34,7 @@ bool dcp_match_state_is_mute(struct dcp_match const *x)
 
 char dcp_match_amino(struct dcp_match const *x)
 {
-  return imm_gencode_decode(x->protein->gencode, x->codon);
+  return imm_gencode_decode(x->protein->params.gencode, x->codon);
 }
 
 struct imm_codon dcp_match_codon(struct dcp_match const *x) { return x->codon; }

@@ -1,14 +1,14 @@
-#include "model.h"
-#include "hope.h"
+#include "deciphon/model.h"
+#include "deciphon/protein.h"
 #include "imm/imm.h"
-#include "protein.h"
+#include "vendor/minctest.h"
 
 int main(void)
 {
   unsigned core_size = 3;
   struct imm_amino const *amino = &imm_amino_iupac;
   struct imm_nuclt const *nuclt = &imm_dna_iupac.super;
-  struct imm_nuclt_code code;
+  struct imm_nuclt_code code = {};
   imm_nuclt_code_init(&code, nuclt);
   float null_lprobs[IMM_AMINO_SIZE];
   float null_lodds[IMM_AMINO_SIZE];
@@ -30,9 +30,15 @@ int main(void)
     imm_lprob_normalize(TRANS_SIZE, t[i].data);
   }
 
-  struct dcp_model model;
-  dcp_model_init(&model, imm_gencode_get(1), amino, &code, ENTRY_DIST_OCCUPANCY,
-                 0.01, null_lprobs);
+  struct dcp_model model = {};
+  struct dcp_model_params params = {
+      .gencode = imm_gencode_get(1),
+      .amino = amino,
+      .code = &code,
+      .entry_dist = DCP_ENTRY_DIST_OCCUPANCY,
+      .epsilon = 0.01,
+  };
+  dcp_model_init(&model, params, null_lprobs);
 
   eq(dcp_model_setup(&model, core_size), 0);
 
@@ -45,13 +51,14 @@ int main(void)
   eq(dcp_model_add_trans(&model, t[2]), 0);
   eq(dcp_model_add_trans(&model, t[3]), 0);
 
-  struct dcp_protein protein = {0};
-  dcp_protein_init(&protein, NULL, amino, &code, ENTRY_DIST_OCCUPANCY, 0.01);
-  dcp_protein_set_accession(&protein, "accession");
+  struct dcp_protein protein = {};
+  dcp_protein_init(&protein, params);
+  eq(dcp_protein_set_accession(&protein, "accession"), 0);
 
   eq(dcp_protein_absorb(&protein, &model), 0);
 
   dcp_protein_cleanup(&protein);
-  dcp_model_del(&model);
-  return hope_status();
+  dcp_model_cleanup(&model);
+
+  return lfails;
 }

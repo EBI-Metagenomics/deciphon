@@ -14,6 +14,9 @@ struct dcp_protein_reader
   struct dcp_db_reader *db;
 };
 
+struct imm_gencode;
+struct dcp_model_params;
+
 void dcp_protein_reader_init(struct dcp_protein_reader *);
 int dcp_protein_reader_setup(struct dcp_protein_reader *,
                              struct dcp_db_reader *, int npartitions);
@@ -24,5 +27,8 @@ int dcp_protein_reader_partition_size(struct dcp_protein_reader const *,
 int dcp_protein_reader_size(struct dcp_protein_reader const *);
 int dcp_protein_reader_iter(struct dcp_protein_reader *, int partition,
                             struct dcp_protein_iter *);
+
+struct dcp_model_params dcp_protein_reader_params(struct dcp_protein_reader *,
+                                                  struct imm_gencode const *);
 
 #endif

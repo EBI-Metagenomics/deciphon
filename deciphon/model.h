@@ -3,6 +3,7 @@
 
 #include "entry_dist.h"
 #include "imm/imm.h"
+#include "model_params.h"
 #include "model_summary.h"
 #include "node.h"
 #include "nuclt_dist.h"
@@ -14,20 +15,16 @@
 
 enum
 {
-  MODEL_MAX = 4096,
+  DCP_MODEL_MAX = 4096,
 };
 
 struct dcp_model
 {
-  struct imm_gencode const *gencode;
-  struct imm_amino const *amino;
-  struct imm_nuclt_code const *code;
-  enum dcp_entry_dist entry_dist;
-  float epsilon;
+  struct dcp_model_params params;
   unsigned core_size;
   struct dcp_xnode xnode;
   struct dcp_xtrans xtrans;
-  char consensus[MODEL_MAX + 1];
+  char consensus[DCP_MODEL_MAX + 1];
 
   struct
   {
@@ -57,19 +54,15 @@ int dcp_model_add_node(struct dcp_model *, float const lp[IMM_AMINO_SIZE],
 
 int dcp_model_add_trans(struct dcp_model *, struct dcp_trans);
 
-void dcp_model_del(struct dcp_model const *);
+void dcp_model_cleanup(struct dcp_model const *);
 
-void dcp_model_init(struct dcp_model *, struct imm_gencode const *,
-                    struct imm_amino const *, struct imm_nuclt_code const *,
-                    enum dcp_entry_dist, float epsilon,
+void dcp_model_init(struct dcp_model *, struct dcp_model_params params,
                     float const null_lprobs[IMM_AMINO_SIZE]);
 
 int dcp_model_setup(struct dcp_model *, unsigned core_size);
 
 void dcp_model_write_dot(struct dcp_model const *, FILE *);
 
-struct imm_amino const *dcp_model_amino(struct dcp_model const *);
-struct imm_nuclt const *dcp_model_nuclt(struct dcp_model const *);
 struct dcp_model_summary dcp_model_summary(struct dcp_model *);
 
 #endif

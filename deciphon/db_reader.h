@@ -4,6 +4,7 @@
 #include "entry_dist.h"
 #include "imm/imm.h"
 #include "lip/lip.h"
+#include "model_params.h"
 
 struct dcp_db_reader
 {
@@ -25,5 +26,8 @@ void dcp_db_reader_close(struct dcp_db_reader *);
 int dcp_db_reader_unpack_magic_number(struct dcp_db_reader *);
 int dcp_db_reader_unpack_float_size(struct dcp_db_reader *);
 int dcp_db_reader_unpack_prot_sizes(struct dcp_db_reader *);
+
+struct dcp_model_params dcp_db_reader_params(struct dcp_db_reader const *,
+                                             struct imm_gencode const *);
 
 #endif

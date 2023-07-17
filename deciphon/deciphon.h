@@ -9,6 +9,7 @@ extern "C" {
 #include "press.h"
 #include "rc.h"
 #include "scan.h"
+#include "scan_params.h"
 #include "seq.h"
 #include "strerror.h"
 

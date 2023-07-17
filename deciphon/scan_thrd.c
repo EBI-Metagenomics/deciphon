@@ -14,26 +14,32 @@
 #include "seq.h"
 #include "seq_struct.h"
 
-int dcp_scan_thrd_init(struct dcp_scan_thrd *x,
-                       struct dcp_protein_reader *reader, int partition,
-                       struct dcp_prod_writer_thrd *prod_thrd,
-                       struct dcp_hmmer_dialer *dialer)
+void dcp_scan_thrd_init(struct dcp_scan_thrd *x)
 {
-  struct dcp_db_reader const *db = reader->db;
-  dcp_protein_init(&x->protein, NULL, &db->amino, &db->code, db->entry_dist,
-                   db->epsilon);
-  dcp_protein_reader_iter(reader, partition, &x->iter);
+  *x = (struct dcp_scan_thrd){};
+}
 
-  x->prod_thrd = prod_thrd;
-  struct imm_abc const *abc = &db->nuclt.super;
-  char const *abc_name = imm_abc_typeid_name(abc->typeid);
+int dcp_scan_thrd_setup(struct dcp_scan_thrd *x,
+                        struct dcp_scan_thrd_params params)
+{
+  struct dcp_db_reader const *db = params.reader->db;
+  dcp_protein_init(&x->protein, dcp_db_reader_params(db, NULL));
+  int rc = 0;
+
+  if ((rc = dcp_protein_reader_iter(params.reader, params.partition, &x->iter)))
+    defer_return(rc);
+
+  x->prod_thrd = params.prod_thrd;
+  char const *abc_name = imm_abc_typeid_name(db->nuclt.super.typeid);
   dcp_prod_match_set_abc(&x->prod_thrd->match, abc_name);
 
   dcp_chararray_init(&x->amino);
+  x->lrt_threshold = params.lrt_threshold;
+  x->multi_hits = params.multi_hits;
+  x->hmmer3_compat = params.hmmer3_compat;
 
-  int rc = 0;
   if ((rc = dcp_hmmer_init(&x->hmmer))) defer_return(rc);
-  if ((rc = dcp_hmmer_dialer_dial(dialer, &x->hmmer))) defer_return(rc);
+  if ((rc = dcp_hmmer_dialer_dial(params.dialer, &x->hmmer))) defer_return(rc);
   if ((rc = dcp_hmmer_warmup(&x->hmmer))) defer_return(rc);
 
   return rc;
@@ -49,21 +55,6 @@ void dcp_scan_thrd_cleanup(struct dcp_scan_thrd *x)
   dcp_protein_cleanup(&x->protein);
   dcp_chararray_cleanup(&x->amino);
   dcp_hmmer_cleanup(&x->hmmer);
-}
-
-void dcp_scan_thrd_set_lrt_threshold(struct dcp_scan_thrd *x, double lrt)
-{
-  x->lrt_threshold = lrt;
-}
-
-void dcp_scan_thrd_set_multi_hits(struct dcp_scan_thrd *x, bool multihits)
-{
-  x->multi_hits = multihits;
-}
-
-void dcp_scan_thrd_set_hmmer3_compat(struct dcp_scan_thrd *x, bool h3compat)
-{
-  x->hmmer3_compat = h3compat;
 }
 
 static int infer_amino(struct dcp_chararray *x, struct dcp_match *match,

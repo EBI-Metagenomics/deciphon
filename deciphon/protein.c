@@ -10,25 +10,19 @@
 #include <assert.h>
 #include <string.h>
 
-void dcp_protein_init(struct dcp_protein *x, struct imm_gencode const *gc,
-                      struct imm_amino const *amino,
-                      struct imm_nuclt_code const *code,
-                      enum dcp_entry_dist entry_dist, float epsilon)
+void dcp_protein_init(struct dcp_protein *x, struct dcp_model_params params)
 {
-  x->gencode = gc;
+  x->params = params;
+
   memset(x->accession, 0, array_size_field(struct dcp_protein, accession));
   x->state_name = dcp_state_name;
-  x->imm_code = &code->super;
 
-  x->amino = amino;
-  x->nuclt_code = code;
-  x->entry_dist = entry_dist;
-  x->epsilon = epsilon;
-  x->epsilon_frame = imm_frame_epsilon(epsilon);
+  x->epsilon_frame = imm_frame_epsilon(params.epsilon);
+
   memset(x->consensus, 0, array_size_field(struct dcp_protein, consensus));
 
-  dcp_protein_null_init(&x->null, code);
-  dcp_protein_alts_init(&x->alts, code);
+  dcp_protein_null_init(&x->null, params.code);
+  dcp_protein_alts_init(&x->alts, params.code);
 }
 
 int dcp_protein_set_accession(struct dcp_protein *x, char const *acc)
@@ -78,10 +72,10 @@ int dcp_protein_absorb(struct dcp_protein *x, struct dcp_model *m)
 {
   int rc = 0;
 
-  x->gencode = m->gencode;
+  x->params.gencode = m->params.gencode;
 
-  if (x->amino != dcp_model_amino(m)) return DCP_EDIFFABC;
-  if (x->nuclt_code->nuclt != dcp_model_nuclt(m)) return DCP_EDIFFABC;
+  if (x->params.amino != m->params.amino) return DCP_EDIFFABC;
+  if (x->params.code->nuclt != m->params.code->nuclt) return DCP_EDIFFABC;
 
   unsigned n = array_size_field(struct dcp_protein, consensus);
   if (!strkcpy(x->consensus, m->consensus, n)) return DCP_EFORMAT;
@@ -96,7 +90,7 @@ int dcp_protein_absorb(struct dcp_protein *x, struct dcp_model *m)
 int dcp_protein_sample(struct dcp_protein *x, unsigned seed, unsigned core_size)
 {
   assert(core_size >= 2);
-  if (!x->gencode) return DCP_ESETGENCODE;
+  if (!x->params.gencode) return DCP_ESETGENCODE;
 
   x->alts.core_size = core_size;
   struct imm_rnd rnd = imm_rnd(seed);
@@ -107,8 +101,7 @@ int dcp_protein_sample(struct dcp_protein *x, unsigned seed, unsigned core_size)
   imm_lprob_normalize(IMM_AMINO_SIZE, lprobs);
 
   struct dcp_model model = {0};
-  dcp_model_init(&model, x->gencode, x->amino, x->nuclt_code, x->entry_dist,
-                 x->epsilon, lprobs);
+  dcp_model_init(&model, x->params, lprobs);
 
   int rc = 0;
 
@@ -138,14 +131,14 @@ int dcp_protein_sample(struct dcp_protein *x, unsigned seed, unsigned core_size)
   rc = dcp_protein_absorb(x, &model);
 
 cleanup:
-  dcp_model_del(&model);
+  dcp_model_cleanup(&model);
   return rc;
 }
 
 int dcp_protein_decode(struct dcp_protein const *x, struct imm_seq const *seq,
                        unsigned state_id, struct imm_codon *codon)
 {
-  assert(!state_is_mute(state_id));
+  assert(!dcp_state_is_mute(state_id));
 
   struct dcp_nuclt_dist const *nucltd = NULL;
   if (dcp_state_is_insert(state_id))
@@ -178,14 +171,14 @@ void dcp_protein_write_dot(struct dcp_protein const *x, struct imm_dp const *dp,
 int dcp_protein_pack(struct dcp_protein const *x, struct lip_file *file)
 {
   int rc = 0;
-  if (!x->gencode) return DCP_ESETGENCODE;
+  if (!x->params.gencode) return DCP_ESETGENCODE;
   if (!lip_write_map_size(file, 5)) return DCP_EFWRITE;
 
   if (!lip_write_cstr(file, "accession")) return DCP_EFWRITE;
   if (!lip_write_cstr(file, x->accession)) return DCP_EFWRITE;
 
   if (!lip_write_cstr(file, "gencode")) return DCP_EFWRITE;
-  if (!lip_write_int(file, x->gencode->id)) return DCP_EFWRITE;
+  if (!lip_write_int(file, x->params.gencode->id)) return DCP_EFWRITE;
 
   if (!lip_write_cstr(file, "consensus")) return DCP_EFWRITE;
   if (!lip_write_cstr(file, x->consensus)) return DCP_EFWRITE;
@@ -214,7 +207,7 @@ int dcp_protein_unpack(struct dcp_protein *x, struct lip_file *file)
   unsigned gencode_id = 0;
   if ((rc = dcp_expect_map_key(file, "gencode"))) return rc;
   if (!lip_read_int(file, &gencode_id)) return DCP_EFREAD;
-  if (!(x->gencode = imm_gencode_get(gencode_id))) return DCP_EFREAD;
+  if (!(x->params.gencode = imm_gencode_get(gencode_id))) return DCP_EFREAD;
 
   if ((rc = dcp_expect_map_key(file, "consensus"))) return rc;
   if (!lip_read_cstr(file, consensus_size, x->consensus)) return DCP_EFREAD;
@@ -232,7 +225,7 @@ void dcp_protein_cleanup(struct dcp_protein *x)
 {
   if (x)
   {
-    x->gencode = NULL;
+    x->params.gencode = NULL;
     dcp_protein_null_cleanup(&x->null);
     dcp_protein_alts_cleanup(&x->alts);
   }

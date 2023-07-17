@@ -4,6 +4,7 @@
 #include "defer_return.h"
 #include "fs.h"
 #include "hmm_reader.h"
+#include "protein.h"
 #include "rc.h"
 #include "sizeof_field.h"
 #include "strkcpy.h"
@@ -26,14 +27,13 @@ struct dcp_press
 
   unsigned count;
   struct dcp_protein protein;
-
+  struct imm_nuclt_code code;
+  struct dcp_model_params params;
   char buffer[4 * 1024];
 };
 
 static int count_proteins(struct dcp_press *);
-static int prepare_writer(struct dcp_press *);
 static int finish_writer(struct dcp_press *);
-static void prepare_reader(struct dcp_press *, struct imm_gencode const *);
 static int protein_write(struct dcp_press *);
 
 struct dcp_press *dcp_press_new(void)
@@ -46,39 +46,47 @@ struct dcp_press *dcp_press_new(void)
   return p;
 }
 
-int dcp_press_open(struct dcp_press *press, int gencode_id, char const *hmm,
-                   char const *db)
+int dcp_press_setup(struct dcp_press *x, int gencode_id, float epsilon)
 {
-  struct imm_gencode const *gc = imm_gencode_get((unsigned)gencode_id);
-  if (!gc) return DCP_EGENCODEID;
+  x->params.gencode = imm_gencode_get((unsigned)gencode_id);
+  if (!x->params.gencode) return DCP_EGENCODEID;
+  x->params.amino = &imm_amino_iupac;
+  imm_nuclt_code_init(&x->code, &imm_dna_iupac.super);
+  x->params.code = &x->code;
+  x->params.entry_dist = DCP_ENTRY_DIST_OCCUPANCY;
+  x->params.epsilon = epsilon;
+  return 0;
+}
 
-  press->writer.fp = NULL;
-  press->reader.fp = NULL;
+int dcp_press_open(struct dcp_press *x, char const *hmm, char const *db)
+{
+  x->writer.fp = NULL;
+  x->reader.fp = NULL;
 
   int rc = 0;
 
-  if (!(press->reader.fp = fopen(hmm, "rb"))) defer_return(DCP_EOPENHMM);
-  if (!(press->writer.fp = fopen(db, "wb"))) defer_return(DCP_EOPENDB);
+  if (!(x->reader.fp = fopen(hmm, "rb"))) defer_return(DCP_EOPENHMM);
+  if (!(x->writer.fp = fopen(db, "wb"))) defer_return(DCP_EOPENDB);
 
-  if ((rc = count_proteins(press))) defer_return(rc);
-  if ((rc = prepare_writer(press))) defer_return(rc);
+  if ((rc = count_proteins(x))) defer_return(rc);
 
-  prepare_reader(press, gc);
+  dcp_db_writer_init(&x->writer.db, x->params);
+  if ((rc = dcp_db_writer_open(&x->writer.db, x->writer.fp))) defer_return(rc);
 
-  dcp_protein_init(&press->protein, gc, &press->writer.db.amino,
-                   &press->writer.db.code, press->writer.db.entry_dist,
-                   press->writer.db.epsilon);
+  dcp_hmm_reader_init(&x->reader.h3, x->params, x->reader.fp);
 
-  char const *acc = press->reader.h3.protein.meta.acc;
-  if ((rc = dcp_protein_set_accession(&press->protein, acc))) defer_return(rc);
+  dcp_protein_init(&x->protein, x->params);
+
+  char const *acc = x->reader.h3.protein.meta.acc;
+  if ((rc = dcp_protein_set_accession(&x->protein, acc))) defer_return(rc);
 
   return rc;
 
 defer:
-  if (press->writer.fp) fclose(press->writer.fp);
-  if (press->reader.fp) fclose(press->reader.fp);
-  press->writer.fp = NULL;
-  press->reader.fp = NULL;
+  if (x->writer.fp) fclose(x->writer.fp);
+  if (x->reader.fp) fclose(x->reader.fp);
+  x->writer.fp = NULL;
+  x->reader.fp = NULL;
   return rc;
 }
 
@@ -126,19 +134,11 @@ int dcp_press_close(struct dcp_press *press)
   press->writer.fp = NULL;
   press->reader.fp = NULL;
   dcp_protein_cleanup(&press->protein);
-  dcp_hmm_reader_del(&press->reader.h3);
+  dcp_hmm_reader_cleanup(&press->reader.h3);
   return rc_r ? rc_r : (rc_w ? rc_w : 0);
 }
 
 void dcp_press_del(struct dcp_press const *x) { free((void *)x); }
-
-static int prepare_writer(struct dcp_press *press)
-{
-  struct imm_amino const *a = &imm_amino_iupac;
-  struct imm_nuclt const *n = &imm_dna_iupac.super;
-  return dcp_db_writer_open(&press->writer.db, press->writer.fp, a, n,
-                            ENTRY_DIST_OCCUPANCY, 0.01);
-}
 
 static int finish_writer(struct dcp_press *press)
 {
@@ -152,18 +152,6 @@ static int finish_writer(struct dcp_press *press)
 defer:
   fclose(press->writer.fp);
   return rc;
-}
-
-static void prepare_reader(struct dcp_press *press,
-                           struct imm_gencode const *gc)
-{
-  struct imm_amino const *amino = &press->writer.db.amino;
-  struct imm_nuclt_code const *code = &press->writer.db.code;
-  enum dcp_entry_dist entry_dist = press->writer.db.entry_dist;
-  float epsilon = press->writer.db.epsilon;
-
-  dcp_hmm_reader_init(&press->reader.h3, gc, amino, code, entry_dist, epsilon,
-                      press->reader.fp);
 }
 
 static int protein_write(struct dcp_press *x)

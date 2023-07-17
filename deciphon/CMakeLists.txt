@@ -20,7 +20,7 @@ cpmaddpackage(
   SOURCE_SUBDIR h3client)
 cpmaddpackage("gh:EBI-Metagenomics/imm@4.0.0")
 cpmaddpackage("gh:EBI-Metagenomics/lip@0.5.2")
-find_package(OpenMP)
+find_package(OpenMP REQUIRED)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_C_STANDARD 11)
@@ -42,9 +42,7 @@ target_link_libraries(deciphon PRIVATE ELAPSED::elapsed)
 target_link_libraries(deciphon PRIVATE H3CLIENT::h3client)
 target_link_libraries(deciphon INTERFACE $<$<BOOL:${UNIX}>:m>)
 target_link_libraries(deciphon PRIVATE HMMER_READER::hmmer_reader)
-if(OpenMP_C_FOUND)
-  target_link_libraries(deciphon PRIVATE OpenMP::OpenMP_C)
-endif()
+target_link_libraries(deciphon PRIVATE OpenMP::OpenMP_C)
 
 file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/deciphon)
 file(COPY ${DECIPHON_HEADERS} DESTINATION ${PROJECT_BINARY_DIR}/deciphon)
@@ -96,11 +94,21 @@ install(FILES ${PROJECT_CONFIG} ${VERSION_CONFIG} DESTINATION lib/cmake/deciphon
 
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
   enable_testing()
-  file(GLOB IMM_TEST_SOURCES "test_*.c")
-  foreach(source ${IMM_TEST_SOURCES})
+
+  add_test(NAME start_hmmer COMMAND start_hmmer.sh minifam.hmm  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+  add_test(NAME stop_hmmer COMMAND stop_hmmer.sh minifam.hmm  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+  set_tests_properties(start_hmmer PROPERTIES FIXTURES_SETUP hmmer)
+  set_tests_properties(stop_hmmer PROPERTIES FIXTURES_CLEANUP hmmer)
+
+  file(GLOB DECIPHON_TEST_SOURCES "test_*.c")
+  foreach(source ${DECIPHON_TEST_SOURCES})
     get_filename_component(x ${source} NAME_WE)
     add_executable(${x} ${source})
     target_link_libraries(${x} PRIVATE deciphon)
+    target_link_libraries(${x} PRIVATE IMM::imm)
+    target_link_libraries(${x} PRIVATE LIP::lip)
     add_test(NAME ${x} COMMAND ${x} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
   endforeach()
+
+  set_tests_properties(test_scan PROPERTIES FIXTURES_REQUIRED hmmer)
 endif()

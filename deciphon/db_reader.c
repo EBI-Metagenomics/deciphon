@@ -12,7 +12,8 @@ static int unpack_entry_dist(struct lip_file *file, enum dcp_entry_dist *ed)
   int rc = 0;
   if ((rc = dcp_expect_map_key(file, "entry_dist"))) return rc;
   if (!lip_read_int(file, ed)) return DCP_EFREAD;
-  if (*ed <= ENTRY_DIST_NULL || *ed > ENTRY_DIST_OCCUPANCY) return DCP_EFDATA;
+  if (*ed <= DCP_ENTRY_DIST_NULL || *ed > DCP_ENTRY_DIST_OCCUPANCY)
+    return DCP_EFDATA;
   return 0;
 }
 
@@ -133,4 +134,11 @@ int dcp_db_reader_unpack_prot_sizes(struct dcp_db_reader *x)
   int rc = 0;
   if ((rc = dcp_expect_map_key(&x->file, "protein_sizes"))) return rc;
   return unpack_header_protein_sizes(x);
+}
+
+struct dcp_model_params dcp_db_reader_params(struct dcp_db_reader const *x,
+                                             struct imm_gencode const *gencode)
+{
+  return dcp_model_params(gencode, &x->amino, &x->code, x->entry_dist,
+                          x->epsilon);
 }

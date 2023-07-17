@@ -12,7 +12,7 @@ struct dcp_prod_writer_thrd
 {
   int idx;
   char const *dirname;
-  char prodname[DCP_SHORT_PATH_MAX];
+  char prodname[DCP_PATH_MAX];
   struct dcp_prod_match match;
 };
 

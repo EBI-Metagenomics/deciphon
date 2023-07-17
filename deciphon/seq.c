@@ -5,25 +5,24 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-void dcp_seq_setup(struct dcp_seq *x, long id, char const *name,
-                   char const *data)
+int dcp_seq_setup(struct dcp_seq *x, long id, char const *name,
+                  char const *data)
 {
   x->id = id;
   x->name = name;
   x->data = data;
+  x->imm_seq = imm_seq(imm_str(x->data), imm_eseq_abc(&x->imm_eseq));
+  return imm_eseq_setup(&x->imm_eseq, &x->imm_seq) ? DCP_ESEQABC : 0;
 }
 
-void dcp_seq_init(struct dcp_seq *x)
+void dcp_seq_cleanup(struct dcp_seq *x) { imm_eseq_cleanup(&x->imm_eseq); }
+
+void dcp_seq_init(struct dcp_seq *x, struct imm_code const *code)
 {
   x->id = 0;
   x->name = NULL;
   x->data = NULL;
-}
-
-int dcp_seq_set_abc(struct dcp_seq *x, struct imm_abc const *abc)
-{
-  x->imm_seq = imm_seq(imm_str(x->data), abc);
-  return imm_eseq_setup(&x->imm_eseq, &x->imm_seq) ? DCP_ESEQABC : 0;
+  imm_eseq_init(&x->imm_eseq, code);
 }
 
 struct imm_seq const *dcp_seq_imm_seq(struct dcp_seq const *x)

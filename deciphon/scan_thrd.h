@@ -25,18 +25,23 @@ struct dcp_scan_thrd
 };
 
 struct dcp_hmmer_dialer;
-struct prod_thrd;
 struct dcp_protein_reader;
 struct dcp_seq;
 
-int dcp_scan_thrd_init(struct dcp_scan_thrd *, struct dcp_protein_reader *,
-                       int partition, struct dcp_prod_writer_thrd *,
-                       struct dcp_hmmer_dialer *);
-void dcp_scan_thrd_cleanup(struct dcp_scan_thrd *);
+struct dcp_scan_thrd_params
+{
+  struct dcp_protein_reader *reader;
+  int partition;
+  struct dcp_prod_writer_thrd *prod_thrd;
+  struct dcp_hmmer_dialer *dialer;
+  double lrt_threshold;
+  bool multi_hits;
+  bool hmmer3_compat;
+};
 
-void dcp_scan_thrd_set_lrt_threshold(struct dcp_scan_thrd *, double lrt);
-void dcp_scan_thrd_set_multi_hits(struct dcp_scan_thrd *, bool multihits);
-void dcp_scan_thrd_set_hmmer3_compat(struct dcp_scan_thrd *, bool h3compat);
+void dcp_scan_thrd_init(struct dcp_scan_thrd *);
+int dcp_scan_thrd_setup(struct dcp_scan_thrd *, struct dcp_scan_thrd_params);
+void dcp_scan_thrd_cleanup(struct dcp_scan_thrd *);
 int dcp_scan_thrd_run(struct dcp_scan_thrd *, struct dcp_seq const *);
 
 #endif

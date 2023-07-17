@@ -25,7 +25,7 @@ int dcp_prod_writer_open(struct dcp_prod_writer *x, int nthreads,
 
   int rc = 0;
 
-  char hmmer_dir[DCP_SHORT_PATH_MAX] = {0};
+  char hmmer_dir[DCP_PATH_MAX] = {0};
   if ((rc = FMT(hmmer_dir, "%s/hmmer", x->dirname))) return rc;
 
   if ((rc = dcp_fs_mkdir(x->dirname, true))) defer_return(rc);
@@ -47,7 +47,7 @@ defer:
 
 int dcp_prod_writer_close(struct dcp_prod_writer *x)
 {
-  char filename[DCP_SHORT_PATH_MAX] = {0};
+  char filename[DCP_PATH_MAX] = {0};
   int rc = 0;
 
   if ((rc = FMT(filename, "%s/products.tsv", x->dirname))) return rc;
@@ -62,7 +62,7 @@ int dcp_prod_writer_close(struct dcp_prod_writer *x)
 
   for (int i = 0; i < x->nthreads; ++i)
   {
-    char file[DCP_SHORT_PATH_MAX] = {0};
+    char file[DCP_PATH_MAX] = {0};
     if ((rc = FMT(file, "%s/.products.%03d.tsv", x->dirname, i)))
       defer_return(rc);
 

@@ -3,6 +3,11 @@
 #define _POSIX_C_SOURCE 200809L
 #endif
 
+#if !defined(_XOPEN_SOURCE) || _XOPEN_SOURCE < 700
+#undef _XOPEN_SOURCE
+#define _XOPEN_SOURCE 700
+#endif
+
 #if !defined(_FILE_OFFSET_BITS) || _FILE_OFFSET_BITS < 64
 #undef _FILE_OFFSET_BITS
 #define _FILE_OFFSET_BITS 64
@@ -13,6 +18,7 @@
 #include "rc.h"
 #include <assert.h>
 #include <errno.h>
+#include <ftw.h>
 #include <limits.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -195,4 +201,18 @@ int dcp_fs_touch(char const *x)
   FILE *fp = fopen(x, "wb");
   if (!fp) return DCP_EFOPEN;
   return fclose(fp) ? DCP_EFCLOSE : 0;
+}
+
+static int unlink_callb(const char *path, const struct stat *stat, int flag,
+                        struct FTW *buf)
+{
+  (void)stat;
+  (void)flag;
+  (void)buf;
+  return remove(path);
+}
+
+int dcp_fs_rmtree(char const *dirpath)
+{
+  return nftw(dirpath, unlink_callb, 64, FTW_DEPTH | FTW_PHYS);
 }

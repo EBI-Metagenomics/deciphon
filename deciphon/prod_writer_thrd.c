@@ -82,7 +82,7 @@ defer:
 int dcp_prod_writer_thrd_put_hmmer(struct dcp_prod_writer_thrd *x,
                                    struct dcp_hmmer_result const *result)
 {
-  char file[DCP_SHORT_PATH_MAX] = {0};
+  char file[DCP_PATH_MAX] = {0};
   int rc = 0;
   char const *dirname = x->dirname;
 

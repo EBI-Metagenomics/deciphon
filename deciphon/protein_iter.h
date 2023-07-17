@@ -1,5 +1,5 @@
-#ifndef DECIPHON_PROTEINITER_H
-#define DECIPHON_PROTEINITER_H
+#ifndef DECIPHON_PROTEIN_ITER_H
+#define DECIPHON_PROTEIN_ITER_H
 
 #include "lip/lip.h"
 #include "protein.h"

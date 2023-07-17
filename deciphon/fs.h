@@ -18,5 +18,6 @@ int dcp_fs_mkdir(char const *dirpath, bool exist_ok);
 int dcp_fs_rmdir(char const *dirpath);
 int dcp_fs_rmfile(char const *filepath);
 int dcp_fs_touch(char const *filepath);
+int dcp_fs_rmtree(char const *dirpath);
 
 #endif

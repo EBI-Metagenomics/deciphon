@@ -6,7 +6,7 @@
 
 struct dcp_prod_writer
 {
-  char dirname[DCP_SHORT_PATH_MAX];
+  char dirname[DCP_PATH_MAX];
   int nthreads;
   struct dcp_prod_writer_thrd threads[DCP_NTHREADS_MAX];
 };

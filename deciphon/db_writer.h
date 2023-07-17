@@ -2,8 +2,9 @@
 #define DECIPHON_DB_WRITER_H
 
 #include "entry_dist.h"
+#include "imm/imm.h"
 #include "lip/lip.h"
-#include "protein.h"
+#include "model_params.h"
 #include "rc.h"
 #include <stdio.h>
 
@@ -19,20 +20,15 @@ struct dcp_db_writer
     struct lip_file proteins;
   } tmp;
 
-  struct imm_amino amino;
-  struct imm_nuclt nuclt;
+  struct dcp_model_params params;
   struct imm_nuclt_code code;
-  enum dcp_entry_dist entry_dist;
-  float epsilon;
 };
 
-int dcp_db_writer_open(struct dcp_db_writer *db, FILE *fp,
-                       struct imm_amino const *amino,
-                       struct imm_nuclt const *nuclt, enum dcp_entry_dist,
-                       float epsilon);
+struct dcp_protein;
 
-int dcp_db_writer_pack(struct dcp_db_writer *db, struct dcp_protein const *);
-
-int dcp_db_writer_close(struct dcp_db_writer *db);
+void dcp_db_writer_init(struct dcp_db_writer *, struct dcp_model_params);
+int dcp_db_writer_open(struct dcp_db_writer *, FILE *);
+int dcp_db_writer_pack(struct dcp_db_writer *, struct dcp_protein const *);
+int dcp_db_writer_close(struct dcp_db_writer *);
 
 #endif

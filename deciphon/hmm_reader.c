@@ -1,21 +1,17 @@
 #include "hmm_reader.h"
 #include "compiler.h"
+#include "model.h"
 #include "rc.h"
 
 static void init_null_lprobs(float[IMM_AMINO_SIZE]);
 
 void dcp_hmm_reader_init(struct dcp_hmm_reader *reader,
-                         struct imm_gencode const *gc,
-                         struct imm_amino const *amino,
-                         struct imm_nuclt_code const *code,
-                         enum dcp_entry_dist entry_dist, float epsilon,
-                         FILE *fp)
+                         struct dcp_model_params params, FILE *fp)
 {
   hmr_init(&reader->hmr, fp);
   hmr_prof_init(&reader->protein, &reader->hmr);
   init_null_lprobs(reader->null_lprobs);
-  dcp_model_init(&reader->model, gc, amino, code, entry_dist, epsilon,
-                 reader->null_lprobs);
+  dcp_model_init(&reader->model, params, reader->null_lprobs);
   reader->end = false;
 }
 
@@ -81,9 +77,9 @@ bool dcp_hmm_reader_end(struct dcp_hmm_reader const *reader)
   return reader->end;
 }
 
-void dcp_hmm_reader_del(struct dcp_hmm_reader const *reader)
+void dcp_hmm_reader_cleanup(struct dcp_hmm_reader const *reader)
 {
-  dcp_model_del(&reader->model);
+  dcp_model_cleanup(&reader->model);
 }
 
 static void init_null_lprobs(float lprobs[IMM_AMINO_SIZE])

@@ -3,6 +3,7 @@
 #include "fs.h"
 #include "lip/1darray/1darray.h"
 #include "magic_number.h"
+#include "protein.h"
 #include "rc.h"
 
 static int pack_entry_dist(struct lip_file *file,
@@ -166,38 +167,33 @@ defer:
   return rc;
 }
 
-int dcp_db_writer_open(struct dcp_db_writer *db, FILE *fp,
-                       struct imm_amino const *amino,
-                       struct imm_nuclt const *nuclt,
-                       enum dcp_entry_dist entry_dist, float epsilon)
+void dcp_db_writer_init(struct dcp_db_writer *x, struct dcp_model_params params)
+{
+  x->params = params;
+}
+
+int dcp_db_writer_open(struct dcp_db_writer *x, FILE *fp)
 {
   int rc = 0;
 
-  db->nproteins = 0;
-  db->header_size = 0;
-  lip_file_init(&db->file, fp);
-  if ((rc = create_tempfiles(db))) return rc;
+  x->nproteins = 0;
+  x->header_size = 0;
+  lip_file_init(&x->file, fp);
+  if ((rc = create_tempfiles(x))) return rc;
 
-  db->amino = *amino;
-  db->nuclt = *nuclt;
-  imm_nuclt_code_init(&db->code, &db->nuclt);
-  db->entry_dist = entry_dist;
-  db->epsilon = epsilon;
-
-  struct imm_nuclt const *n = &db->nuclt;
-  struct imm_amino const *a = &db->amino;
-  if ((rc = db_writer_pack_magic_number(db))) defer_return(rc);
-  if ((rc = db_writer_pack_float_size(db))) defer_return(rc);
-  if ((rc = pack_entry_dist(&db->tmp.header, &entry_dist))) defer_return(rc);
-  if ((rc = pack_epsilon(&db->tmp.header, &epsilon))) defer_return(rc);
-  if ((rc = pack_nuclt(&db->tmp.header, n))) defer_return(rc);
-  if ((rc = pack_amino(&db->tmp.header, a))) defer_return(rc);
-  db->header_size += 4;
+  struct dcp_model_params *p = &x->params;
+  if ((rc = db_writer_pack_magic_number(x))) defer_return(rc);
+  if ((rc = db_writer_pack_float_size(x))) defer_return(rc);
+  if ((rc = pack_entry_dist(&x->tmp.header, &p->entry_dist))) defer_return(rc);
+  if ((rc = pack_epsilon(&x->tmp.header, &p->epsilon))) defer_return(rc);
+  if ((rc = pack_nuclt(&x->tmp.header, p->code->nuclt))) defer_return(rc);
+  if ((rc = pack_amino(&x->tmp.header, p->amino))) defer_return(rc);
+  x->header_size += 4;
 
   return rc;
 
 defer:
-  dcp_db_writer_close(db);
+  dcp_db_writer_close(x);
   return rc;
 }
 

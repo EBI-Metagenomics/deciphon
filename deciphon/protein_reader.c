@@ -102,3 +102,10 @@ static void partition_it(struct dcp_protein_reader *x)
     x->partition_offset[i + 1] += x->partition_offset[i];
   }
 }
+
+struct dcp_model_params
+dcp_protein_reader_params(struct dcp_protein_reader *x,
+                          struct imm_gencode const *gencode)
+{
+  return dcp_db_reader_params(x->db, gencode);
+}

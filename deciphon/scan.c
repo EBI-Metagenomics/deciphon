@@ -1,48 +1,45 @@
 #include "scan.h"
-#include "array_size_field.h"
 #include "defer_return.h"
 #include "hmmer_dialer.h"
 #include "prod_writer.h"
-#include "rc.h"
 #include "scan_db.h"
 #include "scan_thrd.h"
 #include "seq.h"
 #include "seq_iter.h"
-#include "size.h"
 #include <stdlib.h>
-#include <string.h>
 
 struct dcp_scan
 {
-  int nthreads;
   struct dcp_scan_thrd threads[DCP_NTHREADS_MAX];
   struct dcp_prod_writer prod_writer;
 
-  double lrt_threshold;
-  bool multi_hits;
-  bool hmmer3_compat;
+  struct dcp_scan_params params;
 
   struct dcp_scan_db db;
   struct dcp_seq_iter seqit;
   struct dcp_hmmer_dialer dialer;
 };
 
-struct dcp_scan *dcp_scan_new(int port)
+struct dcp_scan *dcp_scan_new(void)
 {
   struct dcp_scan *x = malloc(sizeof(*x));
-  x->nthreads = 1;
-  x->lrt_threshold = 10.;
-  x->multi_hits = true;
-  x->hmmer3_compat = false;
+  if (!x) return NULL;
+  x->params = dcp_scan_params(1, 0., true, false);
   dcp_scan_db_init(&x->db);
-  dcp_seq_iter_init(&x->seqit);
   dcp_prod_writer_init(&x->prod_writer);
-  if (dcp_hmmer_dialer_init(&x->dialer, port))
-  {
-    free(x);
-    return NULL;
-  }
   return x;
+}
+
+int dcp_scan_dial(struct dcp_scan *x, int port)
+{
+  return dcp_hmmer_dialer_init(&x->dialer, port);
+}
+
+int dcp_scan_setup(struct dcp_scan *x, struct dcp_scan_params params)
+{
+  if (params.num_threads > DCP_NTHREADS_MAX) return DCP_EMANYTHREADS;
+  x->params = params;
+  return 0;
 }
 
 void dcp_scan_del(struct dcp_scan const *x)
@@ -54,86 +51,65 @@ void dcp_scan_del(struct dcp_scan const *x)
   }
 }
 
-int dcp_scan_set_nthreads(struct dcp_scan *x, int nthreads)
-{
-  if (nthreads > DCP_NTHREADS_MAX) return DCP_EMANYTHREADS;
-  x->nthreads = nthreads;
-  return 0;
-}
+static inline int nthreads(struct dcp_scan *x) { return x->params.num_threads; }
 
-void dcp_scan_set_lrt_threshold(struct dcp_scan *x, double lrt)
-{
-  x->lrt_threshold = lrt;
-}
-
-void dcp_scan_set_multi_hits(struct dcp_scan *x, bool multihits)
-{
-  x->multi_hits = multihits;
-}
-
-void dcp_scan_set_hmmer3_compat(struct dcp_scan *x, bool h3compat)
-{
-  x->hmmer3_compat = h3compat;
-}
-
-int dcp_scan_set_proteins(struct dcp_scan *x, char const *dbfile)
-{
-  return dcp_scan_db_set_filename(&x->db, dbfile);
-}
-
-void dcp_scan_set_sequences(struct dcp_scan *x, dcp_seq_next_fn *callb,
-                            void *arg)
-{
-  dcp_seq_iter_set_callback(&x->seqit, callb, arg);
-}
-
-int dcp_scan_run(struct dcp_scan *x, char const *name)
+int dcp_scan_run(struct dcp_scan *x, char const *dbfile, dcp_seq_next_fn *callb,
+                 void *userdata, char const *product_dir)
 {
   int rc = 0;
-  for (int i = 0; i < x->nthreads; ++i)
-    memset(&x->threads[i], 0, sizeof(x->threads[i]));
 
-  if ((rc = dcp_scan_db_open(&x->db, x->nthreads))) defer_return(rc);
+  for (int i = 0; i < nthreads(x); ++i)
+    dcp_scan_thrd_init(x->threads + i);
 
-  if ((rc = dcp_prod_writer_open(&x->prod_writer, x->nthreads, name)))
+  if ((rc = dcp_scan_db_open(&x->db, dbfile, nthreads(x)))) defer_return(rc);
+
+  dcp_seq_iter_init(&x->seqit, dcp_scan_code(&x->db));
+  dcp_seq_iter_set_callback(&x->seqit, callb, userdata);
+
+  if ((rc = dcp_prod_writer_open(&x->prod_writer, nthreads(x), product_dir)))
     defer_return(rc);
 
-  for (int i = 0; i < x->nthreads; ++i)
+  struct dcp_scan_thrd_params params = {
+      .reader = dcp_scan_db_reader(&x->db),
+      .partition = 0,
+      .prod_thrd = NULL,
+      .dialer = &x->dialer,
+      .lrt_threshold = x->params.lrt_threshold,
+      .multi_hits = x->params.multi_hits,
+      .hmmer3_compat = x->params.hmmer3_compat};
+
+  for (int i = 0; i < nthreads(x); ++i)
   {
-    struct dcp_scan_thrd *t = x->threads + i;
-    struct dcp_protein_reader *r = dcp_scan_db_reader(&x->db);
-    struct dcp_prod_writer_thrd *wt = dcp_prod_writer_thrd(&x->prod_writer, i);
-    if ((rc = dcp_scan_thrd_init(t, r, i, wt, &x->dialer))) defer_return(rc);
-    dcp_scan_thrd_set_lrt_threshold(t, x->lrt_threshold);
-    dcp_scan_thrd_set_multi_hits(t, x->multi_hits);
-    dcp_scan_thrd_set_hmmer3_compat(t, x->hmmer3_compat);
+    params.partition = i;
+    params.prod_thrd = dcp_prod_writer_thrd(&x->prod_writer, i);
+    if ((rc = dcp_scan_thrd_setup(x->threads + i, params))) defer_return(rc);
   }
 
   int seq_idx = 0;
   while (dcp_seq_iter_next(&x->seqit) && !rc)
   {
     fprintf(stderr, "Scanning sequence %d\n", seq_idx++);
-    struct dcp_seq const *seq = dcp_seq_iter_get(&x->seqit);
+    struct dcp_seq *seq = dcp_seq_iter_get(&x->seqit);
 
 #pragma omp parallel for default(none) shared(x, seq, rc)
-    for (int i = 0; i < x->nthreads; ++i)
+    for (int i = 0; i < nthreads(x); ++i)
     {
       int r = dcp_scan_thrd_run(x->threads + i, seq);
 #pragma omp critical
       if (r && !rc) rc = r;
     }
   }
-  if (rc) defer_return(rc);
-
-  dcp_scan_db_close(&x->db);
-  for (int i = 0; i < x->nthreads; ++i)
-    dcp_scan_thrd_cleanup(x->threads + i);
-  return dcp_prod_writer_close(&x->prod_writer);
 
 defer:
-  dcp_prod_writer_close(&x->prod_writer);
+  dcp_seq_iter_cleanup((struct dcp_seq_iter *)&x->seqit);
   dcp_scan_db_close(&x->db);
-  for (int i = 0; i < x->nthreads; ++i)
+  for (int i = 0; i < nthreads(x); ++i)
     dcp_scan_thrd_cleanup(x->threads + i);
+
+  if (rc)
+    dcp_prod_writer_close(&x->prod_writer);
+  else
+    rc = dcp_prod_writer_close(&x->prod_writer);
+
   return rc;
 }
