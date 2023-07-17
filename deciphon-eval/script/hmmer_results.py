@@ -4,7 +4,7 @@ from pathlib import Path
 import polars as pl
 from hmmer_tables.domtbl import read_domtbl
 from hmmer_tables.output import Output, read_output
-from load_domtbl import DomtblDB
+
 from deciphon_eval.rinterval import RInterval
 
 __all__ = ["read_hmmer_results", "HMMERResults"]
@@ -12,7 +12,7 @@ __all__ = ["read_hmmer_results", "HMMERResults"]
 
 @dataclass
 class HMMERResults:
-    domtbl: DomtblDB
+    domtbl: pl.DataFrame
     output: Output
 
 

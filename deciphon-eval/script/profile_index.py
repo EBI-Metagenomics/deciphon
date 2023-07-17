@@ -1,15 +1,16 @@
-from pathlib import Path
 from subprocess import check_output
+
+from index import Index
 
 __all__ = ["ProfileIndex"]
 
 
-class ProfileIndex:
-    def __init__(self, dbhmm: Path):
+class ProfileIndex(Index):
+    def __init__(self, dbhmm: str):
         profiles = [
             x.strip().decode()
             for x in check_output(
-                "grep 'ACC  '  " + str(dbhmm) + " | awk '{print $2}'", shell=True
+                "grep 'ACC  '  " + dbhmm + " | awk '{print $2}'", shell=True
             )
             .strip()
             .split()

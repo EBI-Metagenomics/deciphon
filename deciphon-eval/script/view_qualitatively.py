@@ -5,7 +5,7 @@ import plotly.express as px
 import polars as pl
 
 
-def view_quantitatively_whole_genome(parquetfile: str, title: str = "notitle"):
+def view_qual(parquetfile: str, title: str = "notitle"):
     df = pl.read_parquet(Path(parquetfile))
 
     df = (
@@ -42,4 +42,4 @@ def view_quantitatively_whole_genome(parquetfile: str, title: str = "notitle"):
 
 
 if __name__ == "__main__":
-    fire.Fire(view_quantitatively_whole_genome)
+    fire.Fire(view_qual)

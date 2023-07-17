@@ -5,7 +5,7 @@ import fire
 import polars as pl
 from profile_index import ProfileIndex
 from read_nucltdb import compute_genome_size, read_nucltdb
-from whole_genome_index import Index
+from whole_genome_index import WholeGenomeIndex
 
 from deciphon_eval.confusion import ConfusionMatrix
 from deciphon_eval.portion_utils import interval_size
@@ -32,7 +32,7 @@ def score_quantitatively_whole_genome(output: str, dbfile: str, *genome_dirs):
     for x in genome_dirs:
         genome_dir = Path(x)
         nucltdb = read_nucltdb(genome_dir / "cds_from_genomic.fna")
-        index = Index(ProfileIndex(dbfile), compute_genome_size(nucltdb))
+        index = WholeGenomeIndex(ProfileIndex(dbfile), compute_genome_size(nucltdb))
 
         guessed_file = genome_dir / "guessed_positives.pkl"
         positives_file = genome_dir / "positives.pkl"

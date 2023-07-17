@@ -3,5 +3,5 @@
 db=/nfs/research/rdf/horta/tune-deciphon/db.hmm
 
 for i in $(./list-ready-tune-deciphon-genomes.sh); do
-  bsub "python script/positives_whole_genome.py $i $db -s"
+  bsub -g /horta/evaluate "python script/positives_whole_genome.py $i $db -s"
 done

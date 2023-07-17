@@ -1,5 +1,4 @@
 import pickle as pkl
-import sys
 from collections import defaultdict
 from functools import reduce
 from pathlib import Path
@@ -11,7 +10,7 @@ from hmmer_results import read_hmmer_results
 from profile_index import ProfileIndex
 from read_nucltdb import compute_genome_size, read_nucltdb
 from tqdm import tqdm
-from whole_genome_index import Index
+from whole_genome_index import WholeGenomeIndex
 
 from deciphon_eval.location import Location
 from deciphon_eval.portion_utils import discretize
@@ -37,13 +36,10 @@ def get_aligns(output, seqid: str):
     return aligns
 
 
-def positives_whole_genome(genome_dir: Path, db_dir: Path, silent: bool = False):
-    print(sys.argv)
-    genome_dir = Path(sys.argv[1])
-    db_dir = Path(sys.argv[2])
+def positives_whole_genome(genome_dir: str, dbfile: str, silent: bool = False):
     hmmer = read_hmmer_results(genome_dir)
     nucltdb = read_nucltdb(genome_dir / "cds_from_genomic.fna")
-    index = Index(ProfileIndex(str(db_dir)), compute_genome_size(nucltdb))
+    index = WholeGenomeIndex(ProfileIndex(dbfile), compute_genome_size(nucltdb))
 
     ps = []
     for seqrow in tqdm(nucltdb.rows(named=True), disable=silent):
@@ -74,7 +70,7 @@ def positives_whole_genome(genome_dir: Path, db_dir: Path, silent: bool = False)
     positives = reduce(portion.Interval.union, ps, portion.empty())
     positives = discretize(positives)
 
-    with open(genome_dir / "positives.pkl", "wb") as f:
+    with open(Path(genome_dir) / "positives.pkl", "wb") as f:
         pkl.dump(positives, f)
 
 
