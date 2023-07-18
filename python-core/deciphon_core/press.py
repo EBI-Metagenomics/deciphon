@@ -1,50 +1,36 @@
-from __future__ import annotations
-
-from typing import Optional
-
 from deciphon_core.cffi import ffi, lib
 from deciphon_core.error import DeciphonError
 from deciphon_core.hmmfile import HMMFile
 
-__all__ = ["Press"]
+__all__ = ["PressContext"]
 
 
-class HMMPress:
-    def __init__(self, press: Press):
-        self._press: Optional[Press] = press
-
-    def press(self):
-        assert self._press
-        if rc := lib.dcp_press_next(self._press.cpress):
-            raise DeciphonError(rc)
-        self._press = None
-
-
-class Press:
-    def __init__(self, hmm: HMMFile, codon_table: int = 1):
-        self._cpress = ffi.NULL
-        self._hmm = hmm
-        self._db = hmm.newdbfile
-        self._nproteins: int = -1
-        self._idx = -1
-        self._codon_table = codon_table
-
-    @property
-    def cpress(self):
-        return self._cpress
-
-    def open(self):
+class PressContext:
+    def __init__(self, hmm: HMMFile, gencode: int = 1, epsilon: float = 0.01):
         self._cpress = lib.dcp_press_new()
+        self._hmm = hmm
+
         if self._cpress == ffi.NULL:
             raise MemoryError()
 
+        if rc := lib.dcp_press_setup(self._cpress, gencode, epsilon):
+            raise DeciphonError(rc)
+
+    def open(self):
         hmmpath = bytes(self._hmm.path)
-        dbpath = bytes(self._db.path)
-        if rc := lib.dcp_press_open(self._cpress, self._codon_table, hmmpath, dbpath):
+        dbpath = bytes(self._hmm.newdbfile.path)
+        if rc := lib.dcp_press_open(self._cpress, hmmpath, dbpath):
             raise DeciphonError(rc)
 
     def close(self):
         if rc := lib.dcp_press_close(self._cpress):
+            raise DeciphonError(rc)
+
+    def end(self) -> bool:
+        return lib.dcp_press_end(self._cpress)
+
+    def next(self):
+        if rc := lib.dcp_press_next(self._cpress):
             raise DeciphonError(rc)
 
     def __enter__(self):
@@ -56,21 +42,7 @@ class Press:
 
     @property
     def nproteins(self) -> int:
-        if self._nproteins == -1:
-            self._nproteins: int = lib.dcp_press_nproteins(self._cpress)
-        return self._nproteins
-
-    def __len__(self):
-        return self.nproteins
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        self._idx += 1
-        if self._idx < self.nproteins:
-            return HMMPress(self)
-        raise StopIteration()
+        return lib.dcp_press_nproteins(self._cpress)
 
     def __del__(self):
         if getattr(self, "_cpress", ffi.NULL) != ffi.NULL:

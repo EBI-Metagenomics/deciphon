@@ -10,8 +10,9 @@ from h3daemon.hmmfile import HMMFile as H3File
 from h3daemon.sched import SchedContext
 
 from deciphon_core.hmmfile import HMMFile
-from deciphon_core.press import Press
+from deciphon_core.press import PressContext
 from deciphon_core.scan import Scan
+from deciphon_core.scan_params import ScanParams
 from deciphon_core.seq import Seq
 from deciphon_core.snapfile import NewSnapFile
 
@@ -21,19 +22,23 @@ def test_scan(tmp_path: Path, files_path: Path, seqit: Iterator[Seq]):
     os.chdir(tmp_path)
 
     hmm = Path("minifam.hmm")
-    with Press(HMMFile(path=hmm)) as press:
-        for x in press:
-            x.press()
+    with PressContext(HMMFile(path=hmm)) as press:
+        while not press.end():
+            press.next()
 
     hmmfile = H3File(hmm)
     hmmfile.ensure_pressed()
+    params = ScanParams(
+        num_threads=1, lrt_threshold=0.0, multi_hits=True, hmmer3_compat=False
+    )
+    snapfile = NewSnapFile(path=Path("snap.dcs").absolute())
 
     with SchedContext(hmmfile) as sched:
         sched.is_ready(True)
-        scan = Scan(HMMFile(path=hmm), seqit, NewSnapFile(path=Path("snap.dcs")))
-        scan.port = sched.get_cport()
-        with scan:
-            scan.run()
+        scan = Scan()
+        scan.dial(sched.get_cport())
+        scan.setup(params)
+        scan.run(HMMFile(path=hmm), seqit, snapfile)
 
 
 @pytest.fixture

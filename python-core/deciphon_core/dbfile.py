@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import BaseModel, FilePath, validator
+from pydantic import BaseModel, FilePath, field_validator
 
 __all__ = ["DBFile", "NewDBFile"]
 
@@ -8,7 +8,7 @@ __all__ = ["DBFile", "NewDBFile"]
 class DBFile(BaseModel):
     path: FilePath
 
-    @validator("path")
+    @field_validator("path")
     def must_have_extension(cls, x: FilePath):
         if x.suffix != ".dcp":
             raise ValueError("must end in `.dcp`")
@@ -18,13 +18,13 @@ class DBFile(BaseModel):
 class NewDBFile(BaseModel):
     path: Path
 
-    @validator("path")
+    @field_validator("path")
     def must_have_extension(cls, x: Path):
         if x.suffix != ".dcp":
             raise ValueError("must end in `.dcp`")
         return x
 
-    @validator("path")
+    @field_validator("path")
     def must_not_exist(cls, x: Path):
         if x.exists():
             raise ValueError("path already exists")

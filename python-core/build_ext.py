@@ -53,7 +53,7 @@ EXTS = [
         "./hmmer-reader",
         CMAKE_OPTS,
     ),
-    Ext("EBI-Metagenomics", "imm", "v3.1.0", "./", CMAKE_OPTS + CPM_OPTS),
+    Ext("EBI-Metagenomics", "imm", "v4.0.0", "./", CMAKE_OPTS + CPM_OPTS),
     Ext("nanomsg", "nng", "v1.5.2", "./", CMAKE_OPTS + NNG_OPTS),
     Ext(
         "EBI-Metagenomics",
@@ -65,8 +65,8 @@ EXTS = [
     Ext(
         "EBI-Metagenomics",
         "deciphon",
-        "deciphon-v0.8.8",
-        "./deciphon",
+        "c-core-v0.9.0",
+        "./c-core",
         CMAKE_OPTS + CPM_OPTS,
     ),
 ]

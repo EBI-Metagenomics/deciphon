@@ -3,7 +3,7 @@ import shutil
 from pathlib import Path
 
 from deciphon_core.hmmfile import HMMFile
-from deciphon_core.press import Press
+from deciphon_core.press import PressContext
 
 
 def test_press(tmp_path: Path, files_path: Path):
@@ -11,8 +11,8 @@ def test_press(tmp_path: Path, files_path: Path):
     os.chdir(tmp_path)
 
     hmmfile = HMMFile(path=Path("minifam.hmm"))
-    with Press(hmmfile) as press:
-        for x in press:
-            x.press()
+    with PressContext(hmmfile) as press:
+        while not press.end():
+            press.next()
 
     assert hmmfile.dbfile.path.stat().st_size == 9933912

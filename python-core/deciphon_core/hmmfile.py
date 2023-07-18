@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import BaseModel, FilePath, validator
+from pydantic import BaseModel, FilePath, field_validator
 
 from deciphon_core.dbfile import DBFile, NewDBFile
 
@@ -10,7 +10,7 @@ __all__ = ["HMMFile"]
 class HMMFile(BaseModel):
     path: FilePath
 
-    @validator("path")
+    @field_validator("path")
     def must_have_extension(cls, x: FilePath):
         if x.suffix != ".hmm":
             raise ValueError("must end in `.hmm`")
