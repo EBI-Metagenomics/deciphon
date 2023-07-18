@@ -20,7 +20,7 @@ cpmaddpackage(
   SOURCE_SUBDIR h3client)
 cpmaddpackage("gh:EBI-Metagenomics/imm@4.0.0")
 cpmaddpackage("gh:EBI-Metagenomics/lip@0.5.2")
-find_package(OpenMP REQUIRED)
+find_package(OpenMP)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_C_STANDARD 11)
@@ -42,7 +42,7 @@ target_link_libraries(deciphon PRIVATE ELAPSED::elapsed)
 target_link_libraries(deciphon PRIVATE H3CLIENT::h3client)
 target_link_libraries(deciphon INTERFACE $<$<BOOL:${UNIX}>:m>)
 target_link_libraries(deciphon PRIVATE HMMER_READER::hmmer_reader)
-target_link_libraries(deciphon PRIVATE OpenMP::OpenMP_C)
+target_link_libraries(deciphon PRIVATE $<$<BOOL:${OpenMP_C_FOUND}>:OpenMP::OpenMP_C>)
 
 file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/deciphon)
 file(COPY ${DECIPHON_HEADERS} DESTINATION ${PROJECT_BINARY_DIR}/deciphon)
