@@ -23,7 +23,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          path: ${{defaults.run.working-directory}}/dist/*.tar.gz
+          path: python-core/dist/*.tar.gz
 
   make_linux_wheels:
     runs-on: ubuntu-latest
@@ -36,11 +36,11 @@ jobs:
           platforms: all
 
       - name: Build wheels
-        run: pipx run cibuildwheel==2.13.1
+        run: pipx run cibuildwheel==2.14.1
 
       - uses: actions/upload-artifact@v3
         with:
-          path: ${{defaults.run.working-directory}}/wheelhouse/*.whl
+          path: python-core/wheelhouse/*.whl
 
   make_macos_wheels:
     runs-on: macos-latest
@@ -48,11 +48,11 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Build wheels
-        run: pipx run cibuildwheel==2.13.1
+        run: pipx run cibuildwheel==2.14.1
 
       - uses: actions/upload-artifact@v3
         with:
-          path: ${{defaults.run.working-directory}}/wheelhouse/*.whl
+          path: python-core/wheelhouse/*.whl
 
   upload_all:
     needs: [make_linux_wheels, make_macos_wheels, make_sdist]
