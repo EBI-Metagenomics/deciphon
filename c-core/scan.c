@@ -84,10 +84,8 @@ int dcp_scan_run(struct dcp_scan *x, char const *dbfile, dcp_seq_next_fn *callb,
     if ((rc = dcp_scan_thrd_setup(x->threads + i, params))) defer_return(rc);
   }
 
-  int seq_idx = 0;
   while (dcp_seq_iter_next(&x->seqit) && !rc)
   {
-    fprintf(stderr, "Scanning sequence %d\n", seq_idx++);
     struct dcp_seq *seq = dcp_seq_iter_get(&x->seqit);
 
 #pragma omp parallel for default(none) shared(x, seq, rc)
