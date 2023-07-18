@@ -24,7 +24,7 @@ struct dcp_scan *dcp_scan_new(void)
 {
   struct dcp_scan *x = malloc(sizeof(*x));
   if (!x) return NULL;
-  x->params = dcp_scan_params(1, 0., true, false);
+  x->params = (struct dcp_scan_params){1, 0., true, false};
   dcp_scan_db_init(&x->db);
   dcp_prod_writer_init(&x->prod_writer);
   return x;

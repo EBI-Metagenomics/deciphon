@@ -4,7 +4,6 @@
 #include "deciphon/scan_params.h"
 #include "deciphon/seq.h"
 #include "vendor/minctest.h"
-#include <stdlib.h>
 
 #include <sys/stat.h>
 
@@ -46,12 +45,11 @@ static long fs_size(char const *filepath)
 
 static void test_scan1(void)
 {
-  fprintf(stderr, "test_scan1\n");
   struct dcp_scan *scan = dcp_scan_new();
   ok_or_exit(scan);
 
   eq(dcp_scan_dial(scan, 51371), 0);
-  struct dcp_scan_params params = dcp_scan_params(1, 10., true, false);
+  struct dcp_scan_params params = {1, 10., true, false};
   eq(dcp_scan_setup(scan, params), 0);
 
   int idx = 0;
@@ -64,12 +62,11 @@ static void test_scan1(void)
 
 static void test_scan2(void)
 {
-  fprintf(stderr, "test_scan2\n");
   struct dcp_scan *scan = dcp_scan_new();
   ok_or_exit(scan);
 
   eq(dcp_scan_dial(scan, 51371), 0);
-  struct dcp_scan_params params = dcp_scan_params(2, 10., true, false);
+  struct dcp_scan_params params = {2, 10., true, false};
   eq(dcp_scan_setup(scan, params), 0);
 
   int idx = 0;
@@ -82,11 +79,10 @@ static void test_scan2(void)
 
 static void test_scan3(void)
 {
-  fprintf(stderr, "test_scan3\n");
   struct dcp_scan *scan = dcp_scan_new();
 
   eq(dcp_scan_dial(scan, 51371), 0);
-  struct dcp_scan_params params = dcp_scan_params(2, 2., true, false);
+  struct dcp_scan_params params = {2, 2., true, false};
   eq(dcp_scan_setup(scan, params), 0);
 
   int idx = 0;
