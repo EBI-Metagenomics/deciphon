@@ -1,13 +1,13 @@
-name: Release deciphon-snap
+name: Release snap
 
 on:
   push:
     tags:
-      - deciphon-snap-v*
+      - snap-v*
 
 defaults:
   run:
-    working-directory: deciphon-snap
+    working-directory: snap
 
 jobs:
   release:
@@ -23,6 +23,6 @@ jobs:
 
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
-          packages-dir: deciphon-snap/dist
+          password: ${{secrets.PYPI_API_TOKEN}}
+          packages-dir: ${{defaults.run.working-directory}}/dist
           skip-existing: true

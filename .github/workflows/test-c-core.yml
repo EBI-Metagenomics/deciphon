@@ -1,16 +1,16 @@
-name: Test deciphon
+name: Test c-core
 
 on:
   push:
     branches:
       - "**"
     paths:
-      - deciphon/**
-      - .github/workflows/test-deciphon.yml
+      - c-core/**
+      - .github/workflows/test-c-core.yml
 
 defaults:
   run:
-    working-directory: deciphon
+    working-directory: c-core
 
 jobs:
   test:

@@ -1,13 +1,13 @@
-name: Release deciphon-core
+name: Release python-core
 
 on:
   push:
     tags:
-      - deciphon-core-v*
+      - python-core-v*
 
 defaults:
   run:
-    working-directory: deciphon-core
+    working-directory: python-core
 
 env:
   CIBW_PROJECT_REQUIRES_PYTHON: ">=3.9"
@@ -23,7 +23,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          path: deciphon-core/dist/*.tar.gz
+          path: ${{defaults.run.working-directory}}/dist/*.tar.gz
 
   make_linux_wheels:
     runs-on: ubuntu-latest
@@ -40,7 +40,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          path: deciphon-core/wheelhouse/*.whl
+          path: ${{defaults.run.working-directory}}/wheelhouse/*.whl
 
   make_macos_wheels:
     runs-on: macos-latest
@@ -52,7 +52,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          path: deciphon-core/wheelhouse/*.whl
+          path: ${{defaults.run.working-directory}}/wheelhouse/*.whl
 
   upload_all:
     needs: [make_linux_wheels, make_macos_wheels, make_sdist]
@@ -65,5 +65,5 @@ jobs:
 
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          password: ${{secrets.PYPI_API_TOKEN}}
           skip-existing: true

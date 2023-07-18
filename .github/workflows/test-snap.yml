@@ -1,20 +1,20 @@
-name: Test deciphon-snap
+name: Test snap
 
 on:
   push:
     branches:
       - "**"
     paths:
-      - deciphon-snap/**
-      - .github/workflows/test-deciphon-snap.yml
+      - snap/**
+      - .github/workflows/test-snap.yml
 
 defaults:
   run:
-    working-directory: deciphon-snap
+    working-directory: snap
 
 jobs:
   test:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{matrix.os}}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]

@@ -1,20 +1,20 @@
-name: Test deciphon-core
+name: Test python-core
 
 on:
   push:
     branches:
       - "**"
     paths:
-      - deciphon-core/**
-      - .github/workflows/test-deciphon-core.yml
+      - python-core/**
+      - .github/workflows/test-python-core.yml
 
 defaults:
   run:
-    working-directory: deciphon-core
+    working-directory: python-core
 
 jobs:
   test:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{matrix.os}}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]

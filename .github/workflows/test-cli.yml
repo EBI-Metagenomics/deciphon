@@ -1,16 +1,16 @@
-name: Test deciphon-py
+name: Test cli
 
 on:
   push:
     branches:
       - "**"
     paths:
-      - deciphon-py/**
-      - .github/workflows/test-deciphon-py.yml
+      - cli/**
+      - .github/workflows/test-cli.yml
 
 defaults:
   run:
-    working-directory: deciphon-py
+    working-directory: cli
 
 jobs:
   test:
