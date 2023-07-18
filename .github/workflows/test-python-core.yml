@@ -22,13 +22,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install libomp
-        if: runner.os == 'macOS'
-        run: |
-          brew install libomp
-          echo "LDFLAGS='-L/usr/local/opt/libomp/lib'" >> $GITHUB_ENV
-          echo "CPPFLAGS='-I/usr/local/opt/libomp/include'" >> $GITHUB_ENV
-
       - name: Run tests
         run: |
           pipx install poetry
