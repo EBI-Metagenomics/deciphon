@@ -14,16 +14,22 @@ defaults:
 
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ${{matrix.os}} (${{matrix.build_type}})
     strategy:
       matrix:
         build_type: [Release, Debug]
+        os: [ubuntu-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Configure CMake
+      - name: Configure CMake on Linux
+        if: runner.os == 'Linux'
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DUSE_SANITIZER='Address;Undefined'
+
+      - name: Configure CMake on MacOS
+        if: runner.os == 'macOS'
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
 
       - name: Build
         run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}}
