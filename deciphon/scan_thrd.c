@@ -104,7 +104,7 @@ int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct dcp_seq const *seq)
 
     struct dcp_match_iter mit = {0};
 
-    dcp_match_iter_init(&mit, dcp_seq_imm_seq(seq), &alt.prod.path);
+    dcp_match_iter_init(&mit, dcp_seq_immseq(seq), &alt.prod.path);
     if ((rc = infer_amino(&x->amino, &match, &mit))) break;
     if ((rc = dcp_hmmer_get(&x->hmmer, dcp_protein_iter_idx(it), seq->name,
                             x->amino.data)))
@@ -114,7 +114,7 @@ int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct dcp_seq const *seq)
     if ((rc = dcp_prod_writer_thrd_put_hmmer(x->prod_thrd, &x->hmmer.result)))
       break;
 
-    dcp_match_iter_init(&mit, dcp_seq_imm_seq(seq), &alt.prod.path);
+    dcp_match_iter_init(&mit, dcp_seq_immseq(seq), &alt.prod.path);
     if ((rc = dcp_prod_writer_thrd_put(x->prod_thrd, &match, &mit))) break;
   }
 

@@ -63,8 +63,7 @@ int dcp_scan_run(struct dcp_scan *x, char const *dbfile, dcp_seq_next_fn *callb,
 
   if ((rc = dcp_scan_db_open(&x->db, dbfile, nthreads(x)))) defer_return(rc);
 
-  dcp_seq_iter_init(&x->seqit, dcp_scan_code(&x->db));
-  dcp_seq_iter_set_callback(&x->seqit, callb, userdata);
+  dcp_seq_iter_init(&x->seqit, dcp_scan_code(&x->db), callb, userdata);
 
   if ((rc = dcp_prod_writer_open(&x->prod_writer, nthreads(x), product_dir)))
     defer_return(rc);

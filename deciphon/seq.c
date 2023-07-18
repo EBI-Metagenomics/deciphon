@@ -25,12 +25,12 @@ void dcp_seq_init(struct dcp_seq *x, struct imm_code const *code)
   imm_eseq_init(&x->imm_eseq, code);
 }
 
-struct imm_seq const *dcp_seq_imm_seq(struct dcp_seq const *x)
+struct imm_seq const *dcp_seq_immseq(struct dcp_seq const *x)
 {
   return &x->imm_seq;
 }
 
-struct imm_eseq const *dcp_seq_imm_eseq(struct dcp_seq const *x)
+struct imm_eseq const *dcp_seq_immeseq(struct dcp_seq const *x)
 {
   return &x->imm_eseq;
 }

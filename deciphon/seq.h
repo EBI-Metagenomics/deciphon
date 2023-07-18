@@ -16,8 +16,8 @@ DCP_API int dcp_seq_setup(struct dcp_seq *, long id, char const *name,
 DCP_API void dcp_seq_cleanup(struct dcp_seq *);
 
 void dcp_seq_init(struct dcp_seq *, struct imm_code const *);
-struct imm_seq const *dcp_seq_imm_seq(struct dcp_seq const *);
-struct imm_eseq const *dcp_seq_imm_eseq(struct dcp_seq const *);
+struct imm_seq const *dcp_seq_immseq(struct dcp_seq const *);
+struct imm_eseq const *dcp_seq_immeseq(struct dcp_seq const *);
 long dcp_seq_id(struct dcp_seq const *);
 unsigned dcp_seq_size(struct dcp_seq const *);
 char const *dcp_seq_data(struct dcp_seq const *);
