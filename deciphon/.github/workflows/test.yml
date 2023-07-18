@@ -1,0 +1,32 @@
+name: Test
+
+on: push
+
+jobs:
+  test:
+    name: Test on ${{ matrix.os }} with build type ${{ matrix.build_type }}
+    runs-on: ${{ matrix.os }}
+    env:
+      BUILD_TYPE: ${{ matrix.build_type }}
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, macos-12]
+        build_type: [Release, Debug]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure CMake
+        if: runner.os == 'Linux'
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUSE_SANITIZER='Address;Undefined'
+
+      - name: Configure CMake
+        if: runner.os == 'macOS'
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
