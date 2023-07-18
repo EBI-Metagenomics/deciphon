@@ -73,6 +73,9 @@ static size_t lfails = 0;
            (long)((clock() - start) * 1000 / CLOCKS_PER_SEC));                 \
   } while (0)
 
+#define _minctest_xstr(a) _minctest_str(a)
+#define _minctest_str(a) #a
+
 /* Assert a true statement. */
 #define _minctest_ok(test)                                                     \
   do                                                                           \
@@ -81,7 +84,9 @@ static size_t lfails = 0;
     if (!(test))                                                               \
     {                                                                          \
       ++lfails;                                                                \
-      printf("%s:%d error \n", __FILE__, __LINE__);                            \
+      char _buftest[64] = {0};                                                 \
+      _minctest_sprintf(_buftest, _minctest_xstr(test));                       \
+      printf("%s:%d !(%s) \n", __FILE__, __LINE__, _buftest);                  \
     }                                                                          \
   } while (0)
 
