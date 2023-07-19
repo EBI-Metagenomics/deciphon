@@ -53,7 +53,9 @@ class MatchList(RootModel):
     def __getitem__(self, i):
         if isinstance(i, slice):
             return MatchList.model_validate(self.root[i])
-        return self.root[i]
+        match = self.root[i]
+        assert isinstance(match, Match)
+        return match
 
     def __iter__(self):
         return iter(self.root)

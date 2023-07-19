@@ -1,4 +1,6 @@
-from typing import List
+from __future__ import annotations
+
+from typing import List, Type, TypeVar
 
 from pydantic import BaseModel, RootModel
 
@@ -33,10 +35,10 @@ class Hit(BaseModel):
         self._match_list = x
 
     @property
-    def matchs(self):
+    def matches(self):
         assert self._interval is not None
         assert self._match_list is not None
-        matchs = []
+        matches = []
         offset = self._interval.pyinterval.start
         for x in self._match_list[self.match_list_interval.slice]:
             x.position = offset
@@ -44,8 +46,11 @@ class Hit(BaseModel):
                 offset += len(x.query)
             if x.state.startswith("M"):
                 offset += len(x.query)
-            matchs.append(x)
-        return matchs
+            matches.append(x)
+        return matches
+
+
+T = TypeVar("T", bound="HitList")
 
 
 class HitList(RootModel):
@@ -64,7 +69,7 @@ class HitList(RootModel):
         return " ".join(str(i) for i in self.root)
 
     @classmethod
-    def make(cls, match_list: MatchList):
+    def make(cls: Type[T], match_list: MatchList) -> T:
         hits: List[Hit] = []
 
         offset = 0

@@ -90,9 +90,9 @@ def test_align(files_path: Path):
     assert len(hits) == 1
     assert len(domtbl) == 1
 
-    matchs = prod.match_list[hits[0].match_list_interval.slice]
-    assert matchs.amino[:4] == "FIYG"
-    assert matchs.amino[-4:] == "GHKQ"
+    matches = prod.match_list[hits[0].match_list_interval.slice]
+    assert matches.amino[:4] == "FIYG"
+    assert matches.amino[-4:] == "GHKQ"
 
     mb = MatchListIntervalBuilder(prod.match_list)
     ai = make_amino_interval(domtbl[0].ali_coord)
@@ -104,10 +104,10 @@ def test_align(files_path: Path):
     assert prod.match_list[sl].amino[:4] == amino[:4]
     assert prod.match_list[sl].amino[-4:] == amino[-4:]
 
-    assert matchs.codon[:12] == "TTTATTTACGGT"
-    assert matchs.codon[-12:] == "GGACATAAACAA"
-    assert prod.match_list[sl].codon[:12] == matchs.codon[:12]
-    assert prod.match_list[sl].codon[:-42][-12:] == matchs.codon[-12:]
+    assert matches.codon[:12] == "TTTATTTACGGT"
+    assert matches.codon[-12:] == "GGACATAAACAA"
+    assert prod.match_list[sl].codon[:12] == matches.codon[:12]
+    assert prod.match_list[sl].codon[:-42][-12:] == matches.codon[-12:]
 
     for prodi, prod in enumerate(snap_file.products):
         for hiti, hit in enumerate(prod.hits):
@@ -117,7 +117,7 @@ def test_align(files_path: Path):
             if prodi == 1 and hiti == 0:
                 assert hit.interval.start == 450
                 assert hit.interval.stop == 606
-            for xi, x in enumerate(hit.matchs):
+            for xi, x in enumerate(hit.matches):
                 if prodi == 0 and hiti == 0 and xi == 1:
                     assert str(x) == "(ATT,M3,ATT,I)"
                     assert x.position == 456

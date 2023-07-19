@@ -1,10 +1,11 @@
-from pydantic import BaseModel, RootModel
 from typing import List
 
+from pydantic import BaseModel, RootModel
+
+from deciphon_snap.hit import Hit, HitList
 from deciphon_snap.hmmer import H3Result
 from deciphon_snap.match import LazyMatchList
 from deciphon_snap.query_interval import QueryIntervalBuilder
-from deciphon_snap.hit import HitList
 
 __all__ = ["Prod"]
 
@@ -21,7 +22,7 @@ class Prod(BaseModel):
     h3result: H3Result | None = None
 
     @property
-    def hits(self):
+    def hits(self) -> list[Hit]:
         qibuilder = QueryIntervalBuilder(self.match_list)
         hits = []
         for hit in HitList.make(self.match_list):
