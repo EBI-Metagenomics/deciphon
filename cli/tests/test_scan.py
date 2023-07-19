@@ -23,11 +23,11 @@ def test_scan(tmp_path: Path, files_path: Path):
             "scan",
             "minifam.hmm",
             "sequences.fna",
-            "--snap",
+            "--snapfile",
             "snap_file.dcs",
             "--lrt-threshold",
             "2",
-            "--nthreads",
+            "--num-threads",
             "1",
         ],
     )

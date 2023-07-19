@@ -5,8 +5,9 @@ from pathlib import Path
 from typing import Optional
 
 from deciphon_core.hmmfile import HMMFile
-from deciphon_core.press import Press
+from deciphon_core.press import PressContext
 from deciphon_core.scan import Scan
+from deciphon_core.scan_params import ScanParams
 from deciphon_core.snapfile import NewSnapFile
 from deciphon_snap.read_snap import read_snap
 from rich.progress import track
@@ -27,8 +28,12 @@ app = Typer(
 )
 
 O_PROGRESS = Option(True, "--progress/--no-progress", help="Display progress bar.")
-O_LRT_THRESHOLD = Option(2.0, "--lrt-threshold", help="LRT threshold.")
-O_NTHREADS = Option(1, "--nthreads", help="Number of threads.")
+O_LRT_THRESHOLD = Option(0.0, "--lrt-threshold", help="LRT threshold.")
+O_NUM_THREADS = Option(1, "--num-threads", help="Number of threads.")
+O_MULTI_HITS = Option(True, "--multi-hits/--no-multi-hits", help="Set multi-hits.")
+O_HMMER3_COMPAT = Option(
+    False, "--hmmer3-compat/--no-hmmer3-compat", help="Set hmmer3 compatibility."
+)
 
 
 @app.callback(invoke_without_command=True)
@@ -39,52 +44,55 @@ def cli(version: Optional[bool] = Option(None, "--version", is_eager=True)):
 
 
 @app.command()
-def press(hmm: Path, codon_table: int, progress: bool = O_PROGRESS):
+def press(hmmfile: Path, gencode: int, progress: bool = O_PROGRESS):
     """
-    Press HMM file.
+    Make protein database.
     """
     with service_exit():
-        hmmfile = HMMFile(path=hmm)
-        with Press(hmmfile, codon_table=codon_table) as press:
-            for x in track(press, "Pressing", disable=not progress):
-                x.press()
-            hmmer_press(hmmfile.path)
+        hmm = HMMFile(path=hmmfile)
+        with PressContext(hmm, gencode=gencode) as press:
+            for x in track([press] * press.nproteins, "Pressing", disable=not progress):
+                x.next()
+            hmmer_press(hmm.path)
 
 
 @app.command()
 def scan(
-    hmm: Path,
-    seq: Path,
-    snap: Optional[Path] = None,
+    hmmfile: Path,
+    seqfile: Path,
+    snapfile: Optional[Path] = None,
+    num_threads: int = O_NUM_THREADS,
     lrt_threshold: float = O_LRT_THRESHOLD,
-    nthreads: int = O_NTHREADS,
+    multi_hits: bool = O_MULTI_HITS,
+    hmmer3_compat: bool = O_HMMER3_COMPAT,
+    progress: bool = O_PROGRESS,
 ):
     """
     Scan nucleotide sequences.
     """
     with service_exit():
-        hmmfile = HMMFile(path=hmm)
+        hmm = HMMFile(path=hmmfile)
+        snap = NewSnapFile(path=snapfile if snapfile else seqfile.with_suffix(".dcs"))
 
-        if not snap:
-            snapfile = NewSnapFile(path=seq.parent / f"{seq.stem}.dcs")
-        else:
-            snapfile = NewSnapFile(path=snap)
-
-        with SeqFile(seq) as seqfile:
-            with H3Daemon(hmmfile) as daemon:
-                scan = Scan(hmmfile, seqfile, snapfile)
-                scan.port = daemon.port
-                scan.lrt_threshold = lrt_threshold
-                scan.nthreads = nthreads
-                with scan:
-                    scan.run()
+        with SeqFile(seqfile) as seq:
+            with H3Daemon(hmm) as daemon:
+                params = ScanParams(
+                    num_threads=num_threads,
+                    lrt_threshold=lrt_threshold,
+                    multi_hits=multi_hits,
+                    hmmer3_compat=hmmer3_compat,
+                )
+                scan = Scan()
+                scan.dial(daemon.port)
+                scan.setup(params)
+                scan.run(hmm, seq, snap)
 
 
 @app.command()
-def see(snap: Path):
+def see(snapfile: Path):
     """
-    Display scan results stored in a snap file.
+    Display scan results.
     """
     with service_exit():
-        x = read_snap(snap)
+        x = read_snap(snapfile)
         echo(x)
