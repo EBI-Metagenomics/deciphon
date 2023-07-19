@@ -14,11 +14,11 @@ defaults:
 
 jobs:
   test:
-    runs-on: ${{matrix.os}} (${{matrix.build_type}})
+    runs-on: ${{matrix.os}}
     strategy:
       matrix:
         build_type: [Release, Debug]
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v3
