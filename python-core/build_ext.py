@@ -26,12 +26,16 @@ CMAKE_OPTS = [
     "-DCMAKE_BUILD_TYPE=Release",
     "-DBUILD_SHARED_LIBS=ON",
     f"-DCMAKE_INSTALL_RPATH={RPATH}",
-    "-DCMAKE_INSTALL_LIBDIR=lib",
 ]
 
 CPM_OPTS = ["-DCPM_USE_LOCAL_PACKAGES=ON"]
 
-NNG_OPTS = ["-DNNG_TESTS=OFF", "-DNNG_TOOLS=OFF", "-DNNG_ENABLE_NNGCAT=OFF"]
+NNG_OPTS = [
+    "-DCMAKE_INSTALL_LIBDIR=lib",
+    "-DNNG_TESTS=OFF",
+    "-DNNG_TOOLS=OFF",
+    "-DNNG_ENABLE_NNGCAT=OFF",
+]
 
 
 @dataclass
@@ -65,7 +69,7 @@ EXTS = [
     Ext(
         "EBI-Metagenomics",
         "deciphon",
-        "c-core-v0.9.0",
+        "c-core-v0.9.1",
         "./c-core",
         CMAKE_OPTS + CPM_OPTS,
     ),
