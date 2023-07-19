@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import Iterator
 
-from deciphon_core.scan_params import ScanParams
 from deciphon_core.cffi import ffi, lib
 from deciphon_core.cseq import CSeqIter
+from deciphon_core.dbfile import DBFile
 from deciphon_core.error import DeciphonError
-from deciphon_core.hmmfile import HMMFile
+from deciphon_core.scan_params import ScanParams
 from deciphon_core.seq import Seq
 from deciphon_core.snapfile import NewSnapFile
 
@@ -27,12 +27,12 @@ class Scan:
         if rc := lib.dcp_scan_setup(self._cscan, params.cparams):
             raise DeciphonError(rc)
 
-    def run(self, hmm: HMMFile, seqit: Iterator[Seq], snap: NewSnapFile):
+    def run(self, dbfile: DBFile, seqit: Iterator[Seq], snap: NewSnapFile):
         cscan = self._cscan
-        dbfile = bytes(hmm.dbfile.path)
+        db = bytes(dbfile.path)
         it = CSeqIter(seqit)
         basename = str(snap.basename).encode()
-        if rc := lib.dcp_scan_run(cscan, dbfile, it.c_callback, it.c_self, basename):
+        if rc := lib.dcp_scan_run(cscan, db, it.c_callback, it.c_self, basename):
             raise DeciphonError(rc)
 
         snap.make_archive()

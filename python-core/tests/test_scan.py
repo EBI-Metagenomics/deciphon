@@ -38,7 +38,7 @@ def test_scan(tmp_path: Path, files_path: Path, seqit: Iterator[Seq]):
         scan = Scan()
         scan.dial(sched.get_cport())
         scan.setup(params)
-        scan.run(HMMFile(path=hmm), seqit, snapfile)
+        scan.run(HMMFile(path=hmm).dbfile, seqit, snapfile)
 
 
 @pytest.fixture
