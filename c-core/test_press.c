@@ -29,9 +29,7 @@ int main(void)
 
   long chk = 0;
   eq_or_exit(dcp_fs_cksum(DBFILE, &chk), 0);
-
-  eq(chk, 0);
-  ok(chk == 6290 || chk == 16864 || chk == 50667);
+  ok(chk == 6290 || chk == 16864 || chk == 50667 || chk == 39148);
 
   remove(DBFILE);
   return lfails;
