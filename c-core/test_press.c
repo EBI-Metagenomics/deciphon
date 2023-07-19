@@ -23,6 +23,10 @@ int main(void)
   eq(dcp_press_close(press), 0);
   dcp_press_del(press);
 
+  long size = 0;
+  eq_or_exit(dcp_fs_size(DBFILE, &size), 0);
+  eq(size, 9933912);
+
   long chk = 0;
   eq_or_exit(dcp_fs_cksum(DBFILE, &chk), 0);
 
