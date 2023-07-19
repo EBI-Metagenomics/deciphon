@@ -216,3 +216,11 @@ int dcp_fs_rmtree(char const *dirpath)
 {
   return nftw(dirpath, unlink_callb, 64, FTW_DEPTH | FTW_PHYS);
 }
+
+int dcp_fs_size(char const *filepath, long *size)
+{
+  struct stat st = {};
+  if (stat(filepath, &st)) return DCP_EFSTAT;
+  *size = (long)st.st_size;
+  return 0;
+}
