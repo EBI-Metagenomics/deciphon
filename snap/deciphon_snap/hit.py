@@ -6,6 +6,7 @@ from pydantic import BaseModel, RootModel
 
 from deciphon_snap.match import MatchList, MatchListInterval
 from deciphon_snap.query_interval import QueryInterval
+from deciphon_snap.match import Match
 
 __all__ = ["Hit", "HitList"]
 
@@ -38,7 +39,7 @@ class Hit(BaseModel):
     def matches(self):
         assert self._interval is not None
         assert self._match_list is not None
-        matches = []
+        matches: list[Match] = []
         offset = self._interval.pyinterval.start
         for x in self._match_list[self.match_list_interval.slice]:
             x.position = offset
@@ -60,7 +61,11 @@ class HitList(RootModel):
         return len(self.root)
 
     def __getitem__(self, i):
-        return self.root[i]
+        if isinstance(i, slice):
+            return HitList.model_validate(self.root[i])
+        hit = self.root[i]
+        assert isinstance(hit, Hit)
+        return hit
 
     def __iter__(self):
         return iter(self.root)
