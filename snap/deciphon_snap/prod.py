@@ -4,6 +4,7 @@ from pydantic import BaseModel, RootModel
 
 from deciphon_snap.hit import Hit, HitList
 from deciphon_snap.hmmer import H3Result
+from deciphon_snap.match import Match
 from deciphon_snap.match import LazyMatchList
 from deciphon_snap.query_interval import QueryIntervalBuilder
 
@@ -30,6 +31,17 @@ class Prod(BaseModel):
             hit.match_list = self.match_list.evaluate()
             hits.append(hit)
         return hits
+
+    @property
+    def matches(self) -> list[Hit]:
+        matches = []
+        i = 0
+        for x in self.match_list:
+            match = Match.model_validate(x)
+            match.position = i
+            matches.append(match)
+            i += len(match.query)
+        return matches
 
     @property
     def hmmer(self):

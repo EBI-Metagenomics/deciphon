@@ -84,6 +84,7 @@ def test_align(files_path: Path):
     assert str(prod.match_list[0]) == "(∅,S,∅,∅)"
 
     assert len(prod.amino) == prod.hmmer.domtbl[0].query.length
+    assert prod.matches[5].position == 12
 
     hits = HitList.make(prod.match_list)
     domtbl = prod.h3result.domtbl
