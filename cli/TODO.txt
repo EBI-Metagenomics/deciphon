@@ -1,0 +1,4 @@
+- Instead of
+  == domain 1  score: 55.2 bits;  conditional E-value: 3.5e-19
+print
+  == domain 1  score: 55.2 bits;  conditional E-value: 3.5e-19;  individual E-value: xxx (check hmmer table to know the order)

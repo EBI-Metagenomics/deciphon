@@ -7,30 +7,22 @@ from typing import Optional, TextIO
 import ijson
 from deciphon_core.seq import Seq
 from fasta_reader.reader import Reader as FASTAReader
+from pydantic import BaseModel, FilePath
 
 from deciphon.filetype import Filetype
-from deciphon.path_like import PathLike
 
 __all__ = ["SeqFile"]
 
 
-class SeqFile:
-    def __init__(self, file: PathLike):
-        self._file = Path(file).absolute()
+class SeqFile(BaseModel):
+    path: FilePath
 
-        if not self._file.exists():
-            raise ValueError(f"`{self._file}` does not exist.")
-
-        self._type = Filetype.guess(self._file)
+    def __enter__(self):
+        self._type = Filetype.guess(Path(self.path))
         self._stream: Optional[TextIO] = None
         self._iter: Optional[Generator[Seq, None, None]] = None
 
-    @property
-    def path(self) -> Path:
-        return self._file
-
-    def __enter__(self):
-        self._stream = open(self._file, "r")
+        self._stream = open(self.path, "r")
         if self._type == Filetype.FASTA:
             self._iter = iter(fasta_items(self._stream))
 

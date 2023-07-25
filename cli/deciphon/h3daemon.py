@@ -7,9 +7,10 @@ __all__ = ["H3Daemon"]
 
 
 class H3Daemon:
-    def __init__(self, hmmfile: HMMFile) -> None:
+    def __init__(self, hmmfile: HMMFile, stdout=None, stderr=None) -> None:
         self._hmmfile = hmmfile
-        self._sched_ctx = SchedContext(H3File(hmmfile.path))
+        h3file = H3File(hmmfile.path)
+        self._sched_ctx = SchedContext(h3file, stdout=stdout, stderr=stderr)
         self._port: int = -1
 
     @property

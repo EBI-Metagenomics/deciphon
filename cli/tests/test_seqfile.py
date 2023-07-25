@@ -4,7 +4,7 @@ from deciphon.seq_file import SeqFile
 
 
 def test_seqfile(files_path: Path):
-    with SeqFile(files_path / "sequences.fna") as seqfile:
+    with SeqFile(path=files_path / "sequences.fna") as seqfile:
         seqit = iter(seqfile)
 
         seq = next(seqit)

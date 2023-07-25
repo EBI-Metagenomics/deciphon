@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.metadata
 from pathlib import Path
+from subprocess import DEVNULL
 from typing import Optional
 
 from deciphon_core.hmmfile import HMMFile
@@ -10,9 +11,12 @@ from deciphon_core.scan import Scan
 from deciphon_core.scan_params import ScanParams
 from deciphon_core.snapfile import NewSnapFile
 from deciphon_snap.read_snap import read_snap
+from deciphon_snap.view import view_alignments
 from rich.progress import track
-from typer import Exit, Option, Typer, echo
+from typer import Argument, BadParameter, Exit, Option, Typer, echo
 
+from deciphon.catch_validation import catch_validation
+from deciphon.gencode import gencodes
 from deciphon.h3daemon import H3Daemon
 from deciphon.hmmer_press import hmmer_press
 from deciphon.seq_file import SeqFile
@@ -34,6 +38,7 @@ O_MULTI_HITS = Option(True, "--multi-hits/--no-multi-hits", help="Set multi-hits
 O_HMMER3_COMPAT = Option(
     False, "--hmmer3-compat/--no-hmmer3-compat", help="Set hmmer3 compatibility."
 )
+H_HMMER = "HMMER profile file."
 
 
 @app.callback(invoke_without_command=True)
@@ -43,24 +48,68 @@ def cli(version: Optional[bool] = Option(None, "--version", is_eager=True)):
         raise Exit(0)
 
 
+def gencode_callback(gencode: int):
+    if gencode not in gencodes:
+        raise BadParameter(f"{gencode} is not in {gencodes}")
+    return gencode
+
+
 @app.command()
-def press(hmmfile: Path, gencode: int, progress: bool = O_PROGRESS):
+def press(
+    hmmfile: Path = Argument(
+        ..., exists=True, file_okay=True, dir_okay=False, readable=True, help=H_HMMER
+    ),
+    gencode: int = Argument(
+        ..., callback=gencode_callback, help="Genetic code number."
+    ),
+    progress: bool = O_PROGRESS,
+    force: bool = Option(False, "--force", help="Overwrite existing protein database."),
+):
     """
     Make protein database.
     """
-    with service_exit():
+    with service_exit(), catch_validation():
         hmm = HMMFile(path=hmmfile)
+
+        if force and hmm.path.with_suffix(".dcp"):
+            hmm.path.with_suffix(".dcp").unlink()
+
         with PressContext(hmm, gencode=gencode) as press:
             for x in track([press] * press.nproteins, "Pressing", disable=not progress):
                 x.next()
             hmmer_press(hmm.path)
 
+        file_dcp = hmm.path.with_suffix(".dcp")
+        file_h3m = hmm.path.with_suffix(".h3m")
+        file_h3i = hmm.path.with_suffix(".h3i")
+        file_h3f = hmm.path.with_suffix(".h3f")
+        file_h3p = hmm.path.with_suffix(".h3p")
+        echo(
+            f"Protein database '{file_dcp}' has been successfully created\n"
+            f"  alongside with HMMER files '{file_h3m}', '{file_h3i}',\n"
+            f"                             '{file_h3f}', '{file_h3p}'."
+        )
+
 
 @app.command()
 def scan(
-    hmmfile: Path,
-    seqfile: Path,
-    snapfile: Optional[Path] = None,
+    hmmfile: Path = Argument(
+        ...,
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help=H_HMMER,
+    ),
+    seqfile: Path = Argument(
+        ...,
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="File with nucleotide sequences.",
+    ),
+    snapfile: Optional[Path] = Option(None, help="File to store results."),
     num_threads: int = O_NUM_THREADS,
     lrt_threshold: float = O_LRT_THRESHOLD,
     multi_hits: bool = O_MULTI_HITS,
@@ -68,14 +117,15 @@ def scan(
     progress: bool = O_PROGRESS,
 ):
     """
-    Scan nucleotide sequences.
+    Scan nucleotide sequences against protein database.
     """
-    with service_exit():
+    with service_exit(), catch_validation():
         hmm = HMMFile(path=hmmfile)
+        db = hmm.dbfile
         snap = NewSnapFile(path=snapfile if snapfile else seqfile.with_suffix(".dcs"))
 
-        with SeqFile(seqfile) as seq:
-            with H3Daemon(hmm) as daemon:
+        with SeqFile(path=seqfile) as seq:
+            with H3Daemon(hmm, stdout=DEVNULL) as daemon:
                 params = ScanParams(
                     num_threads=num_threads,
                     lrt_threshold=lrt_threshold,
@@ -85,14 +135,19 @@ def scan(
                 scan = Scan()
                 scan.dial(daemon.port)
                 scan.setup(params)
-                scan.run(hmm, seq, snap)
+                scan.run(db, seq, snap)
+                echo(
+                    "Scan has finished successfully and "
+                    f"results stored in '{snap.path}'."
+                )
 
 
 @app.command()
-def see(snapfile: Path):
+def see(
+    snapfile: Path = Argument(..., help="File with scan results."),
+):
     """
     Display scan results.
     """
     with service_exit():
-        x = read_snap(snapfile)
-        echo(x)
+        echo(view_alignments(read_snap(snapfile)))

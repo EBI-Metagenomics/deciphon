@@ -1,10 +1,10 @@
 import hmmer
 
 from pathlib import Path
-from subprocess import check_call
+from subprocess import check_output
 
 __all__ = ["hmmer_press"]
 
 
 def hmmer_press(hmm: Path):
-    check_call([str(Path(hmmer.BIN_DIR) / "hmmpress"), str(hmm)])
+    return check_output([str(Path(hmmer.BIN_DIR) / "hmmpress"), "-f", str(hmm)])
