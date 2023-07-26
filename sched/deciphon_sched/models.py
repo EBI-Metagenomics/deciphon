@@ -3,8 +3,8 @@ from __future__ import annotations
 from datetime import datetime
 from enum import Enum
 from typing import Optional
-from pydantic import BaseModel, Field
 
+from pydantic import BaseModel, Field
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -60,12 +60,12 @@ class Job(Base):
         )
 
 
-def _filename_pattern(ext: str):
+def _file_name_pattern(ext: str):
     return r"^[0-9a-zA-Z_\-.][0-9a-zA-Z_\-. ]+\." + ext + "$"
 
 
-class HMMFilename(BaseModel):
-    name: str = Field(pattern=_filename_pattern("hmm"))
+class HMMFileName(BaseModel):
+    name: str = Field(pattern=_file_name_pattern("hmm"))
 
 
 class HMM(Base):
@@ -77,11 +77,14 @@ class HMM(Base):
     job: Mapped[Job] = relationship(back_populates="hmm")
     db: Mapped[Optional[DB]] = relationship(back_populates="hmm")
 
-    filename: Mapped[str]
+    file_name: Mapped[str]
+    file_sha256: Mapped[str]
 
     @classmethod
-    def create(cls, filename: HMMFilename):
-        return cls(job=Job.create(type=JobType.hmm), filename=filename.name)
+    def create(cls, file_name: HMMFileName):
+        return cls(
+            job=Job.create(type=JobType.hmm), file_name=file_name.name, file_sha256=""
+        )
 
 
 class DB(Base):

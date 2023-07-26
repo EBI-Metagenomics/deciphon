@@ -1,7 +1,7 @@
 from sqlalchemy import select
 
 from deciphon_sched.database import Database
-from deciphon_sched.models import DB, HMM, Scan, HMMFilename
+from deciphon_sched.models import DB, HMM, Scan, HMMFileName
 from deciphon_sched.settings import Settings
 
 DATABASE_URL = "sqlite+pysqlite:///:memory:"
@@ -11,11 +11,11 @@ def test_models_add_get_hmm():
     settings = Settings(database_url=DATABASE_URL)
     database = Database(settings)
     database.create_tables()
-    hmmfile = HMMFilename(name="file.hmm")
+    hmmfile = HMMFileName(name="file.hmm")
 
     with database.create_session() as session:
         for i in range(1, 2):
-            hmm = HMM.create(filename=hmmfile)
+            hmm = HMM.create(file_name=hmmfile)
 
             session.add(hmm)
             session.commit()
@@ -31,11 +31,11 @@ def test_models_add_get_db():
     settings = Settings(database_url=DATABASE_URL)
     database = Database(settings)
     database.create_tables()
-    hmmfile = HMMFilename(name="file.hmm")
+    hmmfile = HMMFileName(name="file.hmm")
 
     with database.create_session() as session:
         for i in range(1, 2):
-            db = DB.create(hmm=HMM.create(filename=hmmfile))
+            db = DB.create(hmm=HMM.create(file_name=hmmfile))
 
             session.add(db)
             session.commit()
@@ -53,11 +53,11 @@ def test_models_add_get_scan():
     settings = Settings(database_url=DATABASE_URL)
     database = Database(settings)
     database.create_tables()
-    hmmfile = HMMFilename(name="file.hmm")
+    hmmfile = HMMFileName(name="file.hmm")
 
     with database.create_session() as session:
         for i in range(1, 2):
-            scan = Scan.create(db=DB.create(hmm=HMM.create(filename=hmmfile)))
+            scan = Scan.create(db=DB.create(hmm=HMM.create(file_name=hmmfile)))
 
             session.add(scan)
             session.commit()

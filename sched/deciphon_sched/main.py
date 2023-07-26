@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .database import Database
 from .settings import Settings
+from .storage import Storage
 
 
 @asynccontextmanager
@@ -13,6 +14,7 @@ async def lifespan(app: FastAPI):
     settings: Settings = app.state.settings
     app.state.database = Database(settings)
     app.state.database.create_tables()
+    app.state.storage = Storage(settings)
     yield
     app.state.database.dispose()
 
