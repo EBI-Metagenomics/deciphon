@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from enum import Enum
 from typing import Optional
+from pydantic import BaseModel, Field
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -45,6 +46,8 @@ class Job(Base):
     progress: Mapped[int]
     error: Mapped[str]
     submission: Mapped[datetime]
+    exec_started: Mapped[Optional[datetime]]
+    exec_ended: Mapped[Optional[datetime]]
 
     @classmethod
     def create(cls, type: JobType, state=JobState.pend):
@@ -57,6 +60,14 @@ class Job(Base):
         )
 
 
+def _filename_pattern(ext: str):
+    return r"^[0-9a-zA-Z_\-.][0-9a-zA-Z_\-. ]+\." + ext + "$"
+
+
+class HMMFilename(BaseModel):
+    name: str = Field(pattern=_filename_pattern("hmm"))
+
+
 class HMM(Base):
     __tablename__ = "hmm"
 
@@ -66,9 +77,11 @@ class HMM(Base):
     job: Mapped[Job] = relationship(back_populates="hmm")
     db: Mapped[Optional[DB]] = relationship(back_populates="hmm")
 
+    filename: Mapped[str]
+
     @classmethod
-    def create(cls):
-        return cls(job=Job.create(type=JobType.hmm))
+    def create(cls, filename: HMMFilename):
+        return cls(job=Job.create(type=JobType.hmm), filename=filename.name)
 
 
 class DB(Base):
@@ -82,7 +95,7 @@ class DB(Base):
 
     @classmethod
     def create(cls, hmm: HMM):
-        return cls(hmm=HMM.create())
+        return cls(hmm=hmm)
 
 
 class Scan(Base):
