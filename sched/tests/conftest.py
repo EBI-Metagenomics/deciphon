@@ -22,8 +22,6 @@ def s3server():
 
     proc = subprocess.Popen(
         ["moto_server", "s3", "-H", host, "-p", port],
-        stderr=subprocess.DEVNULL,
-        stdout=subprocess.DEVNULL,
         stdin=subprocess.DEVNULL,
     )
 
