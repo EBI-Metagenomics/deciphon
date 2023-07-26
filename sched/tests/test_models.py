@@ -1,7 +1,7 @@
 from sqlalchemy import select
 
 from deciphon_sched.database import Database
-from deciphon_sched.models import DB, HMM, Scan, HMMFile, DBFile
+from deciphon_sched.models import DB, HMM, Scan, HMMFile, DBFile, Seq
 from deciphon_sched.settings import Settings
 
 DATABASE_URL = "sqlite+pysqlite:///:memory:"
@@ -64,7 +64,9 @@ def test_models_add_get_scan():
 
     with database.create_session() as session:
         for i in range(1, 2):
-            scan = Scan.create(db=DB.create(hmm=HMM.create(file=hmmfile), file=dbfile))
+            db = DB.create(hmm=HMM.create(file=hmmfile), file=dbfile)
+            seqs = [Seq(name="seq1", data="ACGT"), Seq(name="seq2", data="CGA")]
+            scan = Scan.create(db=db, seqs=seqs)
 
             session.add(scan)
             session.commit()
@@ -73,3 +75,7 @@ def test_models_add_get_scan():
             assert scan.db.id == i
             assert scan.db.hmm.id == i
             assert scan.db.hmm.job.id == i * 2
+            assert scan.seqs[0].scan.id == i
+            assert scan.seqs[1].scan.id == i
+            assert scan.seqs[0].name == seqs[0].name
+            assert scan.seqs[1].name == seqs[1].name

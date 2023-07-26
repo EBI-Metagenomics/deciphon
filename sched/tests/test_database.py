@@ -1,7 +1,7 @@
 from deciphon_sched.database import Database
 from deciphon_sched.settings import Settings
 
-TABLE_NAMES = ["job", "hmm", "db", "scan"]
+TABLE_NAMES = ["job", "hmm", "db", "scan", "seq", "snap"]
 DATABASE_URL = "sqlite+pysqlite:///:memory:"
 
 

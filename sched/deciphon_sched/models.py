@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from datetime import datetime
 from enum import Enum
 from typing import Optional
@@ -77,6 +78,11 @@ class DBFile(BaseModel):
     sha256: str = Field(pattern=_SHA256_PATTERN)
 
 
+class SnapFile(BaseModel):
+    name: str = Field(pattern=_file_name_pattern("dcs"))
+    sha256: str = Field(pattern=_SHA256_PATTERN)
+
+
 class HMM(Base):
     __tablename__ = "hmm"
 
@@ -116,6 +122,30 @@ class DB(Base):
         return cls(hmm=hmm, file_name=file.name, file_sha256=file.sha256)
 
 
+class Seq(Base):
+    __tablename__ = "seq"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    scan_id: Mapped[int] = mapped_column(ForeignKey("scan.id"))
+
+    scan: Mapped[Scan] = relationship(back_populates="seqs")
+
+    name: Mapped[str]
+    data: Mapped[str]
+
+
+class Snap(Base):
+    __tablename__ = "snap"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    scan_id: Mapped[int] = mapped_column(ForeignKey("scan.id"))
+
+    scan: Mapped[Scan] = relationship(back_populates="snap")
+
+    file_name: Mapped[str]
+    file_sha256: Mapped[str]
+
+
 class Scan(Base):
     __tablename__ = "scan"
 
@@ -124,8 +154,10 @@ class Scan(Base):
     db_id: Mapped[int] = mapped_column(ForeignKey("db.id"))
 
     job: Mapped[Job] = relationship(back_populates="scan")
+    seqs: Mapped[list[Seq]] = relationship(back_populates="scan")
+    snap: Mapped[Optional[Snap]] = relationship(back_populates="scan")
     db: Mapped[DB] = relationship(back_populates="scans")
 
     @classmethod
-    def create(cls, db: DB):
-        return cls(job=Job.create(type=JobType.scan), db=db)
+    def create(cls, db: DB, seqs: Iterable[Seq]):
+        return cls(job=Job.create(type=JobType.scan), db=db, seqs=list(seqs))
