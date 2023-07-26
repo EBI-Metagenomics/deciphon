@@ -64,8 +64,12 @@ def _file_name_pattern(ext: str):
     return r"^[0-9a-zA-Z_\-.][0-9a-zA-Z_\-. ]+\." + ext + "$"
 
 
-class HMMFileName(BaseModel):
+_SHA256_PATTERN = r"^[0123456789abcdef]{64}$"
+
+
+class HMMFile(BaseModel):
     name: str = Field(pattern=_file_name_pattern("hmm"))
+    sha256: str = Field(pattern=_SHA256_PATTERN)
 
 
 class HMM(Base):
@@ -81,9 +85,11 @@ class HMM(Base):
     file_sha256: Mapped[str]
 
     @classmethod
-    def create(cls, file_name: HMMFileName):
+    def create(cls, file: HMMFile):
         return cls(
-            job=Job.create(type=JobType.hmm), file_name=file_name.name, file_sha256=""
+            job=Job.create(type=JobType.hmm),
+            file_name=file.name,
+            file_sha256=file.sha256,
         )
 
 

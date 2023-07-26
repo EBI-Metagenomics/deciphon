@@ -1,7 +1,7 @@
 from sqlalchemy import select
 
 from deciphon_sched.database import Database
-from deciphon_sched.models import DB, HMM, Scan, HMMFileName
+from deciphon_sched.models import DB, HMM, Scan, HMMFile
 from deciphon_sched.settings import Settings
 
 DATABASE_URL = "sqlite+pysqlite:///:memory:"
@@ -11,11 +11,12 @@ def test_models_add_get_hmm():
     settings = Settings(database_url=DATABASE_URL)
     database = Database(settings)
     database.create_tables()
-    hmmfile = HMMFileName(name="file.hmm")
+    sha256 = "fe305d9c09e123f987f49b9056e34c374e085d8831f815cc73d8ea4cdec84960"
+    hmmfile = HMMFile(name="file.hmm", sha256=sha256)
 
     with database.create_session() as session:
         for i in range(1, 2):
-            hmm = HMM.create(file_name=hmmfile)
+            hmm = HMM.create(file=hmmfile)
 
             session.add(hmm)
             session.commit()
@@ -31,11 +32,12 @@ def test_models_add_get_db():
     settings = Settings(database_url=DATABASE_URL)
     database = Database(settings)
     database.create_tables()
-    hmmfile = HMMFileName(name="file.hmm")
+    sha256 = "fe305d9c09e123f987f49b9056e34c374e085d8831f815cc73d8ea4cdec84960"
+    hmmfile = HMMFile(name="file.hmm", sha256=sha256)
 
     with database.create_session() as session:
         for i in range(1, 2):
-            db = DB.create(hmm=HMM.create(file_name=hmmfile))
+            db = DB.create(hmm=HMM.create(file=hmmfile))
 
             session.add(db)
             session.commit()
@@ -53,11 +55,12 @@ def test_models_add_get_scan():
     settings = Settings(database_url=DATABASE_URL)
     database = Database(settings)
     database.create_tables()
-    hmmfile = HMMFileName(name="file.hmm")
+    sha256 = "fe305d9c09e123f987f49b9056e34c374e085d8831f815cc73d8ea4cdec84960"
+    hmmfile = HMMFile(name="file.hmm", sha256=sha256)
 
     with database.create_session() as session:
         for i in range(1, 2):
-            scan = Scan.create(db=DB.create(hmm=HMM.create(file_name=hmmfile)))
+            scan = Scan.create(db=DB.create(hmm=HMM.create(file=hmmfile)))
 
             session.add(scan)
             session.commit()
