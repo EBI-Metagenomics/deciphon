@@ -1,7 +1,7 @@
 from sqlalchemy import select
 
 from deciphon_sched.database import Database
-from deciphon_sched.models import DB, HMM, Scan, HMMFile
+from deciphon_sched.models import DB, HMM, Scan, HMMFile, DBFile
 from deciphon_sched.settings import Settings
 
 DATABASE_URL = "sqlite+pysqlite:///:memory:"
@@ -34,10 +34,12 @@ def test_models_add_get_db():
     database.create_tables()
     sha256 = "fe305d9c09e123f987f49b9056e34c374e085d8831f815cc73d8ea4cdec84960"
     hmmfile = HMMFile(name="file.hmm", sha256=sha256)
+    sha256 = "b84800e4803006fccbea1634696383e228c4a20f6902ccfddaff7bf511f8e340"
+    dbfile = DBFile(name="file.dcp", sha256=sha256)
 
     with database.create_session() as session:
         for i in range(1, 2):
-            db = DB.create(hmm=HMM.create(file=hmmfile))
+            db = DB.create(hmm=HMM.create(file=hmmfile), file=dbfile)
 
             session.add(db)
             session.commit()
@@ -55,12 +57,14 @@ def test_models_add_get_scan():
     settings = Settings(database_url=DATABASE_URL)
     database = Database(settings)
     database.create_tables()
-    sha256 = "fe305d9c09e123f987f49b9056e34c374e085d8831f815cc73d8ea4cdec84960"
+    sha256 = "ae305d9c09e123f987f49b9056e34c374e085d8831f815cc73d8ea4cdec84960"
     hmmfile = HMMFile(name="file.hmm", sha256=sha256)
+    sha256 = "b84800e4803006fccbea1634696383e228c4a20f6902ccfddaff7bf511f8e340"
+    dbfile = DBFile(name="file.dcp", sha256=sha256)
 
     with database.create_session() as session:
         for i in range(1, 2):
-            scan = Scan.create(db=DB.create(hmm=HMM.create(file=hmmfile)))
+            scan = Scan.create(db=DB.create(hmm=HMM.create(file=hmmfile), file=dbfile))
 
             session.add(scan)
             session.commit()

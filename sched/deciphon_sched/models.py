@@ -72,6 +72,11 @@ class HMMFile(BaseModel):
     sha256: str = Field(pattern=_SHA256_PATTERN)
 
 
+class DBFile(BaseModel):
+    name: str = Field(pattern=_file_name_pattern("dcp"))
+    sha256: str = Field(pattern=_SHA256_PATTERN)
+
+
 class HMM(Base):
     __tablename__ = "hmm"
 
@@ -86,8 +91,9 @@ class HMM(Base):
 
     @classmethod
     def create(cls, file: HMMFile):
+        job = Job.create(type=JobType.hmm)
         return cls(
-            job=Job.create(type=JobType.hmm),
+            job=job,
             file_name=file.name,
             file_sha256=file.sha256,
         )
@@ -102,9 +108,12 @@ class DB(Base):
     hmm: Mapped[HMM] = relationship(back_populates="db")
     scans: Mapped[list[Scan]] = relationship(back_populates="db")
 
+    file_name: Mapped[str]
+    file_sha256: Mapped[str]
+
     @classmethod
-    def create(cls, hmm: HMM):
-        return cls(hmm=hmm)
+    def create(cls, hmm: HMM, file: DBFile):
+        return cls(hmm=hmm, file_name=file.name, file_sha256=file.sha256)
 
 
 class Scan(Base):

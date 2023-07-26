@@ -28,14 +28,18 @@ def s3server():
     )
 
     timeout = 5
+    ready = False
     while timeout > 0:
         try:
             if requests.get(url).ok:
+                ready = True
                 break
         except requests.exceptions.ConnectionError:
             pass
         timeout -= 0.1
         time.sleep(0.1)
+    if not ready:
+        raise RuntimeError("cannot connect to moto server")
 
     region_name = "eu-west-1"
     boto3.client(
