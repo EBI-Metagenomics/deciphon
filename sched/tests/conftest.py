@@ -11,8 +11,8 @@ def s3server():
     host = "127.0.0.1"
     port = "9090"
     url = f"http://{host}:{port}"
-    key = None
-    secret = None
+    key = "s3_key"
+    secret = "s3_secret"
     bucket = "test"
     try:
         if requests.get(url).ok:
