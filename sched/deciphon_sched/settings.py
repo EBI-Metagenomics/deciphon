@@ -12,3 +12,7 @@ class Settings(BaseSettings):
     s3_secret: str = "s3_secret"
     s3_url: AnyUrl = "http://127.0.0.1:9090"
     s3_bucket: str = "deciphon"
+
+    mqtt_broker: str = "127.0.0.1"
+    mqtt_port: int = 1883
+    mqtt_topic: str = "deciphon"
