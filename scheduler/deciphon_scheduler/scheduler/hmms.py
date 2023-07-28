@@ -1,37 +1,46 @@
 from fastapi import APIRouter, Request
+from sqlalchemy import select
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
-from .schemas import HMMRead
+from ..database import Database
+from ..errors import FileNameExistsError
+from ..journal import Journal
+from .models import HMM
+from .schemas import HMMCreate, HMMRead
 
 router = APIRouter()
 
-OK = HTTP_200_OK
 NO_CONTENT = HTTP_204_NO_CONTENT
-CREATED = HTTP_201_CREATED
 
 
-@router.get("/hmms", response_model=list[HMMRead], status_code=OK)
+@router.get("/hmms", response_model=list[HMMRead], status_code=HTTP_200_OK)
 async def read_hmms(request: Request):
-    return []
-    # session = database.create_session()
-    # with get_sched() as sched:
-    #     return [HMMRead.from_orm(x) for x in sched.exec(select(HMM)).all()]
+    database: Database = request.app.state.database
+    with database.create_session() as session:
+        return [HMMRead.model_validate(x) for x in session.execute(select(HMM)).all()]
 
 
-# @router.post("/hmms/", response_model=HMMRead, status_code=CREATED, dependencies=AUTH)
-# async def create_hmm(hmm: HMMCreate):
-#     if not storage_has(hmm.sha256):
-#         raise FileNotInStorageError(hmm.sha256)
-#
-#     with get_sched() as sched:
-#         x = HMM.from_orm(hmm)
-#         x.job = Job(type=JobType.hmm)
-#         sched.add(x)
-#         sched.commit()
-#         sched.refresh(x)
-#         y = HMMRead.from_orm(x)
-#         await get_journal().publish_hmm(y.id)
-#         return y
+# , response_model=HMMRead
+@router.post("/hmms/", status_code=HTTP_201_CREATED)
+async def create_hmm(request: Request, hmm: HMMCreate):
+    database: Database = request.app.state.database
+    with database.create_session() as session:
+        r = session.execute(select(HMM).where(HMM.file_name == hmm.file.name))
+        if r.one_or_none() is not None:
+            return FileNameExistsError(hmm.file.name)
+
+        x = HMM.create(hmm.file)
+        session.add(x)
+        session.commit()
+        hmm_read = HMMRead(id=x.id, job_id=x.job_id, file=hmm.file)
+
+    journal: Journal = request.app.state.journal
+    async with journal:
+        await journal.publish("hmms", hmm_read.model_dump_json())
+
+    return hmm_read
+
+
 #
 #
 # @router.get("/hmms/{hmm_id}", response_model=HMMRead, status_code=OK)

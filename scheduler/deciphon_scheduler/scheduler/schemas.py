@@ -37,6 +37,10 @@ class SnapFile(BaseModel):
     sha256: str = Field(pattern=_SHA256_PATTERN)
 
 
+class HMMCreate(BaseModel):
+    file: HMMFile
+
+
 class HMMRead(BaseModel):
     id: int
     job_id: int

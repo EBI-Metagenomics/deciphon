@@ -10,4 +10,4 @@ async def test_journal(mosquitto):
     journal = Journal(settings)
 
     async with journal:
-        await journal.publish_hmm(1)
+        await journal.publish("hmms", "1")

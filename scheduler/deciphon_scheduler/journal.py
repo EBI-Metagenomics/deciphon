@@ -15,8 +15,5 @@ class Journal:
     async def __aexit__(self, *args, **kargs):
         await self._mqtt.__aexit__(*args, **kargs)
 
-    async def publish_hmm(self, hmm_id: int):
-        await self._mqtt.publish(f"/{self._topic}/hmm", str(hmm_id))
-
-    async def publish_scan(self, scan_id: int):
-        await self._mqtt.publish(f"/{self._topic}/scan", str(scan_id))
+    async def publish(self, subject: str, payload: str):
+        await self._mqtt.publish(f"/{self._topic}/{subject}", payload)

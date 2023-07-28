@@ -47,7 +47,7 @@ class HMM(BaseModel):
     job: Mapped[Job] = relationship(back_populates="hmm")
     db: Mapped[Optional[DB]] = relationship(back_populates="hmm")
 
-    file_name: Mapped[str]
+    file_name: Mapped[str] = mapped_column(unique=True)
     file_sha256: Mapped[str]
 
     @classmethod

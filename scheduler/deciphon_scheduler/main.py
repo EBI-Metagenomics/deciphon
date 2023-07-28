@@ -3,12 +3,14 @@ from typing import Optional
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import IntegrityError
 
 from .database import Database
+from .errors import integrity_error_handler
+from .journal import Journal
+from .scheduler import router
 from .settings import Settings
 from .storage import Storage
-from .journal import Journal
-from .api import router
 
 
 @asynccontextmanager
@@ -28,6 +30,8 @@ def create_app(settings: Optional[Settings] = None):
     app.state.settings = settings
 
     app.include_router(router, prefix=settings.endpoint_prefix)
+
+    app.add_exception_handler(IntegrityError, integrity_error_handler)
 
     app.add_middleware(
         CORSMiddleware,
