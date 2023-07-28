@@ -5,8 +5,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="deciphon_sched_")
 
-    database_url: AnyUrl = "sqlite+pysqlite:///:memory:"
+    endpoint_prefix: str = ""
     allow_origins: list[str] = ["http://127.0.0.1:8000"]
+
+    database_url: AnyUrl = "sqlite+pysqlite:///:memory:"
 
     s3_key: str = "s3_key"
     s3_secret: str = "s3_secret"

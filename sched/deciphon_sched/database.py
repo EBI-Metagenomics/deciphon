@@ -1,7 +1,7 @@
 from sqlalchemy import MetaData, create_engine
 from sqlalchemy.orm import Session
 
-from .models import Base
+from .models import BaseModel
 from .settings import Settings
 
 
@@ -10,7 +10,7 @@ class Database:
         self._engine = create_engine(settings.database_url.unicode_string(), echo=True)
 
     def create_tables(self):
-        Base.metadata.create_all(self._engine)
+        BaseModel.metadata.create_all(self._engine)
 
     def create_session(self):
         return Session(self._engine)

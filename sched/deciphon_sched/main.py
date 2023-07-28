@@ -8,6 +8,7 @@ from .database import Database
 from .settings import Settings
 from .storage import Storage
 from .journal import Journal
+from .api import router
 
 
 @asynccontextmanager
@@ -26,8 +27,7 @@ def create_app(settings: Optional[Settings] = None):
     app = FastAPI(lifespan=lifespan)
     app.state.settings = settings
 
-    # app.include_router(users.router)
-    # app.include_router(items.router)
+    app.include_router(router, prefix=settings.endpoint_prefix)
 
     app.add_middleware(
         CORSMiddleware,
