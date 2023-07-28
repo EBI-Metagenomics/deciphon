@@ -3,7 +3,7 @@ from sqlalchemy import select
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
 from ..database import Database
-from ..errors import FileNameExistsError
+from ..errors import FileNameExistsError, NotFoundInDatabaseError
 from ..journal import Journal
 from .models import HMM
 from .schemas import HMMCreate, HMMRead
@@ -35,18 +35,23 @@ async def create_hmm(request: Request, hmm: HMMCreate):
         hmm_read = HMMRead(id=x.id, job_id=x.job_id, file=hmm.file)
 
     journal: Journal = request.app.state.journal
-    async with journal:
-        await journal.publish("hmms", hmm_read.model_dump_json())
+    await journal.publish("hmms", hmm_read.model_dump_json())
 
     return hmm_read
 
 
-#
-#
-# @router.get("/hmms/{hmm_id}", response_model=HMMRead, status_code=OK)
-# async def read_hmm(hmm_id: int):
-#     with get_sched() as sched:
-#         return HMMRead.from_orm(sched.get(HMM, hmm_id))
+# response_model=HMMRead,
+@router.get("/hmms/{hmm_id}", status_code=HTTP_200_OK)
+async def read_hmm(request: Request, hmm_id: int):
+    database: Database = request.app.state.database
+    with database.create_session() as session:
+        row = session.execute(select(HMM).where(HMM.id == hmm_id)).one_or_none()
+        if row is None:
+            raise NotFoundInDatabaseError("HMM")
+
+        return HMMRead.model_validate(row)
+
+
 #
 #
 # @router.delete("/hmms/{hmm_id}", status_code=NO_CONTENT, dependencies=AUTH)

@@ -20,7 +20,8 @@ async def lifespan(app: FastAPI):
     app.state.database.create_tables()
     app.state.storage = Storage(settings)
     app.state.journal = Journal(settings)
-    yield
+    async with app.state.journal:
+        yield
     app.state.database.dispose()
 
 
