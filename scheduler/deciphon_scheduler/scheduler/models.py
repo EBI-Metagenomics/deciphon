@@ -1,14 +1,15 @@
 from __future__ import annotations
 
+from sqlalchemy import select
 from collections.abc import Iterable
 from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, Session, mapped_column, relationship
 
 from ..models import BaseModel
-from .schemas import DBFile, HMMFile, HMMRead, JobState, JobType
+from .schemas import DBFile, HMMFile, HMMRead, JobState, JobType, DBRead
 
 
 class Job(BaseModel):
@@ -37,6 +38,14 @@ class Job(BaseModel):
             submission=datetime.utcnow(),
         )
 
+    def set_done(self):
+        self.state = JobState.done
+        self.progress = 100
+        now = datetime.now()
+        if not self.exec_started:
+            self.exec_started = now
+        self.exec_ended = now
+
 
 class HMM(BaseModel):
     __tablename__ = "hmm"
@@ -63,6 +72,20 @@ class HMM(BaseModel):
         file = HMMFile(name=self.file_name, sha256=self.file_sha256)
         return HMMRead(id=self.id, job_id=self.job_id, file=file)
 
+    @staticmethod
+    def get_by_id(session: Session, id: int):
+        x = session.execute(select(HMM).where(HMM.id == id)).one_or_none()
+        return x if x is None else x._tuple()[0]
+
+    @staticmethod
+    def get_by_file_name(session: Session, file_name: str):
+        x = session.execute(select(HMM).where(HMM.file_name == file_name)).one_or_none()
+        return x if x is None else x._tuple()[0]
+
+    @staticmethod
+    def get_all(session: Session):
+        return [x._tuple()[0] for x in session.execute(select(HMM)).all()]
+
 
 class DB(BaseModel):
     __tablename__ = "db"
@@ -79,6 +102,24 @@ class DB(BaseModel):
     @classmethod
     def create(cls, hmm: HMM, file: DBFile):
         return cls(hmm=hmm, file_name=file.name, file_sha256=file.sha256)
+
+    def read_model(self):
+        file = DBFile(name=self.file_name, sha256=self.file_sha256)
+        return DBRead(id=self.id, hmm_id=self.hmm_id, file=file)
+
+    @staticmethod
+    def get_by_id(session: Session, id: int):
+        x = session.execute(select(DB).where(DB.id == id)).one_or_none()
+        return x if x is None else x._tuple()[0]
+
+    @staticmethod
+    def get_by_file_name(session: Session, file_name: str):
+        x = session.execute(select(DB).where(DB.file_name == file_name)).one_or_none()
+        return x if x is None else x._tuple()[0]
+
+    @staticmethod
+    def get_all(session: Session):
+        return [x._tuple()[0] for x in session.execute(select(DB)).all()]
 
 
 class Seq(BaseModel):

@@ -18,6 +18,11 @@ class FileNameExistsError(HTTPException):
         )
 
 
+class FileNameNotFoundError(HTTPException):
+    def __init__(self, name: str):
+        super().__init__(HTTP_422_UNPROCESSABLE_ENTITY, f"File name '{name}' not found")
+
+
 class NotFoundInDatabaseError(HTTPException):
     def __init__(self, name: str):
         super().__init__(HTTP_404_NOT_FOUND, f"'{name}' not found in the database")

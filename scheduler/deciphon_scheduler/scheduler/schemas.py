@@ -1,4 +1,5 @@
 from enum import Enum
+from pathlib import Path
 
 from pydantic import BaseModel, Field
 
@@ -26,10 +27,18 @@ class HMMFile(BaseModel):
     name: str = Field(pattern=_file_name_pattern("hmm"))
     sha256: str = Field(pattern=_SHA256_PATTERN)
 
+    @property
+    def db_file_name(self):
+        return str(Path(self.name).with_suffix(".dcp"))
+
 
 class DBFile(BaseModel):
     name: str = Field(pattern=_file_name_pattern("dcp"))
     sha256: str = Field(pattern=_SHA256_PATTERN)
+
+    @property
+    def hmm_file_name(self):
+        return str(Path(self.name).with_suffix(".hmm"))
 
 
 class SnapFile(BaseModel):
@@ -45,3 +54,13 @@ class HMMRead(BaseModel):
     id: int
     job_id: int
     file: HMMFile
+
+
+class DBCreate(BaseModel):
+    file: DBFile
+
+
+class DBRead(BaseModel):
+    id: int
+    hmm_id: int
+    file: DBFile

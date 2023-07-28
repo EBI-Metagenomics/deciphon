@@ -11,6 +11,13 @@ MINIFAM_HMM = {
     }
 }
 
+MINIFAM_DCP = {
+    "file": {
+        "name": "minifam.dcp",
+        "sha256": "40d96b5a62ff669e19571c392ab711c7188dd5490744edf6c66051ecb4f2243d",
+    }
+}
+
 
 @pytest.fixture(scope="module")
 def settings():
@@ -22,37 +29,47 @@ def app(mosquitto, settings):
     return create_app(settings)
 
 
-def test_hmm_not_found(app):
+def test_db_not_found(app):
     with TestClient(app) as client:
-        response = client.get("/hmms/1")
+        response = client.post("/hmms/", json=MINIFAM_HMM)
+        assert response.status_code == 201
+        response = client.get("/dbs/1")
         assert response.status_code == 404
 
 
-def test_create_hmm(app):
+def test_create_db(app):
     with TestClient(app) as client:
         response = client.post("/hmms/", json=MINIFAM_HMM)
         assert response.status_code == 201
+        response = client.post("/dbs/", json=MINIFAM_DCP)
+        assert response.status_code == 201
 
 
-def test_read_hmm(app):
+def test_read_db(app):
     with TestClient(app) as client:
         response = client.post("/hmms/", json=MINIFAM_HMM)
         assert response.status_code == 201
-        response = client.get("/hmms/1")
+        response = client.post("/dbs/", json=MINIFAM_DCP)
+        assert response.status_code == 201
+        response = client.get("/dbs/1")
         assert response.status_code == 200
 
 
-def test_read_hmms(app):
+def test_read_dbs(app):
     with TestClient(app) as client:
         response = client.post("/hmms/", json=MINIFAM_HMM)
         assert response.status_code == 201
-        response = client.get("/hmms")
+        response = client.post("/dbs/", json=MINIFAM_DCP)
+        assert response.status_code == 201
+        response = client.get("/dbs")
         assert response.status_code == 200
 
 
-def test_delete_hmm(app):
+def test_delete_db(app):
     with TestClient(app) as client:
         response = client.post("/hmms/", json=MINIFAM_HMM)
         assert response.status_code == 201
-        response = client.delete("/hmms/1")
+        response = client.post("/dbs/", json=MINIFAM_DCP)
+        assert response.status_code == 201
+        response = client.delete("/dbs/1")
         assert response.status_code == 204
