@@ -52,12 +52,3 @@ async def delete_job(request: Request, job_id: int):
             raise NotFoundInDatabaseError("Job")
         session.delete(x)
         session.commit()
-
-
-#
-#
-# @router.get("/jobs/{job_id}/scan", response_model=ScanRead, status_code=OK)
-# async def read_job_scan(job_id: int):
-#     with get_sched() as sched:
-#         job = sched.get(Job, job_id)
-#         return ScanRead.from_orm(job.scan)
