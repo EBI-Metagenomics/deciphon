@@ -6,7 +6,6 @@ from ..errors import NotFoundInDatabaseError
 from .models import Job
 from .schemas import JobRead, JobUpdate
 
-__all__ = ["router"]
 
 router = APIRouter()
 

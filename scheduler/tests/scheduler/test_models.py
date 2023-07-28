@@ -62,7 +62,7 @@ def test_models_add_get_scan(session, hmmfile: HMMFile, dbfile: DBFile):
     for i in range(1, 2):
         db = DB.create(hmm=HMM.create(file=hmmfile), file=dbfile)
         seqs = [Seq(name="seq1", data="ACGT"), Seq(name="seq2", data="CGA")]
-        scan = Scan.create(db=db, seqs=seqs)
+        scan = Scan.create(db, True, False, seqs)
 
         session.add(scan)
         session.commit()
@@ -75,3 +75,7 @@ def test_models_add_get_scan(session, hmmfile: HMMFile, dbfile: DBFile):
         assert scan.seqs[1].scan.id == i
         assert scan.seqs[0].name == seqs[0].name
         assert scan.seqs[1].name == seqs[1].name
+        assert seqs[0].id == 1
+        assert seqs[1].id == 2
+        assert seqs[0].scan_id == scan.id
+        assert seqs[1].scan_id == scan.id

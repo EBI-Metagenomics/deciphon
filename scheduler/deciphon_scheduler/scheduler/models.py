@@ -9,7 +9,17 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, Session, mapped_column, relationship
 
 from ..models import BaseModel
-from .schemas import DBFile, HMMFile, HMMRead, JobState, JobType, DBRead, JobRead
+from .schemas import (
+    DBFile,
+    HMMFile,
+    HMMRead,
+    JobState,
+    JobType,
+    DBRead,
+    JobRead,
+    ScanRead,
+    SeqRead,
+)
 
 
 class Job(BaseModel):
@@ -154,6 +164,13 @@ class Seq(BaseModel):
     name: Mapped[str]
     data: Mapped[str]
 
+    @classmethod
+    def create(cls, name: str, data: str):
+        return cls(name=name, data=data)
+
+    def read_model(self):
+        return SeqRead(id=self.id, name=self.name, data=self.data)
+
 
 class Snap(BaseModel):
     __tablename__ = "snap"
@@ -174,11 +191,34 @@ class Scan(BaseModel):
     job_id: Mapped[int] = mapped_column(ForeignKey("job.id"))
     db_id: Mapped[int] = mapped_column(ForeignKey("db.id"))
 
+    multi_hits: Mapped[bool]
+    hmmer3_compat: Mapped[bool]
+
     job: Mapped[Job] = relationship(back_populates="scan")
     seqs: Mapped[list[Seq]] = relationship(back_populates="scan")
     snap: Mapped[Optional[Snap]] = relationship(back_populates="scan")
     db: Mapped[DB] = relationship(back_populates="scans")
 
     @classmethod
-    def create(cls, db: DB, seqs: Iterable[Seq]):
-        return cls(job=Job.create(type=JobType.scan), db=db, seqs=list(seqs))
+    def create(cls, db: DB, multi_hits: bool, hmmer3_compat: bool, seqs: Iterable[Seq]):
+        return cls(
+            db=db,
+            multi_hits=multi_hits,
+            hmmer3_compat=hmmer3_compat,
+            job=Job.create(type=JobType.scan),
+            seqs=list(seqs),
+        )
+
+    def read_model(self):
+        return ScanRead(
+            id=self.id,
+            db_id=self.db_id,
+            multi_hits=self.multi_hits,
+            hmmer3_compat=self.hmmer3_compat,
+            seqs=[x.read_model() for x in self.seqs],
+        )
+
+    @staticmethod
+    def get_by_id(session: Session, id: int):
+        x = session.execute(select(Scan).where(Scan.id == id)).one_or_none()
+        return x if x is None else x._tuple()[0]

@@ -89,3 +89,29 @@ class DBRead(BaseModel):
     id: int
     hmm_id: int
     file: DBFile
+
+
+class SeqCreate(BaseModel):
+    name: str
+    data: str
+
+
+class SeqRead(BaseModel):
+    id: int
+    name: str
+    data: str
+
+
+class ScanCreate(BaseModel):
+    db_id: int
+    multi_hits: bool
+    hmmer3_compat: bool
+    seqs: list[SeqCreate]
+
+
+class ScanRead(BaseModel):
+    id: int
+    db_id: int
+    multi_hits: bool
+    hmmer3_compat: bool
+    seqs: list[SeqRead]
