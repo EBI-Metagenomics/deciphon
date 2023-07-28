@@ -8,7 +8,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..models import BaseModel
-from .schemas import DBFile, HMMFile, JobState, JobType
+from .schemas import DBFile, HMMFile, HMMRead, JobState, JobType
 
 
 class Job(BaseModel):
@@ -58,6 +58,10 @@ class HMM(BaseModel):
             file_name=file.name,
             file_sha256=file.sha256,
         )
+
+    def read_model(self):
+        file = HMMFile(name=self.file_name, sha256=self.file_sha256)
+        return HMMRead(id=self.id, job_id=self.job_id, file=file)
 
 
 class DB(BaseModel):

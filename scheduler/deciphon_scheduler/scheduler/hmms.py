@@ -6,7 +6,7 @@ from ..database import Database
 from ..errors import FileNameExistsError, NotFoundInDatabaseError
 from ..journal import Journal
 from .models import HMM
-from .schemas import HMMCreate, HMMRead
+from .schemas import HMMCreate, HMMFile, HMMRead
 
 router = APIRouter()
 
@@ -17,7 +17,7 @@ NO_CONTENT = HTTP_204_NO_CONTENT
 async def read_hmms(request: Request):
     database: Database = request.app.state.database
     with database.create_session() as session:
-        return [HMMRead.model_validate(x) for x in session.execute(select(HMM)).all()]
+        return [x[0].read_model() for x in session.execute(select(HMM)).all()]
 
 
 # , response_model=HMMRead
@@ -45,17 +45,20 @@ async def create_hmm(request: Request, hmm: HMMCreate):
 async def read_hmm(request: Request, hmm_id: int):
     database: Database = request.app.state.database
     with database.create_session() as session:
-        row = session.execute(select(HMM).where(HMM.id == hmm_id)).one_or_none()
-        if row is None:
+        x = session.execute(select(HMM).where(HMM.id == hmm_id)).one_or_none()
+        if x is None:
             raise NotFoundInDatabaseError("HMM")
+        x = x[0]
+        file = HMMFile(name=x.file_name, sha256=x.file_sha256)
+        return HMMRead(id=x.id, job_id=x.job_id, file=file)
 
-        return HMMRead.model_validate(row)
 
-
-#
-#
-# @router.delete("/hmms/{hmm_id}", status_code=NO_CONTENT, dependencies=AUTH)
-# async def delete_hmm(hmm_id: int):
-#     with get_sched() as sched:
-#         sched.delete(sched.get(HMM, hmm_id))
-#         sched.commit()
+@router.delete("/hmms/{hmm_id}", status_code=HTTP_204_NO_CONTENT)
+async def delete_hmm(request: Request, hmm_id: int):
+    database: Database = request.app.state.database
+    with database.create_session() as session:
+        x = session.execute(select(HMM).where(HMM.id == hmm_id)).one_or_none()
+        if x is None:
+            raise NotFoundInDatabaseError("HMM")
+        session.delete(x[0])
+        session.commit()

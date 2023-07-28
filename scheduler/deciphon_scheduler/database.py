@@ -7,7 +7,7 @@ from .settings import Settings
 
 class Database:
     def __init__(self, settings: Settings):
-        self._engine = create_engine(settings.database_url.unicode_string(), echo=True)
+        self._engine = create_engine(settings.database_url.unicode_string())
 
     def create_tables(self):
         BaseModel.metadata.create_all(self._engine)
