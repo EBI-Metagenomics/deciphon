@@ -9,7 +9,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, Session, mapped_column, relationship
 
 from ..models import BaseModel
-from .schemas import DBFile, HMMFile, HMMRead, JobState, JobType, DBRead
+from .schemas import DBFile, HMMFile, HMMRead, JobState, JobType, DBRead, JobRead
 
 
 class Job(BaseModel):
@@ -45,6 +45,27 @@ class Job(BaseModel):
         if not self.exec_started:
             self.exec_started = now
         self.exec_ended = now
+
+    def read_model(self):
+        return JobRead(
+            id=self.id,
+            type=self.type,
+            state=self.state,
+            progress=self.progress,
+            error=self.error,
+            submission=self.submission,
+            exec_started=self.exec_started,
+            exec_ended=self.exec_ended,
+        )
+
+    @staticmethod
+    def get_by_id(session: Session, id: int):
+        x = session.execute(select(Job).where(Job.id == id)).one_or_none()
+        return x if x is None else x._tuple()[0]
+
+    @staticmethod
+    def get_all(session: Session):
+        return [x._tuple()[0] for x in session.execute(select(Job)).all()]
 
 
 class HMM(BaseModel):

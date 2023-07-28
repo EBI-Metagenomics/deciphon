@@ -22,11 +22,11 @@ async def create_db(request: Request, db: DBCreate) -> DBRead:
     database: Database = request.app.state.database
     with database.create_session() as session:
         if DB.get_by_file_name(session, db.file.name) is not None:
-            return FileNameExistsError(db.file.name)
+            raise FileNameExistsError(db.file.name)
 
         hmm = HMM.get_by_file_name(session, db.file.hmm_file_name)
         if hmm is None:
-            return FileNameNotFoundError(db.hmm_file_name)
+            raise FileNameNotFoundError(db.hmm_file_name)
 
         hmm.job.set_done()
 

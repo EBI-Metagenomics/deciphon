@@ -23,7 +23,7 @@ async def create_hmm(request: Request, hmm: HMMCreate) -> HMMRead:
     with database.create_session() as session:
         x = HMM.get_by_file_name(session, hmm.file.name)
         if x is not None:
-            return FileNameExistsError(hmm.file.name)
+            raise FileNameExistsError(hmm.file.name)
 
         x = HMM.create(hmm.file)
         session.add(x)
