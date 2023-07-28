@@ -1,5 +1,5 @@
-from deciphon_sched.database import Database
-from deciphon_sched.settings import Settings
+from deciphon_scheduler.database import Database
+from deciphon_scheduler.settings import Settings
 
 TABLE_NAMES = ["job", "hmm", "db", "scan", "seq", "snap"]
 DATABASE_URL = "sqlite+pysqlite:///:memory:"

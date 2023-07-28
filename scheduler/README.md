@@ -1,1 +1,1 @@
-uvicorn --factory deciphon_sched.main:create_app
+uvicorn --factory deciphon_scheduler.main:create_app

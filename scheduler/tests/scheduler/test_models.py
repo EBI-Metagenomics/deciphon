@@ -1,9 +1,9 @@
 import pytest
 from sqlalchemy import select
 
-from deciphon_sched.database import Database
-from deciphon_sched.scheduler.models import DB, HMM, DBFile, HMMFile, Scan, Seq
-from deciphon_sched.settings import Settings
+from deciphon_scheduler.database import Database
+from deciphon_scheduler.scheduler.models import DB, HMM, DBFile, HMMFile, Scan, Seq
+from deciphon_scheduler.settings import Settings
 
 DATABASE_URL = "sqlite+pysqlite:///:memory:"
 

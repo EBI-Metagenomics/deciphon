@@ -1,5 +1,5 @@
-from deciphon_sched.settings import Settings
-from deciphon_sched.storage import Storage
+from deciphon_scheduler.settings import Settings
+from deciphon_scheduler.storage import Storage
 
 
 def test_storage(s3server):
