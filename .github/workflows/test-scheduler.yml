@@ -1,16 +1,16 @@
-name: Test sched
+name: Test scheduler
 
 on:
   push:
     branches:
       - "**"
     paths:
-      - sched/**
-      - .github/workflows/test-sched.yml
+      - scheduler/**
+      - .github/workflows/test-scheduler.yml
 
 defaults:
   run:
-    working-directory: sched
+    working-directory: scheduler
 
 jobs:
   test:
