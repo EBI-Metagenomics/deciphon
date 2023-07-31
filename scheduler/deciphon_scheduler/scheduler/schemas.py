@@ -22,7 +22,6 @@ def _file_name_pattern(ext: str):
     return r"^[0-9a-zA-Z_\-.][0-9a-zA-Z_\-. ]+\." + ext + "$"
 
 
-_SHA256_PATTERN = r"^[0123456789abcdef]{64}$"
 _FILE_NAME_MAX = 128
 
 
@@ -48,47 +47,44 @@ class JobUpdate(BaseModel):
     exec_ended: Optional[datetime] = None
 
 
-class HMMFile(BaseModel):
+class HMMFileName(BaseModel):
     name: str = Field(pattern=_file_name_pattern("hmm"), max_length=_FILE_NAME_MAX)
-    sha256: str = Field(pattern=_SHA256_PATTERN)
 
     @property
     def db_file_name(self):
-        return str(Path(self.name).with_suffix(".dcp"))
+        return DBFileName(name=str(Path(self.name).with_suffix(".dcp")))
 
 
-class DBFile(BaseModel):
+class DBFileName(BaseModel):
     name: str = Field(pattern=_file_name_pattern("dcp"), max_length=_FILE_NAME_MAX)
-    sha256: str = Field(pattern=_SHA256_PATTERN)
 
     @property
     def hmm_file_name(self):
-        return str(Path(self.name).with_suffix(".hmm"))
+        return HMMFileName(name=str(Path(self.name).with_suffix(".hmm")))
 
 
-class SnapFile(BaseModel):
+class SnapFileName(BaseModel):
     name: str = Field(pattern=_file_name_pattern("dcs"), max_length=_FILE_NAME_MAX)
-    sha256: str = Field(pattern=_SHA256_PATTERN)
 
 
 class HMMCreate(BaseModel):
-    file: HMMFile
+    file: HMMFileName
 
 
 class HMMRead(BaseModel):
     id: int
     job_id: int
-    file: HMMFile
+    file: HMMFileName
 
 
 class DBCreate(BaseModel):
-    file: DBFile
+    file: DBFileName
 
 
 class DBRead(BaseModel):
     id: int
     hmm_id: int
-    file: DBFile
+    file: DBFileName
 
 
 class SeqCreate(BaseModel):

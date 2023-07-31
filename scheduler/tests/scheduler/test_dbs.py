@@ -4,19 +4,8 @@ from fastapi.testclient import TestClient
 from deciphon_scheduler.main import create_app
 from deciphon_scheduler.settings import Settings
 
-MINIFAM_HMM = {
-    "file": {
-        "name": "minifam.hmm",
-        "sha256": "fe305d9c09e123f987f49b9056e34c374e085d8831f815cc73d8ea4cdec84960",
-    }
-}
-
-MINIFAM_DCP = {
-    "file": {
-        "name": "minifam.dcp",
-        "sha256": "40d96b5a62ff669e19571c392ab711c7188dd5490744edf6c66051ecb4f2243d",
-    }
-}
+MINIFAM_HMM = {"file": {"name": "minifam.hmm"}}
+MINIFAM_DCP = {"file": {"name": "minifam.dcp"}}
 
 
 @pytest.fixture(scope="module")

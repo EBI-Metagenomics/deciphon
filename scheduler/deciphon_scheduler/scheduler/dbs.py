@@ -24,7 +24,7 @@ async def create_db(request: Request, db: DBCreate) -> DBRead:
         if DB.get_by_file_name(session, db.file.name) is not None:
             raise FileNameExistsError(db.file.name)
 
-        hmm = HMM.get_by_file_name(session, db.file.hmm_file_name)
+        hmm = HMM.get_by_file_name(session, db.file.hmm_file_name.name)
         if hmm is None:
             raise FileNameNotFoundError(db.hmm_file_name)
 

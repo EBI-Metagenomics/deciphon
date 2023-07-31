@@ -10,8 +10,8 @@ from sqlalchemy.orm import Mapped, Session, mapped_column, relationship
 
 from ..models import BaseModel
 from .schemas import (
-    DBFile,
-    HMMFile,
+    DBFileName,
+    HMMFileName,
     HMMRead,
     JobState,
     JobType,
@@ -88,19 +88,14 @@ class HMM(BaseModel):
     db: Mapped[Optional[DB]] = relationship(back_populates="hmm")
 
     file_name: Mapped[str] = mapped_column(unique=True)
-    file_sha256: Mapped[str]
 
     @classmethod
-    def create(cls, file: HMMFile):
+    def create(cls, file: HMMFileName):
         job = Job.create(type=JobType.hmm)
-        return cls(
-            job=job,
-            file_name=file.name,
-            file_sha256=file.sha256,
-        )
+        return cls(job=job, file_name=file.name)
 
     def read_model(self):
-        file = HMMFile(name=self.file_name, sha256=self.file_sha256)
+        file = HMMFileName(name=self.file_name)
         return HMMRead(id=self.id, job_id=self.job_id, file=file)
 
     @staticmethod
@@ -128,14 +123,13 @@ class DB(BaseModel):
     scans: Mapped[list[Scan]] = relationship(back_populates="db")
 
     file_name: Mapped[str]
-    file_sha256: Mapped[str]
 
     @classmethod
-    def create(cls, hmm: HMM, file: DBFile):
-        return cls(hmm=hmm, file_name=file.name, file_sha256=file.sha256)
+    def create(cls, hmm: HMM, file: DBFileName):
+        return cls(hmm=hmm, file_name=file.name)
 
     def read_model(self):
-        file = DBFile(name=self.file_name, sha256=self.file_sha256)
+        file = DBFileName(name=self.file_name)
         return DBRead(id=self.id, hmm_id=self.hmm_id, file=file)
 
     @staticmethod
@@ -181,7 +175,6 @@ class Snap(BaseModel):
     scan: Mapped[Scan] = relationship(back_populates="snap")
 
     file_name: Mapped[str]
-    file_sha256: Mapped[str]
 
 
 class Scan(BaseModel):

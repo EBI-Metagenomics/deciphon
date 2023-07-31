@@ -2,7 +2,14 @@ import pytest
 from sqlalchemy import select
 
 from deciphon_scheduler.database import Database
-from deciphon_scheduler.scheduler.models import DB, HMM, DBFile, HMMFile, Scan, Seq
+from deciphon_scheduler.scheduler.models import (
+    DB,
+    HMM,
+    DBFileName,
+    HMMFileName,
+    Scan,
+    Seq,
+)
 from deciphon_scheduler.settings import Settings
 
 DATABASE_URL = "sqlite+pysqlite:///:memory:"
@@ -10,14 +17,12 @@ DATABASE_URL = "sqlite+pysqlite:///:memory:"
 
 @pytest.fixture()
 def hmmfile():
-    sha256 = "fe305d9c09e123f987f49b9056e34c374e085d8831f815cc73d8ea4cdec84960"
-    return HMMFile(name="file.hmm", sha256=sha256)
+    return HMMFileName(name="file.hmm")
 
 
 @pytest.fixture()
 def dbfile():
-    sha256 = "b84800e4803006fccbea1634696383e228c4a20f6902ccfddaff7bf511f8e340"
-    return DBFile(name="file.dcp", sha256=sha256)
+    return DBFileName(name="file.dcp")
 
 
 @pytest.fixture()
@@ -28,7 +33,7 @@ def session():
     yield database.create_session()
 
 
-def test_models_add_get_hmm(session, hmmfile: HMMFile):
+def test_models_add_get_hmm(session, hmmfile: HMMFileName):
     for i in range(1, 2):
         hmm = HMM.create(file=hmmfile)
 
@@ -42,7 +47,7 @@ def test_models_add_get_hmm(session, hmmfile: HMMFile):
         assert hmm.job.id == i
 
 
-def test_models_add_get_db(session, hmmfile: HMMFile, dbfile: DBFile):
+def test_models_add_get_db(session, hmmfile: HMMFileName, dbfile: DBFileName):
     for i in range(1, 2):
         db = DB.create(hmm=HMM.create(file=hmmfile), file=dbfile)
 
@@ -58,7 +63,7 @@ def test_models_add_get_db(session, hmmfile: HMMFile, dbfile: DBFile):
         assert db.hmm.job.id == i
 
 
-def test_models_add_get_scan(session, hmmfile: HMMFile, dbfile: DBFile):
+def test_models_add_get_scan(session, hmmfile: HMMFileName, dbfile: DBFileName):
     for i in range(1, 2):
         db = DB.create(hmm=HMM.create(file=hmmfile), file=dbfile)
         seqs = [Seq(name="seq1", data="ACGT"), Seq(name="seq2", data="CGA")]
