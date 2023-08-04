@@ -8,7 +8,5 @@ from deciphon_scheduler.settings import Settings
 async def test_journal(mqtt, settings: Settings):
     settings.mqtt_host = mqtt["host"]
     settings.mqtt_port = mqtt["port"]
-    journal = Journal(settings)
-
-    async with journal:
+    async with Journal(settings) as journal:
         await journal.publish("hmms", "1")
