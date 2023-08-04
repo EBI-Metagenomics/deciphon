@@ -12,7 +12,7 @@ def settings():
     return Settings()
 
 
-@pytest.fixture()
+@pytest.fixture(scope="package")
 def mqtt():
     with MosquittoContainer() as x:
         yield {
@@ -21,7 +21,7 @@ def mqtt():
         }
 
 
-@pytest.fixture()
+@pytest.fixture(scope="package")
 def s3():
     with MinioContainer() as x:
         yield {
