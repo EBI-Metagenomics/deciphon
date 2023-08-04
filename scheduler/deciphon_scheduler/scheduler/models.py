@@ -7,7 +7,7 @@ from typing import Optional
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
 
-from .schemas import (
+from deciphon_scheduler.scheduler.schemas import (
     DBFileName,
     DBRead,
     HMMFileName,

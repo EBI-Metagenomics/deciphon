@@ -5,7 +5,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from .validation import (
+from deciphon_scheduler.scheduler.validation import (
     FILE_NAME_MAX_LENGTH,
     DB_FILE_NAME_PATTERN,
     HMM_FILE_NAME_PATTERN,

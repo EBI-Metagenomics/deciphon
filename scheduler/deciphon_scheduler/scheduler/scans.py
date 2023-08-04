@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Request
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
-from ..database import Database
-from ..errors import NotFoundInDatabaseError
-from ..journal import Journal
-from .models import DB, Scan, Seq
-from .schemas import ScanCreate, ScanRead
+from deciphon_scheduler.database import Database
+from deciphon_scheduler.errors import NotFoundInDatabaseError
+from deciphon_scheduler.journal import Journal
+from deciphon_scheduler.scheduler.models import DB, Scan, Seq
+from deciphon_scheduler.scheduler.schemas import ScanCreate, ScanRead
 
 router = APIRouter()
 
