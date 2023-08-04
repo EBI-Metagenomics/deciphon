@@ -26,6 +26,7 @@ requests = "^2.31.0"
 testcontainers-core = "^0.0.1rc1"
 testcontainers-minio = "^0.0.1rc1"
 testcontainers = "^3.7.1"
+paho-mqtt = "^1.6.1"
 
 [build-system]
 requires = ["poetry-core"]
