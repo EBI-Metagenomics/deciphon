@@ -1,21 +1,7 @@
-import pytest
 from fastapi.testclient import TestClient
 
-from deciphon_scheduler.main import create_app
-from deciphon_scheduler.settings import Settings
-
-MINIFAM_HMM = {"file": {"name": "minifam.hmm"}}
-MINIFAM_DCP = {"file": {"name": "minifam.dcp"}}
-
-
-@pytest.fixture(scope="module")
-def settings():
-    return Settings()
-
-
-@pytest.fixture
-def app(mosquitto, settings):
-    return create_app(settings)
+MINIFAM_HMM = {"name": "minifam.hmm"}
+MINIFAM_DCP = {"name": "minifam.dcp"}
 
 
 def test_db_not_found(app):

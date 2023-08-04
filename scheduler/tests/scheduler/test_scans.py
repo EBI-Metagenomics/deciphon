@@ -1,12 +1,7 @@
-import pytest
 from fastapi.testclient import TestClient
 
-from deciphon_scheduler.main import create_app
-from deciphon_scheduler.settings import Settings
-
-
-MINIFAM_HMM = {"file": {"name": "minifam.hmm"}}
-MINIFAM_DCP = {"file": {"name": "minifam.dcp"}}
+MINIFAM_HMM = {"name": "minifam.hmm"}
+MINIFAM_DCP = {"name": "minifam.dcp"}
 SEQS = [{"name": "seq1", "data": "ACGT"}, {"name": "seq2", "data": "GTT"}]
 SCAN = {
     "db_id": 1,
@@ -14,16 +9,6 @@ SCAN = {
     "hmmer3_compat": True,
     "seqs": SEQS,
 }
-
-
-@pytest.fixture(scope="module")
-def settings():
-    return Settings()
-
-
-@pytest.fixture
-def app(mosquitto, settings):
-    return create_app(settings)
 
 
 def test_create_scan(app):

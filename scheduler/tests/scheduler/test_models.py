@@ -9,10 +9,9 @@ from deciphon_scheduler.scheduler.models import (
     HMMFileName,
     Scan,
     Seq,
+    metadata,
 )
 from deciphon_scheduler.settings import Settings
-
-DATABASE_URL = "sqlite+pysqlite:///:memory:"
 
 
 @pytest.fixture()
@@ -26,10 +25,9 @@ def dbfile():
 
 
 @pytest.fixture()
-def session():
-    settings = Settings(database_url=DATABASE_URL)
+def session(settings: Settings):
     database = Database(settings)
-    database.create_tables()
+    database.create_tables(metadata())
     yield database.create_session()
 
 

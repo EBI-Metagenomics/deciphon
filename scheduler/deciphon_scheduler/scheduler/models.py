@@ -1,25 +1,39 @@
 from __future__ import annotations
 
-from sqlalchemy import select
 from collections.abc import Iterable
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, Session, mapped_column, relationship
+from sqlalchemy import ForeignKey, select
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
 
-from ..models import BaseModel
 from .schemas import (
     DBFileName,
+    DBRead,
     HMMFileName,
     HMMRead,
+    JobRead,
     JobState,
     JobType,
-    DBRead,
-    JobRead,
     ScanRead,
     SeqRead,
 )
+
+
+def metadata():
+    return BaseModel.metadata
+
+
+class BaseModel(DeclarativeBase):
+    def model_dump(self):
+        return {field.name: getattr(self, field.name) for field in self.__table__.c}
+
+    def __repr__(self):
+        params = ", ".join(f"{k}={v}" for k, v in self.model_dump().items())
+        return f"{self.__class__.__name__}({params})"
+
+    def __str__(self):
+        return repr(self)
 
 
 class Job(BaseModel):

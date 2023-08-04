@@ -5,7 +5,7 @@ from ..database import Database
 from ..errors import FileNameExistsError, FileNameNotFoundError, NotFoundInDatabaseError
 from ..journal import Journal
 from .models import DB, HMM
-from .schemas import DBCreate, DBRead
+from .schemas import DBFileName, DBRead
 
 router = APIRouter()
 
@@ -18,19 +18,19 @@ async def read_dbs(request: Request) -> list[DBRead]:
 
 
 @router.post("/dbs/", status_code=HTTP_201_CREATED)
-async def create_db(request: Request, db: DBCreate) -> DBRead:
+async def create_db(request: Request, db: DBFileName) -> DBRead:
     database: Database = request.app.state.database
     with database.create_session() as session:
-        if DB.get_by_file_name(session, db.file.name) is not None:
-            raise FileNameExistsError(db.file.name)
+        if DB.get_by_file_name(session, db.name) is not None:
+            raise FileNameExistsError(db.name)
 
-        hmm = HMM.get_by_file_name(session, db.file.hmm_file_name.name)
+        hmm = HMM.get_by_file_name(session, db.hmm_file_name.name)
         if hmm is None:
-            raise FileNameNotFoundError(db.hmm_file_name)
+            raise FileNameNotFoundError(db.hmm_file_name.name)
 
         hmm.job.set_done()
 
-        x = DB.create(hmm, db.file)
+        x = DB.create(hmm, db)
         session.add(x)
         session.commit()
         db_read = x.read_model()

@@ -9,6 +9,7 @@ from .database import Database
 from .errors import integrity_error_handler
 from .journal import Journal
 from .scheduler import router
+from .scheduler.models import metadata
 from .settings import Settings
 from .storage import Storage
 
@@ -17,7 +18,7 @@ from .storage import Storage
 async def lifespan(app: FastAPI):
     settings: Settings = app.state.settings
     app.state.database = Database(settings)
-    app.state.database.create_tables()
+    app.state.database.create_tables(metadata())
     app.state.storage = Storage(settings)
     app.state.journal = Journal(settings)
     async with app.state.journal:

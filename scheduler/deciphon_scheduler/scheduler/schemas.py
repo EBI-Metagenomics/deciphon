@@ -5,6 +5,13 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
+from .validation import (
+    FILE_NAME_MAX_LENGTH,
+    DB_FILE_NAME_PATTERN,
+    HMM_FILE_NAME_PATTERN,
+    SNAP_FILE_NAME_PATTERN,
+)
+
 
 class JobType(Enum):
     hmm = "hmm"
@@ -48,7 +55,7 @@ class JobUpdate(BaseModel):
 
 
 class HMMFileName(BaseModel):
-    name: str = Field(pattern=_file_name_pattern("hmm"), max_length=_FILE_NAME_MAX)
+    name: str = Field(pattern=HMM_FILE_NAME_PATTERN, max_length=FILE_NAME_MAX_LENGTH)
 
     @property
     def db_file_name(self):
@@ -56,7 +63,7 @@ class HMMFileName(BaseModel):
 
 
 class DBFileName(BaseModel):
-    name: str = Field(pattern=_file_name_pattern("dcp"), max_length=_FILE_NAME_MAX)
+    name: str = Field(pattern=DB_FILE_NAME_PATTERN, max_length=FILE_NAME_MAX_LENGTH)
 
     @property
     def hmm_file_name(self):
@@ -64,11 +71,7 @@ class DBFileName(BaseModel):
 
 
 class SnapFileName(BaseModel):
-    name: str = Field(pattern=_file_name_pattern("dcs"), max_length=_FILE_NAME_MAX)
-
-
-class HMMCreate(BaseModel):
-    file: HMMFileName
+    name: str = Field(pattern=SNAP_FILE_NAME_PATTERN, max_length=FILE_NAME_MAX_LENGTH)
 
 
 class HMMRead(BaseModel):

@@ -13,17 +13,16 @@ fasta-reader = "^3.0"
 uvicorn = { extras = ["standard"], version = "^0.23" }
 sqlalchemy = "^2.0"
 pydantic-settings = "^2.0"
-asyncio-mqtt = "^0.16.2"
 boto3 = "^1.28.15"
 pydantic = "^2.1.1"
+aiomqtt = "^1.0.0"
+testcontainers-minio = "^0.0.1rc1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"
-moto = { extras = ["s3"], version = "^4.1.13" }
 flask = "^2.3.2"
 flask-cors = "^4.0.0"
 pytest-asyncio = "^0.21.1"
-pytest-mqtt = ">=0.3.0"
 requests = "^2.31.0"
 
 [build-system]

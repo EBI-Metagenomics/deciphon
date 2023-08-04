@@ -1,20 +1,6 @@
-import pytest
 from fastapi.testclient import TestClient
 
-from deciphon_scheduler.main import create_app
-from deciphon_scheduler.settings import Settings
-
-MINIFAM_HMM = {"file": {"name": "minifam.hmm"}}
-
-
-@pytest.fixture(scope="module")
-def settings():
-    return Settings()
-
-
-@pytest.fixture
-def app(mosquitto, settings):
-    return create_app(settings)
+MINIFAM_HMM = {"name": "minifam.hmm"}
 
 
 def test_hmm_not_found(app):
@@ -25,6 +11,7 @@ def test_hmm_not_found(app):
 
 def test_create_hmm(app):
     with TestClient(app) as client:
+        response = client.get("/hmms/presigned-upload")
         response = client.post("/hmms/", json=MINIFAM_HMM)
         assert response.status_code == 201
 

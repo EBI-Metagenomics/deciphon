@@ -1,11 +1,19 @@
-from fastapi import APIRouter, Request
+from typing import Annotated
+
+from fastapi import APIRouter, Path, Request
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
+from deciphon_scheduler.scheduler.validation import (
+    FILE_NAME_MAX_LENGTH,
+    HMM_FILE_NAME_PATTERN,
+)
+
 from ..database import Database
-from ..errors import FileNameExistsError, NotFoundInDatabaseError
+from ..errors import FileNameExistsError, FileNameNotFoundError, NotFoundInDatabaseError
 from ..journal import Journal
+from ..storage import PresignedUpload, Storage
 from .models import HMM
-from .schemas import HMMCreate, HMMRead
+from .schemas import HMMFileName, HMMRead
 
 router = APIRouter()
 
@@ -17,15 +25,45 @@ async def read_hmms(request: Request) -> list[HMMRead]:
         return [x.read_model() for x in HMM.get_all(session)]
 
 
-@router.post("/hmms/", status_code=HTTP_201_CREATED)
-async def create_hmm(request: Request, hmm: HMMCreate) -> HMMRead:
+@router.get("/hmms/presigned-upload/{file_name}", status_code=HTTP_200_OK)
+async def presigned_hmm_upload(
+    request: Request,
+    file_name: Annotated[
+        str,
+        Path(
+            title="HMM file name",
+            pattern=HMM_FILE_NAME_PATTERN,
+            max_length=FILE_NAME_MAX_LENGTH,
+        ),
+    ],
+) -> PresignedUpload:
+    storage: Storage = request.app.state.storage
     database: Database = request.app.state.database
-    with database.create_session() as session:
-        x = HMM.get_by_file_name(session, hmm.file.name)
-        if x is not None:
-            raise FileNameExistsError(hmm.file.name)
 
-        x = HMM.create(hmm.file)
+    hmm = HMMFileName(name=file_name)
+    with database.create_session() as session:
+        x = HMM.get_by_file_name(session, hmm.name)
+        if x is not None:
+            raise FileNameExistsError(hmm.name)
+        if storage.has_file(hmm.name):
+            raise FileNameExistsError(hmm.name)
+        return storage.presigned_upload(hmm.name)
+
+
+@router.post("/hmms/", status_code=HTTP_201_CREATED)
+async def create_hmm(request: Request, hmm: HMMFileName) -> HMMRead:
+    storage: Storage = request.app.state.storage
+    database: Database = request.app.state.database
+
+    with database.create_session() as session:
+        x = HMM.get_by_file_name(session, hmm.name)
+        if x is not None:
+            raise FileNameExistsError(hmm.name)
+
+        if not storage.has_file(hmm.name):
+            FileNameNotFoundError(hmm.name)
+
+        x = HMM.create(hmm)
         session.add(x)
         session.commit()
         hmm_read = x.read_model()

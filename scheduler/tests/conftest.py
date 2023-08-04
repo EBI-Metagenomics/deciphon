@@ -1,56 +1,40 @@
-import subprocess
-import time
+from __future__ import annotations
 
-import boto3
 import pytest
-import requests
+from testcontainers.core.container import DockerContainer
+from testcontainers.minio import MinioContainer
+
+from deciphon_scheduler.settings import Settings
+
+
+@pytest.fixture(scope="package")
+def settings():
+    return Settings()
 
 
 @pytest.fixture()
-def s3server():
-    host = "127.0.0.1"
-    port = "9090"
-    url = f"http://{host}:{port}"
-    key = "s3_key"
-    secret = "s3_secret"
-    bucket = "test"
-    try:
-        if requests.get(url).ok:
-            raise RuntimeError("moto server already up")
-    except requests.exceptions.ConnectionError:
-        pass
+def mqtt():
+    with MosquittoContainer() as x:
+        yield {
+            "host": x.get_container_host_ip(),
+            "port": int(x.get_exposed_port(x.port)),
+        }
 
-    proc = subprocess.Popen(
-        ["moto_server", "s3", "-H", host, "-p", port],
-        stdin=subprocess.DEVNULL,
-    )
 
-    timeout = 5
-    ready = False
-    while timeout > 0:
-        try:
-            if requests.get(url).ok:
-                ready = True
-                break
-        except requests.exceptions.ConnectionError:
-            pass
-        timeout -= 0.1
-        time.sleep(0.1)
-    if not ready:
-        raise RuntimeError("cannot connect to moto server")
+@pytest.fixture()
+def s3():
+    with MinioContainer() as x:
+        yield {
+            "access_key": x.get_config()["access_key"],
+            "secret_key": x.get_config()["secret_key"],
+            "url": "http://" + x.get_config()["endpoint"],
+        }
 
-    region_name = "eu-west-1"
-    boto3.client(
-        "s3",
-        region_name=region_name,
-        endpoint_url=url,
-        aws_access_key_id=key,
-        aws_secret_access_key=secret,
-    ).create_bucket(
-        Bucket=bucket,
-        CreateBucketConfiguration={"LocationConstraint": region_name},
-    )
 
-    yield {"url": url, "key": key, "secret": secret, "bucket": bucket}
-    proc.terminate()
-    proc.wait()
+class MosquittoContainer(DockerContainer):
+    def __init__(self, image="eclipse-mosquitto:2.0.15", port=1883):
+        super(MosquittoContainer, self).__init__(image)
+        self.port = port
+
+        self.with_exposed_ports(self.port)
+        self.with_command("mosquitto -c /mosquitto-no-auth.conf")
