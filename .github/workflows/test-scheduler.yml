@@ -21,6 +21,5 @@ jobs:
 
       - name: Run tests
         run: |
-          pipx install poetry
-          poetry install
-          poetry run pytest
+          pipx run poetry install
+          pipx run poetry run pytest
