@@ -205,8 +205,8 @@ class Scan(BaseModel):
     hmmer3_compat: Mapped[bool]
 
     job: Mapped[Job] = relationship(back_populates="scan", cascade=DELETE)
-    seqs: Mapped[list[Seq]] = relationship(back_populates="scan")
-    snap: Mapped[Optional[Snap]] = relationship(back_populates="scan")
+    seqs: Mapped[list[Seq]] = relationship(back_populates="scan", cascade=DELETE)
+    snap: Mapped[Optional[Snap]] = relationship(back_populates="scan", cascade=DELETE)
     db: Mapped[DB] = relationship(back_populates="scans")
 
     @classmethod
