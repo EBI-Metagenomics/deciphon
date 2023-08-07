@@ -90,10 +90,14 @@ async def read_hmm(request: Request, hmm_id: int) -> HMMRead:
 
 @router.delete("/hmms/{hmm_id}", status_code=HTTP_204_NO_CONTENT)
 async def delete_hmm(request: Request, hmm_id: int):
+    storage: Storage = request.app.state.storage
     database: Database = request.app.state.database
+
     with database.create_session() as session:
         x = HMM.get_by_id(session, hmm_id)
         if x is None:
             raise NotFoundInDatabaseError("HMM")
+        if storage.has_file(x.file_name):
+            storage.delete(x.file_name)
         session.delete(x)
         session.commit()

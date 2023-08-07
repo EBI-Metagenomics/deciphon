@@ -26,12 +26,16 @@ class Storage:
         except ClientError as e:
             if e.response["Error"]["Code"] == "404":
                 return False
+            raise e
 
     def presigned_upload(self, file_name: str) -> PresignedUpload:
         x = self._s3.generate_presigned_post(
             self._bucket, file_name, Fields=None, Conditions=None, ExpiresIn=3600
         )
         return PresignedUpload(url=AnyHttpUrl(x["url"]), fields=x["fields"])
+
+    def delete(self, file_name: str):
+        self._s3.delete_object(Bucket=self._bucket, Key=file_name)
 
     def has_file(self, file_name: str) -> bool:
         try:

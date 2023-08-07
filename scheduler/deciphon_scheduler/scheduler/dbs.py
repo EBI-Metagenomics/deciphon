@@ -93,10 +93,14 @@ async def read_db(request: Request, db_id: int) -> DBRead:
 
 @router.delete("/dbs/{db_id}", status_code=HTTP_204_NO_CONTENT)
 async def delete_db(request: Request, db_id: int):
+    storage: Storage = request.app.state.storage
     database: Database = request.app.state.database
+
     with database.create_session() as session:
         x = DB.get_by_id(session, db_id)
         if x is None:
             raise NotFoundInDatabaseError("DB")
+        if storage.has_file(x.file_name):
+            storage.delete(x.file_name)
         session.delete(x)
         session.commit()
