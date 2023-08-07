@@ -1,0 +1,26 @@
+name: Release control
+
+on:
+  push:
+    tags:
+      - control-v*
+
+defaults:
+  run:
+    working-directory: control
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build
+        run: pipx run build
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{secrets.PYPI_API_TOKEN}}
+          packages-dir: control/dist
+          skip-existing: true
