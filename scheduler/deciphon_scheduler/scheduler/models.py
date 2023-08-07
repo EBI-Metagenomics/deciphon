@@ -36,6 +36,9 @@ class BaseModel(DeclarativeBase):
         return repr(self)
 
 
+DELETE = "save-update, merge, delete"
+
+
 class Job(BaseModel):
     __tablename__ = "job"
 
@@ -98,7 +101,7 @@ class HMM(BaseModel):
     id: Mapped[int] = mapped_column(primary_key=True)
     job_id: Mapped[int] = mapped_column(ForeignKey("job.id"))
 
-    job: Mapped[Job] = relationship(back_populates="hmm")
+    job: Mapped[Job] = relationship(back_populates="hmm", cascade=DELETE)
     db: Mapped[Optional[DB]] = relationship(back_populates="hmm")
 
     file_name: Mapped[str] = mapped_column(unique=True)
@@ -201,7 +204,7 @@ class Scan(BaseModel):
     multi_hits: Mapped[bool]
     hmmer3_compat: Mapped[bool]
 
-    job: Mapped[Job] = relationship(back_populates="scan")
+    job: Mapped[Job] = relationship(back_populates="scan", cascade=DELETE)
     seqs: Mapped[list[Seq]] = relationship(back_populates="scan")
     snap: Mapped[Optional[Snap]] = relationship(back_populates="scan")
     db: Mapped[DB] = relationship(back_populates="scans")

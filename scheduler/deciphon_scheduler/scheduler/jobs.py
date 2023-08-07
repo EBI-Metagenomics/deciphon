@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request
-from starlette.status import HTTP_200_OK, HTTP_204_NO_CONTENT
+from starlette.status import HTTP_200_OK
 
 from deciphon_scheduler.database import Database
 from deciphon_scheduler.errors import NotFoundInDatabaseError
@@ -41,14 +41,3 @@ async def update_job(request: Request, job: JobUpdate) -> JobRead:
 
         session.commit()
         return x.read_model()
-
-
-@router.delete("/jobs/{job_id}", status_code=HTTP_204_NO_CONTENT)
-async def delete_job(request: Request, job_id: int):
-    database: Database = request.app.state.database
-    with database.create_session() as session:
-        x = Job.get_by_id(session, job_id)
-        if x is None:
-            raise NotFoundInDatabaseError("Job")
-        session.delete(x)
-        session.commit()
