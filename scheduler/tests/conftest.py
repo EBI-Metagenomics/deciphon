@@ -43,7 +43,7 @@ class MosquittoContainer(DockerContainer):
     def _healthcheck(self):
         host = self.get_container_host_ip()
         port = int(self.get_exposed_port(self.port))
-        paho.mqtt.client.Client().connect(host, port, 5)
+        paho.mqtt.client.Client().connect(host, port, 15)
 
     def start(self):
         self.with_command("mosquitto -c /mosquitto-no-auth.conf")
