@@ -1,4 +1,4 @@
-from pydantic import AnyHttpUrl, AnyUrl
+from pydantic import HttpUrl, AnyUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -12,7 +12,7 @@ class Settings(BaseSettings):
 
     s3_key: str = "minioadmin"
     s3_secret: str = "minioadmin"
-    s3_url: AnyHttpUrl = AnyHttpUrl("http://127.0.0.1:9000")
+    s3_url: HttpUrl = HttpUrl("http://127.0.0.1:9000")
     s3_bucket: str = "deciphon"
 
     mqtt_host: str = "127.0.0.1"

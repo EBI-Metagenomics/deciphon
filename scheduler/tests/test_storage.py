@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import requests
-from pydantic import AnyHttpUrl
+from pydantic import HttpUrl
 
 from deciphon_scheduler.settings import Settings
 from deciphon_scheduler.storage import Storage
@@ -10,7 +10,7 @@ from deciphon_scheduler.storage import Storage
 def test_storage(s3, settings: Settings, tmp_path: Path):
     settings.s3_key = s3["access_key"]
     settings.s3_secret = s3["secret_key"]
-    settings.s3_url = AnyHttpUrl(s3["url"])
+    settings.s3_url = HttpUrl(s3["url"])
     storage = Storage(settings)
 
     info = storage.presigned_upload("example.txt")

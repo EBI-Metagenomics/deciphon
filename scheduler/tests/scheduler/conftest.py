@@ -1,7 +1,7 @@
 import pytest
 import requests
 from fastapi.testclient import TestClient
-from pydantic import AnyHttpUrl
+from pydantic import HttpUrl
 
 import pathlib
 from deciphon_scheduler.main import create_app
@@ -27,7 +27,7 @@ def compose(mqtt, s3, settings: Settings):
     settings.mqtt_port = mqtt["port"]
     settings.s3_key = s3["access_key"]
     settings.s3_secret = s3["secret_key"]
-    settings.s3_url = AnyHttpUrl(s3["url"])
+    settings.s3_url = HttpUrl(s3["url"])
     yield {"app": create_app(settings), "s3": s3["container"], "settings": settings}
 
 

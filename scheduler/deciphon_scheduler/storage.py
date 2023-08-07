@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import boto3
 from botocore.exceptions import ClientError
-from pydantic import AnyHttpUrl, BaseModel
+from pydantic import HttpUrl, BaseModel
 
 from deciphon_scheduler.settings import Settings
 
@@ -32,7 +32,7 @@ class Storage:
         x = self._s3.generate_presigned_post(
             self._bucket, file_name, Fields=None, Conditions=None, ExpiresIn=3600
         )
-        return PresignedUpload(url=AnyHttpUrl(x["url"]), fields=x["fields"])
+        return PresignedUpload(url=HttpUrl(x["url"]), fields=x["fields"])
 
     def delete(self, file_name: str):
         self._s3.delete_object(Bucket=self._bucket, Key=file_name)
@@ -48,5 +48,5 @@ class Storage:
 
 
 class PresignedUpload(BaseModel):
-    url: AnyHttpUrl
+    url: HttpUrl
     fields: dict[str, str]
