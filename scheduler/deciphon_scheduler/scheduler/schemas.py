@@ -25,16 +25,8 @@ class JobState(Enum):
     fail = "fail"
 
 
-def _file_name_pattern(ext: str):
-    return r"^[0-9a-zA-Z_\-.][0-9a-zA-Z_\-. ]+\." + ext + "$"
-
-
-_FILE_NAME_MAX = 128
-
-
 class JobRead(BaseModel):
     id: int
-
     type: JobType
     state: JobState
     progress: int
@@ -76,7 +68,7 @@ class SnapFileName(BaseModel):
 
 class HMMRead(BaseModel):
     id: int
-    job_id: int
+    job: JobRead
     file: HMMFileName
 
 
@@ -86,7 +78,7 @@ class DBCreate(BaseModel):
 
 class DBRead(BaseModel):
     id: int
-    hmm_id: int
+    hmm: HMMRead
     file: DBFileName
 
 
@@ -110,7 +102,8 @@ class ScanCreate(BaseModel):
 
 class ScanRead(BaseModel):
     id: int
-    db_id: int
+    job: JobRead
+    db: DBRead
     multi_hits: bool
     hmmer3_compat: bool
     seqs: list[SeqRead]

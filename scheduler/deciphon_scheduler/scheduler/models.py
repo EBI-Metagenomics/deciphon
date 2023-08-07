@@ -96,7 +96,7 @@ class HMM(BaseModel):
     __tablename__ = "hmm"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    job_id: Mapped[Optional[int]] = mapped_column(ForeignKey("job.id"))
+    job_id: Mapped[int] = mapped_column(ForeignKey("job.id"))
 
     job: Mapped[Job] = relationship(back_populates="hmm")
     db: Mapped[Optional[DB]] = relationship(back_populates="hmm")
@@ -110,7 +110,7 @@ class HMM(BaseModel):
 
     def read_model(self):
         file = HMMFileName(name=self.file_name)
-        return HMMRead(id=self.id, job_id=self.job_id, file=file)
+        return HMMRead(id=self.id, job=self.job.read_model(), file=file)
 
     @staticmethod
     def get_by_id(session: Session, id: int):
@@ -144,7 +144,7 @@ class DB(BaseModel):
 
     def read_model(self):
         file = DBFileName(name=self.file_name)
-        return DBRead(id=self.id, hmm_id=self.hmm_id, file=file)
+        return DBRead(id=self.id, hmm=self.hmm.read_model(), file=file)
 
     @staticmethod
     def get_by_id(session: Session, id: int):
@@ -219,7 +219,8 @@ class Scan(BaseModel):
     def read_model(self):
         return ScanRead(
             id=self.id,
-            db_id=self.db_id,
+            job=self.job.read_model(),
+            db=self.db.read_model(),
             multi_hits=self.multi_hits,
             hmmer3_compat=self.hmmer3_compat,
             seqs=[x.read_model() for x in self.seqs],
