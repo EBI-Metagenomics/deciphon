@@ -1,0 +1,2 @@
+- Check if docker is assessible at the start of tests
+- Setup docker compose

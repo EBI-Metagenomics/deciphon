@@ -1,5 +1,11 @@
-from fastapi import APIRouter, Request
+from typing import Annotated
+from deciphon_scheduler.storage import PresignedUpload, Storage
+from fastapi import APIRouter, Request, Path
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
+from deciphon_scheduler.scheduler.validation import (
+    FILE_NAME_MAX_LENGTH,
+    DB_FILE_NAME_PATTERN,
+)
 
 from deciphon_scheduler.database import Database
 from deciphon_scheduler.errors import (
@@ -21,9 +27,36 @@ async def read_dbs(request: Request) -> list[DBRead]:
         return [x.read_model() for x in DB.get_all(session)]
 
 
+@router.get("/dbs/presigned-upload/{name}", status_code=HTTP_200_OK)
+async def presigned_db_upload(
+    request: Request,
+    name: Annotated[
+        str,
+        Path(
+            title="DB file name",
+            pattern=DB_FILE_NAME_PATTERN,
+            max_length=FILE_NAME_MAX_LENGTH,
+        ),
+    ],
+) -> PresignedUpload:
+    storage: Storage = request.app.state.storage
+    database: Database = request.app.state.database
+
+    db = DBFileName(name=name)
+    with database.create_session() as session:
+        x = DB.get_by_file_name(session, db.name)
+        if x is not None:
+            raise FileNameExistsError(db.name)
+        if storage.has_file(db.name):
+            raise FileNameExistsError(db.name)
+        return storage.presigned_upload(db.name)
+
+
 @router.post("/dbs/", status_code=HTTP_201_CREATED)
 async def create_db(request: Request, db: DBFileName) -> DBRead:
+    storage: Storage = request.app.state.storage
     database: Database = request.app.state.database
+
     with database.create_session() as session:
         if DB.get_by_file_name(session, db.name) is not None:
             raise FileNameExistsError(db.name)
@@ -31,6 +64,9 @@ async def create_db(request: Request, db: DBFileName) -> DBRead:
         hmm = HMM.get_by_file_name(session, db.hmm_file_name.name)
         if hmm is None:
             raise FileNameNotFoundError(db.hmm_file_name.name)
+
+        if not storage.has_file(db.name):
+            raise FileNameNotFoundError(db.name)
 
         hmm.job.set_done()
 

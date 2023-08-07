@@ -24,13 +24,24 @@ def mqtt():
 
 
 @pytest.fixture(scope="package")
-def s3():
+def s3_server():
     with MinioContainer() as x:
         yield {
+            "container": x,
             "access_key": x.get_config()["access_key"],
             "secret_key": x.get_config()["secret_key"],
             "url": "http://" + x.get_config()["endpoint"],
         }
+
+
+@pytest.fixture
+def s3(s3_server):
+    client = s3_server["container"].get_client()
+    for bucket in client.list_buckets():
+        for x in client.list_objects(bucket.name):
+            client.remove_object(bucket.name, x.object_name)
+        client.remove_bucket(bucket.name)
+    yield s3_server
 
 
 class MosquittoContainer(DockerContainer):

@@ -29,10 +29,10 @@ async def read_hmms(request: Request) -> list[HMMRead]:
         return [x.read_model() for x in HMM.get_all(session)]
 
 
-@router.get("/hmms/presigned-upload/{file_name}", status_code=HTTP_200_OK)
+@router.get("/hmms/presigned-upload/{name}", status_code=HTTP_200_OK)
 async def presigned_hmm_upload(
     request: Request,
-    file_name: Annotated[
+    name: Annotated[
         str,
         Path(
             title="HMM file name",
@@ -44,7 +44,7 @@ async def presigned_hmm_upload(
     storage: Storage = request.app.state.storage
     database: Database = request.app.state.database
 
-    hmm = HMMFileName(name=file_name)
+    hmm = HMMFileName(name=name)
     with database.create_session() as session:
         x = HMM.get_by_file_name(session, hmm.name)
         if x is not None:
@@ -65,7 +65,7 @@ async def create_hmm(request: Request, hmm: HMMFileName) -> HMMRead:
             raise FileNameExistsError(hmm.name)
 
         if not storage.has_file(hmm.name):
-            FileNameNotFoundError(hmm.name)
+            raise FileNameNotFoundError(hmm.name)
 
         x = HMM.create(hmm)
         session.add(x)
