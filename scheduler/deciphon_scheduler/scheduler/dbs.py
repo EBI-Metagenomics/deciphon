@@ -47,8 +47,6 @@ async def presigned_db_upload(
         x = DB.get_by_file_name(session, db.name)
         if x is not None:
             raise FileNameExistsError(db.name)
-        if storage.has_file(db.name):
-            raise FileNameExistsError(db.name)
         return storage.presigned_upload(db.name)
 
 

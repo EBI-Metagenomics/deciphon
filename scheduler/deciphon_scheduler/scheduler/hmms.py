@@ -49,8 +49,6 @@ async def presigned_hmm_upload(
         x = HMM.get_by_file_name(session, hmm.name)
         if x is not None:
             raise FileNameExistsError(hmm.name)
-        if storage.has_file(hmm.name):
-            raise FileNameExistsError(hmm.name)
         return storage.presigned_upload(hmm.name)
 
 
