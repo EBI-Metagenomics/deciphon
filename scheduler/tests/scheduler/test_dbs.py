@@ -5,7 +5,7 @@ def test_db_not_found(client: TestClient):
     assert client.get("/dbs/1").status_code == 404
 
 
-def test_presigned_url(client: TestClient, files, s3_upload):
+def test_presigned_upload(client: TestClient, files, s3_upload):
     upload_hmm(client, files, s3_upload)
     assert client.get("/dbs/presigned-upload/minifam.dcp").status_code == 200
 

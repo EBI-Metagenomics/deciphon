@@ -10,11 +10,11 @@ from deciphon_scheduler.settings import Settings
 
 @pytest.fixture
 def s3_upload():
-    def upload(presigned_url, file):
+    def upload(presigned_upload, file):
         with open(file, "rb") as f:
             files = {"file": (file.name, f)}
-            url = presigned_url["url"]
-            fields = presigned_url["fields"]
+            url = presigned_upload["url"]
+            fields = presigned_upload["fields"]
             http_response = requests.post(url, data=fields, files=files)
             assert http_response.status_code == 204
 

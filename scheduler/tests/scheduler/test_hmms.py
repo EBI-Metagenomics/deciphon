@@ -5,7 +5,7 @@ def test_hmm_not_found(client: TestClient):
     assert client.get("/hmms/1").status_code == 404
 
 
-def test_presigned_url(client: TestClient):
+def test_presigned_upload(client: TestClient):
     assert client.get("/hmms/presigned-upload/minifam.hmm").status_code == 200
 
 
