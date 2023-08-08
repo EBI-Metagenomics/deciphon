@@ -4,9 +4,11 @@ services:
     build: .
     ports:
       - "8000:8000"
+    extra_hosts:
+      - "localhost:host-gateway"
     environment:
-      - DECIPHON_SCHEDULER_S3_URL=http://minio:9000
-      - DECIPHON_SCHEDULER_MQTT_HOST=mosquitto
+      - DECIPHON_SCHEDULER_S3_URL=http://localhost:9000
+      - DECIPHON_SCHEDULER_MQTT_HOST=localhost
       - DECIPHON_SCHEDULER_MQTT_PORT=1883
     depends_on:
       - minio
