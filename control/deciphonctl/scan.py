@@ -1,13 +1,12 @@
+import fasta_reader
 import requests
-
-from typing_extensions import Annotated
-import typer
 import rich
+import typer
+from pydantic import BaseModel
+from typing_extensions import Annotated
+
 from deciphonctl.error import handle_http_error
 from deciphonctl.url import url
-import fasta_reader
-from pydantic import BaseModel
-
 
 app = typer.Typer()
 
