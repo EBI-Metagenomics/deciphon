@@ -3,14 +3,19 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional
 
+import fastapi
 from pydantic import BaseModel, Field
 
-from deciphon_scheduler.scheduler.validation import (
-    FILE_NAME_MAX_LENGTH,
-    DB_FILE_NAME_PATTERN,
-    HMM_FILE_NAME_PATTERN,
-    SNAP_FILE_NAME_PATTERN,
-)
+
+def _file_name_pattern(ext: str):
+    return r"^[0-9a-zA-Z_\-.][0-9a-zA-Z_\-. ]+\." + ext + "$"
+
+
+FILE_NAME_MAX_LENGTH = 128
+
+HMM_FILE_NAME_PATTERN = _file_name_pattern("hmm")
+DB_FILE_NAME_PATTERN = _file_name_pattern("dcp")
+SNAP_FILE_NAME_PATTERN = _file_name_pattern("dcs")
 
 
 class JobType(Enum):
@@ -53,6 +58,14 @@ class HMMFileName(BaseModel):
     def db_file_name(self):
         return DBFileName(name=str(Path(self.name).with_suffix(".dcp")))
 
+    @property
+    def path_type(self):
+        return fastapi.Path(
+            title="HMM file name",
+            pattern=HMM_FILE_NAME_PATTERN,
+            max_length=FILE_NAME_MAX_LENGTH,
+        )
+
 
 class DBFileName(BaseModel):
     name: str = Field(pattern=DB_FILE_NAME_PATTERN, max_length=FILE_NAME_MAX_LENGTH)
@@ -60,6 +73,14 @@ class DBFileName(BaseModel):
     @property
     def hmm_file_name(self):
         return HMMFileName(name=str(Path(self.name).with_suffix(".hmm")))
+
+    @property
+    def path_type(self):
+        return fastapi.Path(
+            title="DB file name",
+            pattern=DB_FILE_NAME_PATTERN,
+            max_length=FILE_NAME_MAX_LENGTH,
+        )
 
 
 class SnapFileName(BaseModel):

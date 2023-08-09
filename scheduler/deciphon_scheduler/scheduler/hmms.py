@@ -1,12 +1,7 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Path, Request
+from fastapi import APIRouter, Request
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
-
-from deciphon_scheduler.scheduler.validation import (
-    FILE_NAME_MAX_LENGTH,
-    HMM_FILE_NAME_PATTERN,
-)
 
 from deciphon_scheduler.database import Database
 from deciphon_scheduler.errors import (
@@ -15,9 +10,9 @@ from deciphon_scheduler.errors import (
     NotFoundInDatabaseError,
 )
 from deciphon_scheduler.journal import Journal
-from deciphon_scheduler.storage import PresignedUpload, Storage
 from deciphon_scheduler.scheduler.models import HMM
 from deciphon_scheduler.scheduler.schemas import HMMFileName, HMMRead
+from deciphon_scheduler.storage import PresignedDownload, PresignedUpload, Storage
 
 router = APIRouter()
 
@@ -32,14 +27,7 @@ async def read_hmms(request: Request) -> list[HMMRead]:
 @router.get("/hmms/presigned-upload/{name}", status_code=HTTP_200_OK)
 async def presigned_hmm_upload(
     request: Request,
-    name: Annotated[
-        str,
-        Path(
-            title="HMM file name",
-            pattern=HMM_FILE_NAME_PATTERN,
-            max_length=FILE_NAME_MAX_LENGTH,
-        ),
-    ],
+    name: Annotated[str, HMMFileName.path_type],
 ) -> PresignedUpload:
     storage: Storage = request.app.state.storage
     database: Database = request.app.state.database
@@ -50,6 +38,22 @@ async def presigned_hmm_upload(
         if x is not None:
             raise FileNameExistsError(hmm.name)
         return storage.presigned_upload(hmm.name)
+
+
+@router.get("/hmms/presigned-download/{name}", status_code=HTTP_200_OK)
+async def presigned_hmm_download(
+    request: Request,
+    name: Annotated[str, HMMFileName.path_type],
+) -> PresignedDownload:
+    storage: Storage = request.app.state.storage
+    database: Database = request.app.state.database
+
+    hmm = HMMFileName(name=name)
+    with database.create_session() as session:
+        x = HMM.get_by_file_name(session, hmm.name)
+        if x is None:
+            raise FileNameNotFoundError(hmm.name)
+        return storage.presigned_download(hmm.name)
 
 
 @router.post("/hmms/", status_code=HTTP_201_CREATED)

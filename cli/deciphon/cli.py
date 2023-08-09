@@ -62,6 +62,7 @@ def press(
     gencode: int = Argument(
         ..., callback=gencode_callback, help="Genetic code number."
     ),
+    epsilon: float = Option(0.01, "--epsilon", help="Error probability."),
     progress: bool = O_PROGRESS,
     force: bool = Option(False, "--force", help="Overwrite existing protein database."),
 ):
@@ -74,7 +75,7 @@ def press(
         if force and hmm.path.with_suffix(".dcp"):
             hmm.path.with_suffix(".dcp").unlink()
 
-        with PressContext(hmm, gencode=gencode) as press:
+        with PressContext(hmm, gencode=gencode, epsilon=epsilon) as press:
             for x in track([press] * press.nproteins, "Pressing", disable=not progress):
                 x.next()
             hmmer_press(hmm.path)

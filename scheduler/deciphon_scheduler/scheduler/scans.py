@@ -56,7 +56,5 @@ async def delete_scan(request: Request, scan_id: int):
         x = Scan.get_by_id(session, scan_id)
         if x is None:
             raise NotFoundInDatabaseError("Scan")
-        for seq in x.seqs:
-            session.delete(seq)
         session.delete(x)
         session.commit()

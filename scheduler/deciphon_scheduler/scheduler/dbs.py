@@ -1,11 +1,7 @@
 from typing import Annotated
-from deciphon_scheduler.storage import PresignedUpload, Storage
-from fastapi import APIRouter, Request, Path
+
+from fastapi import APIRouter, Request
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
-from deciphon_scheduler.scheduler.validation import (
-    FILE_NAME_MAX_LENGTH,
-    DB_FILE_NAME_PATTERN,
-)
 
 from deciphon_scheduler.database import Database
 from deciphon_scheduler.errors import (
@@ -16,6 +12,7 @@ from deciphon_scheduler.errors import (
 from deciphon_scheduler.journal import Journal
 from deciphon_scheduler.scheduler.models import DB, HMM
 from deciphon_scheduler.scheduler.schemas import DBFileName, DBRead
+from deciphon_scheduler.storage import PresignedDownload, PresignedUpload, Storage
 
 router = APIRouter()
 
@@ -30,14 +27,7 @@ async def read_dbs(request: Request) -> list[DBRead]:
 @router.get("/dbs/presigned-upload/{name}", status_code=HTTP_200_OK)
 async def presigned_db_upload(
     request: Request,
-    name: Annotated[
-        str,
-        Path(
-            title="DB file name",
-            pattern=DB_FILE_NAME_PATTERN,
-            max_length=FILE_NAME_MAX_LENGTH,
-        ),
-    ],
+    name: Annotated[str, DBFileName.path_type],
 ) -> PresignedUpload:
     storage: Storage = request.app.state.storage
     database: Database = request.app.state.database
@@ -48,6 +38,22 @@ async def presigned_db_upload(
         if x is not None:
             raise FileNameExistsError(db.name)
         return storage.presigned_upload(db.name)
+
+
+@router.get("/dbs/presigned-download/{name}", status_code=HTTP_200_OK)
+async def presigned_db_download(
+    request: Request,
+    name: Annotated[str, DBFileName.path_type],
+) -> PresignedDownload:
+    storage: Storage = request.app.state.storage
+    database: Database = request.app.state.database
+
+    db = DBFileName(name=name)
+    with database.create_session() as session:
+        x = DB.get_by_file_name(session, db.name)
+        if x is None:
+            raise FileNameNotFoundError(db.name)
+        return storage.presigned_download(db.name)
 
 
 @router.post("/dbs/", status_code=HTTP_201_CREATED)
