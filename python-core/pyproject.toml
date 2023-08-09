@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deciphon-core"
-version = "0.13.1"
+version = "0.13.2"
 description = "Python wrapper around the Deciphon C library"
 authors = ["Danilo Horta <horta@ebi.ac.uk>"]
 license = "MIT"
@@ -13,10 +13,10 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-cffi = ">=1.15.1"
-h3daemon = ">=0.13.4"
-pydantic = ">=2.0.3"
 python = "^3.9"
+cffi = "^1.15.1"
+h3daemon = "^0.13.5"
+pydantic = "^2.1.1"
 
 [tool.poetry.build]
 script = "build_ext.py"
