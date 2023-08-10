@@ -34,7 +34,7 @@ async def create_scan(request: Request, scan: ScanCreate) -> ScanRead:
         scan_read = x.read_model()
 
     journal: Journal = request.app.state.journal
-    await journal.publish("scans", scan_read.model_dump_json())
+    await journal.publish("scan", scan_read.model_dump_json())
 
     return scan_read
 

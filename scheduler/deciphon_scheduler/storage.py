@@ -28,21 +28,21 @@ class Storage:
                 return False
             raise e
 
-    def presigned_upload(self, file_name: str) -> PresignedUpload:
-        x = self._s3.generate_presigned_post(self._bucket, file_name)
+    def presigned_upload(self, file: str) -> PresignedUpload:
+        x = self._s3.generate_presigned_post(self._bucket, file)
         return PresignedUpload(url=HttpUrl(x["url"]), fields=x["fields"])
 
-    def presigned_download(self, file_name: str) -> PresignedDownload:
-        params = {"Bucket": self._bucket, "Key": file_name}
+    def presigned_download(self, file: str) -> PresignedDownload:
+        params = {"Bucket": self._bucket, "Key": file}
         x = self._s3.generate_presigned_url("get_object", Params=params)
         return PresignedDownload(url=HttpUrl(x))
 
-    def delete(self, file_name: str):
-        self._s3.delete_object(Bucket=self._bucket, Key=file_name)
+    def delete(self, file: str):
+        self._s3.delete_object(Bucket=self._bucket, Key=file)
 
-    def has_file(self, file_name: str) -> bool:
+    def has_file(self, file: str) -> bool:
         try:
-            self._s3.head_object(Bucket=self._bucket, Key=file_name)
+            self._s3.head_object(Bucket=self._bucket, Key=file)
             return True
         except ClientError as e:
             if e.response["Error"]["Code"] == "404":

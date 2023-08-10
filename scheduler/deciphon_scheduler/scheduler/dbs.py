@@ -9,9 +9,8 @@ from deciphon_scheduler.errors import (
     FileNameNotFoundError,
     NotFoundInDatabaseError,
 )
-from deciphon_scheduler.journal import Journal
 from deciphon_scheduler.scheduler.models import DB, HMM
-from deciphon_scheduler.scheduler.schemas import DBFileName, DBRead
+from deciphon_scheduler.scheduler.schemas import DBFile, DBRead
 from deciphon_scheduler.storage import PresignedDownload, PresignedUpload, Storage
 
 router = APIRouter()
@@ -27,47 +26,45 @@ async def read_dbs(request: Request) -> list[DBRead]:
 @router.get("/dbs/presigned-upload/{name}", status_code=HTTP_200_OK)
 async def presigned_db_upload(
     request: Request,
-    name: Annotated[str, DBFileName.path_type],
+    name: Annotated[str, DBFile.path_type],
 ) -> PresignedUpload:
     storage: Storage = request.app.state.storage
     database: Database = request.app.state.database
 
-    db = DBFileName(name=name)
     with database.create_session() as session:
-        x = DB.get_by_file_name(session, db.name)
+        x = DB.get_by_name(session, name)
         if x is not None:
-            raise FileNameExistsError(db.name)
-        return storage.presigned_upload(db.name)
+            raise FileNameExistsError(name)
+        return storage.presigned_upload(name)
 
 
 @router.get("/dbs/presigned-download/{name}", status_code=HTTP_200_OK)
 async def presigned_db_download(
     request: Request,
-    name: Annotated[str, DBFileName.path_type],
+    name: Annotated[str, DBFile.path_type],
 ) -> PresignedDownload:
     storage: Storage = request.app.state.storage
     database: Database = request.app.state.database
 
-    db = DBFileName(name=name)
     with database.create_session() as session:
-        x = DB.get_by_file_name(session, db.name)
+        x = DB.get_by_name(session, name)
         if x is None:
-            raise FileNameNotFoundError(db.name)
-        return storage.presigned_download(db.name)
+            raise FileNameNotFoundError(name)
+        return storage.presigned_download(name)
 
 
 @router.post("/dbs/", status_code=HTTP_201_CREATED)
-async def create_db(request: Request, db: DBFileName) -> DBRead:
+async def create_db(request: Request, db: DBFile) -> DBRead:
     storage: Storage = request.app.state.storage
     database: Database = request.app.state.database
 
     with database.create_session() as session:
-        if DB.get_by_file_name(session, db.name) is not None:
+        if DB.get_by_name(session, db.name) is not None:
             raise FileNameExistsError(db.name)
 
-        hmm = HMM.get_by_file_name(session, db.hmm_file_name.name)
+        hmm = HMM.get_by_name(session, db.hmm_name.name)
         if hmm is None:
-            raise FileNameNotFoundError(db.hmm_file_name.name)
+            raise FileNameNotFoundError(db.hmm_name.name)
 
         if not storage.has_file(db.name):
             raise FileNameNotFoundError(db.name)
@@ -78,9 +75,6 @@ async def create_db(request: Request, db: DBFileName) -> DBRead:
         session.add(x)
         session.commit()
         db_read = x.read_model()
-
-    journal: Journal = request.app.state.journal
-    await journal.publish("dbs", db_read.model_dump_json())
 
     return db_read
 
@@ -104,7 +98,7 @@ async def delete_db(request: Request, db_id: int):
         x = DB.get_by_id(session, db_id)
         if x is None:
             raise NotFoundInDatabaseError("DB")
-        if storage.has_file(x.file_name):
-            storage.delete(x.file_name)
+        if storage.has_file(x.name):
+            storage.delete(x.name)
         session.delete(x)
         session.commit()

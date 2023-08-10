@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from deciphon_core.schema import Gencode
 from fastapi import APIRouter, Request
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
@@ -11,7 +12,7 @@ from deciphon_scheduler.errors import (
 )
 from deciphon_scheduler.journal import Journal
 from deciphon_scheduler.scheduler.models import HMM
-from deciphon_scheduler.scheduler.schemas import HMMFileName, HMMRead
+from deciphon_scheduler.scheduler.schemas import HMMFile, HMMRead, PressRequest
 from deciphon_scheduler.storage import PresignedDownload, PresignedUpload, Storage
 
 router = APIRouter()
@@ -27,42 +28,42 @@ async def read_hmms(request: Request) -> list[HMMRead]:
 @router.get("/hmms/presigned-upload/{name}", status_code=HTTP_200_OK)
 async def presigned_hmm_upload(
     request: Request,
-    name: Annotated[str, HMMFileName.path_type],
+    name: Annotated[str, HMMFile.path_type],
 ) -> PresignedUpload:
     storage: Storage = request.app.state.storage
     database: Database = request.app.state.database
 
-    hmm = HMMFileName(name=name)
     with database.create_session() as session:
-        x = HMM.get_by_file_name(session, hmm.name)
+        x = HMM.get_by_name(session, name)
         if x is not None:
-            raise FileNameExistsError(hmm.name)
-        return storage.presigned_upload(hmm.name)
+            raise FileNameExistsError(name)
+        return storage.presigned_upload(name)
 
 
 @router.get("/hmms/presigned-download/{name}", status_code=HTTP_200_OK)
 async def presigned_hmm_download(
     request: Request,
-    name: Annotated[str, HMMFileName.path_type],
+    name: Annotated[str, HMMFile.path_type],
 ) -> PresignedDownload:
     storage: Storage = request.app.state.storage
     database: Database = request.app.state.database
 
-    hmm = HMMFileName(name=name)
     with database.create_session() as session:
-        x = HMM.get_by_file_name(session, hmm.name)
+        x = HMM.get_by_name(session, name)
         if x is None:
-            raise FileNameNotFoundError(hmm.name)
-        return storage.presigned_download(hmm.name)
+            raise FileNameNotFoundError(name)
+        return storage.presigned_download(name)
 
 
 @router.post("/hmms/", status_code=HTTP_201_CREATED)
-async def create_hmm(request: Request, hmm: HMMFileName) -> HMMRead:
+async def create_hmm(
+    request: Request, hmm: HMMFile, gencode: Gencode, epsilon: float
+) -> HMMRead:
     storage: Storage = request.app.state.storage
     database: Database = request.app.state.database
 
     with database.create_session() as session:
-        x = HMM.get_by_file_name(session, hmm.name)
+        x = HMM.get_by_name(session, hmm.name)
         if x is not None:
             raise FileNameExistsError(hmm.name)
 
@@ -75,7 +76,8 @@ async def create_hmm(request: Request, hmm: HMMFileName) -> HMMRead:
         hmm_read = x.read_model()
 
     journal: Journal = request.app.state.journal
-    await journal.publish("hmms", hmm_read.model_dump_json())
+    x = PressRequest.create(hmm_read.file, gencode, epsilon)
+    await journal.publish("press", x.model_dump_json())
 
     return hmm_read
 
@@ -99,7 +101,7 @@ async def delete_hmm(request: Request, hmm_id: int):
         x = HMM.get_by_id(session, hmm_id)
         if x is None:
             raise NotFoundInDatabaseError("HMM")
-        if storage.has_file(x.file_name):
-            storage.delete(x.file_name)
+        if storage.has_file(x.name):
+            storage.delete(x.name)
         session.delete(x)
         session.commit()

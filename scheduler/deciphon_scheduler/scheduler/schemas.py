@@ -1,21 +1,19 @@
 from datetime import datetime
 from enum import Enum
-from pathlib import Path
 from typing import Optional
 
 import fastapi
-from pydantic import BaseModel, Field
-
-
-def _file_name_pattern(ext: str):
-    return r"^[0-9a-zA-Z_\-.][0-9a-zA-Z_\-. ]+\." + ext + "$"
-
-
-FILE_NAME_MAX_LENGTH = 128
-
-HMM_FILE_NAME_PATTERN = _file_name_pattern("hmm")
-DB_FILE_NAME_PATTERN = _file_name_pattern("dcp")
-SNAP_FILE_NAME_PATTERN = _file_name_pattern("dcs")
+from deciphon_core.schema import (
+    DB_NAME_PATTERN,
+    HMM_NAME_PATTERN,
+    NAME_MAX_LENGTH,
+    SNAP_NAME_PATTERN,
+    DBName,
+    HMMName,
+    SnapName,
+    Gencode,
+)
+from pydantic import BaseModel
 
 
 class JobType(Enum):
@@ -51,56 +49,71 @@ class JobUpdate(BaseModel):
     exec_ended: Optional[datetime] = None
 
 
-class HMMFileName(BaseModel):
-    name: str = Field(pattern=HMM_FILE_NAME_PATTERN, max_length=FILE_NAME_MAX_LENGTH)
-
+class HMMFile(HMMName):
     @property
-    def db_file_name(self):
-        return DBFileName(name=str(Path(self.name).with_suffix(".dcp")))
+    def db_name(self):
+        return DBName(name=self.name[:-4] + ".dcp")
 
     @property
     def path_type(self):
         return fastapi.Path(
-            title="HMM file name",
-            pattern=HMM_FILE_NAME_PATTERN,
-            max_length=FILE_NAME_MAX_LENGTH,
+            title="HMM file",
+            pattern=HMM_NAME_PATTERN,
+            max_length=NAME_MAX_LENGTH,
         )
 
 
-class DBFileName(BaseModel):
-    name: str = Field(pattern=DB_FILE_NAME_PATTERN, max_length=FILE_NAME_MAX_LENGTH)
+class DBFile(DBName):
+    gencode: Gencode
+    epsilon: float
 
     @property
-    def hmm_file_name(self):
-        return HMMFileName(name=str(Path(self.name).with_suffix(".hmm")))
+    def hmm_name(self):
+        return HMMName(name=self.name[:-4] + ".hmm")
 
     @property
     def path_type(self):
         return fastapi.Path(
-            title="DB file name",
-            pattern=DB_FILE_NAME_PATTERN,
-            max_length=FILE_NAME_MAX_LENGTH,
+            title="DB file",
+            pattern=DB_NAME_PATTERN,
+            max_length=NAME_MAX_LENGTH,
         )
 
 
-class SnapFileName(BaseModel):
-    name: str = Field(pattern=SNAP_FILE_NAME_PATTERN, max_length=FILE_NAME_MAX_LENGTH)
+class SnapFile(SnapName):
+    @property
+    def path_type(self):
+        return fastapi.Path(
+            title="Snap file",
+            pattern=SNAP_NAME_PATTERN,
+            max_length=NAME_MAX_LENGTH,
+        )
+
+
+class PressRequest(BaseModel):
+    hmm: HMMFile
+    db: DBFile
+
+    @classmethod
+    def create(cls, hmm: HMMFile, gencode: Gencode, epsilon: float):
+        db = DBFile(name=hmm.db_name.name, gencode=gencode, epsilon=epsilon)
+        return cls(hmm=hmm, db=db)
 
 
 class HMMRead(BaseModel):
     id: int
     job: JobRead
-    file: HMMFileName
+    file: HMMFile
 
 
 class DBCreate(BaseModel):
-    file: DBFileName
+    file: DBFile
 
 
 class DBRead(BaseModel):
     id: int
     hmm: HMMRead
-    file: DBFileName
+    file: DBFile
 
 
 class SeqCreate(BaseModel):

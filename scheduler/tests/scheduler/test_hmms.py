@@ -14,15 +14,10 @@ def test_presigned_download_failure(client: TestClient):
     assert client.get("/hmms/presigned-download/minifam.hmm").status_code == 422
 
 
-def test_create_failure(client: TestClient):
-    client.get("/hmms/presigned-upload/minifam.hmm")
-    assert client.post("/hmms/", json={"name": "minifam.hmm"}).status_code == 422
-
-
-def test_create_success(client: TestClient, files, s3_upload):
+def test_create(client: TestClient, files, s3_upload):
     response = client.get("/hmms/presigned-upload/minifam.hmm")
     s3_upload(response.json(), files / "minifam.hmm")
-    assert client.post("/hmms/", json={"name": "minifam.hmm"}).status_code == 201
+    assert upload_hmm(client, s3_upload, files / "minifam.hmm").status_code == 201
 
 
 def test_download(client: TestClient, files, s3_upload):
@@ -51,4 +46,5 @@ def test_delete(client: TestClient, files, s3_upload):
 def upload_hmm(client: TestClient, s3_upload, file):
     response = client.get(f"/hmms/presigned-upload/{file.name}")
     s3_upload(response.json(), file)
-    client.post("/hmms/", json={"name": file.name})
+    params = {"gencode": 1, "epsilon": 0.01}
+    return client.post("/hmms/", params=params, json={"name": file.name})

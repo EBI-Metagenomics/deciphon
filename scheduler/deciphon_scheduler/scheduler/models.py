@@ -4,13 +4,14 @@ from collections.abc import Iterable
 from datetime import datetime
 from typing import Optional
 
+from deciphon_core.schema import Gencode
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
 
 from deciphon_scheduler.scheduler.schemas import (
-    DBFileName,
+    DBFile,
     DBRead,
-    HMMFileName,
+    HMMFile,
     HMMRead,
     JobRead,
     JobState,
@@ -104,15 +105,15 @@ class HMM(BaseModel):
     job: Mapped[Job] = relationship(back_populates="hmm", cascade=DELETE)
     db: Mapped[Optional[DB]] = relationship(back_populates="hmm")
 
-    file_name: Mapped[str] = mapped_column(unique=True)
+    name: Mapped[str] = mapped_column(unique=True)
 
     @classmethod
-    def create(cls, file: HMMFileName):
+    def create(cls, file: HMMFile):
         job = Job.create(type=JobType.hmm)
-        return cls(job=job, file_name=file.name)
+        return cls(job=job, name=file.name)
 
     def read_model(self):
-        file = HMMFileName(name=self.file_name)
+        file = HMMFile(name=self.name)
         return HMMRead(id=self.id, job=self.job.read_model(), file=file)
 
     @staticmethod
@@ -121,8 +122,8 @@ class HMM(BaseModel):
         return x if x is None else x._tuple()[0]
 
     @staticmethod
-    def get_by_file_name(session: Session, file_name: str):
-        x = session.execute(select(HMM).where(HMM.file_name == file_name)).one_or_none()
+    def get_by_name(session: Session, name: str):
+        x = session.execute(select(HMM).where(HMM.name == name)).one_or_none()
         return x if x is None else x._tuple()[0]
 
     @staticmethod
@@ -139,14 +140,23 @@ class DB(BaseModel):
     hmm: Mapped[HMM] = relationship(back_populates="db")
     scans: Mapped[list[Scan]] = relationship(back_populates="db")
 
-    file_name: Mapped[str]
+    name: Mapped[str]
+    gencode: Mapped[int]
+    epsilon: Mapped[float]
 
     @classmethod
-    def create(cls, hmm: HMM, file: DBFileName):
-        return cls(hmm=hmm, file_name=file.name)
+    def create(cls, hmm: HMM, file: DBFile):
+        return cls(
+            hmm=hmm,
+            name=file.name,
+            gencode=int(file.gencode),
+            epsilon=file.epsilon,
+        )
 
     def read_model(self):
-        file = DBFileName(name=self.file_name)
+        file = DBFile(
+            name=self.name, gencode=Gencode(self.gencode), epsilon=self.epsilon
+        )
         return DBRead(id=self.id, hmm=self.hmm.read_model(), file=file)
 
     @staticmethod
@@ -155,8 +165,8 @@ class DB(BaseModel):
         return x if x is None else x._tuple()[0]
 
     @staticmethod
-    def get_by_file_name(session: Session, file_name: str):
-        x = session.execute(select(DB).where(DB.file_name == file_name)).one_or_none()
+    def get_by_name(session: Session, name: str):
+        x = session.execute(select(DB).where(DB.name == name)).one_or_none()
         return x if x is None else x._tuple()[0]
 
     @staticmethod
@@ -191,7 +201,7 @@ class Snap(BaseModel):
 
     scan: Mapped[Scan] = relationship(back_populates="snap")
 
-    file_name: Mapped[str]
+    name: Mapped[str]
 
 
 class Scan(BaseModel):

@@ -1,3 +1,4 @@
+from deciphon_scheduler.scheduler.schemas import Gencode
 import pytest
 from sqlalchemy import select
 
@@ -21,7 +22,7 @@ def hmmfile():
 
 @pytest.fixture()
 def dbfile():
-    return DBFile(name="file.dcp")
+    return DBFile(name="file.dcp", gencode=Gencode(1), epsilon=0.01)
 
 
 @pytest.fixture()
