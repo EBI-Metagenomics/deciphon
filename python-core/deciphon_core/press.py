@@ -13,7 +13,7 @@ class PressContext:
         if self._cpress == ffi.NULL:
             raise MemoryError()
 
-        if rc := lib.dcp_press_setup(self._cpress, gencode.id, epsilon):
+        if rc := lib.dcp_press_setup(self._cpress, gencode, epsilon):
             raise DeciphonError(rc)
 
     def open(self):

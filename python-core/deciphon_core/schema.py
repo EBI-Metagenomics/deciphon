@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 import shutil
+from enum import IntEnum
 from pathlib import Path
 
 from pydantic import (
-    AfterValidator,
     BaseModel,
     Field,
     FilePath,
     field_validator,
 )
-from typing_extensions import Annotated
 
 __all__ = [
     "HMMName",
@@ -21,7 +20,6 @@ __all__ = [
     "SnapName",
     "SnapFile",
     "NewSnapFile",
-    "gencode",
     "Gencode",
     "NAME_MAX_LENGTH",
     "HMM_NAME_PATTERN",
@@ -155,44 +153,33 @@ def basedir(x: Path):
     return x.parent / str(x.stem)
 
 
-def check_ncbi_genetic_code(x):
-    assert x in NCBI_GENETIC_CODES, f"must be one of {NCBI_GENETIC_CODES}"
-    return x
+class Gencode(IntEnum):
+    """NCBI genetic codes."""
 
-
-gencode = Annotated[int, AfterValidator(check_ncbi_genetic_code)]
-
-
-class Gencode(BaseModel):
-    id: gencode
-
-
-NCBI_GENETIC_CODES = [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-    16,
-    21,
-    22,
-    23,
-    24,
-    25,
-    26,
-    27,
-    28,
-    29,
-    30,
-    31,
-    32,
-    33,
-]
+    SGC0 = 1
+    SGC1 = 2
+    SGC2 = 3
+    SGC3 = 4
+    SGC4 = 5
+    SGC5 = 6
+    SGC8 = 9
+    SGC9 = 10
+    BAPP = 11
+    AYN = 12
+    AMC = 13
+    AFMC = 14
+    BMN = 15
+    CMC = 16
+    TMC = 21
+    SOMC = 22
+    TMMC = 23
+    PMMC = 24
+    CDSR1G = 25
+    PTN = 26
+    KN = 27
+    CN = 28
+    MN = 29
+    PN = 30
+    BN = 31
+    BP = 32
+    CMMC = 33

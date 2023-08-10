@@ -21,7 +21,7 @@ def test_scan(tmp_path: Path, files_path: Path, seqit: Iterator[Seq]):
     os.chdir(tmp_path)
 
     hmm = Path("minifam.hmm")
-    with PressContext(HMMFile(path=hmm), Gencode(id=1)) as press:
+    with PressContext(HMMFile(path=hmm), Gencode(1)) as press:
         while not press.end():
             press.next()
 
