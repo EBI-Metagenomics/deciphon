@@ -23,6 +23,10 @@ __all__ = [
     "NewSnapFile",
     "gencode",
     "Gencode",
+    "NAME_MAX_LENGTH",
+    "HMM_NAME_PATTERN",
+    "DB_NAME_PATTERN",
+    "SNAP_NAME_PATTERN",
 ]
 
 
@@ -30,15 +34,15 @@ def _file_name_pattern(ext: str):
     return r"^[0-9a-zA-Z_\-.][0-9a-zA-Z_\-. ]+\." + ext + "$"
 
 
-FILE_NAME_MAX_LENGTH = 128
+NAME_MAX_LENGTH = 128
 
-HMM_FILE_NAME_PATTERN = _file_name_pattern("hmm")
-DB_FILE_NAME_PATTERN = _file_name_pattern("dcp")
-SNAP_FILE_NAME_PATTERN = _file_name_pattern("dcs")
+HMM_NAME_PATTERN = _file_name_pattern("hmm")
+DB_NAME_PATTERN = _file_name_pattern("dcp")
+SNAP_NAME_PATTERN = _file_name_pattern("dcs")
 
 
 class HMMName(BaseModel):
-    name: str = Field(pattern=HMM_FILE_NAME_PATTERN, max_length=FILE_NAME_MAX_LENGTH)
+    name: str = Field(pattern=HMM_NAME_PATTERN, max_length=NAME_MAX_LENGTH)
 
     @property
     def db_name(self):
@@ -46,7 +50,7 @@ class HMMName(BaseModel):
 
 
 class DBName(BaseModel):
-    name: str = Field(pattern=DB_FILE_NAME_PATTERN, max_length=FILE_NAME_MAX_LENGTH)
+    name: str = Field(pattern=DB_NAME_PATTERN, max_length=NAME_MAX_LENGTH)
 
     @property
     def hmm_file_name(self):
@@ -54,7 +58,7 @@ class DBName(BaseModel):
 
 
 class SnapName(BaseModel):
-    name: str = Field(pattern=SNAP_FILE_NAME_PATTERN, max_length=FILE_NAME_MAX_LENGTH)
+    name: str = Field(pattern=SNAP_NAME_PATTERN, max_length=NAME_MAX_LENGTH)
 
 
 class HMMFile(BaseModel):
