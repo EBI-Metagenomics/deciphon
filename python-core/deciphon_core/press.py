@@ -1,19 +1,20 @@
 from deciphon_core.cffi import ffi, lib
 from deciphon_core.error import DeciphonError
+from deciphon_core.gencode import Gencode
 from deciphon_core.hmmfile import HMMFile
 
 __all__ = ["PressContext"]
 
 
 class PressContext:
-    def __init__(self, hmm: HMMFile, gencode: int = 1, epsilon: float = 0.01):
+    def __init__(self, hmm: HMMFile, gencode: Gencode, epsilon: float = 0.01):
         self._cpress = lib.dcp_press_new()
         self._hmm = hmm
 
         if self._cpress == ffi.NULL:
             raise MemoryError()
 
-        if rc := lib.dcp_press_setup(self._cpress, gencode, epsilon):
+        if rc := lib.dcp_press_setup(self._cpress, gencode.id, epsilon):
             raise DeciphonError(rc)
 
     def open(self):

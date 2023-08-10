@@ -8,6 +8,7 @@ from typing import Iterator
 import pytest
 from h3daemon.hmmfile import HMMFile as H3File
 from h3daemon.sched import SchedContext
+from deciphon_core.gencode import Gencode
 
 from deciphon_core.hmmfile import HMMFile
 from deciphon_core.press import PressContext
@@ -22,7 +23,7 @@ def test_scan(tmp_path: Path, files_path: Path, seqit: Iterator[Seq]):
     os.chdir(tmp_path)
 
     hmm = Path("minifam.hmm")
-    with PressContext(HMMFile(path=hmm)) as press:
+    with PressContext(HMMFile(path=hmm), Gencode(id=1)) as press:
         while not press.end():
             press.next()
 
