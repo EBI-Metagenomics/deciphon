@@ -1,7 +1,6 @@
 from deciphon_core.cffi import ffi, lib
 from deciphon_core.error import DeciphonError
-from deciphon_core.gencode import Gencode
-from deciphon_core.hmmfile import HMMFile
+from deciphon_core.schema import Gencode, HMMFile
 
 __all__ = ["PressContext"]
 

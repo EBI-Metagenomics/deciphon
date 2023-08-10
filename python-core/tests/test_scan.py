@@ -8,14 +8,12 @@ from typing import Iterator
 import pytest
 from h3daemon.hmmfile import HMMFile as H3File
 from h3daemon.sched import SchedContext
-from deciphon_core.gencode import Gencode
 
-from deciphon_core.hmmfile import HMMFile
 from deciphon_core.press import PressContext
 from deciphon_core.scan import Scan
 from deciphon_core.scan_params import ScanParams
+from deciphon_core.schema import Gencode, HMMFile, NewSnapFile
 from deciphon_core.seq import Seq
-from deciphon_core.snapfile import NewSnapFile
 
 
 def test_scan(tmp_path: Path, files_path: Path, seqit: Iterator[Seq]):

@@ -4,11 +4,10 @@ from typing import Iterator
 
 from deciphon_core.cffi import ffi, lib
 from deciphon_core.cseq import CSeqIter
-from deciphon_core.dbfile import DBFile
 from deciphon_core.error import DeciphonError
 from deciphon_core.scan_params import ScanParams
+from deciphon_core.schema import DBFile, NewSnapFile
 from deciphon_core.seq import Seq
-from deciphon_core.snapfile import NewSnapFile
 
 __all__ = ["Scan"]
 

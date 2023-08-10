@@ -1,10 +1,9 @@
 import os
 import shutil
 from pathlib import Path
-from deciphon_core.gencode import Gencode
 
-from deciphon_core.hmmfile import HMMFile
 from deciphon_core.press import PressContext
+from deciphon_core.schema import Gencode, HMMFile
 
 
 def test_press(tmp_path: Path, files_path: Path):
