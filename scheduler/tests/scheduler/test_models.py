@@ -5,8 +5,8 @@ from deciphon_scheduler.database import Database
 from deciphon_scheduler.scheduler.models import (
     DB,
     HMM,
-    DBFileName,
-    HMMFileName,
+    DBFile,
+    HMMFile,
     Scan,
     Seq,
     metadata,
@@ -16,12 +16,12 @@ from deciphon_scheduler.settings import Settings
 
 @pytest.fixture()
 def hmmfile():
-    return HMMFileName(name="file.hmm")
+    return HMMFile(name="file.hmm")
 
 
 @pytest.fixture()
 def dbfile():
-    return DBFileName(name="file.dcp")
+    return DBFile(name="file.dcp")
 
 
 @pytest.fixture()
@@ -31,7 +31,7 @@ def session(settings: Settings):
     yield database.create_session()
 
 
-def test_models_add_get_hmm(session, hmmfile: HMMFileName):
+def test_models_add_get_hmm(session, hmmfile: HMMFile):
     for i in range(1, 2):
         hmm = HMM.create(file=hmmfile)
 
@@ -45,7 +45,7 @@ def test_models_add_get_hmm(session, hmmfile: HMMFileName):
         assert hmm.job.id == i
 
 
-def test_models_add_get_db(session, hmmfile: HMMFileName, dbfile: DBFileName):
+def test_models_add_get_db(session, hmmfile: HMMFile, dbfile: DBFile):
     for i in range(1, 2):
         db = DB.create(hmm=HMM.create(file=hmmfile), file=dbfile)
 
@@ -61,7 +61,7 @@ def test_models_add_get_db(session, hmmfile: HMMFileName, dbfile: DBFileName):
         assert db.hmm.job.id == i
 
 
-def test_models_add_get_scan(session, hmmfile: HMMFileName, dbfile: DBFileName):
+def test_models_add_get_scan(session, hmmfile: HMMFile, dbfile: DBFile):
     for i in range(1, 2):
         db = DB.create(hmm=HMM.create(file=hmmfile), file=dbfile)
         seqs = [Seq(name="seq1", data="ACGT"), Seq(name="seq2", data="CGA")]

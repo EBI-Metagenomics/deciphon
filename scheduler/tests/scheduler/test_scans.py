@@ -9,39 +9,39 @@ SCAN = {
 
 
 def test_create(client: TestClient, files, s3_upload):
-    upload_hmm(client, files, s3_upload)
-    upload_db(client, files, s3_upload)
+    upload_hmm(client, s3_upload, files / "minifam.hmm")
+    upload_db(client, s3_upload, files / "minifam.dcp")
     assert client.post("/scans/", json=SCAN).status_code == 201
 
 
 def test_read_one(client: TestClient, files, s3_upload):
-    upload_hmm(client, files, s3_upload)
-    upload_db(client, files, s3_upload)
+    upload_hmm(client, s3_upload, files / "minifam.hmm")
+    upload_db(client, s3_upload, files / "minifam.dcp")
     client.post("/scans/", json=SCAN)
     assert client.get("/scans/1").status_code == 200
 
 
 def test_read_many(client: TestClient, files, s3_upload):
-    upload_hmm(client, files, s3_upload)
+    upload_hmm(client, s3_upload, files / "minifam.hmm")
     upload_db(client, files, s3_upload)
     client.post("/scans/", json=SCAN)
     assert client.get("/scans").status_code == 200
 
 
 def test_delete(client: TestClient, files, s3_upload):
-    upload_hmm(client, files, s3_upload)
-    upload_db(client, files, s3_upload)
+    upload_hmm(client, s3_upload, files / "minifam.hmm")
+    upload_db(client, s3_upload, files / "minifam.dcp")
     client.post("/scans/", json=SCAN)
     assert client.delete("/scans/1").status_code == 204
 
 
-def upload_hmm(client: TestClient, files, s3_upload):
-    response = client.get("/hmms/presigned-upload/minifam.hmm")
-    s3_upload(response.json(), files / "minifam.hmm")
-    client.post("/hmms/", json={"name": "minifam.hmm"})
+def upload_hmm(client: TestClient, s3_upload, file):
+    response = client.get(f"/hmms/presigned-upload/{file.name}")
+    s3_upload(response.json(), file)
+    client.post("/hmms/", json={"name": file.name})
 
 
-def upload_db(client: TestClient, files, s3_upload):
-    response = client.get("/dbs/presigned-upload/minifam.dcp")
-    s3_upload(response.json(), files / "minifam.dcp")
-    client.post("/dbs/", json={"name": "minifam.dcp"})
+def upload_db(client: TestClient, s3_upload, file):
+    response = client.get(f"/dbs/presigned-upload/{file.name}")
+    s3_upload(response.json(), file)
+    client.post("/dbs/", json={"name": file.name, "gencode": 1, "epsilon": 0.01})
