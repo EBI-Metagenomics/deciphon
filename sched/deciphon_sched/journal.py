@@ -1,6 +1,6 @@
 from aiomqtt import Client
 
-from deciphon_scheduler.settings import Settings
+from deciphon_sched.settings import Settings
 
 
 class Journal:

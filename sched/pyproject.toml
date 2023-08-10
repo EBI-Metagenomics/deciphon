@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "deciphon-scheduler"
+name = "deciphon-sched"
 version = "0.1.0"
 description = "Deciphon scheduler"
 authors = ["Danilo Horta <horta@ebi.ac.uk>"]

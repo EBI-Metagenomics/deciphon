@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Request
 from starlette.status import HTTP_200_OK
 
-from deciphon_scheduler.database import Database
-from deciphon_scheduler.errors import NotFoundInDatabaseError
-from deciphon_scheduler.scheduler.models import Job
-from deciphon_scheduler.scheduler.schemas import JobRead, JobUpdate
+from deciphon_sched.database import Database
+from deciphon_sched.errors import NotFoundInDatabaseError
+from deciphon_sched.sched.models import Job
+from deciphon_sched.sched.schemas import JobRead, JobUpdate
 
 
 router = APIRouter()

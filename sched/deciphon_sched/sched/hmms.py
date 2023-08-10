@@ -4,16 +4,16 @@ from deciphon_core.schema import Gencode
 from fastapi import APIRouter, Request
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
-from deciphon_scheduler.database import Database
-from deciphon_scheduler.errors import (
+from deciphon_sched.database import Database
+from deciphon_sched.errors import (
     FileNameExistsError,
     FileNameNotFoundError,
     NotFoundInDatabaseError,
 )
-from deciphon_scheduler.journal import Journal
-from deciphon_scheduler.scheduler.models import HMM
-from deciphon_scheduler.scheduler.schemas import HMMFile, HMMRead, PressRequest
-from deciphon_scheduler.storage import PresignedDownload, PresignedUpload, Storage
+from deciphon_sched.journal import Journal
+from deciphon_sched.sched.models import HMM
+from deciphon_sched.sched.schemas import HMMFile, HMMRead, PressRequest
+from deciphon_sched.storage import PresignedDownload, PresignedUpload, Storage
 
 router = APIRouter()
 

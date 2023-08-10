@@ -5,13 +5,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import IntegrityError
 
-from deciphon_scheduler.database import Database
-from deciphon_scheduler.errors import integrity_error_handler
-from deciphon_scheduler.journal import Journal
-from deciphon_scheduler.scheduler import router
-from deciphon_scheduler.scheduler.models import metadata
-from deciphon_scheduler.settings import Settings
-from deciphon_scheduler.storage import Storage
+from deciphon_sched.database import Database
+from deciphon_sched.errors import integrity_error_handler
+from deciphon_sched.journal import Journal
+from deciphon_sched.sched import router
+from deciphon_sched.sched.models import metadata
+from deciphon_sched.settings import Settings
+from deciphon_sched.storage import Storage
 
 
 @asynccontextmanager

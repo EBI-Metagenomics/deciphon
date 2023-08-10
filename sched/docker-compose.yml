@@ -1,15 +1,15 @@
 version: "3.8"
 services:
-  scheduler:
+  sched:
     build: .
     ports:
       - "8000:8000"
     extra_hosts:
       - "localhost:host-gateway"
     environment:
-      - DECIPHON_SCHEDULER_S3_URL=http://localhost:9000
-      - DECIPHON_SCHEDULER_MQTT_HOST=localhost
-      - DECIPHON_SCHEDULER_MQTT_PORT=1883
+      - DECIPHON_SCHED_S3_URL=http://localhost:9000
+      - DECIPHON_SCHED_MQTT_HOST=localhost
+      - DECIPHON_SCHED_MQTT_PORT=1883
     depends_on:
       - minio
       - mosquitto
@@ -17,7 +17,7 @@ services:
       [
         "uvicorn",
         "--factory",
-        "deciphon_scheduler.main:create_app",
+        "deciphon_sched.main:create_app",
         "--host",
         "0.0.0.0",
         "--port",

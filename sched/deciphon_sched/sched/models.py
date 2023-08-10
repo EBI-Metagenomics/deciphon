@@ -8,7 +8,7 @@ from deciphon_core.schema import Gencode
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
 
-from deciphon_scheduler.scheduler.schemas import (
+from deciphon_sched.sched.schemas import (
     DBFile,
     DBRead,
     HMMFile,

@@ -4,8 +4,8 @@ from fastapi.testclient import TestClient
 from pydantic import HttpUrl
 
 import pathlib
-from deciphon_scheduler.main import create_app
-from deciphon_scheduler.settings import Settings
+from deciphon_sched.main import create_app
+from deciphon_sched.settings import Settings
 
 
 @pytest.fixture

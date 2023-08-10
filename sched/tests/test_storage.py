@@ -3,8 +3,8 @@ from pathlib import Path
 import requests
 from pydantic import HttpUrl
 
-from deciphon_scheduler.settings import Settings
-from deciphon_scheduler.storage import Storage
+from deciphon_sched.settings import Settings
+from deciphon_sched.storage import Storage
 
 
 def test_storage(s3, settings: Settings, tmp_path: Path):

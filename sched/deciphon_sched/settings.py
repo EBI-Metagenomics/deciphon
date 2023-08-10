@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="deciphon_scheduler_")
+    model_config = SettingsConfigDict(env_prefix="deciphon_sched_")
 
     endpoint_prefix: str = ""
     allow_origins: list[str] = ["http://127.0.0.1:8000"]

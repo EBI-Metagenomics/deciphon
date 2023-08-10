@@ -4,7 +4,7 @@ import boto3
 from botocore.exceptions import ClientError
 from pydantic import BaseModel, HttpUrl
 
-from deciphon_scheduler.settings import Settings
+from deciphon_sched.settings import Settings
 
 
 class Storage:

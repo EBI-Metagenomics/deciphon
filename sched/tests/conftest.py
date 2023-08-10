@@ -5,7 +5,7 @@ from testcontainers.core.container import DockerContainer
 from testcontainers.minio import MinioContainer
 import paho.mqtt.client
 
-from deciphon_scheduler.settings import Settings
+from deciphon_sched.settings import Settings
 from testcontainers.core.waiting_utils import wait_container_is_ready
 
 

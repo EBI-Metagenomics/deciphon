@@ -1,9 +1,9 @@
-from deciphon_scheduler.scheduler.schemas import Gencode
+from deciphon_sched.sched.schemas import Gencode
 import pytest
 from sqlalchemy import select
 
-from deciphon_scheduler.database import Database
-from deciphon_scheduler.scheduler.models import (
+from deciphon_sched.database import Database
+from deciphon_sched.sched.models import (
     DB,
     HMM,
     DBFile,
@@ -12,7 +12,7 @@ from deciphon_scheduler.scheduler.models import (
     Seq,
     metadata,
 )
-from deciphon_scheduler.settings import Settings
+from deciphon_sched.settings import Settings
 
 
 @pytest.fixture()

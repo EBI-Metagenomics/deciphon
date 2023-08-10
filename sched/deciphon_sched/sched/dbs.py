@@ -3,15 +3,15 @@ from typing import Annotated
 from fastapi import APIRouter, Request
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
-from deciphon_scheduler.database import Database
-from deciphon_scheduler.errors import (
+from deciphon_sched.database import Database
+from deciphon_sched.errors import (
     FileNameExistsError,
     FileNameNotFoundError,
     NotFoundInDatabaseError,
 )
-from deciphon_scheduler.scheduler.models import DB, HMM
-from deciphon_scheduler.scheduler.schemas import DBFile, DBRead
-from deciphon_scheduler.storage import PresignedDownload, PresignedUpload, Storage
+from deciphon_sched.sched.models import DB, HMM
+from deciphon_sched.sched.schemas import DBFile, DBRead
+from deciphon_sched.storage import PresignedDownload, PresignedUpload, Storage
 
 router = APIRouter()
 

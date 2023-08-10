@@ -1,7 +1,7 @@
 from sqlalchemy import MetaData, create_engine
 from sqlalchemy.orm import Session
 
-from deciphon_scheduler.settings import Settings
+from deciphon_sched.settings import Settings
 
 
 class Database:

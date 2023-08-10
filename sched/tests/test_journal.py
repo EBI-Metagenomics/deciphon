@@ -1,7 +1,7 @@
 import pytest
 
-from deciphon_scheduler.journal import Journal
-from deciphon_scheduler.settings import Settings
+from deciphon_sched.journal import Journal
+from deciphon_sched.settings import Settings
 
 
 @pytest.mark.asyncio
