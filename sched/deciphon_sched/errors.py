@@ -2,7 +2,11 @@ from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from starlette.requests import Request
 from starlette.responses import JSONResponse
-from starlette.status import HTTP_404_NOT_FOUND, HTTP_422_UNPROCESSABLE_ENTITY
+from starlette.status import (
+    HTTP_400_BAD_REQUEST,
+    HTTP_404_NOT_FOUND,
+    HTTP_422_UNPROCESSABLE_ENTITY,
+)
 
 
 async def integrity_error_handler(_: Request, exc: IntegrityError):
@@ -26,3 +30,8 @@ class FileNameNotFoundError(HTTPException):
 class NotFoundInDatabaseError(HTTPException):
     def __init__(self, name: str):
         super().__init__(HTTP_404_NOT_FOUND, f"'{name}' not found in the database")
+
+
+class JobStateTransitionError(HTTPException):
+    def __init__(self, previous: str, next: str):
+        super().__init__(HTTP_400_BAD_REQUEST, f"{previous}->{next} is invalid")

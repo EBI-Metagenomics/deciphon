@@ -7,6 +7,7 @@ from typing import Optional
 from deciphon_core.schema import Gencode
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
+from deciphon_sched.errors import JobStateTransitionError
 
 from deciphon_sched.sched.schemas import (
     DBFile,
@@ -57,22 +58,43 @@ class Job(BaseModel):
     exec_ended: Mapped[Optional[datetime]]
 
     @classmethod
-    def create(cls, type: JobType, state=JobState.pend):
+    def create(cls, type: JobType):
         return cls(
             type=type,
-            state=state,
+            state=JobState.pend,
             progress=0,
             error="",
             submission=datetime.utcnow(),
         )
 
+    def set_pend(self):
+        raise JobStateTransitionError(str(self.state), str(JobState.pend))
+
+    def set_run(self, progress: int):
+        if self.state in [JobState.done, JobState.fail]:
+            raise JobStateTransitionError(str(self.state), str(JobState.run))
+        self.state = JobState.run
+        self.progress = progress
+        if self.exec_started is None:
+            self.exec_started = datetime.now()
+
     def set_done(self):
+        if self.state in [JobState.done, JobState.fail]:
+            raise JobStateTransitionError(str(self.state), str(JobState.done))
         self.state = JobState.done
         self.progress = 100
-        now = datetime.now()
-        if not self.exec_started:
-            self.exec_started = now
-        self.exec_ended = now
+        if self.exec_started is None:
+            self.exec_started = datetime.now()
+        self.exec_ended = datetime.now()
+
+    def set_fail(self, error: str):
+        if self.state in [JobState.done, JobState.fail]:
+            raise JobStateTransitionError(str(self.state), str(JobState.fail))
+        self.state = JobState.fail
+        self.error = error
+        if self.exec_started is None:
+            self.exec_started = datetime.now()
+        self.exec_ended = datetime.now()
 
     def read_model(self):
         return JobRead(

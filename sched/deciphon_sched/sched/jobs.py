@@ -4,7 +4,7 @@ from starlette.status import HTTP_200_OK
 from deciphon_sched.database import Database
 from deciphon_sched.errors import NotFoundInDatabaseError
 from deciphon_sched.sched.models import Job
-from deciphon_sched.sched.schemas import JobRead, JobUpdate
+from deciphon_sched.sched.schemas import JobRead, JobState, JobUpdate
 
 
 router = APIRouter()
@@ -28,16 +28,23 @@ async def read_job(request: Request, job_id: int) -> JobRead:
 
 
 @router.patch("/jobs/", status_code=HTTP_200_OK)
-async def update_job(request: Request, job: JobUpdate) -> JobRead:
+async def update_job_state(request: Request, job: JobUpdate) -> JobRead:
     database: Database = request.app.state.database
     with database.create_session() as session:
         x = Job.get_by_id(session, job.id)
         if x is None:
             raise NotFoundInDatabaseError("Job")
 
-        for key in job.model_fields.keys():
-            if getattr(job, key) is not None:
-                setattr(x, key, getattr(job, key))
+        if job.state == JobState.pend:
+            x.set_pend()
+        if job.state == JobState.run:
+            x.set_run(job.progress)
+        elif job.state == JobState.done:
+            x.set_done()
+        elif job.state == JobState.fail:
+            x.set_fail(job.error)
+        else:
+            assert False
 
         session.commit()
         return x.read_model()

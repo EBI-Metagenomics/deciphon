@@ -41,12 +41,9 @@ class JobRead(BaseModel):
 
 class JobUpdate(BaseModel):
     id: int
-
-    state: Optional[JobState] = None
-    progress: Optional[int] = None
-    error: Optional[str] = None
-    exec_started: Optional[datetime] = None
-    exec_ended: Optional[datetime] = None
+    state: JobState
+    progress: int
+    error: str
 
 
 class HMMFile(HMMName):
