@@ -5,12 +5,12 @@ on:
     branches:
       - "**"
     paths:
-      - scheduler/**
-      - .github/workflows/test-scheduler.yml
+      - sched/**
+      - .github/workflows/test-sched.yml
 
 defaults:
   run:
-    working-directory: scheduler
+    working-directory: sched
 
 jobs:
   test:
