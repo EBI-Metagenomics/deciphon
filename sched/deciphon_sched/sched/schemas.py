@@ -91,13 +91,14 @@ class SnapFile(SnapName):
 
 
 class PressRequest(BaseModel):
+    job_id: int
     hmm: HMMFile
     db: DBFile
 
     @classmethod
-    def create(cls, hmm: HMMFile, gencode: Gencode, epsilon: float):
+    def create(cls, job_id: int, hmm: HMMFile, gencode: Gencode, epsilon: float):
         db = DBFile(name=hmm.db_name.name, gencode=gencode, epsilon=epsilon)
-        return cls(hmm=hmm, db=db)
+        return cls(job_id=job_id, hmm=hmm, db=db)
 
 
 class HMMRead(BaseModel):

@@ -1,4 +1,5 @@
 from aiomqtt import Client
+from loguru import logger
 
 from deciphon_sched.settings import Settings
 
@@ -16,4 +17,6 @@ class Journal:
         await self._mqtt.__aexit__(*args, **kargs)
 
     async def publish(self, subject: str, payload: str):
-        await self._mqtt.publish(f"/{self._topic}/{subject}", payload)
+        topic = f"/{self._topic}/{subject}"
+        logger.info(f"publishing <{payload}> to <{topic}>")
+        await self._mqtt.publish(topic, payload)
