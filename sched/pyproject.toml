@@ -18,9 +18,12 @@ pydantic = "^2"
 aiomqtt = "^1"
 deciphon-core = "^0"
 loguru = "^0"
+testcontainers = { version = "^3", optional = true }
+testcontainers-core = { version = "^0", optional = true }
+testcontainers-minio = { version = "^0", optional = true }
 
 [tool.poetry.extras]
-testing = ["testcontainers"]
+testing = ["testcontainers", "testcontainers-core", "testcontainers-minio"]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"
@@ -28,10 +31,10 @@ flask = "^2.3.2"
 flask-cors = "^4.0.0"
 pytest-asyncio = "^0.21.1"
 requests = "^2.31.0"
-testcontainers-core = "^0.0.1rc1"
-testcontainers-minio = "^0.0.1rc1"
-testcontainers = "^3.7.1"
 paho-mqtt = "^1.6.1"
+testcontainers = "^3"
+testcontainers-core = "^0"
+testcontainers-minio = "^0"
 
 [build-system]
 requires = ["poetry-core"]

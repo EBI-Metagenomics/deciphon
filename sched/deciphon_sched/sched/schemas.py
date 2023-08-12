@@ -40,7 +40,6 @@ class JobRead(BaseModel):
 
 
 class JobUpdate(BaseModel):
-    id: int
     state: JobState
     progress: int
     error: str

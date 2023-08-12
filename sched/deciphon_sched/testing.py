@@ -6,7 +6,7 @@ from testcontainers.core.waiting_utils import wait_container_is_ready
 from testcontainers.minio import MinioContainer
 
 
-def mqtt():
+def mqtt_server():
     with MosquittoContainer() as x:
         yield {
             "host": x.get_container_host_ip(),

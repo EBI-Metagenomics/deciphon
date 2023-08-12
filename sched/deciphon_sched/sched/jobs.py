@@ -27,11 +27,11 @@ async def read_job(request: Request, job_id: int) -> JobRead:
         return x.read_model()
 
 
-@router.patch("/jobs/", status_code=HTTP_200_OK)
-async def update_job_state(request: Request, job: JobUpdate) -> JobRead:
+@router.patch("/jobs/{job_id}", status_code=HTTP_200_OK)
+async def update_job_state(request: Request, job_id: int, job: JobUpdate) -> JobRead:
     database: Database = request.app.state.database
     with database.create_session() as session:
-        x = Job.get_by_id(session, job.id)
+        x = Job.get_by_id(session, job_id)
         if x is None:
             raise NotFoundInDatabaseError("Job")
 
