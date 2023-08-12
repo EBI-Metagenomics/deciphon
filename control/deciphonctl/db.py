@@ -1,24 +1,32 @@
 from pathlib import Path
-import requests
 
-import typer
+import requests
 import rich
-from deciphonctl.s3 import s3_upload
+import typer
+from typing_extensions import Annotated
+
 from deciphonctl.error import handle_http_error
+from deciphonctl.s3 import s3_upload
+from deciphonctl.schemas import EPSILON, GENCODE
 from deciphonctl.url import url
 
 app = typer.Typer()
 
+DBFILE = Annotated[Path, typer.Argument(help="Path to an DB file")]
+
 
 @app.command()
-def add(db: Path):
-    response = requests.get(url(f"/dbs/presigned-upload/{db.name}"))
+def add(dbfile: DBFILE, gencode: GENCODE, epsilon: EPSILON = 0.01):
+    response = requests.get(url(f"/dbs/presigned-upload/{dbfile.name}"))
     handle_http_error(response)
 
-    response = s3_upload(response.json(), db)
+    response = s3_upload(response.json(), dbfile)
     handle_http_error(response)
 
-    response = requests.post(url("/dbs/"), json={"name": db.name})
+    response = requests.post(
+        url("/dbs/"),
+        json={"name": dbfile.name, "gencode": int(gencode), "epsilon": epsilon},
+    )
     handle_http_error(response)
 
 
