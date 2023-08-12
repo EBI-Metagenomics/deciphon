@@ -28,7 +28,7 @@ def compose(mqtt, s3, settings: Settings):
     settings.s3_key = s3["access_key"]
     settings.s3_secret = s3["secret_key"]
     settings.s3_url = HttpUrl(s3["url"])
-    yield {"app": create_app(settings), "s3": s3["container"], "settings": settings}
+    yield {"app": create_app(settings), "settings": settings}
 
 
 @pytest.fixture

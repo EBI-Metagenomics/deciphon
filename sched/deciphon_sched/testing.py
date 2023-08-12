@@ -17,7 +17,7 @@ def mqtt():
 def s3_server():
     with MinioContainer() as x:
         yield {
-            "container": x,
+            "client": x.get_client(),
             "access_key": x.get_config()["access_key"],
             "secret_key": x.get_config()["secret_key"],
             "url": "http://" + x.get_config()["endpoint"],
