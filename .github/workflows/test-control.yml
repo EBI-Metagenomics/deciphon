@@ -1,0 +1,25 @@
+name: Test control
+
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - control/**
+      - .github/workflows/test-control.yml
+
+defaults:
+  run:
+    working-directory: control
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run tests
+        run: |
+          pipx run poetry install
+          pipx run poetry run pytest
