@@ -5,8 +5,6 @@ import paho.mqtt.subscribe as subscribe
 from loguru import logger
 
 from deciphonctl import settings
-from deciphonctl.worker.presser import Presser
-from deciphonctl.worker.progress_informer import ProgressInformer
 
 
 def on_message(client, queue: JoinableQueue, x):
@@ -17,7 +15,7 @@ def on_message(client, queue: JoinableQueue, x):
     queue.put(payload)
 
 
-def main(queue: JoinableQueue, consumers: list[Process]):
+def worker_loop(queue: JoinableQueue, consumers: list[Process]):
     for x in consumers:
         x.start()
 
@@ -39,13 +37,3 @@ def main(queue: JoinableQueue, consumers: list[Process]):
         x.join()
 
     logger.info("goodbye!")
-
-
-def presser(num_workers: int):
-    qin = JoinableQueue()
-    qout = JoinableQueue()
-    informer = ProgressInformer(settings, qout)
-    pressers = [Presser(settings, qin, qout) for _ in range(num_workers)]
-    consumers = [Process(target=x.entry_point, daemon=True) for x in pressers]
-    consumers += [Process(target=informer.entry_point, daemon=True)]
-    main(qin, consumers)

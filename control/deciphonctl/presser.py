@@ -1,5 +1,5 @@
 import shutil
-from multiprocessing import JoinableQueue
+from multiprocessing import JoinableQueue, Process
 from pathlib import Path
 
 from deciphon_core.press import PressContext
@@ -7,16 +7,16 @@ from deciphon_core.schema import HMMFile
 from loguru import logger
 from pydantic import FilePath, HttpUrl
 
+from deciphonctl.consumer import Consumer
 from deciphonctl.download import download
-from deciphonctl.presigned import Presigned
-from deciphonctl.settings import Settings
+from deciphonctl.models import DBFile, JobState, JobUpdate, PressRequest
+from deciphonctl.permissions import normalise_file_permissions
+from deciphonctl.progress_informer import ProgressInformer
+from deciphonctl.progress_logger import ProgressLogger
+from deciphonctl.sched import Sched
 from deciphonctl.tempfiles import Tempfiles
-from deciphonctl.worker.consumer import Consumer
-from deciphonctl.worker.permissions import normalise_file_permissions
-from deciphonctl.worker.progress_logger import ProgressLogger
-from deciphonctl.worker.schemas import JobState, JobUpdate, PressRequest
-from deciphonctl.worker.upload import upload
-from deciphonctl.worker.url import url_filename
+from deciphonctl.url import url_filename
+from deciphonctl.worker import worker_loop
 
 
 def run_update(job_id: int, progress: int):
@@ -24,15 +24,6 @@ def run_update(job_id: int, progress: int):
         id=job_id,
         state=JobState.run,
         progress=progress,
-        error="",
-    )
-
-
-def done_update(job_id: int):
-    return JobUpdate(
-        id=job_id,
-        state=JobState.done,
-        progress=100,
         error="",
     )
 
@@ -47,9 +38,9 @@ def fail_update(job_id: int, error: str):
 
 
 class Presser(Consumer):
-    def __init__(self, settings: Settings, qin: JoinableQueue, qout: JoinableQueue):
+    def __init__(self, sched: Sched, qin: JoinableQueue, qout: JoinableQueue):
         super().__init__(qin)
-        self._presigned = Presigned(settings.sched_url)
+        self._sched = sched
         self._tempfiles = Tempfiles()
         self._tempfiles.cleanup()
         self._qout = qout
@@ -78,7 +69,6 @@ class Presser(Consumer):
                     progress.consume()
                     perc = int(round(progress.percent))
                     self._qout.put(run_update(request.job_id, perc).model_dump_json())
-                self._qout.put(done_update(request.job_id).model_dump_json())
         normalise_file_permissions(dcpfile)
         return dcpfile
 
@@ -87,15 +77,32 @@ class Presser(Consumer):
 
         try:
             logger.info(f"downloading {x.hmm.name}")
-            url = self._presigned.download_hmm_url(x.hmm.name)
+            url = self._sched.presigned.download_hmm_url(x.hmm.name)
             hmmfile = Path(url_filename(url))
 
             dcpfile = self._hmm2dcp(url, hmmfile, x)
             logger.info(f"finished creating {dcpfile}")
 
-            url, fields = self._presigned.upload_db_post(dcpfile.name)
-            upload(dcpfile, url, fields)
+            self._sched.upload(
+                dcpfile, self._sched.presigned.upload_db_post(dcpfile.name)
+            )
             logger.info(f"finished uploading {dcpfile}")
+
+            self._sched.db_post(
+                DBFile(name=dcpfile.name, gencode=x.db.gencode, epsilon=x.db.epsilon)
+            )
+            logger.info(f"finished posting {dcpfile}")
+
         except Exception as exception:
             self._qout.put(fail_update(x.job_id, str(exception)).model_dump_json())
             raise exception
+
+
+def presser_entry(sched: Sched, num_workers: int):
+    qin = JoinableQueue()
+    qout = JoinableQueue()
+    informer = ProgressInformer(sched, qout)
+    pressers = [Presser(sched, qin, qout) for _ in range(num_workers)]
+    consumers = [Process(target=x.entry_point, daemon=True) for x in pressers]
+    consumers += [Process(target=informer.entry_point, daemon=True)]
+    worker_loop(qin, consumers)
