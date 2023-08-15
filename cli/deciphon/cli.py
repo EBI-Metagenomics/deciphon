@@ -5,11 +5,10 @@ from pathlib import Path
 from subprocess import DEVNULL
 from typing import Optional
 
-from deciphon_core.hmmfile import HMMFile
 from deciphon_core.press import PressContext
 from deciphon_core.scan import Scan
 from deciphon_core.scan_params import ScanParams
-from deciphon_core.snapfile import NewSnapFile
+from deciphon_core.schema import Gencode, HMMFile, NewSnapFile
 from deciphon_snap.read_snap import read_snap
 from deciphon_snap.view import view_alignments
 from rich.progress import track
@@ -75,7 +74,7 @@ def press(
         if force and hmm.path.with_suffix(".dcp"):
             hmm.path.with_suffix(".dcp").unlink()
 
-        with PressContext(hmm, gencode=gencode, epsilon=epsilon) as press:
+        with PressContext(hmm, gencode=Gencode(gencode), epsilon=epsilon) as press:
             for x in track([press] * press.nproteins, "Pressing", disable=not progress):
                 x.next()
             hmmer_press(hmm.path)

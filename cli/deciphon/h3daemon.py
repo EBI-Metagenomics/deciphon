@@ -1,7 +1,6 @@
+from deciphon_core.schema import HMMFile
 from h3daemon.hmmfile import HMMFile as H3File
 from h3daemon.sched import SchedContext
-
-from deciphon_core.hmmfile import HMMFile
 
 __all__ = ["H3Daemon"]
 
