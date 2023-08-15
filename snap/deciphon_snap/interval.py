@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import Any
 
-from pydantic import BaseModel, model_validator
-from pydantic.types import Any, conint
+from pydantic import BaseModel, NonNegativeInt, PositiveInt, model_validator
 
 __all__ = ["Interval", "PyInterval", "RInterval"]
 
@@ -37,8 +37,8 @@ class PyInterval(Interval):
         End of interval. Valid values are `start, start+1, ...`.
     """
 
-    start: conint(ge=0)
-    stop: conint(ge=0)
+    start: NonNegativeInt
+    stop: NonNegativeInt
 
     @model_validator(mode="before")
     def pre_root(cls, values: dict[str, Any]) -> dict[str, Any]:
@@ -81,8 +81,8 @@ class RInterval(Interval):
         End of interval. Valid values are `start, start+1, ...`.
     """
 
-    start: conint(gt=0)
-    stop: conint(gt=0)
+    start: PositiveInt
+    stop: PositiveInt
 
     @model_validator(mode="before")
     def pre_root(cls, values: dict[str, Any]) -> dict[str, Any]:

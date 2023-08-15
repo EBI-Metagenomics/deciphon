@@ -14,8 +14,8 @@ __all__ = ["Hit", "HitList"]
 class Hit(BaseModel):
     id: int
     match_list_interval: MatchListInterval
-    _interval: QueryInterval | None
-    _match_list: MatchList | None
+    _interval: QueryInterval | None = None
+    _match_list: MatchList | None = None
 
     @property
     def interval(self):

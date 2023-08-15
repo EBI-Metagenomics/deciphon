@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import List
+from typing import List, overload
 
 from pydantic import BaseModel, ConfigDict, RootModel
 
@@ -16,7 +16,7 @@ class Match(BaseModel):
     state: str
     codon: str
     amino: str
-    _position: int | None
+    _position: int | None = None
 
     @classmethod
     def from_string(cls, x: str):
@@ -50,7 +50,15 @@ class MatchList(RootModel):
     def __len__(self):
         return len(self.root)
 
-    def __getitem__(self, i):
+    @overload
+    def __getitem__(self, i: int) -> Match:
+        ...
+
+    @overload
+    def __getitem__(self, i: slice) -> MatchList:
+        ...
+
+    def __getitem__(self, i: int | slice):
         if isinstance(i, slice):
             return MatchList.model_validate(self.root[i])
         match = self.root[i]

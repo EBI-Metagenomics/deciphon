@@ -68,7 +68,7 @@ def make_hmmer_steps(annot: DomAnnot):
 
 
 def assoc_steps(deci: list[tuple[int, DeciStep]], hmmer: list[tuple[int, HMMERStep]]):
-    steps: AssocStep = []
+    steps: list[AssocStep] = []
     di = 0
     hi = 0
     while di < len(deci) and hi < len(hmmer):
@@ -104,6 +104,7 @@ def flat(x):
 
 
 def view_alignment(prod: Prod):
+    assert prod.h3result is not None
     annot = make_hmmer_annot(prod.h3result)
     txt = "Alignments for each domain:\n"
     if len(annot.aligns) == 0:

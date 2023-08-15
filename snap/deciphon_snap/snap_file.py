@@ -60,7 +60,7 @@ class SnapFile:
         return self._prods
 
     def __str__(self):
-        fields = Prod.__fields__
+        fields = Prod.model_fields.keys()
 
         num_fields = len(fields)
         prods = [[getattr(x, i) for i in fields] for x in self.products]

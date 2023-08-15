@@ -8,4 +8,5 @@ __all__ = ["read_snap"]
 
 
 def read_snap(filename: PathLike):
-    return SnapFile(WholeFileCacheFileSystem(fs=ZipFileSystem(filename)))
+    fo = filename.decode() if isinstance(filename, bytes) else str(filename)
+    return SnapFile(WholeFileCacheFileSystem(fs=ZipFileSystem(fo)))

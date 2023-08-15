@@ -70,6 +70,7 @@ class TempFile:
         self._stream = None
 
     def fileno(self):
+        assert self._stream is not None
         return self._stream.fileno()
 
     @property
@@ -81,6 +82,9 @@ class TempFile:
         self._stream = NamedTemporaryFile(delete=False)
 
     def __exit__(self, *args, **kwargs):
+        del args
+        del kwargs
+        assert self._stream is not None
         self._stream.close()
         self._content = open(self._stream.name).read()
         os.unlink(self._stream.name)
