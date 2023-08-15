@@ -73,7 +73,7 @@ def db_ls():
 @job.command("ls")
 def job_ls():
     sched = Sched(settings.sched_url)
-    rich.print(sched.hmm_list())
+    rich.print(sched.job_list())
 
 
 @scan.command("add")
@@ -92,7 +92,7 @@ def scan_add(
 @scan.command("rm")
 def scan_rm(scan_id: SCANID):
     sched = Sched(settings.sched_url)
-    sched.db_delete(scan_id)
+    sched.scan_delete(scan_id)
 
 
 @scan.command("ls")

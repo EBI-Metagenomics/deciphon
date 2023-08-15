@@ -103,7 +103,7 @@ class Sched:
         self.delete(self.url(f"/scans/{scan_id}"))
 
     def scan_list(self):
-        self.get(self.url("/scans")).json()
+        return self.get(self.url("/scans")).json()
 
     def job_patch(self, x: JobUpdate):
         json = {"state": x.state.value, "progress": x.progress, "error": x.error}
