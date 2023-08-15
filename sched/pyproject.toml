@@ -21,6 +21,8 @@ loguru = "^0"
 testcontainers = { version = "^3", optional = true }
 testcontainers-core = { version = "^0", optional = true }
 testcontainers-minio = { version = "^0", optional = true }
+python-multipart = "^0"
+deciphon-snap = "^0"
 
 [tool.poetry.extras]
 testing = ["testcontainers", "testcontainers-core", "testcontainers-minio"]
