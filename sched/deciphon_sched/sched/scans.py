@@ -5,7 +5,7 @@ from deciphon_sched.database import Database
 from deciphon_sched.errors import NotFoundInDatabaseError
 from deciphon_sched.journal import Journal
 from deciphon_sched.sched.models import DB, Scan, Seq
-from deciphon_sched.sched.schemas import ScanCreate, ScanRead
+from deciphon_sched.sched.schemas import ScanCreate, ScanRead, ScanRequest
 
 router = APIRouter()
 
@@ -34,7 +34,8 @@ async def create_scan(request: Request, scan: ScanCreate) -> ScanRead:
         scan_read = x.read_model()
 
     journal: Journal = request.app.state.journal
-    await journal.publish("scan", scan_read.model_dump_json())
+    x = ScanRequest.create(scan_read)
+    await journal.publish("scan", x.model_dump_json())
 
     return scan_read
 

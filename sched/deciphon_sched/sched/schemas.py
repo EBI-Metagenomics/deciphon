@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime
 from enum import Enum
 from typing import Optional
@@ -95,6 +97,26 @@ class PressRequest(BaseModel):
     def create(cls, job_id: int, hmm: HMMFile, gencode: Gencode, epsilon: float):
         db = DBFile(name=hmm.db_name.name, gencode=gencode, epsilon=epsilon)
         return cls(job_id=job_id, hmm=hmm, db=db)
+
+
+class ScanRequest(BaseModel):
+    job_id: int
+    hmm: HMMFile
+    db: DBFile
+    multi_hits: bool
+    hmmer3_compat: bool
+    seqs: list[SeqRead]
+
+    @classmethod
+    def create(cls, scan: ScanRead):
+        return cls(
+            job_id=scan.job.id,
+            hmm=HMMFile(name=scan.db.hmm.file.name),
+            db=scan.db.file,
+            multi_hits=scan.multi_hits,
+            hmmer3_compat=scan.hmmer3_compat,
+            seqs=scan.seqs,
+        )
 
 
 class HMMRead(BaseModel):

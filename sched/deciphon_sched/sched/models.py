@@ -131,8 +131,7 @@ class HMM(BaseModel):
 
     @classmethod
     def create(cls, file: HMMFile):
-        job = Job.create(type=JobType.hmm)
-        return cls(job=job, name=file.name)
+        return cls(job=Job.create(type=JobType.hmm), name=file.name)
 
     def read_model(self):
         file = HMMFile(name=self.name)
