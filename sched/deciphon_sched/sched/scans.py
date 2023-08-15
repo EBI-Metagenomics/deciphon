@@ -1,10 +1,18 @@
-from fastapi import APIRouter, Request
+import tempfile
+from typing import Annotated
+
+from deciphon_snap.read_snap import read_snap
+from fastapi import APIRouter, File, Request
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
 from deciphon_sched.database import Database
-from deciphon_sched.errors import NotFoundInDatabaseError
+from deciphon_sched.errors import (
+    FoundInDatabaseError,
+    NotFoundInDatabaseError,
+    SnapFileError,
+)
 from deciphon_sched.journal import Journal
-from deciphon_sched.sched.models import DB, Scan, Seq
+from deciphon_sched.sched.models import DB, Scan, Seq, Snap
 from deciphon_sched.sched.schemas import ScanCreate, ScanRead, ScanRequest
 
 router = APIRouter()
@@ -59,3 +67,23 @@ async def delete_scan(request: Request, scan_id: int):
             raise NotFoundInDatabaseError("Scan")
         session.delete(x)
         session.commit()
+
+
+@router.post("/scans/{scan_id}.dcs", status_code=HTTP_201_CREATED)
+async def create_snap(request: Request, scan_id: int, file: Annotated[bytes, File()]):
+    with tempfile.NamedTemporaryFile() as tmp:
+        tmp.write(file)
+        try:
+            read_snap(file)
+        except Exception as exception:
+            raise SnapFileError(str(exception))
+
+    database: Database = request.app.state.database
+    with database.create_session() as session:
+        x = Snap.get_by_id(session, scan_id)
+        if x is not None:
+            raise FoundInDatabaseError("Snap")
+        snap = Snap.create(scan_id, file)
+        session.add(snap)
+        session.commit()
+        return snap.read_model()

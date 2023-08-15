@@ -19,6 +19,7 @@ from deciphon_sched.sched.schemas import (
     JobType,
     ScanRead,
     SeqRead,
+    SnapRead,
 )
 
 
@@ -231,7 +232,19 @@ class Snap(BaseModel):
 
     scan: Mapped[Scan] = relationship(back_populates="snap")
 
-    name: Mapped[str]
+    data: Mapped[bytes]
+
+    @classmethod
+    def create(cls, scan_id: int, data: bytes):
+        return cls(scan_id=scan_id, data=data)
+
+    def read_model(self):
+        return SnapRead(id=self.id, data_size=len(self.data))
+
+    @staticmethod
+    def get_by_id(session: Session, id: int):
+        x = session.execute(select(Snap).where(Snap.id == id)).one_or_none()
+        return x if x is None else x._tuple()[0]
 
 
 class Scan(BaseModel):

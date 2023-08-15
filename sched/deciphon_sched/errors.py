@@ -32,6 +32,18 @@ class NotFoundInDatabaseError(HTTPException):
         super().__init__(HTTP_404_NOT_FOUND, f"'{name}' not found in the database")
 
 
+class FoundInDatabaseError(HTTPException):
+    def __init__(self, name: str):
+        super().__init__(
+            HTTP_422_UNPROCESSABLE_ENTITY, f"'{name}' already exists in the database"
+        )
+
+
 class JobStateTransitionError(HTTPException):
     def __init__(self, previous: str, next: str):
         super().__init__(HTTP_400_BAD_REQUEST, f"{previous}->{next} is invalid")
+
+
+class SnapFileError(HTTPException):
+    def __init__(self, msg: str):
+        super().__init__(HTTP_400_BAD_REQUEST, f"Snap file is invalid: {msg}")
