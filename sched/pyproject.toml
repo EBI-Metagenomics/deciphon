@@ -36,6 +36,9 @@ testcontainers = "^3"
 testcontainers-core = "^0"
 testcontainers-minio = "^0"
 
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
