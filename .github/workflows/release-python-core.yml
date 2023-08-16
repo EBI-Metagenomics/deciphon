@@ -8,7 +8,7 @@ defaults:
     working-directory: python-core
 
 env:
-  CIBW_PROJECT_REQUIRES_PYTHON: ">=3.9"
+  CIBW_PROJECT_REQUIRES_PYTHON: ">=3.9,<3.12"
 
 jobs:
   make_sdist:
