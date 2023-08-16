@@ -239,7 +239,7 @@ class Snap(BaseModel):
         return cls(scan_id=scan_id, data=data)
 
     def read_model(self):
-        return SnapRead(id=self.id, data_size=len(self.data))
+        return SnapRead(id=self.id, size=len(self.data))
 
     @staticmethod
     def get_by_id(session: Session, id: int):

@@ -73,8 +73,9 @@ async def delete_scan(request: Request, scan_id: int):
 async def create_snap(request: Request, scan_id: int, file: Annotated[bytes, File()]):
     with tempfile.NamedTemporaryFile() as tmp:
         tmp.write(file)
+        tmp.flush()
         try:
-            read_snap(file)
+            read_snap(tmp.name)
         except Exception as exception:
             raise SnapFileError(str(exception))
 

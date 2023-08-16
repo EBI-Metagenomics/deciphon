@@ -148,7 +148,7 @@ class SeqRead(BaseModel):
 
 class SnapRead(BaseModel):
     id: int
-    data_size: int
+    size: int
 
 
 class ScanCreate(BaseModel):

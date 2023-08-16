@@ -14,6 +14,14 @@ def test_create(client: TestClient, files, s3_upload):
     assert client.post("/scans/", json=SCAN).status_code == 201
 
 
+def test_create_snap(client: TestClient, files, s3_upload):
+    upload_hmm(client, s3_upload, files / "minifam.hmm")
+    upload_db(client, s3_upload, files / "minifam.dcp")
+    client.post("/scans/", json=SCAN)
+    files = {"file": open(files / "consensus.dcs", "rb")}
+    assert client.post("/scans/1.dcs", files=files).status_code == 201
+
+
 def test_read_one(client: TestClient, files, s3_upload):
     upload_hmm(client, s3_upload, files / "minifam.hmm")
     upload_db(client, s3_upload, files / "minifam.dcp")
