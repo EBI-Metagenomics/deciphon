@@ -100,6 +100,7 @@ class PressRequest(BaseModel):
 
 
 class ScanRequest(BaseModel):
+    id: int
     job_id: int
     hmm: HMMFile
     db: DBFile
@@ -110,6 +111,7 @@ class ScanRequest(BaseModel):
     @classmethod
     def create(cls, scan: ScanRead):
         return cls(
+            id=scan.id,
             job_id=scan.job.id,
             hmm=HMMFile(name=scan.db.hmm.file.name),
             db=scan.db.file,
