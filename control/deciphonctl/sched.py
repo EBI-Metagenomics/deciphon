@@ -109,6 +109,9 @@ class Sched:
         json = {"state": x.state.value, "progress": x.progress, "error": x.error}
         self.patch(self.url(f"jobs/{x.id}"), json=json)
 
+    def seq_list(self):
+        return self.get(self.url("/seqs")).json()
+
     def url(self, endpoint: str):
         return urllib.parse.urljoin(self._url.unicode_string(), endpoint)
 

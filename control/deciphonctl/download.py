@@ -4,9 +4,11 @@ from pathlib import Path
 
 import requests
 from pydantic import HttpUrl
+from loguru import logger
 
 
 def download(url: HttpUrl, dst: Path):
+    logger.info(f"downloading {url}")
     u = url.unicode_string()
     try:
         cmd = shlex.join(["curl", "--silent", "-L", u]) + " > " + shlex.join([str(dst)])

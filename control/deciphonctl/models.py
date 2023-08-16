@@ -69,6 +69,15 @@ class PressRequest(BaseModel):
     db: DBFile
 
 
+class ScanRequest(BaseModel):
+    job_id: int
+    hmm: HMMFile
+    db: DBFile
+    multi_hits: bool
+    hmmer3_compat: bool
+    seqs: list[SeqRequest]
+
+
 class Task(Enum):
     press = "press"
     scan = "scan"
@@ -80,10 +89,32 @@ class JobUpdate(BaseModel):
     progress: int
     error: str
 
+    @classmethod
+    def run(cls, job_id: int, progress: int):
+        return cls(
+            id=job_id,
+            state=JobState.run,
+            progress=progress,
+            error="",
+        )
+
+    @classmethod
+    def fail(cls, job_id: int, error: str):
+        return cls(
+            id=job_id,
+            state=JobState.fail,
+            progress=0,
+            error=error,
+        )
+
 
 class Seq(BaseModel):
     name: str
     data: str
+
+
+class SeqRequest(Seq):
+    id: int
 
 
 class Scan(BaseModel):

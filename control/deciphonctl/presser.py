@@ -7,68 +7,48 @@ from deciphon_core.schema import HMMFile
 from loguru import logger
 from pydantic import FilePath, HttpUrl
 
+from deciphonctl import settings
 from deciphonctl.consumer import Consumer
 from deciphonctl.download import download
-from deciphonctl.models import DBFile, JobState, JobUpdate, PressRequest
+from deciphonctl.files import atomic_file_creation, remove_temporary_files
+from deciphonctl.models import DBFile, JobUpdate, PressRequest
 from deciphonctl.permissions import normalise_file_permissions
 from deciphonctl.progress_informer import ProgressInformer
 from deciphonctl.progress_logger import ProgressLogger
 from deciphonctl.sched import Sched
-from deciphonctl.tempfiles import Tempfiles
 from deciphonctl.url import url_filename
 from deciphonctl.worker import worker_loop
-
-
-def run_update(job_id: int, progress: int):
-    return JobUpdate(
-        id=job_id,
-        state=JobState.run,
-        progress=progress,
-        error="",
-    )
-
-
-def fail_update(job_id: int, error: str):
-    return JobUpdate(
-        id=job_id,
-        state=JobState.fail,
-        progress=0,
-        error=error,
-    )
 
 
 class Presser(Consumer):
     def __init__(self, sched: Sched, qin: JoinableQueue, qout: JoinableQueue):
         super().__init__(qin)
         self._sched = sched
-        self._tempfiles = Tempfiles()
-        self._tempfiles.cleanup()
+        remove_temporary_files()
         self._qout = qout
 
     def _hmm2dcp(self, url: HttpUrl, hmmfile: Path, request: PressRequest):
         dcpfile = hmmfile.with_suffix(".dcp")
-        hmmtmp = self._tempfiles.unique(hmmfile)
-        try:
+        with atomic_file_creation(hmmfile) as x:
             logger.info(f"downloading {url}")
-            download(url, hmmtmp)
-            logger.info(f"pressing {hmmtmp}")
-            dcptmp = self._press(hmmtmp, request)
+            download(url, x)
+            logger.info(f"pressing {x}")
+            dcptmp = self._press(x, request)
             shutil.move(dcptmp, dcpfile)
-        finally:
-            hmmtmp.unlink(missing_ok=True)
         return dcpfile
 
-    def _press(self, hmmfile: Path, request: PressRequest):
+    def _press(self, hmmfile: Path, req: PressRequest):
         dcpfile = hmmfile.with_suffix(".dcp")
         hmm = HMMFile(path=FilePath(hmmfile))
-        db = request.db
+        db = req.db
         with PressContext(hmm, gencode=db.gencode, epsilon=db.epsilon) as press:
+            self._qout.put(JobUpdate.run(req.job_id, 0).model_dump_json())
             with ProgressLogger(press.nproteins, str(hmmfile)) as progress:
                 for x in [press] * press.nproteins:
                     x.next()
                     progress.consume()
                     perc = int(round(progress.percent))
-                    self._qout.put(run_update(request.job_id, perc).model_dump_json())
+                    self._qout.put(JobUpdate.run(req.job_id, perc).model_dump_json())
         normalise_file_permissions(dcpfile)
         return dcpfile
 
@@ -76,7 +56,6 @@ class Presser(Consumer):
         x = PressRequest.model_validate_json(message)
 
         try:
-            logger.info(f"downloading {x.hmm.name}")
             url = self._sched.presigned.download_hmm_url(x.hmm.name)
             hmmfile = Path(url_filename(url))
 
@@ -94,7 +73,7 @@ class Presser(Consumer):
             logger.info(f"finished posting {dcpfile}")
 
         except Exception as exception:
-            self._qout.put(fail_update(x.job_id, str(exception)).model_dump_json())
+            self._qout.put(JobUpdate.fail(x.job_id, str(exception)).model_dump_json())
             raise exception
 
 
@@ -105,4 +84,4 @@ def presser_entry(sched: Sched, num_workers: int):
     pressers = [Presser(sched, qin, qout) for _ in range(num_workers)]
     consumers = [Process(target=x.entry_point, daemon=True) for x in pressers]
     consumers += [Process(target=informer.entry_point, daemon=True)]
-    worker_loop(qin, consumers)
+    worker_loop(f"/{settings.mqtt_topic}/press", qin, consumers)

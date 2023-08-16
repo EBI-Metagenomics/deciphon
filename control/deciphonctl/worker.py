@@ -15,13 +15,12 @@ def on_message(client, queue: JoinableQueue, x):
     queue.put(payload)
 
 
-def worker_loop(queue: JoinableQueue, consumers: list[Process]):
+def worker_loop(topic: str, queue: JoinableQueue, consumers: list[Process]):
     for x in consumers:
         x.start()
 
     while True:
         try:
-            topic = f"/{settings.mqtt_topic}/press"
             host = settings.mqtt_host
             port = settings.mqtt_port
             subscribe.callback(on_message, [topic], 0, queue, host, port)

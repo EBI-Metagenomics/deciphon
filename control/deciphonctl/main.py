@@ -10,9 +10,19 @@ from typing_extensions import Annotated
 from deciphonctl import settings
 from deciphonctl.models import DBFile, HMMFile, Scan, Seq
 from deciphonctl.presser import presser_entry
+from deciphonctl.scanner import scanner_entry
 from deciphonctl.sched import Sched
 
-HMMFILE = Annotated[Path, Argument(help="Path to an HMM file")]
+HMMFILE = Annotated[
+    Path,
+    Argument(
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Path to an HMM file",
+    ),
+]
 DBFILE = Annotated[Path, Argument(help="Path to an DB file")]
 GENCODE = Annotated[
     Gencode, Argument(parser=lambda x: Gencode(int(x)), help="NCBI genetic code number")
@@ -29,7 +39,9 @@ hmm = typer.Typer()
 db = typer.Typer()
 job = typer.Typer()
 scan = typer.Typer()
+seq = typer.Typer()
 presser = typer.Typer()
+scanner = typer.Typer()
 
 
 @hmm.command("add")
@@ -101,10 +113,22 @@ def scan_ls():
     rich.print(sched.scan_list())
 
 
+@seq.command("ls")
+def seq_ls():
+    sched = Sched(settings.sched_url)
+    rich.print(sched.seq_list())
+
+
 @presser.command("start")
 def presser_start(num_workers: int = 1):
     sched = Sched(settings.sched_url)
     presser_entry(sched, num_workers)
+
+
+@scanner.command("start")
+def scanner_start(num_workers: int = 1):
+    sched = Sched(settings.sched_url)
+    scanner_entry(sched, num_workers)
 
 
 app = typer.Typer()
@@ -112,4 +136,6 @@ app.add_typer(hmm, name="hmm")
 app.add_typer(db, name="db")
 app.add_typer(job, name="job")
 app.add_typer(scan, name="scan")
+app.add_typer(seq, name="seq")
 app.add_typer(presser, name="presser")
+app.add_typer(scanner, name="scanner")
