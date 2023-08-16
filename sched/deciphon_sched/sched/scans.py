@@ -2,7 +2,9 @@ import tempfile
 from typing import Annotated
 
 from deciphon_snap.read_snap import read_snap
+from deciphon_snap.view import view_alignments
 from fastapi import APIRouter, File, Request, Response
+from fastapi.responses import PlainTextResponse
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
 from deciphon_sched.database import Database
@@ -85,6 +87,7 @@ async def upload_snap(request: Request, scan_id: int, file: Annotated[bytes, Fil
         if x is not None:
             raise FoundInDatabaseError("Snap")
         snap = Snap.create(scan_id, file)
+        snap.scan.job.set_done()
         session.add(snap)
         session.commit()
         return snap.read_model()
@@ -113,3 +116,21 @@ async def delete_snap(request: Request, scan_id: int):
             raise NotFoundInDatabaseError("Snap")
         session.delete(x)
         session.commit()
+
+
+@router.get("/scans/{scan_id}/snap.dcs/view", status_code=HTTP_200_OK)
+async def view_snap(request: Request, scan_id: int):
+    database: Database = request.app.state.database
+    with database.create_session() as session:
+        x = Snap.get_by_scan_id(session, scan_id)
+        if x is None:
+            raise NotFoundInDatabaseError("Snap")
+        data = x.data
+
+        with tempfile.NamedTemporaryFile() as tmp:
+            tmp.write(data)
+            tmp.flush()
+            try:
+                return PlainTextResponse(view_alignments(read_snap(tmp.name)))
+            except Exception as exception:
+                raise SnapFileError(str(exception))
