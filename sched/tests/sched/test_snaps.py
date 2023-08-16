@@ -41,6 +41,15 @@ def upload_hmm(client: TestClient, s3_upload, file):
     return client.post("/hmms/", params=params, json={"name": file.name})
 
 
+def test_view(client: TestClient, files, s3_upload):
+    upload_hmm(client, s3_upload, files / "minifam.hmm")
+    upload_db(client, s3_upload, files / "minifam.dcp")
+    client.post("/scans/", json=SCAN)
+    files = {"file": open(files / "consensus.dcs", "rb")}
+    client.post("/scans/1/snap.dcs", files=files)
+    assert client.get("/scans/1/snap.dcs/view").status_code == 200
+
+
 def upload_db(client: TestClient, s3_upload, file):
     response = client.get(f"/dbs/presigned-upload/{file.name}")
     s3_upload(response.json(), file)
