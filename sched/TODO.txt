@@ -1,3 +1,4 @@
 - Check if docker is assessible at the start of tests
 - Setup docker compose
 - I think JobType for hmm press should be named 'press' instead of 'hmm'
+- Enforce Snap.id == Scan.id
