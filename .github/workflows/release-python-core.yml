@@ -2,6 +2,8 @@ name: Release python-core
 
 on:
   push:
+    tags:
+      - python-core-v*
 
 defaults:
   run:
@@ -44,43 +46,11 @@ jobs:
       - name: Build wheels
         run: pipx run cibuildwheel==2.15.0
         env:
-          CIBW_BUILD_VERBOSITY: 1
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_BUILD: ${{ matrix.build }}
       - uses: actions/upload-artifact@v3
         with:
           path: python-core/wheelhouse/*.whl
-
-  # make_linux_wheels:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #
-  #     - name: Set up QEMU
-  #       uses: docker/setup-qemu-action@v2
-  #       with:
-  #         platforms: all
-  #
-  #     - name: Build wheels
-  #       run: pipx run cibuildwheel==2.15.0
-  #       env:
-  #         CIBW_ARCHS_LINUX: auto aarch64
-  #
-  #     - uses: actions/upload-artifact@v3
-  #       with:
-  #         path: python-core/wheelhouse/*.whl
-  #
-  # make_macos_wheels:
-  #   runs-on: macos-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #
-  #     - name: Build wheels
-  #       run: pipx run cibuildwheel==2.15.0
-  #
-  #     - uses: actions/upload-artifact@v3
-  #       with:
-  #         path: python-core/wheelhouse/*.whl
 
   upload_all:
     needs: [make_wheels, make_sdist]
