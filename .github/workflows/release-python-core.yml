@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - python-core-v*
+    paths:
+      - .github/workflows/release-python-core.yml
 
 defaults:
   run:
