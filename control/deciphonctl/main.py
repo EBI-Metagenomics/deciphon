@@ -4,7 +4,7 @@ import fasta_reader
 import rich
 import typer
 from deciphon_core.schema import Gencode
-from typer import Argument, FileText
+from typer import Argument, FileText, Option
 from typing_extensions import Annotated
 
 from deciphonctl import settings
@@ -23,7 +23,16 @@ HMMFILE = Annotated[
         help="Path to an HMM file",
     ),
 ]
-DBFILE = Annotated[Path, Argument(help="Path to an DB file")]
+DBFILE = Annotated[
+    Path,
+    Argument(
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Path to an DB file",
+    ),
+]
 GENCODE = Annotated[
     Gencode, Argument(parser=lambda x: Gencode(int(x)), help="NCBI genetic code number")
 ]
@@ -34,12 +43,23 @@ EPSILON = Annotated[float, Argument(help="Nucleotide error probability")]
 FASTAFILE = Annotated[FileText, Argument(help="FASTA file")]
 MULTIHITS = Annotated[bool, Argument(help="Enable multiple-hits")]
 HMMER3COMPAT = Annotated[bool, Argument(help="Enable HMMER3 compatibility")]
+SNAPFILE = Annotated[
+    Path,
+    Argument(
+        exists=True, file_okay=True, dir_okay=False, readable=True, help="Snap file"
+    ),
+]
+OUTFILE = Annotated[
+    Path,
+    Option(file_okay=True, dir_okay=False, writable=True, help="Output file"),
+]
 
 hmm = typer.Typer()
 db = typer.Typer()
 job = typer.Typer()
 scan = typer.Typer()
 seq = typer.Typer()
+snap = typer.Typer()
 presser = typer.Typer()
 scanner = typer.Typer()
 
@@ -117,6 +137,25 @@ def scan_ls():
 def seq_ls():
     sched = Sched(settings.sched_url)
     rich.print(sched.seq_list())
+
+
+@scan.command("snap-add")
+def snap_add(scan_id: SCANID, snap: SNAPFILE):
+    sched = Sched(settings.sched_url)
+    sched.snap_post(scan_id, snap)
+
+
+@scan.command("snap-get")
+def snap_get(scan_id: SCANID, output_file: OUTFILE = Path("snap.dcs")):
+    sched = Sched(settings.sched_url)
+    with open(output_file, "wb") as file:
+        file.write(sched.snap_get(scan_id))
+
+
+@scan.command("snap-rm")
+def snap_rm(scan_id: SCANID):
+    sched = Sched(settings.sched_url)
+    sched.snap_delete(scan_id)
 
 
 @presser.command("start")

@@ -7,7 +7,7 @@ from typing import Any
 import requests
 from deciphon_core.schema import Gencode
 from loguru import logger
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, FilePath, HttpUrl
 from requests.models import HTTPError
 
 from deciphonctl.models import DBFile, HMMFile, JobUpdate, Scan
@@ -111,6 +111,16 @@ class Sched:
 
     def seq_list(self):
         return self.get(self.url("/seqs")).json()
+
+    def snap_post(self, scan_id: int, snap: FilePath):
+        files = {"file": open(snap, "rb")}
+        self.post(self.url(f"/scans/{scan_id}/snap.dcs"), files=files)
+
+    def snap_get(self, scan_id: int):
+        return self.get(self.url(f"/scans/{scan_id}/snap.dcs")).content
+
+    def snap_delete(self, scan_id: int):
+        self.delete(self.url(f"/scans/{scan_id}/snap.dcs"))
 
     def url(self, endpoint: str):
         return urllib.parse.urljoin(self._url.unicode_string(), endpoint)
