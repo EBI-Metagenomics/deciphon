@@ -2,7 +2,7 @@ import tempfile
 from typing import Annotated
 
 from deciphon_snap.read_snap import read_snap
-from fastapi import APIRouter, File, Request
+from fastapi import APIRouter, File, Request, Response
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
 from deciphon_sched.database import Database
@@ -69,8 +69,8 @@ async def delete_scan(request: Request, scan_id: int):
         session.commit()
 
 
-@router.post("/scans/{scan_id}.dcs", status_code=HTTP_201_CREATED)
-async def create_snap(request: Request, scan_id: int, file: Annotated[bytes, File()]):
+@router.post("/scans/{scan_id}/snap.dcs", status_code=HTTP_201_CREATED)
+async def upload_snap(request: Request, scan_id: int, file: Annotated[bytes, File()]):
     with tempfile.NamedTemporaryFile() as tmp:
         tmp.write(file)
         tmp.flush()
@@ -81,10 +81,35 @@ async def create_snap(request: Request, scan_id: int, file: Annotated[bytes, Fil
 
     database: Database = request.app.state.database
     with database.create_session() as session:
-        x = Snap.get_by_id(session, scan_id)
+        x = Snap.get_by_scan_id(session, scan_id)
         if x is not None:
             raise FoundInDatabaseError("Snap")
         snap = Snap.create(scan_id, file)
         session.add(snap)
         session.commit()
         return snap.read_model()
+
+
+@router.get("/scans/{scan_id}/snap.dcs", status_code=HTTP_200_OK)
+async def download_snap(request: Request, scan_id: int):
+    database: Database = request.app.state.database
+    with database.create_session() as session:
+        x = Snap.get_by_scan_id(session, scan_id)
+        if x is None:
+            raise NotFoundInDatabaseError("Snap")
+        data = x.data
+
+    headers = {"Content-Disposition": 'attachment; filename="{snap.dcs}"'}
+    media_type = "application/octet-stream"
+    return Response(data, headers=headers, media_type=media_type)
+
+
+@router.delete("/scans/{scan_id}/snap.dcs", status_code=HTTP_204_NO_CONTENT)
+async def delete_snap(request: Request, scan_id: int):
+    database: Database = request.app.state.database
+    with database.create_session() as session:
+        x = Snap.get_by_scan_id(session, scan_id)
+        if x is None:
+            raise NotFoundInDatabaseError("Snap")
+        session.delete(x)
+        session.commit()

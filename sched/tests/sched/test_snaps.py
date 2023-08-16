@@ -8,31 +8,30 @@ SCAN = {
 }
 
 
-def test_create(client: TestClient, files, s3_upload):
-    upload_hmm(client, s3_upload, files / "minifam.hmm")
-    upload_db(client, s3_upload, files / "minifam.dcp")
-    assert client.post("/scans/", json=SCAN).status_code == 201
-
-
-def test_read_one(client: TestClient, files, s3_upload):
+def test_upload(client: TestClient, files, s3_upload):
     upload_hmm(client, s3_upload, files / "minifam.hmm")
     upload_db(client, s3_upload, files / "minifam.dcp")
     client.post("/scans/", json=SCAN)
-    assert client.get("/scans/1").status_code == 200
+    files = {"file": open(files / "consensus.dcs", "rb")}
+    assert client.post("/scans/1/snap.dcs", files=files).status_code == 201
 
 
-def test_read_many(client: TestClient, files, s3_upload):
+def test_download(client: TestClient, files, s3_upload):
     upload_hmm(client, s3_upload, files / "minifam.hmm")
     upload_db(client, s3_upload, files / "minifam.dcp")
     client.post("/scans/", json=SCAN)
-    assert client.get("/scans").status_code == 200
+    files = {"file": open(files / "consensus.dcs", "rb")}
+    client.post("/scans/1/snap.dcs", files=files)
+    assert client.get("/scans/1/snap.dcs").status_code == 200
 
 
 def test_delete(client: TestClient, files, s3_upload):
     upload_hmm(client, s3_upload, files / "minifam.hmm")
     upload_db(client, s3_upload, files / "minifam.dcp")
     client.post("/scans/", json=SCAN)
-    assert client.delete("/scans/1").status_code == 204
+    files = {"file": open(files / "consensus.dcs", "rb")}
+    client.post("/scans/1/snap.dcs", files=files)
+    assert client.delete("/scans/1/snap.dcs").status_code == 204
 
 
 def upload_hmm(client: TestClient, s3_upload, file):
