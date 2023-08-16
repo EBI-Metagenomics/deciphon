@@ -87,6 +87,8 @@ async def upload_snap(request: Request, scan_id: int, file: Annotated[bytes, Fil
         if x is not None:
             raise FoundInDatabaseError("Snap")
         snap = Snap.create(scan_id, file)
+        session.add(snap)
+        session.commit()
         snap.scan.job.set_done()
         session.add(snap)
         session.commit()
