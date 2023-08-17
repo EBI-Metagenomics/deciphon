@@ -12,6 +12,7 @@ from deciphonctl.models import DBFile, HMMFile, Scan, Seq
 from deciphonctl.presser import presser_entry
 from deciphonctl.scanner import scanner_entry
 from deciphonctl.sched import Sched
+from deciphonctl.signals import raise_sigint_on_sigterm
 
 HMMFILE = Annotated[
     Path,
@@ -166,12 +167,14 @@ def snap_view(scan_id: SCANID):
 
 @presser.command("start")
 def presser_start(num_workers: int = 1):
+    raise_sigint_on_sigterm()
     sched = Sched(settings.sched_url)
     presser_entry(sched, num_workers)
 
 
 @scanner.command("start")
 def scanner_start(num_workers: int = 1):
+    raise_sigint_on_sigterm()
     sched = Sched(settings.sched_url)
     scanner_entry(sched, num_workers)
 

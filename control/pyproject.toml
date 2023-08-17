@@ -17,11 +17,13 @@ fasta-reader = "^3"
 deciphon = "^0"
 deciphon-core = "^0"
 loguru = "^0"
-deciphon-sched = { version = "^0", extras = ["testing"] }
+deciphon-sched = "^0.4.1"
+paho-mqtt = "^1.6.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.2"
 uvicorn = "^0"
+deciphon-sched = { version = "^0.4.1", extras = ["testing"] }
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

@@ -91,6 +91,6 @@ def scanner_entry(sched: Sched, num_workers: int):
     qout = JoinableQueue()
     informer = ProgressInformer(sched, qout)
     pressers = [Scanner(sched, qin, qout) for _ in range(num_workers)]
-    consumers = [Process(target=x.entry_point, daemon=True) for x in pressers]
-    consumers += [Process(target=informer.entry_point, daemon=True)]
+    consumers = [Process(target=x.run, daemon=True) for x in pressers]
+    consumers += [Process(target=informer.run, daemon=True)]
     worker_loop(f"/{settings.mqtt_topic}/scan", qin, consumers)

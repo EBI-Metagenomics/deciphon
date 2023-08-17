@@ -5,6 +5,8 @@ from typing import cast
 
 from loguru import logger
 
+from deciphonctl.signals import ignore_sigint
+
 
 class Consumer(ABC):
     def __init__(self, queue: JoinableQueue):
@@ -14,15 +16,15 @@ class Consumer(ABC):
     def callback(self, message: str):
         ...
 
-    def entry_point(self):
+    def run(self):
+        ignore_sigint()
         while True:
             try:
                 message = cast(str, self._queue.get())
                 self.callback(message)
                 self._queue.task_done()
             except KeyboardInterrupt:
-                logger.info("exiting...")
-                return
+                assert False
             except Exception as exception:
                 logger.exception(exception)
                 time.sleep(1)
