@@ -13,4 +13,7 @@ jobs:
           compose-file: "./docker-compose.yml"
       - name: Run tests
         working-directory: tests
-        run: ./test_compose.sh
+        run: |
+          docker compose ps
+          docker compose logs
+          ./test_compose.sh
