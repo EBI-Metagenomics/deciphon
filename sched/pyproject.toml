@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deciphon-sched"
-version = "0.4.0"
+version = "0.4.1"
 description = "Deciphon scheduler"
 authors = ["Danilo Horta <horta@ebi.ac.uk>"]
 license = "MIT"
@@ -8,12 +8,12 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-fastapi = { extras = ["all"], version = "^0.100" }
+fastapi = { extras = ["all"], version = "^0.101.1" }
 fasta-reader = "^3"
 uvicorn = { extras = ["standard"], version = "^0" }
-sqlalchemy = "^2.0"
+sqlalchemy = "^2"
 pydantic-settings = "^2"
-boto3 = "^1.28"
+boto3 = "^1"
 pydantic = "^2"
 aiomqtt = "^1"
 deciphon-core = "^0"
@@ -23,17 +23,17 @@ testcontainers-core = { version = "^0", optional = true }
 testcontainers-minio = { version = "^0", optional = true }
 python-multipart = "^0"
 deciphon-snap = "^0"
+# https://github.com/orgs/python-poetry/discussions/7937#discussioncomment-5921842
+urllib3 = "<2"
 
 [tool.poetry.extras]
 testing = ["testcontainers", "testcontainers-core", "testcontainers-minio"]
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.4.0"
-flask = "^2.3.2"
-flask-cors = "^4.0.0"
-pytest-asyncio = "^0.21.1"
-requests = "^2.31.0"
-paho-mqtt = "^1.6.1"
+pytest = "^7"
+pytest-asyncio = "^0"
+requests = "^2"
+paho-mqtt = "^1"
 testcontainers = "^3"
 testcontainers-core = "^0"
 testcontainers-minio = "^0"
