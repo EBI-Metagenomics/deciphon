@@ -1,7 +1,8 @@
 version: "3.8"
 services:
   sched:
-    build: sched/
+    image: sched
+    build: sched
     ports:
       - "8000:8000"
     extra_hosts:
@@ -13,6 +14,8 @@ services:
     depends_on:
       - minio
       - mosquitto
+      - presser
+      - scanner
     volumes:
       - type: bind
         source: sched
@@ -30,6 +33,30 @@ services:
         "--log-level",
         "trace"
       ]
+  presser:
+    image: presser
+    build: control
+    extra_hosts:
+      - "localhost:host-gateway"
+    environment:
+      - DECIPHONCTL_SCHED_URL=http://localhost:8000
+      - DECIPHONCTL_MQTT_HOST=localhost
+      - DECIPHONCTL_MQTT_PORT=1883
+    command: [ "python", "-m", "deciphonctl", "presser", "run" ]
+    depends_on:
+      - mosquitto
+  scanner:
+    image: scanner
+    build: control
+    extra_hosts:
+      - "localhost:host-gateway"
+    environment:
+      - DECIPHONCTL_SCHED_URL=http://localhost:8000
+      - DECIPHONCTL_MQTT_HOST=localhost
+      - DECIPHONCTL_MQTT_PORT=1883
+    depends_on:
+      - mosquitto
+    command: [ "python", "-m", "deciphonctl", "scanner", "run" ]
   minio:
     image: "quay.io/minio/minio"
     ports:

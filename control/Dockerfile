@@ -3,8 +3,8 @@ WORKDIR /app
 COPY . .
 RUN pip install --no-cache-dir --upgrade -e .
 
-FROM base AS deciphon/presser
+FROM base AS presser
 CMD [ "python", "-m", "deciphonctl", "presser", "run" ]
 
-FROM base AS deciphon/scanner
+FROM base AS scanner
 CMD [ "python", "-m", "deciphonctl", "scanner", "run" ]
