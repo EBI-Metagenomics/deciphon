@@ -133,6 +133,16 @@ async def view_snap(request: Request, scan_id: int):
             tmp.write(data)
             tmp.flush()
             try:
-                return PlainTextResponse(view_alignments(read_snap(tmp.name)))
+                text = strip_empty_lines(view_alignments(read_snap(tmp.name)))
+                return PlainTextResponse(text)
             except Exception as exception:
                 raise SnapFileError(str(exception))
+
+
+def strip_empty_lines(s):
+    lines = s.splitlines()
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    return "\n".join(lines)
