@@ -1,0 +1,84 @@
+Alignments for each domain:
+== domain 1  score: 274.1 bits;  conditional E-value: 2.5e-86
+                            ..HHHHHHTCTTSEEEEEEEE--HHHHHHHHHHHCHTT-HHHHHHHHHHTTSS-SSTHHHHTTHHHHHHHHHHHHHHCTTT--GGGSEE--STTS- CS
+             PF00742.20   1 PIISTLKESLTGDRITRIEGILNGTLNYILTEMEEEGASFSEALKEAQELGYAEADPTDDVEGLDAARKLAILARLAFGLEVELEDVEVEGIEKLT 96
+                            PiistlkesltgdritriegilngtlnyiltemeeegasfsealkeaqelGyaEaDptdDveGlDaarKlailarlafgleveledvevegieklt
+                          1 PIISTLKESLTGDRITRIEGILNGTLNYILTEMEEEGASFSEALKEAQELGYAEADPTDDVEGLDAARKLAILARLAFGLEVELEDVEVEGIEKLT 96
+Homoserine_dh-consensus   1 CAATACAGTCAGGCAACAGGATAGACATACAGAGGGGGTTTGGCAGGCGTGTGGGGCAGGGGGCGGGAACGACGATGTGTGGGTGGGGGGGAGACA 286
+                            CTTCCTAACTCGAGTCGTAGTTAGCTAATTCATAAAGCCTCACTAACAATGACACACCAATAGTACCGATCTTCGTCTGTATATAATATAGTAATC
+                            TCTGGCGGGGATCTTTACAGAACCCGTCTCTGGGAGGTACTGGGGGAGAGCCGAGTTGCTGAGATTTAGGATACAGATGAGCGGGCAGGAATAGGT
+                            ................................................................................................
+                            ................................................................................................
+                            9*********************************************************************************************** PP
+
+                            HHHHHHHHCTTEEEEEEEEECEEEEEEEEEETTSGGGHSSST.EEEEEEESSSEEEEEEES-SSHHHHHHHHHHHHH CS
+             PF00742.20  97 AEDIEEAKEEGKVLKLVASAVEARVKPELVPKSHPLASVKGSDNAVAVETERVGELVVQGPGAGAEPTASAVLADLL 173
+                            aedieeakeegkvlklvasavearvkpelvpkshplasvkgsdnavavetervgelvvqGpgaGaepTAsavlaDll
+                         97 AEDIEEAKEEGKVLKLVASAVEARVKPELVPKSHPLASVKGSDNAVAVETERVGELVVQGPGAGAEPTASAVLADLL 173
+Homoserine_dh-consensus 289 GGGAGGGAGGGAGTACGGAGGGGAGACGCGCATCCTGTGAGTGAGGGGGAGCGGGCGGCGCGGGGGCAGTGGCGGCC 517
+                            CAATAACAAAGATTATTCGCTACGTACATTCACACTCCTAGCAACTCTACAGTGATTTAGCGCGCACCCCCTTCATT
+                            CATTAAGGAGTATAAAGACCCACGCGTGGATGATAACGAACTCCCGTAAGAGACACAGGAAGTCAGACACTACTCTC
+                            .............................................................................
+                            .............................................................................
+                            ***************************************************************************96 PP
+
+
+Alignments for each domain:
+== domain 1  score: 342.6 bits;  conditional E-value: 7e-107
+                        TEEEEEE-TTCCCCTCCHHHHHHHHHHHHHHHHTTEEEEEE--HHHHHHHHHHTCCCCCHHHC....E..HHHHHHHHHHHHHHHHHHHHHHHHHT CS
+         PF00696.29   1 KRVVVKLGGSSLTDKEEASLRRLAEQIAALKESGNKLVVVHGGGSFTDGLLALKSGLSSGELAAGLRSTLEEAGEVATRDALASLGERLVAALLAA 96
+                        krvVvKlGGssltdkeeaslrrlaeqiaalkesgnklvvVhGggsftdgllalksglssgelaaglrstleeagevatrdalaslgerlvaallaa
+                      1 KRVVVKLGGSSLTDKEEASLRRLAEQIAALKESGNKLVVVHGGGSFTDGLLALKSGLSSGELAAGLRSTLEEAGEVATRDALASLGERLVAALLAA 96
+AA_kinase-consensus   1 ACGGGACGGATCAGAGGGTCACTGGCAGGTAGAGAACGGGCGGGATAGGCCGTAAGCATGGTGGGTAAATGGGGGGGAAGGCGATGGCCGGGCCGG 286
+                        AGTTTATGGGCTCAAAACCTGGTCAATCCTAAGGAATTTTAGGGGTCAGTTCTAGGTGCGATCCGTGGCTAACGATCCGACTCGTGAGTTCCTTCC
+                        ATATAGTGTTTGATGAGAACGTATGGTAAAAGTCTAAGCGTACCCCTTTGGAGATCGCGCAATGGGGCGAAGCAAAGGGCCATCAGAGTTAGGGGG
+                        ................................................................................................
+                        ................................................................................................
+                        79********************************************************************************************** PP
+
+                        THGEEEE-GGGTCEECCCE..HHHTTTCEEECCHHHHHHHTT-EEEEESEEEEETTTEEEEE-HHHHHHHHHHHCTSSEEEEEESSSSCESSTTTT CS
+         PF00696.29  97 GLPAVGLSAAALDATEAGRDEGSDGNVESVDAEAIEELLEAGVVPVLTGFIGLDEEGELGRGSSDTIAALLAEALGADKLIILTDVDGVYDADPKK 192
+                        glpavglsaaaldateagrdegsdgnvesvdaeaieelleagvvpvltgfigldeegelgrgssDtiaallAealgAdkliiltdVdGVydadpkk
+                     97 GLPAVGLSAAALDATEAGRDEGSDGNVESVDAEAIEELLEAGVVPVLTGFIGLDEEGELGRGSSDTIAALLAEALGADKLIILTDVDGVYDADPKK 192
+AA_kinase-consensus 289 GCCGGGCAGGGTGGAGGGCGGGAGGAGGTGGGGGAGGTCGGGGGCGCAGTAGTGGGGGCGAGTTGAAGGTCGGGTGGGACAACAGGGGGTGGGCAA 574
+                        GTCCTGTGCCCTACCACGGAAGGAGATACTACACTAATTACGTTCTTCGTTGTAAAGATGGGCCACTCCTTCACTGCAATTTTCATAGTAACACAA
+                        TCTTAACCCTGATGGGGCGTACCCGCCGCGCAAATGGGTGCGGCCCAAATCCACAAGAGAGATTCCCTGACTATACGCACAAGCCACCTCTCCTAG
+                        ................................................................................................
+                        ................................................................................................
+                        ************************************************************************************************ PP
+
+                        SCTTCECCEEEHHHCHHCSSS.TTTHHHHCHHHHHHHHHCTT-EEEEEE CS
+         PF00696.29 193 VPDARLLPEISVDEAEESASELATGGMKVKHPAALAAARRGGIPVVITN 241
+                        vpdarllpeisvdeaeesaselatgGmkvkhpaalaaarrggipvvItn
+                    193 VPDARLLPEISVDEAEESASELATGGMKVKHPAALAAARRGGIPVVITN 241
+AA_kinase-consensus 577 GCGGACTCGAAGGGGGGAGTGTGAGGAAGACCGGCGGGACGGACGGAAA 721
+                        TCACGTTCATGTAACAAGCCATCCGGTATAACCCTCCCGGGGTCTTTCA
+                        CACGGCGAGATGCGCGACCCAAGCTGGGCATAGTTTATAGGTTGCGAGT
+                        .................................................
+                        .................................................
+                        ***********************************************98 PP
+
+
+Alignments for each domain:
+== domain 1  score: 292.6 bits;  conditional E-value: 4.9e-92
+                    ???????????????????????????????????????????????????????????????????????????????????????????????? CS
+      PF16620.6   1 QGLDNANRSLVRATKAESSDIRKEVTNGIAKGLKLDSLETAAESKNCSSAQKGGSLAWATNSQPQPLRESKLEPLEDSPRKALKTPVLQKTSSTIT 96
+                    qGldnanrslvratkaessdirkevtngiakglkldsletaaeskncssaqkggslawatnsqpqplresklepledsprkalktpvLQKTSStIt
+                  1 QGLDNANRSLVRATKAESSDIRKEVTNGIAKGLKLDSLETAAESKNCSSAQKGGSLAWATNSQPQPLRESKLEPLEDSPRKALKTPVLQKTSSTIT 96
+23ISL-consensus   1 CGCGAGACTCGCGAAGGATGACAGGAAGAGAGCACGACGAGGGTAATTAGCAGGTCGTGAATCCCCCCGAACGCTGGTCCAGTAACGTCAATAAAA 286
+                    AGTAACAGCTTGCCACAGCATGAATCAGTCAGTATAGTACCCACAAGCGCAAGGCTCGCCACACACTGAGATACTAACCGACTACCTTAACCGCTC
+                    GTGTCTTTGATCTAAAATATAGAGGTCCCTAGGGACTGAATAGGGCCACAGACAGATGACCCAAGTCTATGTGAGACCATGTAAATGGAGACTCAT
+                    ................................................................................................
+                    ................................................................................................
+                    9*********************************************************************************************** PP
+
+                    ?????????????????????????????????????????????????????????????????? CS
+      PF16620.6  97 LQAVKVQPEPRAPVSGALSPSGEERKRPAASAPATLPTRQSGLGSQEVVSKVATRKIPMESQREST 162
+                    LQavkvqpEprapvsgalspsgeerkrpaasapatlptrqsglgsqevvskvatrkipmesqRest
+                 97 LQAVKVQPEPRAPVSGALSPSGEERKRPAASAPATLPTRQSGLGSQEVVSKVATRKIPMESQREST 162
+23ISL-consensus 289 TCGGAGCCGCCGCGTGGCTCAGGGCACCGGTGCGATCACCAGCGTCGGGTAGGACAACAGTCCGTA 484
+                    TACTATACACGCCTCGCTCCGGAAGAGCCCCCCCCTCCGAGGTGCAATTCATCCGATCTACAGACC
+                    AAACGTATACCTCCCGGGCGCGGACGCATGTTCTCAGAAGTTATTGACTGGGGTCATAGGAACGGT
+                    ..................................................................
+                    ..................................................................
+                    ****************************************************************97 PP
