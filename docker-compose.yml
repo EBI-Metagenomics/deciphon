@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   sched:
-    build: .
+    build: sched/
     ports:
       - "8000:8000"
     extra_hosts:
@@ -13,6 +13,10 @@ services:
     depends_on:
       - minio
       - mosquitto
+    volumes:
+      - type: bind
+        source: sched
+        target: /app
     command:
       [
         "uvicorn",
@@ -21,7 +25,10 @@ services:
         "--host",
         "0.0.0.0",
         "--port",
-        "8000"
+        "8000",
+        "--reload",
+        "--log-level",
+        "trace"
       ]
   minio:
     image: "quay.io/minio/minio"
