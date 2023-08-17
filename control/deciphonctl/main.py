@@ -158,6 +158,12 @@ def snap_rm(scan_id: SCANID):
     sched.snap_delete(scan_id)
 
 
+@scan.command("snap-view")
+def snap_view(scan_id: SCANID):
+    sched = Sched(settings.sched_url)
+    print(sched.snap_view(scan_id))
+
+
 @presser.command("start")
 def presser_start(num_workers: int = 1):
     sched = Sched(settings.sched_url)

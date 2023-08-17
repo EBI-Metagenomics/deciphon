@@ -122,6 +122,10 @@ class Sched:
     def snap_delete(self, scan_id: int):
         self.delete(self.url(f"/scans/{scan_id}/snap.dcs"))
 
+    def snap_view(self, scan_id: int):
+        x = self.get(self.url(f"/scans/{scan_id}/snap.dcs/view")).text
+        return strip_empty_lines(x)
+
     def url(self, endpoint: str):
         return urllib.parse.urljoin(self._url.unicode_string(), endpoint)
 
@@ -157,3 +161,12 @@ class UploadPost(BaseModel):
     @property
     def url_string(self):
         return self.url.unicode_string()
+
+
+def strip_empty_lines(s):
+    lines = s.splitlines()
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    return "\n".join(lines)

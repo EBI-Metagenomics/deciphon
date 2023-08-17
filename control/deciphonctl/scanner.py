@@ -17,11 +17,11 @@ from deciphonctl.files import (
     remove_temporary_files,
     unique_temporary_file,
 )
-from deciphonctl.models import ScanRequest, JobUpdate
+from deciphonctl.models import JobUpdate, ScanRequest
 from deciphonctl.progress_informer import ProgressInformer
+from deciphonctl.progress_logger import ProgressLogger
 from deciphonctl.sched import Sched
 from deciphonctl.worker import worker_loop
-from deciphonctl.progress_logger import ProgressLogger
 
 
 def sequence_iterator(seqs: list[Seq], job_id: int, desc: str, qout: JoinableQueue):
@@ -83,6 +83,7 @@ class Scanner(Consumer):
                     "Scan has finished successfully and "
                     f"results stored in '{snap.path}'."
                 )
+            self._sched.snap_post(x.id, snap.path)
 
 
 def scanner_entry(sched: Sched, num_workers: int):

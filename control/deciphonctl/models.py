@@ -70,6 +70,7 @@ class PressRequest(BaseModel):
 
 
 class ScanRequest(BaseModel):
+    id: int
     job_id: int
     hmm: HMMFile
     db: DBFile
