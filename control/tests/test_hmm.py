@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from deciphonctl.main import app
+from deciphonctl.cli import app
 
 
 def test_add(runner, files_path: Path):

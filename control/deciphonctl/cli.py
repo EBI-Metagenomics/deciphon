@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 import fasta_reader
@@ -165,15 +166,15 @@ def snap_view(scan_id: SCANID):
     print(sched.snap_view(scan_id))
 
 
-@presser.command("start")
-def presser_start(num_workers: int = 1):
+@presser.command("run")
+def presser_run(num_workers: int = 1):
     raise_sigint_on_sigterm()
     sched = Sched(settings.sched_url)
     presser_entry(sched, num_workers)
 
 
-@scanner.command("start")
-def scanner_start(num_workers: int = 1):
+@scanner.command("run")
+def scanner_run(num_workers: int = 1):
     raise_sigint_on_sigterm()
     sched = Sched(settings.sched_url)
     scanner_entry(sched, num_workers)
@@ -187,3 +188,6 @@ app.add_typer(scan, name="scan")
 app.add_typer(seq, name="seq")
 app.add_typer(presser, name="presser")
 app.add_typer(scanner, name="scanner")
+
+if __name__ == "__main__":
+    sys.exit(app())
