@@ -10,5 +10,9 @@ def ignore_sigint():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 
-def raise_sigint_on_sigterm(*_):
+def raise_sigint(*_):
     os.kill(os.getpid(), signal.SIGINT)
+
+
+def raise_sigint_on_sigterm(*_):
+    signal.signal(signal.SIGTERM, raise_sigint)
