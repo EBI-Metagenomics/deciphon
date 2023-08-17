@@ -8,12 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: isbang/compose-action@v1.5.1
-        with:
-          compose-file: "./docker-compose.yml"
+      - name: Run compose
+        run : docker compose up -d
       - name: Run tests
         working-directory: tests
-        run: |
-          docker compose ps
-          docker compose logs
-          ./test_compose.sh
+        run: ./test_compose.sh
