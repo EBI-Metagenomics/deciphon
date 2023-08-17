@@ -11,6 +11,8 @@ cleanup() {
 
 trap "cleanup" EXIT
 
+./wait-for-it.sh http://localhost:8000 -t 30 -- echo "compose is up"
+
 data=$(
 curl --no-progress-meter \
   -X 'GET' "http://localhost:8000/hmms/presigned-upload/$HMM" \
