@@ -1,0 +1,16 @@
+name: Test compose
+
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: isbang/compose-action@v1.5.1
+        with:
+          compose-file: "./docker-compose.yml"
+      - name: Run tests
+        working-directory: tests
+        run: ./test_compose.sh
