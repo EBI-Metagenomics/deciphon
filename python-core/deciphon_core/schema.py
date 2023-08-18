@@ -183,3 +183,8 @@ class Gencode(IntEnum):
     BN = 31
     BP = 32
     CMMC = 33
+
+    # IntEnum of Python3.10 returns a different string representation.
+    # Make it return the same as in Python3.11
+    def __str__(self):
+        return str(self.value)
