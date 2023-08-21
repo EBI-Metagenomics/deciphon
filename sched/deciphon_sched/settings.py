@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="deciphon_sched_")
 
     endpoint_prefix: str = ""
-    allow_origins: list[HttpUrl] = [HttpUrl("http://localhost")]
+    allow_origins: list[str] = ["http://localhost"]
 
     database_url: AnyUrl = AnyUrl("sqlite+pysqlite:///:memory:")
 
