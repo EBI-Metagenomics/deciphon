@@ -6,15 +6,15 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="deciphon_sched_")
 
     endpoint_prefix: str = ""
-    allow_origins: list[HttpUrl] = [HttpUrl("http://127.0.0.1")]
+    allow_origins: list[HttpUrl] = [HttpUrl("http://localhost")]
 
     database_url: AnyUrl = AnyUrl("sqlite+pysqlite:///:memory:")
 
     s3_key: str = "minioadmin"
     s3_secret: str = "minioadmin"
-    s3_url: HttpUrl = HttpUrl("http://127.0.0.1:9000")
+    s3_url: HttpUrl = HttpUrl("http://localhost:9000")
     s3_bucket: str = "deciphon"
 
-    mqtt_host: str = "127.0.0.1"
+    mqtt_host: str = "localhost"
     mqtt_port: int = 1883
     mqtt_topic: str = "deciphon"
