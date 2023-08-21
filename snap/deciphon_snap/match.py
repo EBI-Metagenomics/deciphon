@@ -76,6 +76,10 @@ class MatchList(RootModel):
         return "".join(x.query for x in iter(self))
 
     @property
+    def state(self):
+        return "".join(x.state for x in iter(self))
+
+    @property
     def codon(self):
         return "".join(x.codon for x in iter(self))
 

@@ -56,6 +56,9 @@ def test_hits():
     assert match_list[hits[0].match_list_interval.slice].query == "GTGAAAACC"
     assert match_list[hits[1].match_list_interval.slice].query == "AAACCG"
 
+    assert match_list[hits[0].match_list_interval.slice].state == "M1I2M3D4D5"
+    assert match_list[hits[1].match_list_interval.slice].state == "M258M259"
+
     assert match_list[hits[0].match_list_interval.slice].codon == "GTTAAAACC"
     assert match_list[hits[1].match_list_interval.slice].codon == "AAACCG"
 
