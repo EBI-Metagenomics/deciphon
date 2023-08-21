@@ -1,4 +1,26 @@
-# Deciphon related projects
+# Welcome to Deciphon projects 👋
+
+The main part of Deciphon is its core. It is implemented in C and built on top
+of [IMM](https://github.com/EBI-Metagenomics/imm) library to define the protein
+models using hidden Markov Models and perform inference using the Viterbi
+method.
+
+## Quick start
+
+Its command-line interface can be installed by
+
+```sh
+pip install deciphon
+```
+
+It will run on MacOS and Linux operating systems.
+After installing it, just enter
+
+```sh
+deciphon --help
+```
+
+in the terminal to show usage information.
 
 ## Directory layout
 
