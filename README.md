@@ -2,13 +2,14 @@
 
 ## Directory layout
 
-    ├─ deciphon/        Deciphon library written in C.
-    ├─ deciphon-api/    REST API for Deciphon server in Python.
-    ├─ deciphon-core/   Python wrapper around the Deciphon library.
-    ├─ deciphon-py/     Command-line interface for Deciphon written in Python.
-    ├─ deciphon-server/ Orchestration of Deciphon workers.
-    ├─ deciphon-snap/   Reader for Deciphon snap files written in Python.
-    ├─ deciphonctl/     Command-line interface for controlling the Deciphon server.
+    ├─ c-core/          Deciphon library written in C.
+    ├─ cli/             Command-line interface written in Python.
+    ├─ control/         Command-line interface to control and run the servers.
+    ├─ eval/            Python scripts to evaluate its performance.
+    ├─ python-core/     Python wrapper around the Deciphon library.
+    ├─ sched/           RESTful API for Deciphon server in Python.
+    ├─ snap/            Reader for Deciphon snap files written in Python.
+    ├─ tests/           Unit tests.
 
 ## 👤 Author
 
