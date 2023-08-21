@@ -1,5 +1,5 @@
 import tempfile
-from typing import Annotated
+from typing import Annotated, Optional
 
 from deciphon_snap.read_snap import read_snap
 from deciphon_snap.view import view_alignments
@@ -15,16 +15,25 @@ from deciphon_sched.errors import (
 )
 from deciphon_sched.journal import Journal
 from deciphon_sched.sched.models import DB, Scan, Seq, Snap
-from deciphon_sched.sched.schemas import ScanCreate, ScanRead, ScanRequest
+from deciphon_sched.sched.schemas import (
+    FASTARead,
+    ProdRead,
+    ScanCreate,
+    ScanRead,
+    ScanRequest,
+    aminos_iter,
+    codons_iter,
+    queries_iter,
+)
 
 router = APIRouter()
 
 
 @router.get("/scans", status_code=HTTP_200_OK)
-async def read_scans(request: Request) -> list[ScanRead]:
+async def read_scans(request: Request, job_id: Optional[int] = None) -> list[ScanRead]:
     database: Database = request.app.state.database
     with database.create_session() as session:
-        return [x.read_model() for x in Scan.get_all(session)]
+        return [x.read_model() for x in Scan.get_all(session, job_id=job_id)]
 
 
 @router.post("/scans/", status_code=HTTP_201_CREATED)
@@ -120,8 +129,7 @@ async def delete_snap(request: Request, scan_id: int):
         session.commit()
 
 
-@router.get("/scans/{scan_id}/snap.dcs/view", status_code=HTTP_200_OK)
-async def view_snap(request: Request, scan_id: int):
+def get_snap_file(request: Request, scan_id: int):
     database: Database = request.app.state.database
     with database.create_session() as session:
         x = Snap.get_by_scan_id(session, scan_id)
@@ -133,10 +141,35 @@ async def view_snap(request: Request, scan_id: int):
             tmp.write(data)
             tmp.flush()
             try:
-                text = strip_empty_lines(view_alignments(read_snap(tmp.name)))
-                return PlainTextResponse(text)
+                return read_snap(tmp.name)
             except Exception as exception:
                 raise SnapFileError(str(exception))
+
+
+@router.get("/scans/{scan_id}/snap.dcs/prods", status_code=HTTP_200_OK)
+async def read_prods(request: Request, scan_id: int):
+    return [ProdRead.make(x) for x in get_snap_file(request, scan_id).products]
+
+
+@router.get("/scans/{scan_id}/snap.dcs/queries", status_code=HTTP_200_OK)
+async def read_queries(request: Request, scan_id: int):
+    return FASTARead.make(queries_iter(get_snap_file(request, scan_id)))
+
+
+@router.get("/scans/{scan_id}/snap.dcs/codons", status_code=HTTP_200_OK)
+async def read_codons(request: Request, scan_id: int):
+    return FASTARead.make(codons_iter(get_snap_file(request, scan_id)))
+
+
+@router.get("/scans/{scan_id}/snap.dcs/aminos", status_code=HTTP_200_OK)
+async def read_aminos(request: Request, scan_id: int):
+    return FASTARead.make(aminos_iter(get_snap_file(request, scan_id)))
+
+
+@router.get("/scans/{scan_id}/snap.dcs/view", status_code=HTTP_200_OK)
+async def view_snap(request: Request, scan_id: int):
+    x = get_snap_file(request, scan_id)
+    return PlainTextResponse(strip_empty_lines(view_alignments(x)))
 
 
 def strip_empty_lines(s):

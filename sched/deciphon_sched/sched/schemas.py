@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from datetime import datetime
 from enum import Enum
+from io import StringIO
 from typing import Optional
 
+import deciphon_snap.snap_file
+import fasta_reader.writer
 import fastapi
 from deciphon_core.schema import (
     DB_NAME_PATTERN,
@@ -11,10 +15,12 @@ from deciphon_core.schema import (
     NAME_MAX_LENGTH,
     SNAP_NAME_PATTERN,
     DBName,
+    Gencode,
     HMMName,
     SnapName,
-    Gencode,
 )
+from deciphon_snap.prod import Prod
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 
 
@@ -167,3 +173,53 @@ class ScanRead(BaseModel):
     multi_hits: bool
     hmmer3_compat: bool
     seqs: list[SeqRead]
+
+
+class ProdRead(BaseModel):
+    seq_id: int
+    profile: str
+    abc: str
+    alt: float
+    null: float
+    evalue: float
+
+    @classmethod
+    def make(cls, x: Prod):
+        return cls(
+            seq_id=x.seq_id,
+            profile=x.profile,
+            abc=x.abc,
+            alt=x.alt,
+            null=x.null,
+            evalue=x.evalue,
+        )
+
+
+class FASTAItem(BaseModel):
+    defline: str
+    sequence: str
+
+
+def queries_iter(snap: deciphon_snap.snap_file.SnapFile):
+    for prod in snap.products:
+        yield FASTAItem(defline=str(prod.seq_id), sequence=prod.match_list.query)
+
+
+def codons_iter(snap: deciphon_snap.snap_file.SnapFile):
+    for prod in snap.products:
+        yield FASTAItem(defline=str(prod.seq_id), sequence=prod.match_list.codon)
+
+
+def aminos_iter(snap: deciphon_snap.snap_file.SnapFile):
+    for prod in snap.products:
+        yield FASTAItem(defline=str(prod.seq_id), sequence=prod.match_list.amino)
+
+
+class FASTARead(PlainTextResponse):
+    @classmethod
+    def make(cls, items: Iterable[FASTAItem]):
+        t = StringIO()
+        w = fasta_reader.writer.Writer(t)
+        for i in items:
+            w.write_item(i.defline, i.sequence)
+        return cls(t.getvalue())

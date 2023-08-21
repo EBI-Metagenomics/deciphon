@@ -292,5 +292,8 @@ class Scan(BaseModel):
         return x if x is None else x._tuple()[0]
 
     @staticmethod
-    def get_all(session: Session):
-        return [x._tuple()[0] for x in session.execute(select(Scan)).all()]
+    def get_all(session: Session, job_id: Optional[int] = None):
+        clause = select(Scan)
+        if job_id is not None:
+            clause = clause.where(Scan.job_id == job_id)
+        return [x._tuple()[0] for x in session.execute(clause).all()]
