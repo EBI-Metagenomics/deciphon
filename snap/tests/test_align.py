@@ -33,11 +33,11 @@ def test_similar_amino(files_path: Path):
     assert align.query_interval.start == 172
     assert align.query_interval.stop == 338
 
-    hits = HitList.make(prod.match_list)
+    hits = HitList.make(prod.match_list.evaluate())
     assert len(hits) == 2
     hit = hits[1]
     x = hit.match_list_interval
-    t = MatchListIntervalBuilder(prod.match_list)
+    t = MatchListIntervalBuilder(prod.match_list.evaluate())
     y = t.make_from_amino_interval(make_amino_interval(domtbl.ali_coord))
 
     assert prod.match_list[x.slice][0].state == "M4"
@@ -64,11 +64,11 @@ def test_same_amino(files_path: Path):
 
 def test_equal_hits(files_path: Path):
     for prod in read_snap(files_path / "consensus.dcs").products:
-        hits = HitList.make(prod.match_list)
+        hits = HitList.make(prod.match_list.evaluate())
         assert len(hits) == len(prod.hmmer.domtbl)
         for hit, domtbl in zip(hits, prod.hmmer.domtbl):
             x = hit.match_list_interval
-            t = MatchListIntervalBuilder(prod.match_list)
+            t = MatchListIntervalBuilder(prod.match_list.evaluate())
             y = t.make_from_amino_interval(make_amino_interval(domtbl.ali_coord))
             assert prod.match_list[x.slice].amino == prod.match_list[y.slice].amino
             assert prod.match_list[x.slice].query == prod.match_list[y.slice].query
@@ -86,7 +86,8 @@ def test_align(files_path: Path):
     assert len(prod.amino) == prod.hmmer.domtbl[0].query.length
     assert prod.matches[5].position == 12
 
-    hits = HitList.make(prod.match_list)
+    hits = HitList.make(prod.match_list.evaluate())
+    assert prod.h3result is not None
     domtbl = prod.h3result.domtbl
     assert len(hits) == 1
     assert len(domtbl) == 1
@@ -95,7 +96,7 @@ def test_align(files_path: Path):
     assert matches.amino[:4] == "FIYG"
     assert matches.amino[-4:] == "GHKQ"
 
-    mb = MatchListIntervalBuilder(prod.match_list)
+    mb = MatchListIntervalBuilder(prod.match_list.evaluate())
     ai = make_amino_interval(domtbl[0].ali_coord)
     amino = prod.amino[ai.slice]
     sl = mb.make_from_amino_interval(ai).slice

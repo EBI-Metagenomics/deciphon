@@ -1,11 +1,12 @@
-from typing import List
+from __future__ import annotations
+
+from typing import List, overload
 
 from pydantic import BaseModel, RootModel
 
 from deciphon_snap.hit import Hit, HitList
 from deciphon_snap.hmmer import H3Result
-from deciphon_snap.match import Match
-from deciphon_snap.match import LazyMatchList, MatchList
+from deciphon_snap.match import LazyMatchList, Match, MatchList
 from deciphon_snap.query_interval import QueryIntervalBuilder
 
 __all__ = ["Prod"]
@@ -67,8 +68,20 @@ class ProdList(RootModel):
     def __len__(self):
         return len(self.root)
 
-    def __getitem__(self, i) -> Prod:
-        return self.root[i]
+    @overload
+    def __getitem__(self, i: int) -> Prod:
+        ...
+
+    @overload
+    def __getitem__(self, i: slice) -> ProdList:
+        ...
+
+    def __getitem__(self, i: int | slice):
+        if isinstance(i, slice):
+            return ProdList.model_validate(self.root[i])
+        prod = self.root[i]
+        assert isinstance(prod, Prod)
+        return prod
 
     def __iter__(self):
         return iter(self.root)

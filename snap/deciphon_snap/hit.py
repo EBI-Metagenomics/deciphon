@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from typing import List, Type, TypeVar
+from typing import List, Type, TypeVar, overload
 
 from pydantic import BaseModel, RootModel
 
-from deciphon_snap.match import MatchList, MatchListInterval
+from deciphon_snap.match import Match, MatchList, MatchListInterval
 from deciphon_snap.query_interval import QueryInterval
-from deciphon_snap.match import Match
 
 __all__ = ["Hit", "HitList"]
 
@@ -60,7 +59,15 @@ class HitList(RootModel):
     def __len__(self):
         return len(self.root)
 
-    def __getitem__(self, i):
+    @overload
+    def __getitem__(self, i: int) -> Hit:
+        ...
+
+    @overload
+    def __getitem__(self, i: slice) -> HitList:
+        ...
+
+    def __getitem__(self, i: int | slice):
         if isinstance(i, slice):
             return HitList.model_validate(self.root[i])
         hit = self.root[i]
