@@ -1,16 +1,17 @@
 version: "3.8"
 services:
   sched:
-    image: sched
-    build: sched
+    image: quay.io/danilohorta/deciphon-sched
     ports:
-      - "8000:8000"
+      - "80:80"
     extra_hosts:
       - "localhost:host-gateway"
     environment:
       - DECIPHON_SCHED_S3_URL=http://localhost:9000
+      - DECIPHON_SCHED_ALLOW_ORIGINS=["http://127.0.0.1:3000","http://localhost:3000"]
       - DECIPHON_SCHED_MQTT_HOST=localhost
       - DECIPHON_SCHED_MQTT_PORT=1883
+      - DECIPHON_SCHED_DATABASE_URL=sqlite:///sched.sqlite
     depends_on:
       - minio
       - mosquitto
@@ -21,7 +22,7 @@ services:
         source: sched
         target: /app
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000"]
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -33,7 +34,7 @@ services:
         "--host",
         "0.0.0.0",
         "--port",
-        "8000",
+        "80",
         "--reload",
         "--log-level",
         "trace"
@@ -44,7 +45,7 @@ services:
     extra_hosts:
       - "localhost:host-gateway"
     environment:
-      - DECIPHONCTL_SCHED_URL=http://localhost:8000
+      - DECIPHONCTL_SCHED_URL=http://localhost:80
       - DECIPHONCTL_MQTT_HOST=localhost
       - DECIPHONCTL_MQTT_PORT=1883
     command: [ "python", "-m", "deciphonctl", "presser", "run" ]
@@ -56,7 +57,7 @@ services:
     extra_hosts:
       - "localhost:host-gateway"
     environment:
-      - DECIPHONCTL_SCHED_URL=http://localhost:8000
+      - DECIPHONCTL_SCHED_URL=http://localhost:80
       - DECIPHONCTL_MQTT_HOST=localhost
       - DECIPHONCTL_MQTT_PORT=1883
     depends_on:
