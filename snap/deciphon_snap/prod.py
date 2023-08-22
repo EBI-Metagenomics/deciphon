@@ -5,6 +5,7 @@ from typing import List, overload
 from pydantic import BaseModel, RootModel
 
 from deciphon_snap.fasta import FASTAItem, FASTAList
+from deciphon_snap.gff import GFFItem, GFFList
 from deciphon_snap.hit import Hit, HitList
 from deciphon_snap.hmmer import H3Result
 from deciphon_snap.match import LazyMatchList, Match, MatchElemName, MatchList
@@ -23,6 +24,27 @@ class Prod(BaseModel):
     evalue: float
     match_list: LazyMatchList
     h3result: H3Result | None = None
+
+    @property
+    def gffs(self):
+        gff_list = GFFList(root=[])
+        for hit in self.hits:
+            start = hit.interval.rinterval.start
+            stop = hit.interval.rinterval.stop
+            attr = f"Profile={self.profile};Alphabet={self.abc}"
+            gff = GFFItem(
+                seqid=str(self.seq_id),
+                source="deciphon",
+                type="CDS",
+                start=start,
+                end=stop,
+                score=self.evalue,
+                strand="+",
+                phase="0",
+                attributes=attr,
+            )
+            gff_list.root.append(gff)
+        return gff_list
 
     @property
     def hits(self) -> list[Hit]:
@@ -86,6 +108,9 @@ class ProdList(RootModel):
 
     def __iter__(self):
         return iter(self.root)
+
+    def gff_list(self):
+        return GFFList(root=[gff for prod in self.root for gff in prod.gffs])
 
     def fasta_list(self, name: MatchElemName):
         return FASTAList(root=list(self._fasta_list(name)))
