@@ -4,8 +4,6 @@ import uvicorn
 from typer import Option, Typer
 from typing_extensions import Annotated
 
-from deciphon_sched.main import create_app
-
 app = Typer()
 
 
@@ -46,5 +44,9 @@ def main(
     log_level: LOG_LEVEL = LogLevel.info,
 ):
     uvicorn.run(
-        create_app(), host=host, port=port, reload=reload, log_level=log_level.value
+        "deciphon_sched.main:app",
+        host=host,
+        port=port,
+        reload=reload,
+        log_level=log_level.value,
     )

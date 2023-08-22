@@ -44,3 +44,6 @@ def create_app(settings: Optional[Settings] = None):
     )
 
     return app
+
+
+app = create_app()
