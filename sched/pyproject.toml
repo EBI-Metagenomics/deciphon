@@ -25,6 +25,7 @@ python-multipart = "^0"
 deciphon-snap = "^0"
 # https://github.com/orgs/python-poetry/discussions/7937#discussioncomment-5921842
 urllib3 = "<2"
+typer = "^0.9.0"
 
 [tool.poetry.extras]
 testing = ["testcontainers", "testcontainers-core", "testcontainers-minio"]
@@ -40,6 +41,9 @@ testcontainers-minio = "^0"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+
+[tool.poetry.scripts]
+deciphon-sched = 'deciphon_sched.cli:app'
 
 [build-system]
 requires = ["poetry-core"]
