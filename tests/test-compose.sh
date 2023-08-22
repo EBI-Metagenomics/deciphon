@@ -11,6 +11,7 @@ cleanup() {
 
 trap "cleanup" EXIT
 
+cd "$(dirname "$0")"
 ./wait-for-it.sh http://localhost:8000 -t 30 -- echo "compose is up"
 
 data=$(
