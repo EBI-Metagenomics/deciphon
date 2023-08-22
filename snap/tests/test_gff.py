@@ -12,3 +12,9 @@ def test_gff(files_path: Path):
     snap_file = read_snap(files_path / "example.dcs")
     prod = snap_file.products[0:2]
     assert prod.gff_list().format() == desired
+
+
+def test_empty_gff(files_path: Path):
+    snap_file = read_snap(files_path / "example.dcs")
+    prod = snap_file.products[0:0]
+    assert prod.gff_list().format() == "##gff-version 3\n"

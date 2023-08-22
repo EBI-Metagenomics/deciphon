@@ -156,3 +156,9 @@ def test_fasta(files_path: Path):
     assert states == prods.fasta_list(MatchElemName.STATE).format(ncols=60)
     assert codons == prods.fasta_list(MatchElemName.CODON).format(ncols=60)
     assert aminos == prods.fasta_list(MatchElemName.AMINO).format(ncols=60)
+
+
+def test_empty_fasta(files_path: Path):
+    snap_file = read_snap(files_path / "example.dcs")
+    prods = snap_file.products[0:0]
+    assert "" == prods.fasta_list(MatchElemName.QUERY).format(ncols=60)
