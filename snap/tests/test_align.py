@@ -1,19 +1,11 @@
-import os
 from pathlib import Path
 
-import pytest
 from hmmer_tables.query import read_query
 
 from deciphon_snap.amino import make_amino_interval
 from deciphon_snap.hit import HitList
 from deciphon_snap.match import MatchListIntervalBuilder
 from deciphon_snap.read_snap import read_snap
-
-
-@pytest.fixture()
-def files_path() -> Path:
-    current_dir = os.path.dirname(__file__)
-    return Path(current_dir) / "files"
 
 
 def test_similar_amino(files_path: Path):

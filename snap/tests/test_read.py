@@ -1,15 +1,7 @@
-import os
 from pathlib import Path
 
-import pytest
 
 from deciphon_snap.read_snap import read_snap
-
-
-@pytest.fixture()
-def files_path() -> Path:
-    current_dir = os.path.dirname(__file__)
-    return Path(current_dir) / "files"
 
 
 def test_read_snap(files_path: Path):

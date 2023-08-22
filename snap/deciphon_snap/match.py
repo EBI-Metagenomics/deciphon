@@ -1,4 +1,5 @@
 from __future__ import annotations
+from enum import Enum
 
 from functools import lru_cache
 from typing import List, overload
@@ -8,7 +9,14 @@ from pydantic import BaseModel, ConfigDict, RootModel
 from deciphon_snap.amino import AminoInterval
 from deciphon_snap.interval import PyInterval
 
-__all__ = ["Match", "MatchList", "LazyMatchList", "MatchListInterval"]
+__all__ = ["Match", "MatchList", "LazyMatchList", "MatchListInterval", "MatchElemName"]
+
+
+class MatchElemName(Enum):
+    QUERY = 1
+    STATE = 2
+    CODON = 3
+    AMINO = 4
 
 
 class Match(BaseModel):
@@ -130,6 +138,10 @@ class LazyMatchList(BaseModel):
     @property
     def query(self):
         return self.evaluate().query
+
+    @property
+    def state(self):
+        return self.evaluate().state
 
     @property
     def codon(self):

@@ -4,9 +4,10 @@ from typing import List, overload
 
 from pydantic import BaseModel, RootModel
 
+from deciphon_snap.fasta import FASTAItem, FASTAList
 from deciphon_snap.hit import Hit, HitList
 from deciphon_snap.hmmer import H3Result
-from deciphon_snap.match import LazyMatchList, Match, MatchList
+from deciphon_snap.match import LazyMatchList, Match, MatchElemName, MatchList
 from deciphon_snap.query_interval import QueryIntervalBuilder
 
 __all__ = ["Prod"]
@@ -85,3 +86,19 @@ class ProdList(RootModel):
 
     def __iter__(self):
         return iter(self.root)
+
+    def fasta_list(self, name: MatchElemName):
+        return FASTAList(root=list(self._fasta_list(name)))
+
+    def _fasta_list(self, name: MatchElemName):
+        for x in self.root:
+            if name == MatchElemName.QUERY:
+                yield FASTAItem(defline=str(x.seq_id), sequence=x.match_list.query)
+            elif name == MatchElemName.STATE:
+                yield FASTAItem(defline=str(x.seq_id), sequence=x.match_list.state)
+            elif name == MatchElemName.CODON:
+                yield FASTAItem(defline=str(x.seq_id), sequence=x.match_list.codon)
+            elif name == MatchElemName.AMINO:
+                yield FASTAItem(defline=str(x.seq_id), sequence=x.match_list.amino)
+            else:
+                assert False
