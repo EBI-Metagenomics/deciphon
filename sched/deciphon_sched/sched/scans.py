@@ -1,6 +1,8 @@
 import tempfile
 from typing import Annotated, Optional
 
+from deciphon_snap.match import MatchElemName
+from deciphon_snap.prod import ProdList
 from deciphon_snap.read_snap import read_snap
 from deciphon_snap.view import view_alignments
 from fastapi import APIRouter, File, Request, Response
@@ -16,14 +18,10 @@ from deciphon_sched.errors import (
 from deciphon_sched.journal import Journal
 from deciphon_sched.sched.models import DB, Scan, Seq, Snap
 from deciphon_sched.sched.schemas import (
-    FASTARead,
     ProdRead,
     ScanCreate,
     ScanRead,
     ScanRequest,
-    aminos_iter,
-    codons_iter,
-    queries_iter,
 )
 
 router = APIRouter()
@@ -151,19 +149,34 @@ async def read_prods(request: Request, scan_id: int):
     return [ProdRead.make(x) for x in get_snap_file(request, scan_id).products]
 
 
+def fasta_repr(products: ProdList, name: MatchElemName):
+    return PlainTextResponse(products.fasta_list(name).format())
+
+
 @router.get("/scans/{scan_id}/snap.dcs/queries", status_code=HTTP_200_OK)
 async def read_queries(request: Request, scan_id: int):
-    return FASTARead.make(queries_iter(get_snap_file(request, scan_id)))
+    return fasta_repr(get_snap_file(request, scan_id).products, MatchElemName.QUERY)
+
+
+@router.get("/scans/{scan_id}/snap.dcs/states", status_code=HTTP_200_OK)
+async def read_states(request: Request, scan_id: int):
+    return fasta_repr(get_snap_file(request, scan_id).products, MatchElemName.STATE)
 
 
 @router.get("/scans/{scan_id}/snap.dcs/codons", status_code=HTTP_200_OK)
 async def read_codons(request: Request, scan_id: int):
-    return FASTARead.make(codons_iter(get_snap_file(request, scan_id)))
+    return fasta_repr(get_snap_file(request, scan_id).products, MatchElemName.CODON)
 
 
 @router.get("/scans/{scan_id}/snap.dcs/aminos", status_code=HTTP_200_OK)
 async def read_aminos(request: Request, scan_id: int):
-    return FASTARead.make(aminos_iter(get_snap_file(request, scan_id)))
+    return fasta_repr(get_snap_file(request, scan_id).products, MatchElemName.AMINO)
+
+
+@router.get("/scans/{scan_id}/snap.dcs/gff", status_code=HTTP_200_OK)
+async def read_gff(request: Request, scan_id: int):
+    x = get_snap_file(request, scan_id).products.gff_list().format()
+    return PlainTextResponse(x)
 
 
 @router.get("/scans/{scan_id}/snap.dcs/view", status_code=HTTP_200_OK)
@@ -178,4 +191,4 @@ def strip_empty_lines(s):
         lines.pop(0)
     while lines and not lines[-1].strip():
         lines.pop()
-    return "\n".join(lines)
+    return "\n".join(lines) + "\n"
