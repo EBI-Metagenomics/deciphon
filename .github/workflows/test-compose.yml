@@ -11,6 +11,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: Run compose
         run: docker compose up -d
+      - name: Sleep
+        run: sleep 140
       - name: Show network
         run: docker network inspect deciphon_default
       - name: Show containers
