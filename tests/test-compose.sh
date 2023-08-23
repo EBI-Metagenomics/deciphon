@@ -1,66 +1,107 @@
 #!/bin/bash
-set -ex
 
 HMM=minifam.hmm
+SCHED_HOST=127.0.0.1
+SCHED_PORT=1515
+S3_HOST=127.0.0.1
+S3_PORT=9000
 
 cleanup() {
   rv=$?
-  rm -rf actual.txt
+  if [ $rv -eq 0 ]
+  then
+    echo 🎉 Success! 🎉
+  else
+    echo 🔥 Failure! 🔥
+  fi
+  rm -rf actual.txt || true
   exit $rv
 }
-
 trap "cleanup" EXIT
-
 cd "$(dirname "$0")"
-./wait-for-it.sh http://localhost:8000 -t 30 -- echo "compose is up"
 
+what() {
+  echo -n "$1... "
+}
+
+ok() {
+  echo "done. ✅"
+}
+
+fail() {
+  exit 1
+}
+
+what "Checking scheduler status"
+./wait-for http://$SCHED_HOST:$SCHED_PORT -t 30 || fail
+ok
+
+what "Fetching presigned-url"
 data=$(
 curl --no-progress-meter \
-  -X 'GET' "http://localhost:8000/hmms/presigned-upload/$HMM" \
+  -X 'GET' "http://$SCHED_HOST:$SCHED_PORT/hmms/presigned-upload/$HMM" \
   -H 'accept: application/json'
-)
+) || fail
+ok
 
-url=$(echo $data | jq '.url' -r)
-form=$(echo $data | jq .fields | jq -r '[to_entries[] | ("-F " + "\(.key)" + "=" + "\(.value)")] | join(" ")')
+what "Parsing presigned response"
+form=$(echo $data | jq .fields | jq -r '[to_entries[] | ("-F " + "\(.key)" + "=" + "\(.value)")] | join(" ")') || fail
+ok
 
-curl --no-progress-meter -X POST $form -F file=@$HMM $url
+what "Uploading HMM file"
+curl --no-progress-meter -X POST $form -F file=@$HMM http://$S3_HOST:$S3_PORT/deciphon || fail
+ok
 
+what "Posting HMM file"
+data=$(
 curl --no-progress-meter \
-  -X 'POST' 'http://localhost:8000/hmms/?gencode=1&epsilon=0.01' \
+  -X 'POST' "http://$SCHED_HOST:$SCHED_PORT/hmms/?gencode=1&epsilon=0.01" \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d "{\"name\": \"$HMM\"}"
+) || fail
+ok
 
-
-function job_state()
+job_state()
 {
   curl --no-progress-meter \
-    -X 'GET' "http://localhost:8000/jobs/$1" \
+    -X 'GET' "http://$1:$2/jobs/$3" \
     -H 'accept: application/json' | jq -r .state
 }
 export -f job_state
 
-function wait_job_done()
+wait_job_done()
 {
-  while [ "$(job_state $1)" != "done" ]
+  while [ "$(job_state $@)" != "done" ]
   do
     sleep 1
   done
 }
 export -f wait_job_done
 
-timeout 5s bash -c "wait_job_done 1"
+what "Waiting for job of pressing HMM"
+timeout 10s bash -c "wait_job_done $SCHED_HOST $SCHED_PORT 1" || fail
+ok
 
+
+what "Submitting a scan request"
 curl --no-progress-meter \
-  -X 'POST' 'http://localhost:8000/scans/' \
+  -X 'POST' "http://$SCHED_HOST:$SCHED_PORT/scans/" \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
-  -d @scan.json
+  -d @scan.json > /dev/null || fail
+ok
 
-timeout 5s bash -c "wait_job_done 2"
+what "Waiting for job of scanning to be done"
+timeout 10s bash -c "wait_job_done $SCHED_HOST $SCHED_PORT 2" || fail
+ok
 
+what "Viewing scan alignment"
 curl --no-progress-meter \
-  -X 'GET' 'http://localhost:8000/scans/1/snap.dcs/view' \
-  -H 'accept: application/json' > actual.txt
+  -X 'GET' "http://$SCHED_HOST:$SCHED_PORT/scans/1/snap.dcs/view" \
+  -H 'accept: application/json' > actual.txt || fail
+ok
 
-diff desired.txt actual.txt
+what "Diffing desired and actual output from alignment"
+diff desired.txt actual.txt || fail
+ok
