@@ -32,6 +32,11 @@ fail() {
   exit 1
 }
 
+curl -f http://localhost:1515
+curl -f http://localhost:1515
+curl http://localhost:1515
+curl http://localhost:1515
+
 what "Checking scheduler status"
 ./wait-for http://$SCHED_HOST:$SCHED_PORT -t 15 || fail
 ok
