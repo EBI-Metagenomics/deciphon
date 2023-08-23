@@ -32,6 +32,7 @@ fail() {
   exit 1
 }
 
+sleep 30
 curl -f http://localhost:1515
 curl -f http://localhost:1515
 curl http://localhost:1515
