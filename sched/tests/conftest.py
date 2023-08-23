@@ -1,12 +1,18 @@
 import pytest
 
 from deciphon_sched.settings import Settings
+from deciphon_sched.logger import Logger
 from deciphon_sched.testing import mqtt_server, s3_cleanup, s3_server
 
 
 @pytest.fixture
 def settings():
     return Settings()
+
+
+@pytest.fixture
+def logger(settings: Settings):
+    return Logger(settings)
 
 
 mqtt = pytest.fixture(mqtt_server, scope="package")

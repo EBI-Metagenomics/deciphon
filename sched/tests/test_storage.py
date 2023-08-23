@@ -3,15 +3,16 @@ from pathlib import Path
 import requests
 from pydantic import HttpUrl
 
+from deciphon_sched.logger import Logger
 from deciphon_sched.settings import Settings
 from deciphon_sched.storage import Storage
 
 
-def test_storage(s3, settings: Settings, tmp_path: Path):
+def test_storage(s3, settings: Settings, logger: Logger, tmp_path: Path):
     settings.s3_key = s3["access_key"]
     settings.s3_secret = s3["secret_key"]
     settings.s3_url = HttpUrl(s3["url"])
-    storage = Storage(settings)
+    storage = Storage(settings, logger)
 
     info = storage.presigned_upload("example.txt")
 

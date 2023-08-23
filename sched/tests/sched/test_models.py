@@ -1,3 +1,4 @@
+from deciphon_sched.logger import Logger
 from deciphon_sched.sched.schemas import Gencode
 import pytest
 from sqlalchemy import select
@@ -26,8 +27,8 @@ def dbfile():
 
 
 @pytest.fixture()
-def session(settings: Settings):
-    database = Database(settings)
+def session(settings: Settings, logger: Logger):
+    database = Database(settings, logger)
     database.create_tables(metadata())
     yield database.create_session()
 
