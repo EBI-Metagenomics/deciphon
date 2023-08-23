@@ -5,11 +5,12 @@ import fasta_reader
 import rich
 import typer
 from deciphon_core.schema import Gencode
+from loguru import logger
 from typer import Argument, FileText, Option
 from typing_extensions import Annotated
 
 from deciphonctl import settings
-from deciphonctl.models import DBFile, HMMFile, Scan, Seq
+from deciphonctl.models import DBFile, HMMFile, LogLevel, Scan, Seq
 from deciphonctl.presser import presser_entry
 from deciphonctl.scanner import scanner_entry
 from deciphonctl.sched import Sched
@@ -166,16 +167,23 @@ def snap_view(scan_id: SCANID):
     print(sched.snap_view(scan_id))
 
 
+LOG_LEVEL = Annotated[LogLevel, Option(help="Log level.")]
+
+
 @presser.command("run")
-def presser_run(num_workers: int = 1):
+def presser_run(num_workers: int = 1, log_level: LOG_LEVEL = LogLevel.info):
     raise_sigint_on_sigterm()
+    logger.remove()
+    logger.add(sys.stderr, level=log_level.value.upper())
     sched = Sched(settings.sched_url)
     presser_entry(sched, num_workers)
 
 
 @scanner.command("run")
-def scanner_run(num_workers: int = 1):
+def scanner_run(num_workers: int = 1, log_level: LOG_LEVEL = LogLevel.info):
     raise_sigint_on_sigterm()
+    logger.remove()
+    logger.add(sys.stderr, level=log_level.value.upper())
     sched = Sched(settings.sched_url)
     scanner_entry(sched, num_workers)
 

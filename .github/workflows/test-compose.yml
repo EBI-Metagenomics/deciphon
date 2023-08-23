@@ -11,5 +11,4 @@ jobs:
       - name: Run compose
         run : docker compose up -d
       - name: Run tests
-        working-directory: tests
-        run: ./test-compose.sh
+        run: ./tests/test-compose.sh

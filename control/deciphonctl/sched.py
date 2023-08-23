@@ -29,6 +29,7 @@ class SchedHTTPError(HTTPError):
 
 class Sched:
     def __init__(self, url: HttpUrl):
+        logger.info(f"Sched URL: {url}")
         self._url = url
 
     def handle_http_response(self, response):
@@ -36,18 +37,21 @@ class Sched:
         if not response.ok:
             raise SchedHTTPError(response)
 
-    def get(self, url, params=None, **kwargs):
-        response = requests.get(url, params=params, **kwargs)
+    def get(self, url, params=None):
+        logger.debug(f"GET url={url} params={params}")
+        response = requests.get(url, params=params)
         self.handle_http_response(response)
         return response
 
-    def post(self, url: str, data=None, json=None, **kwargs):
-        response = requests.post(url, data=data, json=json, **kwargs)
+    def post(self, url: str, data=None, json=None, params=None, files=None):
+        logger.debug(f"POST url={url} data={data} json={json}")
+        response = requests.post(url, data=data, json=json, params=params, files=files)
         self.handle_http_response(response)
         return response
 
-    def patch(self, url: str, data=None, **kwargs):
-        response = requests.patch(url, data=data, **kwargs)
+    def patch(self, url: str, data=None, json=None):
+        logger.debug(f"PATCH url={url} data={data} json={json}")
+        response = requests.patch(url, data=data, json=json)
         self.handle_http_response(response)
         return response
 

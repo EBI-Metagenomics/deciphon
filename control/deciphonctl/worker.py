@@ -23,6 +23,7 @@ def worker_loop(topic: str, queue: JoinableQueue, consumers: list[Process]):
         try:
             host = settings.mqtt_host
             port = settings.mqtt_port
+            logger.info(f"connecting to MQTT {host}:{port}")
             subscribe.callback(on_message, [topic], 0, queue, host, port)
         except KeyboardInterrupt:
             logger.info("shutdown requested")
