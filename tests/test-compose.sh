@@ -32,14 +32,8 @@ fail() {
   exit 1
 }
 
-sleep 30
-curl -f http://localhost:1515
-curl -f http://localhost:1515
-curl http://localhost:1515
-curl http://localhost:1515
-
 what "Checking scheduler status"
-./wait-for http://$SCHED_HOST:$SCHED_PORT -t 15 || fail
+./wait-for http://$SCHED_HOST:$SCHED_PORT -t 30 || fail
 ok
 
 what "Fetching presigned-url"
