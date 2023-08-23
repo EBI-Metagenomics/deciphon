@@ -5,6 +5,7 @@ SCHED_HOST=localhost
 SCHED_PORT=1515
 S3_HOST=localhost
 S3_PORT=9000
+TIMEOUT=30
 
 cleanup() {
   rv=$?
@@ -33,7 +34,7 @@ fail() {
 }
 
 what "Checking scheduler status"
-./wait-for http://$SCHED_HOST:$SCHED_PORT -t 30 || fail
+./wait-for http://$SCHED_HOST:$SCHED_PORT -t $TIMEOUT || fail
 ok
 
 what "Fetching presigned-url"
@@ -80,7 +81,7 @@ wait_job_done()
 export -f wait_job_done
 
 what "Waiting for job of pressing HMM"
-timeout 10s bash -c "wait_job_done $SCHED_HOST $SCHED_PORT 1" || fail
+timeout $TIMEOUT bash -c "wait_job_done $SCHED_HOST $SCHED_PORT 1" || fail
 ok
 
 
@@ -93,7 +94,7 @@ curl --no-progress-meter \
 ok
 
 what "Waiting for job of scanning to be done"
-timeout 10s bash -c "wait_job_done $SCHED_HOST $SCHED_PORT 2" || fail
+timeout $TIMEOUT bash -c "wait_job_done $SCHED_HOST $SCHED_PORT 2" || fail
 ok
 
 what "Viewing scan alignment"

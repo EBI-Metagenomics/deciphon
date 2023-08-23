@@ -17,10 +17,6 @@ services:
       - mosquitto
       - presser
       - scanner
-    volumes:
-      - type: bind
-        source: sched
-        target: /app
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://127.0.0.1:8080" ]
       interval: 10s
@@ -33,12 +29,11 @@ services:
         "0.0.0.0",
         "--port",
         "8080",
-        "--reload",
         "--log-level",
         "debug"
       ]
   presser:
-    image: presser
+    image: quay.io/danilohorta/deciphonctl
     restart: unless-stopped
     build: control
     environment:
@@ -56,7 +51,7 @@ services:
     depends_on:
       - mosquitto
   scanner:
-    image: scanner
+    image: quay.io/danilohorta/deciphonctl
     restart: unless-stopped
     build: control
     environment:
@@ -74,7 +69,7 @@ services:
         "debug"
       ]
   minio:
-    image: "quay.io/minio/minio"
+    image: quay.io/minio/minio
     restart: unless-stopped
     ports:
       - "9000:9000"
@@ -92,7 +87,7 @@ services:
       retries: 10
     command: [ "server", "/data", "--console-address", ":9001" ]
   mosquitto:
-    image: "eclipse-mosquitto"
+    image: docker.io/library/eclipse-mosquitto
     ports:
       - "1883:1883"
     healthcheck:
