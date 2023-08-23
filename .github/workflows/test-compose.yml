@@ -12,14 +12,22 @@ jobs:
       - name: Run compose
         run: docker compose up -d
       - name: Sleep
-        run: sleep 140
-      - name: Show network
-        run: docker network inspect deciphon_default
+        run: sleep 30
       - name: Show containers
         run: docker compose ps
       - name: Logs
         run: docker compose logs
-      - name: Show ports
-        run: sudo ss -lntu
+      - name: Sleep
+        run: sleep 30
+      - name: Show containers
+        run: docker compose ps
+      - name: Logs
+        run: docker compose logs
+      - name: Sleep
+        run: sleep 30
+      - name: Show containers
+        run: docker compose ps
+      - name: Logs
+        run: docker compose logs
       - name: Run tests
         run: ./tests/test-compose.sh
