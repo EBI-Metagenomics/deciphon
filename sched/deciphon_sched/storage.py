@@ -4,6 +4,7 @@ import boto3
 from botocore.exceptions import ClientError
 from pydantic import BaseModel, HttpUrl
 from deciphon_sched.logger import Logger
+from botocore.config import Config
 
 from deciphon_sched.settings import Settings
 
@@ -16,6 +17,7 @@ class Storage:
             endpoint_url=settings.s3_url.unicode_string(),
             aws_access_key_id=settings.s3_key,
             aws_secret_access_key=settings.s3_secret,
+            config=Config(retries={"max_attempts": 15, "mode": "standard"}),
         )
         self._bucket = settings.s3_bucket
         if not self._bucket_exists():
