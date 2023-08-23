@@ -1,9 +1,9 @@
 #!/bin/bash
 
 HMM=minifam.hmm
-SCHED_HOST=127.0.0.1
+SCHED_HOST=localhost
 SCHED_PORT=1515
-S3_HOST=127.0.0.1
+S3_HOST=localhost
 S3_PORT=9000
 
 cleanup() {
