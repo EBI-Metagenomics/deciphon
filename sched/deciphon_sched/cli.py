@@ -25,21 +25,18 @@ HOST = Annotated[
     str,
     Option(help="Bind socket to this host."),
 ]
-
 PORT = Annotated[
     int,
     Option(help="Bind socket to this port. If 0, an available port will be picked."),
 ]
-
 RELOAD = Annotated[bool, Option(help="Enable auto-reload.")]
-
 LOG_LEVEL = Annotated[LogLevel, Option(help="Log level.")]
 
 
 @app.command()
 def main(
-    host: HOST = "127.0.0.1",
-    port: PORT = 8000,
+    host: HOST = "0.0.0.0",
+    port: PORT = 8080,
     reload: RELOAD = False,
     log_level: LOG_LEVEL = LogLevel.info,
 ):
