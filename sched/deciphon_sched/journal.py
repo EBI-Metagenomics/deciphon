@@ -1,13 +1,14 @@
 from aiomqtt import Client
-from loguru import logger
+from deciphon_sched.logger import Logger
 
 from deciphon_sched.settings import Settings
 
 
 class Journal:
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, logger: Logger):
         self._mqtt = Client(hostname=settings.mqtt_host, port=settings.mqtt_port)
         self._topic = settings.mqtt_topic
+        self._logger = logger
 
     async def __aenter__(self):
         await self._mqtt.__aenter__()
@@ -18,5 +19,5 @@ class Journal:
 
     async def publish(self, subject: str, payload: str):
         topic = f"/{self._topic}/{subject}"
-        logger.info(f"publishing <{payload}> to <{topic}>")
+        self._logger.handler.info(f"publishing <{payload}> to <{topic}>")
         await self._mqtt.publish(topic, payload)

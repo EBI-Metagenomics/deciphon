@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from deciphon_sched.database import Database
 from deciphon_sched.errors import integrity_error_handler
 from deciphon_sched.journal import Journal
+from deciphon_sched.logger import Logger
 from deciphon_sched.sched import router
 from deciphon_sched.sched.models import metadata
 from deciphon_sched.settings import Settings
@@ -17,10 +18,11 @@ from deciphon_sched.storage import Storage
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings: Settings = app.state.settings
-    app.state.database = Database(settings)
+    logger: Logger = app.state.logger
+    app.state.database = Database(settings, logger)
     app.state.database.create_tables(metadata())
-    app.state.storage = Storage(settings)
-    app.state.journal = Journal(settings)
+    app.state.storage = Storage(settings, logger)
+    app.state.journal = Journal(settings, logger)
     async with app.state.journal:
         yield
     app.state.database.dispose()
@@ -30,6 +32,7 @@ def create_app(settings: Optional[Settings] = None):
     settings = settings or Settings()
     app = FastAPI(lifespan=lifespan)
     app.state.settings = settings
+    app.state.logger = Logger(settings)
 
     app.include_router(router, prefix=settings.endpoint_prefix)
 

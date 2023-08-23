@@ -3,12 +3,14 @@ from __future__ import annotations
 import boto3
 from botocore.exceptions import ClientError
 from pydantic import BaseModel, HttpUrl
+from deciphon_sched.logger import Logger
 
 from deciphon_sched.settings import Settings
 
 
 class Storage:
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, logger: Logger):
+        self._logger = logger
         self._s3 = boto3.client(
             "s3",
             endpoint_url=settings.s3_url.unicode_string(),
@@ -17,9 +19,11 @@ class Storage:
         )
         self._bucket = settings.s3_bucket
         if not self._bucket_exists():
+            self._logger.handler.debug(f"creating bucket {self._bucket}")
             self._s3.create_bucket(Bucket=self._bucket)
 
     def _bucket_exists(self):
+        self._logger.handler.debug(f"checking if bucket {self._bucket} exists")
         try:
             self._s3.head_bucket(Bucket=self._bucket)
             return True
@@ -29,10 +33,12 @@ class Storage:
             raise e
 
     def presigned_upload(self, file: str) -> PresignedUpload:
+        self._logger.handler.debug(f"generating presigned upload for file {file}")
         x = self._s3.generate_presigned_post(self._bucket, file)
         return PresignedUpload(url=HttpUrl(x["url"]), fields=x["fields"])
 
     def presigned_download(self, file: str) -> PresignedDownload:
+        self._logger.handler.debug(f"generating presigned download for file {file}")
         params = {"Bucket": self._bucket, "Key": file}
         x = self._s3.generate_presigned_url("get_object", Params=params)
         return PresignedDownload(url=HttpUrl(x))

@@ -1,5 +1,19 @@
 from pydantic import HttpUrl, AnyUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from enum import Enum
+
+
+class LogLevel(str, Enum):
+    debug = "debug"
+    info = "info"
+    warning = "warning"
+    error = "error"
+    critical = "critical"
+
+    # Enum of Python3.10 returns a different string representation.
+    # Make it return the same as in Python3.11
+    def __str__(self):
+        return str(self.value)
 
 
 class Settings(BaseSettings):
@@ -7,6 +21,7 @@ class Settings(BaseSettings):
 
     endpoint_prefix: str = ""
     allow_origins: list[str] = ["http://localhost"]
+    log_level: LogLevel = LogLevel.info
 
     database_url: AnyUrl = AnyUrl("sqlite+pysqlite:///:memory:")
 
