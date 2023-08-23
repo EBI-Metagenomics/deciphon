@@ -1,9 +1,6 @@
 # Welcome to Deciphon projects 👋
 
-The main part of Deciphon is its core. It is implemented in C and built on top
-of [IMM](https://github.com/EBI-Metagenomics/imm) library to define the protein
-models using hidden Markov Models and perform inference using the Viterbi
-method.
+The main part of Deciphon is its core. It is implemented in C and built on top of [IMM](https://github.com/EBI-Metagenomics/imm) library to define protein using hidden Markov models and perform inference using the Viterbi method.
 
 ## Quick start
 
@@ -13,8 +10,7 @@ Its command-line interface can be installed by
 pip install deciphon
 ```
 
-It will run on MacOS and Linux operating systems.
-After installing it, just enter
+if you have a working Python environment. It will run on MacOS and Linux operating systems. After installing it, just enter
 
 ```sh
 deciphon --help

@@ -17,6 +17,8 @@ jobs:
         run: docker network inspect deciphon_default
       - name: Show containers
         run: docker compose ps
+      - name: Logs
+        run: docker compose logs
       - name: Show ports
         run: sudo ss -lntu
       - name: Run tests
