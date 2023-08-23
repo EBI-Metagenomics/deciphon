@@ -33,7 +33,7 @@ fail() {
 }
 
 what "Checking scheduler status"
-./wait-for http://$SCHED_HOST:$SCHED_PORT -t 120 || fail
+./wait-for http://$SCHED_HOST:$SCHED_PORT -t 15 || fail
 ok
 
 what "Fetching presigned-url"

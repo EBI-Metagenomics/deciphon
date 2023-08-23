@@ -3,12 +3,17 @@ name: Test compose
 on:
   push:
 
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Run compose
-        run : docker compose up -d
+        run: docker compose up -d
+      - name: Show network
+        run: docker network inspect deciphon_default
+      - name: Show containers
+        run: docker compose ps
       - name: Run tests
         run: ./tests/test-compose.sh
