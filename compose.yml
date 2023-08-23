@@ -2,6 +2,7 @@ version: "3.8"
 services:
   sched:
     image: quay.io/danilohorta/deciphon-sched
+    restart: unless-stopped
     ports:
       - "1515:8080"
     environment:
@@ -38,6 +39,7 @@ services:
       ]
   presser:
     image: presser
+    restart: unless-stopped
     build: control
     environment:
       - DECIPHONCTL_SCHED_URL
@@ -55,6 +57,7 @@ services:
       - mosquitto
   scanner:
     image: scanner
+    restart: unless-stopped
     build: control
     environment:
       - DECIPHONCTL_SCHED_URL
@@ -72,6 +75,7 @@ services:
       ]
   minio:
     image: "quay.io/minio/minio"
+    restart: unless-stopped
     ports:
       - "9000:9000"
       - "9001:9001"
