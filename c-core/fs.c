@@ -16,6 +16,7 @@
 #include "fs.h"
 #include "array_size.h"
 #include "rc.h"
+#include "strkcpy.h"
 #include <assert.h>
 #include <errno.h>
 #include <ftw.h>
@@ -223,4 +224,18 @@ int dcp_fs_size(char const *filepath, long *size)
   if (stat(filepath, &st)) return DCP_EFSTAT;
   *size = (long)st.st_size;
   return 0;
+}
+
+int dcp_fs_mkstemp(FILE **fp, char const *template)
+{
+  char path[PATH_MAX] = {0};
+  if (!strkcpy(path, template, sizeof path)) return DCP_ENOMEM;
+
+  int fd = mkstemp(path);
+  if (fd < 0) return DCP_EMKSTEMP;
+
+  int rc = dcp_fs_rmfile(path);
+  if (rc) return rc;
+
+  return (*fp = fdopen(fd, "w+b")) ? 0 : DCP_EFDOPEN;
 }

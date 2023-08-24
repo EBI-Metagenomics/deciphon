@@ -35,27 +35,42 @@ static int pack_amino(struct lip_file *file, struct imm_amino const *amino)
   return 0;
 }
 
-static void destroy_tempfiles(struct dcp_db_writer *db)
+static void nullify_tempfiles(struct dcp_db_writer *x)
 {
-  if (db->tmp.header.fp) fclose(db->tmp.header.fp);
-  if (db->tmp.prot_sizes.fp) fclose(db->tmp.prot_sizes.fp);
-  if (db->tmp.proteins.fp) fclose(db->tmp.proteins.fp);
+  x->tmp.header.fp = NULL;
+  x->tmp.sizes.fp = NULL;
+  x->tmp.proteins.fp = NULL;
 }
 
-static int create_tempfiles(struct dcp_db_writer *db)
+static void destroy_tempfiles(struct dcp_db_writer *x)
 {
-  lip_file_init(&db->tmp.header, tmpfile());
-  lip_file_init(&db->tmp.prot_sizes, tmpfile());
-  lip_file_init(&db->tmp.proteins, tmpfile());
+  if (x->tmp.header.fp) fclose(x->tmp.header.fp);
+  if (x->tmp.sizes.fp) fclose(x->tmp.sizes.fp);
+  if (x->tmp.proteins.fp) fclose(x->tmp.proteins.fp);
+  nullify_tempfiles(x);
+}
 
+static int create_tempfiles(struct dcp_db_writer *x)
+{
+  nullify_tempfiles(x);
   int rc = 0;
-  if (!db->tmp.header.fp || !db->tmp.prot_sizes.fp || !db->tmp.proteins.fp)
-    defer_return(DCP_EOPENTMP);
+
+  FILE **header = &x->tmp.header.fp;
+  FILE **sizes = &x->tmp.sizes.fp;
+  FILE **proteins = &x->tmp.proteins.fp;
+
+  if ((rc = dcp_fs_mkstemp(header, ".header_XXXXXX"))) defer_return(rc);
+  if ((rc = dcp_fs_mkstemp(sizes, ".sizes_XXXXXX"))) defer_return(rc);
+  if ((rc = dcp_fs_mkstemp(proteins, ".proteins_XXXXXX"))) defer_return(rc);
+
+  lip_file_init(&x->tmp.header, *header);
+  lip_file_init(&x->tmp.sizes, *sizes);
+  lip_file_init(&x->tmp.proteins, *proteins);
 
   return rc;
 
 defer:
-  destroy_tempfiles(db);
+  destroy_tempfiles(x);
   return rc;
 }
 
@@ -102,7 +117,7 @@ static int db_writer_pack_prof(struct dcp_db_writer *db, void const *arg)
   if ((end - start) > UINT_MAX) return DCP_ELARGEPROTEIN;
 
   unsigned prot_size = (unsigned)(end - start);
-  if (!lip_write_int(&db->tmp.prot_sizes, prot_size)) return DCP_EFWRITE;
+  if (!lip_write_int(&db->tmp.sizes, prot_size)) return DCP_EFWRITE;
 
   db->nproteins++;
   return rc;
@@ -115,13 +130,13 @@ static int pack_header_prot_sizes(struct dcp_db_writer *db)
   if (!lip_write_1darray_size_type(&db->file, db->nproteins, type))
     return DCP_EFWRITE;
 
-  rewind(lip_file_ptr(&db->tmp.prot_sizes));
+  rewind(lip_file_ptr(&db->tmp.sizes));
 
   unsigned size = 0;
-  while (lip_read_int(&db->tmp.prot_sizes, &size))
+  while (lip_read_int(&db->tmp.sizes, &size))
     lip_write_1darray_u32_item(&db->file, size);
 
-  if (!feof(lip_file_ptr(&db->tmp.prot_sizes))) return DCP_EFWRITE;
+  if (!feof(lip_file_ptr(&db->tmp.sizes))) return DCP_EFWRITE;
 
   return 0;
 }

@@ -15,8 +15,11 @@ struct dcp_db_writer
   struct lip_file file;
   struct
   {
+    char header_name[PATH_MAX];
+    char sizes_name[PATH_MAX];
+    char proteins_name[PATH_MAX];
     struct lip_file header;
-    struct lip_file prot_sizes;
+    struct lip_file sizes;
     struct lip_file proteins;
   } tmp;
 

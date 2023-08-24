@@ -61,6 +61,8 @@ static char const *msg[] = {
     [DCP_EH3CMAXRETRY] = "reached maximum number of retries on hmmer daemon",
     [DCP_EH3CWARMUP] = "failed to warmup hmmer daemon",
     [DCP_ESEQABC] = "failed to set sequence alphabet",
+    [DCP_EFDOPEN] = "failed to open file descriptor",
+    [DCP_EMKSTEMP] = "failed to make temporary file",
 };
 
 char const *dcp_strerror(int errno)

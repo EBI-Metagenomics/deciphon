@@ -20,5 +20,6 @@ int dcp_fs_rmfile(char const *filepath);
 int dcp_fs_touch(char const *filepath);
 int dcp_fs_rmtree(char const *dirpath);
 int dcp_fs_size(char const *filepath, long *size);
+int dcp_fs_mkstemp(FILE **fp, char const *template);
 
 #endif

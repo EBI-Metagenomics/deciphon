@@ -1,4 +1,5 @@
 #include "model.h"
+#include "defer_return.h"
 #include "entry_dist.h"
 #include "imm/imm.h"
 #include "model.h"
@@ -155,6 +156,7 @@ static void model_reset(struct dcp_model *x)
 
 int dcp_model_setup(struct dcp_model *x, unsigned core_size)
 {
+  int rc = 0;
   if (core_size == 0) return DCP_EZEROMODEL;
 
   if (core_size > DCP_MODEL_MAX) return DCP_ELARGEMODEL;
@@ -165,22 +167,31 @@ int dcp_model_setup(struct dcp_model *x, unsigned core_size)
   x->alt.node_idx = 0;
 
   void *ptr = realloc(x->alt.nodes, n * sizeof(*x->alt.nodes));
-  if (!ptr && n > 0) return DCP_ENOMEM;
+  if (!ptr && n > 0) defer_return(DCP_ENOMEM);
   x->alt.nodes = ptr;
 
   if (x->params.entry_dist == DCP_ENTRY_DIST_OCCUPANCY)
   {
     ptr = realloc(x->alt.locc, n * sizeof(*x->alt.locc));
-    if (!ptr && n > 0) return DCP_ENOMEM;
+    if (!ptr && n > 0) defer_return(DCP_ENOMEM);
     x->alt.locc = ptr;
   }
   x->alt.trans_idx = 0;
   ptr = realloc(x->alt.trans, (n + 1) * sizeof(*x->alt.trans));
-  if (!ptr) return DCP_ENOMEM;
+  if (!ptr) defer_return(DCP_ENOMEM);
   x->alt.trans = ptr;
 
   model_reset(x);
   return add_xnodes(x);
+
+defer:
+  free(x->alt.nodes);
+  free(x->alt.locc);
+  free(x->alt.trans);
+  x->alt.nodes = NULL;
+  x->alt.locc = NULL;
+  x->alt.trans = NULL;
+  return rc;
 }
 
 void dcp_model_write_dot(struct dcp_model const *x, FILE *fp)

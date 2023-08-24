@@ -94,6 +94,7 @@ static int alloc_match_nuclt_dists(struct dcp_protein_alts *x)
   if (!ptr && size > 0)
   {
     free(x->match_nuclt_dists);
+    x->match_nuclt_dists = NULL;
     return DCP_ENOMEM;
   }
   x->match_nuclt_dists = ptr;
