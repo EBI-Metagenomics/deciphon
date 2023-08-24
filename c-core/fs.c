@@ -16,6 +16,7 @@
 #include "fs.h"
 #include "array_size.h"
 #include "rc.h"
+#include "size.h"
 #include "strkcpy.h"
 #include <assert.h>
 #include <errno.h>
@@ -228,7 +229,7 @@ int dcp_fs_size(char const *filepath, long *size)
 
 int dcp_fs_mkstemp(FILE **fp, char const *template)
 {
-  char path[PATH_MAX] = {0};
+  char path[DCP_PATH_MAX] = {0};
   if (!strkcpy(path, template, sizeof path)) return DCP_ENOMEM;
 
   int fd = mkstemp(path);

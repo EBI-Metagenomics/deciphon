@@ -6,6 +6,7 @@
 #include "lip/lip.h"
 #include "model_params.h"
 #include "rc.h"
+#include "size.h"
 #include <stdio.h>
 
 struct dcp_db_writer
@@ -15,9 +16,9 @@ struct dcp_db_writer
   struct lip_file file;
   struct
   {
-    char header_name[PATH_MAX];
-    char sizes_name[PATH_MAX];
-    char proteins_name[PATH_MAX];
+    char header_name[DCP_PATH_MAX];
+    char sizes_name[DCP_PATH_MAX];
+    char proteins_name[DCP_PATH_MAX];
     struct lip_file header;
     struct lip_file sizes;
     struct lip_file proteins;
