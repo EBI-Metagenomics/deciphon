@@ -7,6 +7,7 @@ from deciphon_core.scan import Scan
 from deciphon_core.scan_params import ScanParams
 from deciphon_core.schema import DBFile, HMMFile, NewSnapFile
 from deciphon_core.seq import Seq
+from loguru import logger
 from pydantic import FilePath
 
 from deciphonctl.consumer import Consumer
@@ -43,7 +44,6 @@ class Scanner(Consumer):
 
     def callback(self, message: str):
         x = ScanRequest.model_validate_json(message)
-        print(x)
 
         hmmfile = Path(x.hmm.name)
         dbfile = Path(x.db.name)
@@ -58,17 +58,16 @@ class Scanner(Consumer):
 
         with unique_temporary_file(".dcs") as t:
             snap = NewSnapFile(path=t)
-            print(snap)
 
             num_threads = 1
             lrt_threshold = 0.0
 
             db = DBFile(path=FilePath(dbfile))
-            print(db)
 
             seqs = [Seq(seq.id, seq.name, seq.data) for seq in x.seqs]
             seqit = sequence_iterator(seqs, x.job_id, "scan", self._qout)
 
+            logger.info("starting h3daemon")
             with H3Daemon(HMMFile(path=FilePath(hmmfile)), stdout=DEVNULL) as daemon:
                 params = ScanParams(
                     num_threads=num_threads,
@@ -76,12 +75,12 @@ class Scanner(Consumer):
                     multi_hits=x.multi_hits,
                     hmmer3_compat=x.hmmer3_compat,
                 )
-                print(params)
+                logger.info(f"scan parameters: {params}")
                 scan = Scan()
                 scan.dial(daemon.port)
                 scan.setup(params)
                 scan.run(db, seqit, snap)
-                print(
+                logger.info(
                     "Scan has finished successfully and "
                     f"results stored in '{snap.path}'."
                 )
