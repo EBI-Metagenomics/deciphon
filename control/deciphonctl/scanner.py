@@ -9,7 +9,6 @@ from deciphon_core.schema import DBFile, HMMFile, NewSnapFile
 from deciphon_core.seq import Seq
 from pydantic import FilePath
 
-from deciphonctl import settings
 from deciphonctl.consumer import Consumer
 from deciphonctl.download import download
 from deciphonctl.files import (
@@ -21,6 +20,7 @@ from deciphonctl.models import JobUpdate, ScanRequest
 from deciphonctl.progress_informer import ProgressInformer
 from deciphonctl.progress_logger import ProgressLogger
 from deciphonctl.sched import Sched
+from deciphonctl.settings import Settings
 from deciphonctl.worker import worker_loop
 
 
@@ -48,11 +48,13 @@ class Scanner(Consumer):
         hmmfile = Path(x.hmm.name)
         dbfile = Path(x.db.name)
 
-        with atomic_file_creation(hmmfile) as t:
-            download(self._sched.presigned.download_hmm_url(hmmfile.name), t)
+        if not hmmfile.exists():
+            with atomic_file_creation(hmmfile) as t:
+                download(self._sched.presigned.download_hmm_url(hmmfile.name), t)
 
-        with atomic_file_creation(dbfile) as t:
-            download(self._sched.presigned.download_db_url(dbfile.name), t)
+        if not dbfile.exists():
+            with atomic_file_creation(dbfile) as t:
+                download(self._sched.presigned.download_db_url(dbfile.name), t)
 
         with unique_temporary_file(".dcs") as t:
             snap = NewSnapFile(path=t)
@@ -86,11 +88,11 @@ class Scanner(Consumer):
             self._sched.snap_post(x.id, snap.path)
 
 
-def scanner_entry(sched: Sched, num_workers: int):
+def scanner_entry(settings: Settings, sched: Sched, num_workers: int):
     qin = JoinableQueue()
     qout = JoinableQueue()
     informer = ProgressInformer(sched, qout)
     pressers = [Scanner(sched, qin, qout) for _ in range(num_workers)]
     consumers = [Process(target=x.run, daemon=True) for x in pressers]
     consumers += [Process(target=informer.run, daemon=True)]
-    worker_loop(f"/{settings.mqtt_topic}/scan", qin, consumers)
+    worker_loop(settings, f"/{settings.mqtt_topic}/scan", qin, consumers)

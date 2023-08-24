@@ -7,7 +7,6 @@ from deciphon_core.schema import HMMFile
 from loguru import logger
 from pydantic import FilePath, HttpUrl
 
-from deciphonctl import settings
 from deciphonctl.consumer import Consumer
 from deciphonctl.download import download
 from deciphonctl.files import atomic_file_creation, remove_temporary_files
@@ -16,6 +15,7 @@ from deciphonctl.permissions import normalise_file_permissions
 from deciphonctl.progress_informer import ProgressInformer
 from deciphonctl.progress_logger import ProgressLogger
 from deciphonctl.sched import Sched
+from deciphonctl.settings import Settings
 from deciphonctl.url import url_filename
 from deciphonctl.worker import worker_loop
 
@@ -77,11 +77,11 @@ class Presser(Consumer):
             raise exception
 
 
-def presser_entry(sched: Sched, num_workers: int):
+def presser_entry(settings: Settings, sched: Sched, num_workers: int):
     qin = JoinableQueue()
     qout = JoinableQueue()
     informer = ProgressInformer(sched, qout)
     pressers = [Presser(sched, qin, qout) for _ in range(num_workers)]
     consumers = [Process(target=x.run, daemon=True) for x in pressers]
     consumers += [Process(target=informer.run, daemon=True)]
-    worker_loop(f"/{settings.mqtt_topic}/press", qin, consumers)
+    worker_loop(settings, f"/{settings.mqtt_topic}/press", qin, consumers)

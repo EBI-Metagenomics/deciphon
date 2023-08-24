@@ -4,7 +4,7 @@ from multiprocessing import JoinableQueue, Process
 import paho.mqtt.subscribe as subscribe
 from loguru import logger
 
-from deciphonctl import settings
+from deciphonctl.settings import Settings
 
 
 def on_message(client, queue: JoinableQueue, x):
@@ -15,7 +15,9 @@ def on_message(client, queue: JoinableQueue, x):
     queue.put(payload)
 
 
-def worker_loop(topic: str, queue: JoinableQueue, consumers: list[Process]):
+def worker_loop(
+    settings: Settings, topic: str, queue: JoinableQueue, consumers: list[Process]
+):
     for x in consumers:
         x.start()
 

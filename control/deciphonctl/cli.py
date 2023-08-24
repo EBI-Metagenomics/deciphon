@@ -9,7 +9,7 @@ from loguru import logger
 from typer import Argument, FileText, Option
 from typing_extensions import Annotated
 
-from deciphonctl import settings
+from deciphonctl.settings import Settings
 from deciphonctl.models import DBFile, HMMFile, LogLevel, Scan, Seq
 from deciphonctl.presser import presser_entry
 from deciphonctl.scanner import scanner_entry
@@ -69,6 +69,7 @@ scanner = typer.Typer()
 
 @hmm.command("add")
 def hmm_add(hmmfile: HMMFILE, gencode: GENCODE, epsilon: EPSILON = 0.01):
+    settings = Settings()
     sched = Sched(settings.sched_url)
     sched.upload(hmmfile, sched.presigned.upload_hmm_post(hmmfile.name))
     sched.hmm_post(HMMFile(name=hmmfile.name), gencode, epsilon)
@@ -76,18 +77,21 @@ def hmm_add(hmmfile: HMMFILE, gencode: GENCODE, epsilon: EPSILON = 0.01):
 
 @hmm.command("rm")
 def hmm_rm(hmm_id: HMMID):
+    settings = Settings()
     sched = Sched(settings.sched_url)
     sched.hmm_delete(hmm_id)
 
 
 @hmm.command("ls")
 def hmm_ls():
+    settings = Settings()
     sched = Sched(settings.sched_url)
     rich.print(sched.hmm_list())
 
 
 @db.command("add")
 def db_add(dbfile: DBFILE, gencode: GENCODE, epsilon: EPSILON = 0.01):
+    settings = Settings()
     sched = Sched(settings.sched_url)
     sched.upload(dbfile, sched.presigned.upload_db_post(dbfile.name))
     sched.db_post(DBFile(name=dbfile.name, gencode=gencode, epsilon=epsilon))
@@ -95,18 +99,21 @@ def db_add(dbfile: DBFILE, gencode: GENCODE, epsilon: EPSILON = 0.01):
 
 @db.command("rm")
 def db_rm(db_id: DBID):
+    settings = Settings()
     sched = Sched(settings.sched_url)
     sched.db_delete(db_id)
 
 
 @db.command("ls")
 def db_ls():
+    settings = Settings()
     sched = Sched(settings.sched_url)
     rich.print(sched.db_list())
 
 
 @job.command("ls")
 def job_ls():
+    settings = Settings()
     sched = Sched(settings.sched_url)
     rich.print(sched.job_list())
 
@@ -118,6 +125,7 @@ def scan_add(
     multi_hits: MULTIHITS = True,
     hmmer3_compat: HMMER3COMPAT = False,
 ):
+    settings = Settings()
     seqs = [Seq(name=x.id, data=x.sequence) for x in fasta_reader.Reader(fasta)]
     x = Scan(db_id=db_id, multi_hits=multi_hits, hmmer3_compat=hmmer3_compat, seqs=seqs)
     sched = Sched(settings.sched_url)
@@ -126,30 +134,35 @@ def scan_add(
 
 @scan.command("rm")
 def scan_rm(scan_id: SCANID):
+    settings = Settings()
     sched = Sched(settings.sched_url)
     sched.scan_delete(scan_id)
 
 
 @scan.command("ls")
 def scan_ls():
+    settings = Settings()
     sched = Sched(settings.sched_url)
     rich.print(sched.scan_list())
 
 
 @seq.command("ls")
 def seq_ls():
+    settings = Settings()
     sched = Sched(settings.sched_url)
     rich.print(sched.seq_list())
 
 
 @scan.command("snap-add")
 def snap_add(scan_id: SCANID, snap: SNAPFILE):
+    settings = Settings()
     sched = Sched(settings.sched_url)
     sched.snap_post(scan_id, snap)
 
 
 @scan.command("snap-get")
 def snap_get(scan_id: SCANID, output_file: OUTFILE = Path("snap.dcs")):
+    settings = Settings()
     sched = Sched(settings.sched_url)
     with open(output_file, "wb") as file:
         file.write(sched.snap_get(scan_id))
@@ -157,12 +170,14 @@ def snap_get(scan_id: SCANID, output_file: OUTFILE = Path("snap.dcs")):
 
 @scan.command("snap-rm")
 def snap_rm(scan_id: SCANID):
+    settings = Settings()
     sched = Sched(settings.sched_url)
     sched.snap_delete(scan_id)
 
 
 @scan.command("snap-view")
 def snap_view(scan_id: SCANID):
+    settings = Settings()
     sched = Sched(settings.sched_url)
     print(sched.snap_view(scan_id))
 
@@ -172,20 +187,22 @@ LOG_LEVEL = Annotated[LogLevel, Option(help="Log level.")]
 
 @presser.command("run")
 def presser_run(num_workers: int = 1, log_level: LOG_LEVEL = LogLevel.info):
+    settings = Settings()
     raise_sigint_on_sigterm()
     logger.remove()
     logger.add(sys.stderr, level=log_level.value.upper())
     sched = Sched(settings.sched_url)
-    presser_entry(sched, num_workers)
+    presser_entry(settings, sched, num_workers)
 
 
 @scanner.command("run")
 def scanner_run(num_workers: int = 1, log_level: LOG_LEVEL = LogLevel.info):
+    settings = Settings()
     raise_sigint_on_sigterm()
     logger.remove()
     logger.add(sys.stderr, level=log_level.value.upper())
     sched = Sched(settings.sched_url)
-    scanner_entry(sched, num_workers)
+    scanner_entry(settings, sched, num_workers)
 
 
 app = typer.Typer()

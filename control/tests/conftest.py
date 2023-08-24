@@ -84,5 +84,7 @@ def compose(mqtt, s3, settings: Settings):
 
 @pytest.fixture
 def runner(compose):
-    compose["runner"] = CliRunner()
+    prefix = compose["settings"].model_config["env_prefix"]
+    env = {f"{prefix}{k}": str(v) for k, v in compose["settings"].model_dump().items()}
+    compose["runner"] = CliRunner(env={k.upper(): v for k, v in env.items()})
     yield compose["runner"]
