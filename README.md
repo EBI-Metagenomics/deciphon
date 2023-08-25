@@ -29,6 +29,12 @@ in the terminal to show usage information.
     ├─ snap/            Reader for Deciphon snap files written in Python.
     ├─ tests/           Unit tests.
 
+## Compose
+
+The relevant files are `compose.yml` and `compose.cfg`. You can launch it via `docker compose --env-file compose.cfg up` and test it running `./tests/test-compose.sh`. Once it is running, open `http://127.0.0.1:1515/docs` to have an overview of the RESTful API.
+
+You might want to change the variable `DECIPHON_SCHED_ALLOW_ORIGINS` in the file `compose.cfg` to the hostname of a web server.
+
 ## 👤 Author
 
 - [Danilo Horta](https://github.com/horta)
