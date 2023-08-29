@@ -29,7 +29,8 @@ bool have_called_setup(struct dcp_model *);
 bool have_finished_add(struct dcp_model const *);
 
 void init_delete(struct imm_mute_state *, struct dcp_model *);
-void init_insert(struct imm_frame_state *, struct dcp_model *);
+void init_insert(struct imm_frame_state *, float epsilon,
+                 struct dcp_nuclt_dist const *, unsigned node_idx);
 void init_match(struct imm_frame_state *, struct dcp_model *,
                 struct dcp_nuclt_dist *);
 
@@ -72,7 +73,10 @@ int dcp_model_add_node(struct dcp_model *x, float const lprobs[IMM_AMINO_SIZE],
   init_match(&n->M, x, &n->match.nucltd);
   if (imm_hmm_add_state(&x->alt.hmm, &n->M.super)) return DCP_EADDSTATE;
 
-  init_insert(&n->I, x);
+  init_insert(&n->I, x->params.epsilon, &x->alt.insert.nucltd, x->alt.node_idx);
+  if (x->alt.node_idx == 0)
+    init_insert(&x->background.state, x->params.epsilon,
+                &x->background.nuclt_dist, 0);
   if (imm_hmm_add_state(&x->alt.hmm, &n->I.super)) return DCP_EADDSTATE;
 
   init_delete(&n->D, x);
@@ -103,16 +107,17 @@ void dcp_model_cleanup(struct dcp_model const *x)
     free(x->alt.nodes);
     free(x->alt.locc);
     free(x->alt.trans);
+    free(x->BMk);
   }
 }
 
 void dcp_model_init(struct dcp_model *x, struct dcp_model_params params,
                     float const null_lprobs[IMM_AMINO_SIZE])
-
 {
   x->params = params;
   x->core_size = 0;
   x->consensus[0] = '\0';
+  x->BMk = NULL;
   struct imm_nuclt const *nuclt = x->params.code->nuclt;
 
   memcpy(x->null.lprobs, null_lprobs, sizeof *null_lprobs * IMM_AMINO_SIZE);
@@ -127,6 +132,8 @@ void dcp_model_init(struct dcp_model *x, struct dcp_model_params params,
   float const lodds[IMM_AMINO_SIZE] = {0};
   setup_nuclt_dist(params.gencode, &x->alt.insert.nucltd, params.amino, nuclt,
                    lodds);
+  setup_nuclt_dist(params.gencode, &x->background.nuclt_dist, params.amino,
+                   nuclt, lodds);
 
   init_xnodes(x);
 
@@ -166,7 +173,11 @@ int dcp_model_setup(struct dcp_model *x, unsigned core_size)
   unsigned n = x->core_size;
   x->alt.node_idx = 0;
 
-  void *ptr = realloc(x->alt.nodes, n * sizeof(*x->alt.nodes));
+  void *ptr = realloc(x->BMk, n * sizeof(*x->BMk));
+  if (!ptr && n > 0) defer_return(DCP_ENOMEM);
+  x->BMk = ptr;
+
+  ptr = realloc(x->alt.nodes, n * sizeof(*x->alt.nodes));
   if (!ptr && n > 0) defer_return(DCP_ENOMEM);
   x->alt.nodes = ptr;
 
@@ -257,6 +268,9 @@ void init_xnodes(struct dcp_model *x)
 
   struct imm_span w = imm_span(1, 5);
   imm_frame_state_init(&n->null.R, STATE_R, nucltp, codonm, e, w);
+  // TODO: this is not xnode. Might refactor it?
+  imm_frame_state_init(&x->null.state, STATE_R, &x->null.nuclt_dist.nucltp,
+                       &x->null.nuclt_dist.codonm, e, w);
 
   imm_mute_state_init(&n->alt.S, STATE_S, &nuclt->super);
   imm_frame_state_init(&n->alt.N, STATE_N, nucltp, codonm, e, w);
@@ -308,12 +322,13 @@ void init_delete(struct imm_mute_state *state, struct dcp_model *x)
   imm_mute_state_init(state, id, &x->params.code->nuclt->super);
 }
 
-void init_insert(struct imm_frame_state *state, struct dcp_model *x)
+void init_insert(struct imm_frame_state *state, float epsilon,
+                 struct dcp_nuclt_dist const *nucltd, unsigned node_idx)
 {
-  float e = x->params.epsilon;
-  unsigned id = STATE_INSERT | (x->alt.node_idx + 1);
-  struct imm_nuclt_lprob *nucltp = &x->alt.insert.nucltd.nucltp;
-  struct imm_codon_marg *codonm = &x->alt.insert.nucltd.codonm;
+  float e = epsilon;
+  unsigned id = STATE_INSERT | (node_idx + 1);
+  struct imm_nuclt_lprob const *nucltp = &nucltd->nucltp;
+  struct imm_codon_marg const *codonm = &nucltd->codonm;
 
   imm_frame_state_init(state, id, nucltp, codonm, e, imm_span(1, 5));
 }
@@ -448,6 +463,7 @@ int setup_entry_trans(struct dcp_model *x)
     for (unsigned i = 0; i < x->core_size; ++i)
     {
       struct node *node = x->alt.nodes + i;
+      x->BMk[i] = cost;
       if (imm_hmm_set_trans(&x->alt.hmm, B, &node->M.super, cost))
         return DCP_ESETTRANS;
     }
@@ -460,6 +476,7 @@ int setup_entry_trans(struct dcp_model *x)
     for (unsigned i = 0; i < x->core_size; ++i)
     {
       struct node *node = x->alt.nodes + i;
+      x->BMk[i] = x->alt.locc[i];
       if (imm_hmm_set_trans(&x->alt.hmm, B, &node->M.super, x->alt.locc[i]))
         return DCP_ESETTRANS;
     }

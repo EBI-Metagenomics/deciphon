@@ -30,8 +30,15 @@ struct dcp_model
   {
     float lprobs[IMM_AMINO_SIZE];
     struct dcp_nuclt_dist nuclt_dist;
+    struct imm_frame_state state;
     struct imm_hmm hmm;
   } null;
+
+  struct
+  {
+    struct dcp_nuclt_dist nuclt_dist;
+    struct imm_frame_state state;
+  } background;
 
   struct
   {
@@ -47,6 +54,8 @@ struct dcp_model
       struct dcp_nuclt_dist nucltd;
     } insert;
   } alt;
+
+  float *BMk;
 };
 
 int dcp_model_add_node(struct dcp_model *, float const lp[IMM_AMINO_SIZE],
