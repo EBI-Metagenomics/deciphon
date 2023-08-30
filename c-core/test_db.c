@@ -35,16 +35,22 @@ static void test_protein_db_writer(void)
   eq(dcp_db_writer_open(&db, fp), 0);
 
   struct dcp_protein protein = {};
+  struct p7 p7 = {};
   dcp_protein_init(&protein, params);
+  p7_init(&p7, params);
   dcp_protein_set_accession(&protein, "accession0");
+  p7_set_accession(&p7, "accession0");
 
   unsigned core_size = 2;
   dcp_protein_sample(&protein, 1, core_size);
-  eq(dcp_db_writer_pack(&db, &protein), 0);
+  p7_sample(&p7, 1, core_size);
+  eq(dcp_db_writer_pack(&db, &protein, &p7), 0);
 
   dcp_protein_sample(&protein, 2, core_size);
-  eq(dcp_db_writer_pack(&db, &protein), 0);
+  p7_sample(&p7, 2, core_size);
+  eq(dcp_db_writer_pack(&db, &protein, &p7), 0);
 
+  p7_cleanup(&p7);
   dcp_protein_cleanup(&protein);
   eq(dcp_db_writer_close(&db), 0);
   fclose(fp);
@@ -120,8 +126,10 @@ static void test_protein_db_reader(void)
   struct imm_gencode const *gencode = imm_gencode_get(1);
 
   struct dcp_protein protein = {};
+  struct p7 p7 = {};
   dcp_protein_init(&protein, dcp_protein_reader_params(&reader, gencode));
-  while (!(rc = dcp_protein_iter_next(&it, &protein)))
+  p7_init(&p7, dcp_protein_reader_params(&reader, gencode));
+  while (!(rc = dcp_protein_iter_next(&it, &protein, &p7)))
   {
     if (dcp_protein_iter_end(&it)) break;
 

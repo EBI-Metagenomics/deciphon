@@ -35,6 +35,7 @@ void p7_setup(struct p7 *, unsigned seq_size, bool multi_hits,
               bool hmmer3_compat);
 int p7_absorb(struct p7 *, struct dcp_model *);
 int p7_sample(struct p7 *, unsigned seed, unsigned core_size);
+void p7_cleanup(struct p7 *);
 void p7_dump(struct p7 const *, FILE *restrict);
 
 int p7_pack(struct p7 const *, struct lip_file *);

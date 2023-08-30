@@ -3,6 +3,7 @@
 
 #include "chararray.h"
 #include "hmmer.h"
+#include "p7.h"
 #include "protein_iter.h"
 #include "scan_task.h"
 #include <stdio.h>
@@ -12,6 +13,7 @@ struct dcp_prod_writer_thrd;
 
 struct dcp_scan_thrd
 {
+  struct p7 p7;
   struct dcp_protein protein;
   struct dcp_protein_iter iter;
 

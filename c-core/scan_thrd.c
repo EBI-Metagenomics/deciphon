@@ -24,6 +24,7 @@ int dcp_scan_thrd_setup(struct dcp_scan_thrd *x,
 {
   struct dcp_db_reader const *db = params.reader->db;
   dcp_protein_init(&x->protein, dcp_db_reader_params(db, NULL));
+  p7_init(&x->p7, dcp_db_reader_params(db, NULL));
   int rc = 0;
 
   if ((rc = dcp_protein_reader_iter(params.reader, params.partition, &x->iter)))
@@ -45,6 +46,7 @@ int dcp_scan_thrd_setup(struct dcp_scan_thrd *x,
   return rc;
 
 defer:
+  p7_cleanup(&x->p7);
   dcp_protein_cleanup(&x->protein);
   dcp_chararray_cleanup(&x->amino);
   return rc;
@@ -71,7 +73,7 @@ int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct dcp_seq const *seq)
 
   if ((rc = dcp_protein_iter_rewind(it))) goto cleanup;
 
-  while (!(rc = dcp_protein_iter_next(it, &x->protein)))
+  while (!(rc = dcp_protein_iter_next(it, &x->protein, &x->p7)))
   {
     if (dcp_protein_iter_end(it)) break;
 

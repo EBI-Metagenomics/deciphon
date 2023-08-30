@@ -174,6 +174,18 @@ cleanup:
   return rc;
 }
 
+void p7_cleanup(struct p7 *x)
+{
+  if (x)
+  {
+    imm_score_table_cleanup(&x->score_table);
+    if (x->nodes) free(x->nodes);
+    if (x->BMk) free(x->BMk);
+    x->nodes = NULL;
+    x->BMk = NULL;
+  }
+}
+
 void p7_dump(struct p7 const *x, FILE *restrict fp)
 {
   fprintf(fp, "# p7\n");
