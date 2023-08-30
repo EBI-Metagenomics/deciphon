@@ -1,6 +1,7 @@
 #include "p7.h"
 #include "array_size_field.h"
 #include "defer_return.h"
+#include "expect.h"
 #include "lip/1darray/1darray.h"
 #include "lip/file/file.h"
 #include "lip/lip.h"
@@ -219,4 +220,154 @@ void p7_dump(struct p7 const *x, FILE *restrict fp)
   imm_dump_array_f32(x->core_size, x->BMk, fp);
   fputc('\n', fp);
   fputc('\n', fp);
+}
+
+int p7_pack(struct p7 const *x, struct lip_file *file)
+{
+  int rc = 0;
+
+  if (!lip_write_map_size(file, 10)) return DCP_EFWRITE;
+
+  if (!lip_write_cstr(file, "accession")) return DCP_EFWRITE;
+  if (!lip_write_cstr(file, x->accession)) return DCP_EFWRITE;
+
+  if (!lip_write_cstr(file, "gencode")) return DCP_EFWRITE;
+  if (!lip_write_int(file, x->params.gencode->id)) return DCP_EFWRITE;
+
+  if (!lip_write_cstr(file, "consensus")) return DCP_EFWRITE;
+  if (!lip_write_cstr(file, x->consensus)) return DCP_EFWRITE;
+
+  if (!lip_write_cstr(file, "core_size")) return DCP_EFWRITE;
+  if (!lip_write_int(file, x->core_size)) return DCP_EFWRITE;
+
+  if (!lip_write_cstr(file, "null_nuclt_dist")) return DCP_EFWRITE;
+  if ((rc = dcp_nuclt_dist_pack(&x->null.nuclt_dist, file))) return rc;
+
+  if (!lip_write_cstr(file, "null_emission")) return DCP_EFWRITE;
+  if (!lip_write_1darray_size_type(file, P7_NODE_SIZE, LIP_1DARRAY_F32))
+    return DCP_EFWRITE;
+  if (!lip_write_1darray_float_data(file, P7_NODE_SIZE, x->null.emission))
+    return DCP_EFWRITE;
+
+  if (!lip_write_cstr(file, "bg_nuclt_dist")) return DCP_EFWRITE;
+  if ((rc = dcp_nuclt_dist_pack(&x->bg.nuclt_dist, file))) return rc;
+
+  if (!lip_write_cstr(file, "bg_emission")) return DCP_EFWRITE;
+  if (!lip_write_1darray_size_type(file, P7_NODE_SIZE, LIP_1DARRAY_F32))
+    return DCP_EFWRITE;
+  if (!lip_write_1darray_float_data(file, P7_NODE_SIZE, x->bg.emission))
+    return DCP_EFWRITE;
+
+  if (!lip_write_cstr(file, "nodes")) return DCP_EFWRITE;
+  if (!lip_write_map_size(file, (x->core_size + 1) * 3)) return DCP_EFWRITE;
+  for (unsigned i = 0; i < x->core_size + 1; ++i)
+  {
+    if (!lip_write_cstr(file, "nuclt_dist")) return DCP_EFWRITE;
+    if ((rc = dcp_nuclt_dist_pack(&x->nodes[i].nuclt_dist, file))) return rc;
+
+    if (!lip_write_cstr(file, "trans")) return DCP_EFWRITE;
+    if (!lip_write_1darray_size_type(file, TRANS_SIZE, LIP_1DARRAY_F32))
+      return DCP_EFWRITE;
+    if (!lip_write_1darray_float_data(file, TRANS_SIZE, x->nodes[i].trans.data))
+      return DCP_EFWRITE;
+
+    if (!lip_write_cstr(file, "emission")) return DCP_EFWRITE;
+    if (!lip_write_1darray_size_type(file, P7_NODE_SIZE, LIP_1DARRAY_F32))
+      return DCP_EFWRITE;
+    if (!lip_write_1darray_float_data(file, P7_NODE_SIZE, x->nodes[i].emission))
+      return DCP_EFWRITE;
+  }
+
+  if (!lip_write_cstr(file, "BMk")) return DCP_EFWRITE;
+  if (!lip_write_1darray_size_type(file, x->core_size, LIP_1DARRAY_F32))
+    return DCP_EFWRITE;
+  if (!lip_write_1darray_float_data(file, x->core_size, x->BMk))
+    return DCP_EFWRITE;
+
+  return 0;
+}
+
+int p7_unpack(struct p7 *x, struct lip_file *file)
+{
+  unsigned const accession_size = array_size_field(struct p7, accession);
+  unsigned const consensus_size = array_size_field(struct p7, consensus);
+
+  int rc = 0;
+  unsigned size = 0;
+  enum lip_1darray_type type = 0;
+
+  if ((rc = dcp_expect_map_size(file, 10))) return rc;
+
+  if ((rc = dcp_expect_map_key(file, "accession"))) return rc;
+  if (!lip_read_cstr(file, accession_size, x->accession)) return DCP_EFREAD;
+
+  unsigned gencode_id = 0;
+  if ((rc = dcp_expect_map_key(file, "gencode"))) return rc;
+  if (!lip_read_int(file, &gencode_id)) return DCP_EFREAD;
+  if (!(x->params.gencode = imm_gencode_get(gencode_id))) return DCP_EFREAD;
+
+  if ((rc = dcp_expect_map_key(file, "consensus"))) return rc;
+  if (!lip_read_cstr(file, consensus_size, x->consensus)) return DCP_EFREAD;
+
+  if ((rc = dcp_expect_map_key(file, "core_size"))) return rc;
+  if (!lip_read_int(file, &x->core_size)) return DCP_EFREAD;
+
+  if ((rc = dcp_expect_map_key(file, "null_nuclt_dist"))) return rc;
+  if ((rc = dcp_nuclt_dist_unpack(&x->null.nuclt_dist, file))) return rc;
+
+  if ((rc = dcp_expect_map_key(file, "null_emission"))) return rc;
+  lip_read_1darray_size_type(file, &size, &type);
+  if (type != LIP_1DARRAY_F32) return rc;
+  if (size != P7_NODE_SIZE) return DCP_EFREAD;
+  if (!lip_read_1darray_float_data(file, P7_NODE_SIZE, x->null.emission))
+    return DCP_EFWRITE;
+
+  if ((rc = dcp_expect_map_key(file, "bg_nuclt_dist"))) return rc;
+  if ((rc = dcp_nuclt_dist_unpack(&x->bg.nuclt_dist, file))) return rc;
+
+  if ((rc = dcp_expect_map_key(file, "bg_emission"))) return rc;
+  lip_read_1darray_size_type(file, &size, &type);
+  if (type != LIP_1DARRAY_F32) return rc;
+  if (size != P7_NODE_SIZE) return DCP_EFREAD;
+  if (!lip_read_1darray_float_data(file, P7_NODE_SIZE, x->bg.emission))
+    return DCP_EFWRITE;
+
+  void *ptr = realloc(x->nodes, (x->core_size + 1) * sizeof(*x->nodes));
+  if (!ptr) return DCP_EFWRITE;
+  x->nodes = ptr;
+
+  if ((rc = dcp_expect_map_key(file, "nodes"))) return rc;
+  if ((rc = dcp_expect_map_size(file, (x->core_size + 1) * 3))) return rc;
+  for (unsigned i = 0; i < x->core_size + 1; ++i)
+  {
+    if ((rc = dcp_expect_map_key(file, "nuclt_dist"))) return rc;
+    if ((rc = dcp_nuclt_dist_unpack(&x->nodes[i].nuclt_dist, file))) return rc;
+
+    if ((rc = dcp_expect_map_key(file, "trans"))) return rc;
+    lip_read_1darray_size_type(file, &size, &type);
+    if (type != LIP_1DARRAY_F32) return rc;
+    if (size != TRANS_SIZE) return DCP_EFREAD;
+    if (!lip_read_1darray_float_data(file, TRANS_SIZE, x->nodes[i].trans.data))
+      return DCP_EFWRITE;
+
+    if ((rc = dcp_expect_map_key(file, "emission"))) return rc;
+    lip_read_1darray_size_type(file, &size, &type);
+    if (type != LIP_1DARRAY_F32) return rc;
+    if (size != P7_NODE_SIZE) return DCP_EFREAD;
+    if (!lip_read_1darray_float_data(file, P7_NODE_SIZE, x->nodes[i].emission))
+      return DCP_EFWRITE;
+  }
+
+  if ((rc = dcp_expect_map_key(file, "BMk"))) return rc;
+  lip_read_1darray_size_type(file, &size, &type);
+  if (type != LIP_1DARRAY_F32) return rc;
+  if (size != x->core_size) return DCP_EFREAD;
+
+  ptr = realloc(x->BMk, x->core_size * sizeof(*x->BMk));
+  if (!ptr && x->core_size > 0) return DCP_EFWRITE;
+  x->BMk = ptr;
+  if (!lip_read_1darray_float_data(file, x->core_size, x->BMk))
+    return DCP_EFWRITE;
+
+  return 0;
 }

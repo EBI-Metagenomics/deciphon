@@ -1,6 +1,7 @@
 #include "array_size.h"
 #include "array_size_field.h"
 #include "imm/imm.h"
+#include "p7.h"
 #include "scan_thrd.h"
 #include <stdlib.h>
 #include <string.h>
@@ -467,9 +468,9 @@ float vit(struct p7 *x, struct imm_eseq const *eseq)
   return score;
 }
 
-void vit_dump(struct dcp_scan_thrd *x, FILE *restrict fp)
+void vit_dump(struct p7 *x, FILE *restrict fp)
 {
-  int core_size = x->p7.core_size;
+  int core_size = x->core_size;
 
   float const mute_emission = IMM_LPROB_ONE;
   float const emis_B = mute_emission;
@@ -495,8 +496,8 @@ void vit_dump(struct dcp_scan_thrd *x, FILE *restrict fp)
   fprintf(fp, f32f, emis_T);
   fputc('\n', fp);
 
-  float const *restrict null_emission = x->p7.null.emission;
-  float const *restrict background_emission = x->p7.bg.emission;
+  float const *restrict null_emission = x->null.emission;
+  float const *restrict background_emission = x->bg.emission;
   float const *restrict emis_I = background_emission;
   float const *restrict emis_N = null_emission;
   float const *restrict emis_J = null_emission;
@@ -521,7 +522,7 @@ void vit_dump(struct dcp_scan_thrd *x, FILE *restrict fp)
 
   for (int k = 0; k < core_size; ++k)
   {
-    float const *match_emission = x->p7.nodes[k].emission;
+    float const *match_emission = x->nodes[k].emission;
 
     fprintf(fp, "M%d: ", k + 1);
     size_t n = array_size_field(struct p7_node, emission);
@@ -530,11 +531,11 @@ void vit_dump(struct dcp_scan_thrd *x, FILE *restrict fp)
   }
 }
 
-void vit_dump_dot(struct dcp_scan_thrd *x, FILE *restrict fp)
+void vit_dump_dot(struct p7 *x, FILE *restrict fp)
 {
   char const *f32f = imm_fmt_get_f32();
 
-  struct extra_trans const xtrans = extra_trans(x->p7.xtrans);
+  struct extra_trans const xtrans = extra_trans(x->xtrans);
 
   fprintf(fp, "S -> B [label=");
   fprintf(fp, f32f, xtrans.SB);
@@ -584,10 +585,10 @@ void vit_dump_dot(struct dcp_scan_thrd *x, FILE *restrict fp)
   fprintf(fp, f32f, xtrans.JB);
   fprintf(fp, "];\n");
 
-  int core_size = x->p7.core_size;
+  int core_size = x->core_size;
   for (int k = 0; k + 1 < core_size; ++k)
   {
-    struct dcp_trans const *restrict trans = &x->p7.nodes[k].trans;
+    struct dcp_trans const *restrict trans = &x->nodes[k].trans;
     int i0 = k + 1;
     int i1 = k + 2;
     fprintf(fp, "D%d -> D%d [label=", i0, i1);
@@ -635,7 +636,7 @@ void vit_dump_dot(struct dcp_scan_thrd *x, FILE *restrict fp)
   fprintf(fp, f32f, xtrans.DE);
   fprintf(fp, "];\n");
 
-  float const *restrict trans_BM = x->p7.BMk;
+  float const *restrict trans_BM = x->BMk;
   for (int k = 0; k < core_size; ++k)
   {
     fprintf(fp, "B -> M%d [label=", k + 1);

@@ -97,32 +97,6 @@ static int db_writer_pack_float_size(struct dcp_db_writer *db)
   return 0;
 }
 
-static int pack_protein(struct lip_file *file, void const *protein)
-{
-  return dcp_protein_pack(protein, file);
-}
-
-static int db_writer_pack_prof(struct dcp_db_writer *db, void const *arg)
-{
-  int rc = 0;
-
-  long start = 0;
-  if ((rc = dcp_fs_tell(lip_file_ptr(&db->tmp.proteins), &start))) return rc;
-
-  if ((rc = pack_protein(&db->tmp.proteins, arg))) return rc;
-
-  long end = 0;
-  if ((rc = dcp_fs_tell(lip_file_ptr(&db->tmp.proteins), &end))) return rc;
-
-  if ((end - start) > UINT_MAX) return DCP_ELARGEPROTEIN;
-
-  unsigned prot_size = (unsigned)(end - start);
-  if (!lip_write_int(&db->tmp.sizes, prot_size)) return DCP_EFWRITE;
-
-  db->nproteins++;
-  return rc;
-}
-
 static int pack_header_prot_sizes(struct dcp_db_writer *db)
 {
   enum lip_1darray_type type = LIP_1DARRAY_UINT32;
@@ -212,8 +186,24 @@ defer:
   return rc;
 }
 
-int dcp_db_writer_pack(struct dcp_db_writer *db,
+int dcp_db_writer_pack(struct dcp_db_writer *x,
                        struct dcp_protein const *protein)
 {
-  return db_writer_pack_prof(db, protein);
+  int rc = 0;
+
+  long start = 0;
+  if ((rc = dcp_fs_tell(lip_file_ptr(&x->tmp.proteins), &start))) return rc;
+
+  if ((rc = dcp_protein_pack(protein, &x->tmp.proteins))) return rc;
+
+  long end = 0;
+  if ((rc = dcp_fs_tell(lip_file_ptr(&x->tmp.proteins), &end))) return rc;
+
+  if ((end - start) > UINT_MAX) return DCP_ELARGEPROTEIN;
+
+  unsigned prot_size = (unsigned)(end - start);
+  if (!lip_write_int(&x->tmp.sizes, prot_size)) return DCP_EFWRITE;
+
+  x->nproteins++;
+  return rc;
 }
