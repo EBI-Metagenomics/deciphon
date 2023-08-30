@@ -14,6 +14,7 @@ struct p7_background
 struct imm_score_table;
 struct dcp_model;
 
+void p7_background_init(struct p7_background *);
 void p7_background_absorb(struct p7_background *, struct dcp_model const *,
                           struct imm_score_table *);
 

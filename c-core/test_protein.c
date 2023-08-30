@@ -1,5 +1,7 @@
 #include "deciphon/codec.h"
+#include "deciphon/p7.h"
 #include "deciphon/protein.h"
+#include "deciphon/vit.h"
 #include "imm/imm.h"
 #include "vendor/minctest.h"
 
@@ -32,14 +34,19 @@ static void test_protein_uniform(void)
   };
 
   struct dcp_protein protein = {};
+  struct p7 p7 = {};
   dcp_protein_init(&protein, params);
+  p7_init(&p7, params);
   dcp_protein_set_accession(&protein, "accession");
+  p7_set_accession(&p7, "accession");
   eq(dcp_protein_sample(&protein, 1, 2), 0);
+  eq(p7_sample(&p7, 1, 2), 0);
 
   char const str[] = "ATGAAACGCATTAGCACCACCATTACCACCAC";
   struct imm_seq seq = imm_seq(IMM_STR(str), &nuclt->super);
 
   dcp_protein_setup(&protein, imm_seq_size(&seq), true, false);
+  p7_setup(&p7, imm_seq_size(&seq), true, false);
 
   struct imm_prod prod = imm_prod();
   struct imm_dp *dp = &protein.null.dp;
@@ -50,6 +57,7 @@ static void test_protein_uniform(void)
   eq(imm_dp_viterbi(dp, task, &prod), 0);
 
   close(prod.loglik, -48.9272687711);
+  close(vit_null(&p7, &eseq), prod.loglik);
 
   eq(imm_path_nsteps(&prod.path), 11U);
   char name[IMM_STATE_NAME_SIZE];
@@ -75,6 +83,7 @@ static void test_protein_uniform(void)
   eq(imm_dp_viterbi(dp, task, &prod), 0);
 
   close(prod.loglik, -55.59428153448);
+  close(vit(&p7, &eseq), prod.loglik);
 
   eq(imm_path_nsteps(&prod.path), 14U);
 
