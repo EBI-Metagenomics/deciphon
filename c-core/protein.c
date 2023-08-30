@@ -230,3 +230,35 @@ void dcp_protein_cleanup(struct dcp_protein *x)
     dcp_protein_alts_cleanup(&x->alts);
   }
 }
+
+void dcp_protein_dump(struct dcp_protein const *x, FILE *restrict fp)
+{
+  fprintf(fp, "# protein\n");
+  fprintf(fp, "entry_dist: %d\n", x->params.entry_dist);
+  fprintf(fp, "epsilon: %f\n", x->params.epsilon);
+
+  fprintf(fp, "## null\n");
+  fprintf(fp, "### dp\n");
+  dcp_nuclt_dist_dump(&x->null.nuclt_dist, fp);
+  fputc('\n', fp);
+  imm_dp_dump(&x->null.dp, x->state_name, fp);
+  fputc('\n', fp);
+  fprintf(fp, "R: %u\n", x->null.R);
+  fputc('\n', fp);
+
+  fprintf(fp, "## alt\n");
+  fprintf(fp, "core_size: %u\n", x->alts.core_size);
+  for (unsigned i = 0; i < x->alts.core_size; ++i)
+  {
+    fprintf(fp, "match_nuclt_dists[%u]: ", i);
+    dcp_nuclt_dist_dump(&x->alts.match_nuclt_dists[i], fp);
+    fputc('\n', fp);
+  }
+  fprintf(fp, "insert_nuclt_dist: ");
+  dcp_nuclt_dist_dump(&x->alts.insert_nuclt_dist, fp);
+  fputc('\n', fp);
+
+  fprintf(fp, "### dp\n");
+  imm_dp_dump(&x->alts.full.dp, x->state_name, fp);
+  fputc('\n', fp);
+}

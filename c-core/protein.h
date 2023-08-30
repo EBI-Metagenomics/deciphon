@@ -46,5 +46,6 @@ int dcp_protein_pack(struct dcp_protein const *, struct lip_file *);
 int dcp_protein_unpack(struct dcp_protein *, struct lip_file *);
 
 void dcp_protein_cleanup(struct dcp_protein *);
+void dcp_protein_dump(struct dcp_protein const *, FILE *restrict);
 
 #endif
