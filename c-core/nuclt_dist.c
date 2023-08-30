@@ -28,3 +28,13 @@ int dcp_nuclt_dist_unpack(struct dcp_nuclt_dist *x, struct lip_file *file)
   if (imm_codon_marg_unpack(&x->codonm, file)) return rc;
   return 0;
 }
+
+void dcp_nuclt_dist_dump(struct dcp_nuclt_dist const *x, FILE *restrict fp)
+{
+  fprintf(fp, "nuclt_lprob");
+  imm_nuclt_lprob_dump(&x->nucltp, fp);
+  putc(' ', fp);
+
+  fprintf(fp, "codon_marg");
+  imm_codon_marg_dump(&x->codonm, fp);
+}
