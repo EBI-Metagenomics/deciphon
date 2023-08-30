@@ -8,5 +8,6 @@ pipx run h3daemon start "$1" --port 51371 --force \
 if ! pipx run h3daemon isready "$1" --wait
 then
     cat h3daemon.stdout h3daemon.stderr
+    rm -f h3daemon.stdout h3daemon.stderr || true
     exit 1
 fi
