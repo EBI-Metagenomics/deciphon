@@ -14,6 +14,6 @@ trap "cleanup" EXIT
 
 pipx run h3daemon start "$1" --port 51371 --force \
     --stdout h3daemon.stdout \
-    --stderr h3daemon.stderr || exit 1
+    --stderr h3daemon.stderr || exit $?
 
 pipx run h3daemon isready "$1" --wait
