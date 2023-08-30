@@ -24,7 +24,7 @@ void p7_init(struct p7 *x, struct dcp_model_params params)
   imm_score_table_init(&x->score_table, &params.code->super);
   memset(x->consensus, 0, array_size_field(struct p7, consensus));
 
-  x->start_lprob = IMM_LPROB_NAN;
+  x->start_lprob = IMM_LPROB_ONE;
   x->core_size = 0;
   p7_null_init(&x->null);
   p7_background_init(&x->bg);

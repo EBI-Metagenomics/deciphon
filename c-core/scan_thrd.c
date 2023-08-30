@@ -13,6 +13,7 @@
 #include "protein_reader.h"
 #include "seq.h"
 #include "seq_struct.h"
+#include "vit.h"
 
 void dcp_scan_thrd_init(struct dcp_scan_thrd *x)
 {
@@ -88,9 +89,17 @@ int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct dcp_seq const *seq)
 
     dcp_protein_setup(&x->protein, dcp_seq_size(seq), x->multi_hits,
                       x->hmmer3_compat);
+    p7_setup(&x->p7, dcp_seq_size(seq), x->multi_hits, x->hmmer3_compat);
 
     if (imm_dp_viterbi(null_dp, null.task, &null.prod)) goto cleanup;
     if (imm_dp_viterbi(alt_dp, alt.task, &alt.prod)) goto cleanup;
+
+    float null_score = vit_null(&x->p7, &seq->imm_eseq);
+    float alt_score = vit(&x->p7, &seq->imm_eseq);
+    printf("null: %.9f %.9f err(%.5f)\n", null.prod.loglik, null_score,
+           null_score - null.prod.loglik);
+    printf("alt : %.9f %.9f err(%.5f)\n", alt.prod.loglik, alt_score,
+           alt_score - alt.prod.loglik);
 
     x->prod_thrd->match.null = null.prod.loglik;
     x->prod_thrd->match.alt = alt.prod.loglik;
@@ -121,6 +130,7 @@ int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct dcp_seq const *seq)
   }
 
 cleanup:
+  p7_cleanup(&x->p7);
   dcp_protein_cleanup(&x->protein);
   dcp_scan_task_cleanup(&null);
   dcp_scan_task_cleanup(&alt);
