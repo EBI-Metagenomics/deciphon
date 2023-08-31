@@ -104,7 +104,7 @@ int p7_absorb(struct p7 *x, struct dcp_model *m)
     p7_node_absorb_emission(x->nodes + i, &m->alt.nodes[i].match.nucltd,
                             &x->score_table,
                             &m->alt.nodes[i].match.state.super);
-    p7_node_absorb_transition(x->nodes + i, m->alt.trans + i);
+    p7_node_absorb_transition(x->nodes + i, m->alt.trans + i + 1);
   }
   p7_node_absorb_emission(
       x->nodes + core_size, &m->alt.nodes[core_size - 1].match.nucltd,
