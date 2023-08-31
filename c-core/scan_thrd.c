@@ -96,6 +96,8 @@ int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct dcp_seq const *seq)
 
     float null_score = vit_null(&x->p7, &seq->imm_eseq);
     float alt_score = vit(&x->p7, &seq->imm_eseq);
+    null.prod.loglik = null_score;
+    alt.prod.loglik = alt_score;
     // printf("null: %.9f %.9f err(%.5f)\n", null.prod.loglik, null_score,
     //        null_score - null.prod.loglik);
     // printf("alt : %.9f %.9f err(%.5f)\n", alt.prod.loglik, alt_score,
