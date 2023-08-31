@@ -114,7 +114,7 @@ int p7_absorb(struct p7 *x, struct dcp_model *m)
   ptr = realloc(x->BMk, core_size * sizeof(*x->BMk));
   if (!ptr && x->core_size > 0) defer_return(DCP_ENOMEM);
   x->BMk = ptr;
-  memcpy(x->BMk, m->BMk, x->core_size * sizeof(x->BMk));
+  memcpy(x->BMk, m->BMk, x->core_size * sizeof(*x->BMk));
 
   return rc;
 
