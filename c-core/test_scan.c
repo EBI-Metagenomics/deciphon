@@ -3,6 +3,7 @@
 #include "deciphon/scan.h"
 #include "deciphon/scan_params.h"
 #include "deciphon/seq.h"
+#include "imm/imm.h"
 #include "vendor/minctest.h"
 
 #include <sys/stat.h>
@@ -13,9 +14,13 @@
 static void test_scan1(void);
 static void test_scan2(void);
 static void test_scan3(void);
+static void test_scan4(void);
 
 static void setup_minifam(void);
 static void cleanup_minifam(void);
+
+static void combi_seq_init(void);
+static bool combi_seq_next(struct dcp_seq *, void *);
 
 int main(void)
 {
@@ -23,6 +28,7 @@ int main(void)
   test_scan1();
   test_scan2();
   test_scan3();
+  test_scan4();
   cleanup_minifam();
   return lfails;
 }
@@ -92,6 +98,25 @@ static void test_scan3(void)
   dcp_scan_del(scan);
 }
 
+static void test_scan4(void)
+{
+  struct dcp_scan *scan = dcp_scan_new();
+
+  eq(dcp_scan_dial(scan, 51371), 0);
+  struct dcp_scan_params params = {1, 0., true, false};
+  eq(dcp_scan_setup(scan, params), 0);
+
+  combi_seq_init();
+  eq(dcp_scan_run(scan, DBFILE, combi_seq_next, NULL, "prod4"), 0);
+  long chk = 0;
+  eq_or_exit(dcp_fs_cksum("prod4/products.tsv", &chk), 0);
+  printf("chk: %ld\n", chk);
+  ok(chk == 57189);
+  eq(dcp_fs_rmtree("prod4"), 0);
+
+  dcp_scan_del(scan);
+}
+
 static bool next_seq(struct dcp_seq *x, void *arg)
 {
   static struct test_seq seqs[] = {
@@ -129,6 +154,48 @@ static bool next_seq(struct dcp_seq *x, void *arg)
   if (*i > 2) return false;
   eq_or_exit(dcp_seq_setup(x, seqs[*i].id, seqs[*i].name, seqs[*i].data), 0);
   *i += 1;
+  return true;
+}
+
+static struct combi_seq
+{
+  unsigned nsymbols;
+  char const *symbols;
+  struct test_seq seq;
+
+  unsigned seqlen;
+
+  struct imm_cartes iter;
+} combi = {0};
+
+static void combi_seq_init(void)
+{
+  combi.nsymbols = imm_abc_size(&imm_dna_iupac.super.super);
+  combi.symbols = imm_abc_symbols(&imm_dna_iupac.super.super);
+  combi.seq.id = 0;
+  combi.seq.name = "name";
+  combi.seqlen = 1;
+  imm_cartes_init(&combi.iter, combi.symbols, combi.nsymbols, combi.seqlen);
+  imm_cartes_setup(&combi.iter, combi.seqlen);
+}
+
+static bool combi_seq_next(struct dcp_seq *x, void *arg)
+{
+  (void)arg;
+  if ((combi.seq.data = imm_cartes_next(&combi.iter)))
+  {
+    eq_or_exit(dcp_seq_setup(x, combi.seq.id, combi.seq.name, combi.seq.data),
+               0);
+    return true;
+  }
+
+  imm_cartes_cleanup(&combi.iter);
+  if (combi.seqlen >= 5) return false;
+
+  combi.seqlen += 1;
+  imm_cartes_init(&combi.iter, combi.symbols, combi.nsymbols, combi.seqlen);
+  imm_cartes_setup(&combi.iter, combi.seqlen);
+
   return true;
 }
 

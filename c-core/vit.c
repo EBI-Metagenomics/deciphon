@@ -328,8 +328,6 @@ float vit_null(struct p7 *x, struct imm_eseq const *eseq)
     dp_S[PAST_SIZE - 1] = IMM_LPROB_ZERO;
     // dp_R[PAST_SIZE - 1] = IMM_LPROB_ZERO;
   }
-  printf("null: %f %f %f %f %f %f\n", dp_R[0], dp_R[1], dp_R[2], dp_R[3],
-         dp_R[4], dp_R[5]);
   return dp_R[5];
 }
 
@@ -462,8 +460,6 @@ float vit(struct p7 *x, struct imm_eseq const *eseq)
   }
 
   float score = dp_T[5];
-  printf("%f %f %f %f %f %f\n", dp_T[0], dp_T[1], dp_T[2], dp_T[3], dp_T[4],
-         dp_T[5]);
   free(dp);
   return score;
 }
