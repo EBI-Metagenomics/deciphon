@@ -1,1 +1,5 @@
 - Zip the resulting product of scan
+- Remove non-reachable transitions from dump_dot output
+because they might have different transitions regarding
+different implementations despite the corresponding
+models being identical.
