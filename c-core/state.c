@@ -25,8 +25,12 @@ char *dcp_state_name(unsigned id, char *name)
   unsigned msb = id_msb(id);
   if (msb == STATE_EXT)
   {
-    if (id == STATE_R)
+    if (id == STATE_F)
+      name[0] = 'F';
+    else if (id == STATE_R)
       name[0] = 'R';
+    else if (id == STATE_G)
+      name[0] = 'G';
     else if (id == STATE_S)
       name[0] = 'S';
     else if (id == STATE_N)

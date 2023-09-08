@@ -110,7 +110,6 @@ static void test_scan4(void)
   eq(dcp_scan_run(scan, DBFILE, combi_seq_next, NULL, "prod4"), 0);
   long chk = 0;
   eq_or_exit(dcp_fs_cksum("prod4/products.tsv", &chk), 0);
-  printf("chk: %ld\n", chk);
   ok(chk == 57189);
   eq(dcp_fs_rmtree("prod4"), 0);
 

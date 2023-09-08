@@ -150,7 +150,9 @@ static void model_reset(struct dcp_model *x)
   imm_hmm_reset(&x->null.hmm);
   imm_hmm_reset(&x->alt.hmm);
 
+  imm_state_detach(&x->xnode.null.F.super);
   imm_state_detach(&x->xnode.null.R.super);
+  imm_state_detach(&x->xnode.null.G.super);
 
   imm_state_detach(&x->xnode.alt.S.super);
   imm_state_detach(&x->xnode.alt.N.super);
@@ -207,7 +209,7 @@ defer:
 
 void dcp_model_write_dot(struct dcp_model const *x, FILE *fp)
 {
-  imm_hmm_write_dot(&x->alt.hmm, fp, dcp_state_name);
+  imm_hmm_dump(&x->alt.hmm, dcp_state_name, fp);
 }
 
 struct imm_amino const *dcp_model_amino(struct dcp_model const *x)
@@ -223,27 +225,34 @@ struct imm_nuclt const *dcp_model_nuclt(struct dcp_model const *x)
 struct dcp_model_summary dcp_model_summary(struct dcp_model *x)
 {
   assert(have_finished_add(x));
-  return (struct dcp_model_summary){
-      .null = {.hmm = &x->null.hmm, .R = &x->xnode.null.R},
-      .alt = {
-          .hmm = &x->alt.hmm,
-          .S = &x->xnode.alt.S,
-          .N = &x->xnode.alt.N,
-          .B = &x->xnode.alt.B,
-          .E = &x->xnode.alt.E,
-          .J = &x->xnode.alt.J,
-          .C = &x->xnode.alt.C,
-          .T = &x->xnode.alt.T,
-      }};
+  return (struct dcp_model_summary){.null =
+                                        {
+                                            .hmm = &x->null.hmm,
+                                            .F = &x->xnode.null.F,
+                                            .R = &x->xnode.null.R,
+                                            .G = &x->xnode.null.G,
+                                        },
+                                    .alt = {
+                                        .hmm = &x->alt.hmm,
+                                        .S = &x->xnode.alt.S,
+                                        .N = &x->xnode.alt.N,
+                                        .B = &x->xnode.alt.B,
+                                        .E = &x->xnode.alt.E,
+                                        .J = &x->xnode.alt.J,
+                                        .C = &x->xnode.alt.C,
+                                        .T = &x->xnode.alt.T,
+                                    }};
 }
 
 int add_xnodes(struct dcp_model *x)
 {
   struct dcp_xnode *n = &x->xnode;
 
+  if (imm_hmm_add_state(&x->null.hmm, &n->null.F.super)) return DCP_EADDSTATE;
   if (imm_hmm_add_state(&x->null.hmm, &n->null.R.super)) return DCP_EADDSTATE;
-  if (imm_hmm_set_start(&x->null.hmm, &n->null.R.super, LOG1))
-    return DCP_ESETTRANS;
+  if (imm_hmm_add_state(&x->null.hmm, &n->null.G.super)) return DCP_EADDSTATE;
+  if (imm_hmm_set_start(&x->null.hmm, &n->null.F)) return DCP_ESETTRANS;
+  if (imm_hmm_set_end(&x->null.hmm, &n->null.G)) return DCP_ESETTRANS;
 
   if (imm_hmm_add_state(&x->alt.hmm, &n->alt.S.super)) return DCP_EADDSTATE;
   if (imm_hmm_add_state(&x->alt.hmm, &n->alt.N.super)) return DCP_EADDSTATE;
@@ -252,8 +261,8 @@ int add_xnodes(struct dcp_model *x)
   if (imm_hmm_add_state(&x->alt.hmm, &n->alt.J.super)) return DCP_EADDSTATE;
   if (imm_hmm_add_state(&x->alt.hmm, &n->alt.C.super)) return DCP_EADDSTATE;
   if (imm_hmm_add_state(&x->alt.hmm, &n->alt.T.super)) return DCP_EADDSTATE;
-  if (imm_hmm_set_start(&x->alt.hmm, &n->alt.S.super, LOG1))
-    return DCP_ESETTRANS;
+  if (imm_hmm_set_start(&x->alt.hmm, &n->alt.S)) return DCP_ESETTRANS;
+  if (imm_hmm_set_end(&x->alt.hmm, &n->alt.T)) return DCP_ESETTRANS;
 
   return 0;
 }
@@ -266,11 +275,13 @@ void init_xnodes(struct dcp_model *x)
   struct dcp_xnode *n = &x->xnode;
   struct imm_nuclt const *nuclt = x->params.code->nuclt;
 
+  imm_mute_state_init(&n->null.F, STATE_F, &nucltp->nuclt->super);
   struct imm_span w = imm_span(1, 5);
   imm_frame_state_init(&n->null.R, STATE_R, nucltp, codonm, e, w);
   // TODO: this is not xnode. Might refactor it?
   imm_frame_state_init(&x->null.state, STATE_R, &x->null.nuclt_dist.nucltp,
                        &x->null.nuclt_dist.codonm, e, w);
+  imm_mute_state_init(&n->null.G, STATE_G, &nucltp->nuclt->super);
 
   imm_mute_state_init(&n->alt.S, STATE_S, &nuclt->super);
   imm_frame_state_init(&n->alt.N, STATE_N, nucltp, codonm, e, w);
@@ -343,7 +354,11 @@ void init_match(struct imm_frame_state *state, struct dcp_model *x,
 
 int init_null_xtrans(struct imm_hmm *hmm, struct dcp_xnode_null *n)
 {
+  if (imm_hmm_set_trans(hmm, &n->F.super, &n->R.super, LOG1))
+    return DCP_ESETTRANS;
   if (imm_hmm_set_trans(hmm, &n->R.super, &n->R.super, LOG1))
+    return DCP_ESETTRANS;
+  if (imm_hmm_set_trans(hmm, &n->R.super, &n->G.super, LOG1))
     return DCP_ESETTRANS;
   return 0;
 }

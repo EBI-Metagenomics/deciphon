@@ -194,7 +194,9 @@ void p7_dump(struct p7 const *x, FILE *restrict fp)
   fprintf(fp, "core_size: %d\n", x->core_size);
 
   fprintf(fp, "## null\n");
+  fprintf(fp, "FR: %f\n", 0.);
   fprintf(fp, "RR: %f\n", x->null.RR);
+  fprintf(fp, "RG: %f\n", 0.);
   fprintf(fp, "emis: ");
   imm_dump_array_f32(P7_NODE_SIZE, x->null.emission, fp);
   fprintf(fp, "\n\n");

@@ -21,7 +21,7 @@ void dcp_protein_init(struct dcp_protein *x, struct dcp_model_params params)
 
   memset(x->consensus, 0, array_size_field(struct dcp_protein, consensus));
 
-  dcp_protein_null_init(&x->null, params.code);
+  dcp_protein_null_init(&x->null, params.code, x->state_name);
   dcp_protein_alts_init(&x->alts, params.code);
 }
 
@@ -241,9 +241,13 @@ void dcp_protein_dump(struct dcp_protein const *x, FILE *restrict fp)
   fprintf(fp, "### dp\n");
   dcp_nuclt_dist_dump(&x->null.nuclt_dist, fp);
   fputc('\n', fp);
-  imm_dp_dump(&x->null.dp, x->state_name, fp);
+  imm_dp_dump(&x->null.dp, fp);
+  fputc('\n', fp);
+  fprintf(fp, "F: %u\n", x->null.F);
   fputc('\n', fp);
   fprintf(fp, "R: %u\n", x->null.R);
+  fputc('\n', fp);
+  fprintf(fp, "G: %u\n", x->null.G);
   fputc('\n', fp);
 
   fprintf(fp, "## alt\n");
@@ -259,6 +263,6 @@ void dcp_protein_dump(struct dcp_protein const *x, FILE *restrict fp)
   fputc('\n', fp);
 
   fprintf(fp, "### dp\n");
-  imm_dp_dump(&x->alts.full.dp, x->state_name, fp);
+  imm_dp_dump(&x->alts.full.dp, fp);
   fputc('\n', fp);
 }

@@ -5,7 +5,9 @@
 
 struct dcp_xnode_null
 {
+  struct imm_mute_state F;
   struct imm_frame_state R;
+  struct imm_mute_state G;
 };
 
 struct dcp_xnode_alt

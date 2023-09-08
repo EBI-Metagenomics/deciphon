@@ -60,8 +60,7 @@ void dcp_protein_alts_setup(struct dcp_protein_alts *x,
 static int absorb_alt_dp(struct dcp_protein_alt *x,
                          struct dcp_model_summary const *s)
 {
-  if (imm_hmm_reset_dp(s->alt.hmm, &s->alt.T->super, &x->dp))
-    return DCP_EDPRESET;
+  if (imm_hmm_reset_dp(s->alt.hmm, &x->dp)) return DCP_EDPRESET;
 
   x->S = imm_state_idx(&s->alt.S->super);
   x->N = imm_state_idx(&s->alt.N->super);
@@ -269,8 +268,8 @@ void dcp_protein_alts_cleanup(struct dcp_protein_alts *x)
   {
     if (x->match_nuclt_dists) free(x->match_nuclt_dists);
     x->match_nuclt_dists = NULL;
-    imm_dp_del(&x->zero.dp);
-    imm_dp_del(&x->full.dp);
+    imm_dp_cleanup(&x->zero.dp);
+    imm_dp_cleanup(&x->full.dp);
 
     x->zero.S = x->full.S = 0;
     x->zero.N = x->full.N = 0;

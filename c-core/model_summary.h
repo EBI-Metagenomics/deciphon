@@ -6,7 +6,9 @@ struct dcp_model_summary
   struct
   {
     struct imm_hmm const *hmm;
+    struct imm_mute_state const *F;
     struct imm_frame_state const *R;
+    struct imm_mute_state const *G;
   } null;
 
   struct

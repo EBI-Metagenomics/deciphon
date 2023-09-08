@@ -59,18 +59,23 @@ static void test_protein_uniform(void)
   close(prod.loglik, -48.9272687711);
   close(vit_null(&p7, &eseq), prod.loglik);
 
-  eq(imm_path_nsteps(&prod.path), 11U);
+  eq(imm_path_nsteps(&prod.path), 13U);
   char name[IMM_STATE_NAME_SIZE];
 
-  eq(imm_path_step(&prod.path, 0)->seqlen, 3);
-  eq(imm_path_step(&prod.path, 0)->state_id, STATE_R);
+  eq(imm_path_step(&prod.path, 0)->seqlen, 0);
+  eq(imm_path_step(&prod.path, 0)->state_id, STATE_F);
   dcp_state_name(imm_path_step(&prod.path, 0)->state_id, name);
+  cmp(name, "F");
+
+  eq(imm_path_step(&prod.path, 1)->seqlen, 3);
+  eq(imm_path_step(&prod.path, 1)->state_id, STATE_R);
+  dcp_state_name(imm_path_step(&prod.path, 1)->state_id, name);
   cmp(name, "R");
 
-  eq(imm_path_step(&prod.path, 10)->seqlen, 2);
-  eq(imm_path_step(&prod.path, 10)->state_id, STATE_R);
-  dcp_state_name(imm_path_step(&prod.path, 10)->state_id, name);
-  cmp(name, "R");
+  eq(imm_path_step(&prod.path, 12)->seqlen, 0);
+  eq(imm_path_step(&prod.path, 12)->state_id, STATE_G);
+  dcp_state_name(imm_path_step(&prod.path, 12)->state_id, name);
+  cmp(name, "G");
 
   imm_prod_reset(&prod);
   imm_task_del(task);
@@ -165,18 +170,28 @@ static void test_protein_occupancy(void)
 
   close(prod.loglik, -48.9272687711);
 
-  eq(imm_path_nsteps(&prod.path), 11U);
+  eq(imm_path_nsteps(&prod.path), 13U);
   char name[IMM_STATE_NAME_SIZE];
 
-  eq(imm_path_step(&prod.path, 0)->seqlen, 3);
-  eq(imm_path_step(&prod.path, 0)->state_id, STATE_R);
+  eq(imm_path_step(&prod.path, 0)->seqlen, 0);
+  eq(imm_path_step(&prod.path, 0)->state_id, STATE_F);
   dcp_state_name(imm_path_step(&prod.path, 0)->state_id, name);
+  cmp(name, "F");
+
+  eq(imm_path_step(&prod.path, 1)->seqlen, 3);
+  eq(imm_path_step(&prod.path, 1)->state_id, STATE_R);
+  dcp_state_name(imm_path_step(&prod.path, 1)->state_id, name);
   cmp(name, "R");
 
-  eq(imm_path_step(&prod.path, 10)->seqlen, 2);
+  eq(imm_path_step(&prod.path, 10)->seqlen, 3);
   eq(imm_path_step(&prod.path, 10)->state_id, STATE_R);
   dcp_state_name(imm_path_step(&prod.path, 10)->state_id, name);
   cmp(name, "R");
+
+  eq(imm_path_step(&prod.path, 12)->seqlen, 0);
+  eq(imm_path_step(&prod.path, 12)->state_id, STATE_G);
+  dcp_state_name(imm_path_step(&prod.path, 12)->state_id, name);
+  cmp(name, "G");
 
   imm_prod_reset(&prod);
   imm_task_del(task);

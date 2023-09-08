@@ -8,11 +8,13 @@ struct dcp_protein_null
 {
   struct dcp_nuclt_dist nuclt_dist;
   struct imm_dp dp;
+  unsigned F;
   unsigned R;
+  unsigned G;
 };
 
 void dcp_protein_null_init(struct dcp_protein_null *,
-                           struct imm_nuclt_code const *);
+                           struct imm_nuclt_code const *, imm_state_name *);
 void dcp_protein_null_setup(struct dcp_protein_null *,
                             struct dcp_xtrans const *);
 int dcp_protein_null_absorb(struct dcp_protein_null *, struct dcp_model const *,
