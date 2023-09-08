@@ -30,10 +30,10 @@ int dcp_protein_iter_next(struct dcp_protein_iter *x,
   x->curr_idx += 1;
   if (dcp_protein_iter_end(x)) return 0;
 
-  int rc = dcp_protein_unpack(protein, &x->file);
-  if (rc) return rc;
+  // int rc = dcp_protein_unpack(protein, &x->file);
+  // if (rc) return rc;
 
-  rc = p7_unpack(p7, &x->file);
+  int rc = p7_unpack(p7, &x->file);
   if (rc) return rc;
 
   long offset = 0;

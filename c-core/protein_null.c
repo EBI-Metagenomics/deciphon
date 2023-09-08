@@ -18,9 +18,9 @@ void dcp_protein_null_init(struct dcp_protein_null *x,
 void dcp_protein_null_setup(struct dcp_protein_null *x,
                             struct dcp_xtrans const *t)
 {
-  imm_dp_change_trans(&x->dp, imm_dp_trans_idx(&x->dp, x->F, x->R), 0);
-  imm_dp_change_trans(&x->dp, imm_dp_trans_idx(&x->dp, x->R, x->R), t->RR);
-  imm_dp_change_trans(&x->dp, imm_dp_trans_idx(&x->dp, x->R, x->G), 0);
+  // imm_dp_change_trans(&x->dp, imm_dp_trans_idx(&x->dp, x->F, x->R), 0);
+  // imm_dp_change_trans(&x->dp, imm_dp_trans_idx(&x->dp, x->R, x->R), t->RR);
+  // imm_dp_change_trans(&x->dp, imm_dp_trans_idx(&x->dp, x->R, x->G), 0);
 }
 
 int dcp_protein_null_absorb(struct dcp_protein_null *x,

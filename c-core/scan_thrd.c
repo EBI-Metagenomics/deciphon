@@ -99,6 +99,7 @@ int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct dcp_seq const *seq)
 
     float lrt = dcp_prod_match_get_lrt(&x->prod_thrd->match);
 
+    continue;
     if (!imm_lprob_is_finite(lrt) || lrt < x->lrt_threshold) continue;
 
     if (imm_dp_viterbi(null_dp, null.task, &null.prod)) goto cleanup;

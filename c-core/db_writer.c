@@ -195,7 +195,7 @@ int dcp_db_writer_pack(struct dcp_db_writer *x,
   long start = 0;
   if ((rc = dcp_fs_tell(lip_file_ptr(&x->tmp.proteins), &start))) return rc;
 
-  if ((rc = dcp_protein_pack(protein, &x->tmp.proteins))) return rc;
+  // if ((rc = dcp_protein_pack(protein, &x->tmp.proteins))) return rc;
   if ((rc = p7_pack(p7, &x->tmp.proteins))) return rc;
 
   long end = 0;

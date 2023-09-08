@@ -32,20 +32,20 @@ static void alt_setup(struct dcp_protein_alt *alt, struct dcp_xtrans const *t)
   unsigned C = alt->C;
   unsigned T = alt->T;
 
-  imm_dp_change_trans(dp, imm_dp_trans_idx(dp, S, B), t->NB);
-  imm_dp_change_trans(dp, imm_dp_trans_idx(dp, S, N), t->NN);
-  imm_dp_change_trans(dp, imm_dp_trans_idx(dp, N, N), t->NN);
-  imm_dp_change_trans(dp, imm_dp_trans_idx(dp, N, B), t->NB);
-
-  imm_dp_change_trans(dp, imm_dp_trans_idx(dp, E, T), t->EC + t->CT);
-  imm_dp_change_trans(dp, imm_dp_trans_idx(dp, E, C), t->EC + t->CC);
-  imm_dp_change_trans(dp, imm_dp_trans_idx(dp, C, C), t->CC);
-  imm_dp_change_trans(dp, imm_dp_trans_idx(dp, C, T), t->CT);
-
-  imm_dp_change_trans(dp, imm_dp_trans_idx(dp, E, B), t->EJ + t->JB);
-  imm_dp_change_trans(dp, imm_dp_trans_idx(dp, E, J), t->EJ + t->JJ);
-  imm_dp_change_trans(dp, imm_dp_trans_idx(dp, J, J), t->JJ);
-  imm_dp_change_trans(dp, imm_dp_trans_idx(dp, J, B), t->JB);
+  // imm_dp_change_trans(dp, imm_dp_trans_idx(dp, S, B), t->NB);
+  // imm_dp_change_trans(dp, imm_dp_trans_idx(dp, S, N), t->NN);
+  // imm_dp_change_trans(dp, imm_dp_trans_idx(dp, N, N), t->NN);
+  // imm_dp_change_trans(dp, imm_dp_trans_idx(dp, N, B), t->NB);
+  //
+  // imm_dp_change_trans(dp, imm_dp_trans_idx(dp, E, T), t->EC + t->CT);
+  // imm_dp_change_trans(dp, imm_dp_trans_idx(dp, E, C), t->EC + t->CC);
+  // imm_dp_change_trans(dp, imm_dp_trans_idx(dp, C, C), t->CC);
+  // imm_dp_change_trans(dp, imm_dp_trans_idx(dp, C, T), t->CT);
+  //
+  // imm_dp_change_trans(dp, imm_dp_trans_idx(dp, E, B), t->EJ + t->JB);
+  // imm_dp_change_trans(dp, imm_dp_trans_idx(dp, E, J), t->EJ + t->JJ);
+  // imm_dp_change_trans(dp, imm_dp_trans_idx(dp, J, J), t->JJ);
+  // imm_dp_change_trans(dp, imm_dp_trans_idx(dp, J, B), t->JB);
 }
 
 void dcp_protein_alts_setup(struct dcp_protein_alts *x,

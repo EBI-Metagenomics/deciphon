@@ -7,6 +7,7 @@ void dcp_scan_task_init(struct dcp_scan_task *x) { x->task = NULL; }
 int dcp_scan_task_setup(struct dcp_scan_task *x, struct imm_dp const *dp,
                         struct dcp_seq const *seq)
 {
+  return 0;
   if (x->task && imm_task_reset(x->task, dp)) return DCP_EIMMRESETTASK;
   if (!x->task && !(x->task = imm_task_new(dp))) return DCP_EIMMNEWTASK;
   if (imm_task_setup(x->task, dcp_seq_immeseq(seq))) return DCP_EIMMSETUPTASK;
