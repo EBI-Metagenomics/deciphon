@@ -1,6 +1,7 @@
 #include "vit.h"
 #include "array_size.h"
 #include "array_size_field.h"
+#include "compiler.h"
 #include "imm/imm.h"
 #include "p7.h"
 #include "scan_thrd.h"
@@ -36,8 +37,8 @@ static inline float reduce_max(int size, float const x[])
   return max;
 }
 
-static inline int emission_index(struct imm_eseq const *eseq,
-                                 int sequence_position, int emission_length)
+dcp_pure_template int emission_index(struct imm_eseq const *eseq,
+                                     int sequence_position, int emission_length)
 {
   if (sequence_position < 0) return -1;
   return imm_eseq_get(eseq, sequence_position, emission_length, 1);
@@ -314,12 +315,6 @@ float dcp_vit_null(struct p7 *x, struct imm_eseq const *eseq)
 
   for (int r = 0; r < seq_size + 1; ++r)
   {
-    // float const null[] = {null_emission[emission_index(eseq, r - 1, 1)],
-    //                       null_emission[emission_index(eseq, r - 2, 2)],
-    //                       null_emission[emission_index(eseq, r - 3, 3)],
-    //                       null_emission[emission_index(eseq, r - 4, 4)],
-    //                       null_emission[emission_index(eseq, r - 5, 5)]};
-
     float const null[] = {
         null_emis_tmp(null_emission, emission_index(eseq, r - 1, 1)),
         null_emis_tmp(null_emission, emission_index(eseq, r - 2, 2)),
@@ -368,44 +363,21 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
 
   for (int r = 0; r < seq_size + 1; ++r)
   {
-    // float const null[] = {null_emission[emission_index(eseq, r - 1, 1)],
-    //                       null_emission[emission_index(eseq, r - 2, 2)],
-    //                       null_emission[emission_index(eseq, r - 3, 3)],
-    //                       null_emission[emission_index(eseq, r - 4, 4)],
-    //                       null_emission[emission_index(eseq, r - 5, 5)]};
     int emis_idx[5];
     for (int i = 1; i <= 5; ++i)
       emis_idx[i - 1] = emission_index(eseq, r - i, i);
 
-    float const null[] = {
-        null_emis_tmp(null_emission, emission_index(eseq, r - 1, 1)),
-        null_emis_tmp(null_emission, emission_index(eseq, r - 2, 2)),
-        null_emis_tmp(null_emission, emission_index(eseq, r - 3, 3)),
-        null_emis_tmp(null_emission, emission_index(eseq, r - 4, 4)),
-        null_emis_tmp(null_emission, emission_index(eseq, r - 5, 5))};
-
-    // float const bg[] = {background_emission[emission_index(eseq, r - 1, 1)],
-    //                     background_emission[emission_index(eseq, r - 2, 2)],
-    //                     background_emission[emission_index(eseq, r - 3, 3)],
-    //                     background_emission[emission_index(eseq, r - 4, 4)],
-    //                     background_emission[emission_index(eseq, r - 5, 5)]};
     float const null[] = {null_emis_tmp(null_emission, emis_idx[0]),
                           null_emis_tmp(null_emission, emis_idx[1]),
                           null_emis_tmp(null_emission, emis_idx[2]),
                           null_emis_tmp(null_emission, emis_idx[3]),
                           null_emis_tmp(null_emission, emis_idx[4])};
 
-    float const bg[] = {
-        bg_emis_tmp(background_emission, emission_index(eseq, r - 1, 1)),
-        bg_emis_tmp(background_emission, emission_index(eseq, r - 2, 2)),
-        bg_emis_tmp(background_emission, emission_index(eseq, r - 3, 3)),
-        bg_emis_tmp(background_emission, emission_index(eseq, r - 4, 4)),
-        bg_emis_tmp(background_emission, emission_index(eseq, r - 5, 5))};
-        bg_emis_tmp(background_emission, emis_idx[0]),
-        bg_emis_tmp(background_emission, emis_idx[1]),
-        bg_emis_tmp(background_emission, emis_idx[2]),
-        bg_emis_tmp(background_emission, emis_idx[3]),
-        bg_emis_tmp(background_emission, emis_idx[4])};
+    float const bg[] = {bg_emis_tmp(background_emission, emis_idx[0]),
+                        bg_emis_tmp(background_emission, emis_idx[1]),
+                        bg_emis_tmp(background_emission, emis_idx[2]),
+                        bg_emis_tmp(background_emission, emis_idx[3]),
+                        bg_emis_tmp(background_emission, emis_idx[4])};
 
     float const *restrict emis_I = bg;
     float const *restrict emis_N = null;
@@ -419,17 +391,11 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
 
     {
       float const *match_emission = x->nodes[0].emission;
-      float const emis_M[5] = {
-          match_emis_tmp(match_emission, emission_index(eseq, r - 1, 1)),
-          match_emis_tmp(match_emission, emission_index(eseq, r - 2, 2)),
-          match_emis_tmp(match_emission, emission_index(eseq, r - 3, 3)),
-          match_emis_tmp(match_emission, emission_index(eseq, r - 4, 4)),
-          match_emis_tmp(match_emission, emission_index(eseq, r - 5, 5))};
-          match_emis_tmp(match_emission, emis_idx[0]),
-          match_emis_tmp(match_emission, emis_idx[1]),
-          match_emis_tmp(match_emission, emis_idx[2]),
-          match_emis_tmp(match_emission, emis_idx[3]),
-          match_emis_tmp(match_emission, emis_idx[4])};
+      float const emis_M[5] = {match_emis_tmp(match_emission, emis_idx[0]),
+                               match_emis_tmp(match_emission, emis_idx[1]),
+                               match_emis_tmp(match_emission, emis_idx[2]),
+                               match_emis_tmp(match_emission, emis_idx[3]),
+                               match_emis_tmp(match_emission, emis_idx[4])};
       DP_M(dp, 0, lookback(0)) = onto_M1(dp_B, trans_BM[0], emis_M);
     }
 
@@ -440,25 +406,11 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
       struct dcp_trans const *restrict trans = &x->nodes[k0].trans;
       float const *match_emission = x->nodes[k1].emission;
 
-#if 0
-      float const emis_M[5] = {match_emission[emission_index(eseq, r - 1, 1)],
-                               match_emission[emission_index(eseq, r - 2, 2)],
-                               match_emission[emission_index(eseq, r - 3, 3)],
-                               match_emission[emission_index(eseq, r - 4, 4)],
-                               match_emission[emission_index(eseq, r - 5, 5)]};
-#endif
-
-      float const emis_M[5] = {
-          match_emis_tmp(match_emission, emission_index(eseq, r - 1, 1)),
-          match_emis_tmp(match_emission, emission_index(eseq, r - 2, 2)),
-          match_emis_tmp(match_emission, emission_index(eseq, r - 3, 3)),
-          match_emis_tmp(match_emission, emission_index(eseq, r - 4, 4)),
-          match_emis_tmp(match_emission, emission_index(eseq, r - 5, 5))};
-          match_emis_tmp(match_emission, emis_idx[0]),
-          match_emis_tmp(match_emission, emis_idx[1]),
-          match_emis_tmp(match_emission, emis_idx[2]),
-          match_emis_tmp(match_emission, emis_idx[3]),
-          match_emis_tmp(match_emission, emis_idx[4])};
+      float const emis_M[5] = {match_emis_tmp(match_emission, emis_idx[0]),
+                               match_emis_tmp(match_emission, emis_idx[1]),
+                               match_emis_tmp(match_emission, emis_idx[2]),
+                               match_emis_tmp(match_emission, emis_idx[3]),
+                               match_emis_tmp(match_emission, emis_idx[4])};
 
       DP_I(dp, k0, lookback(0)) = onto_I(dp, trans, emis_I, k0);
       DP_M(dp, k1, lookback(0)) = onto_M(dp, dp_B, trans, trans_BM, emis_M, k0);
