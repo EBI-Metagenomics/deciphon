@@ -26,10 +26,14 @@
 #define DP_I(dp, k, i) dp[I_OFFSET(k) + i]
 #define DP_D(dp, k, i) dp[D_OFFSET(k) + i]
 
-static inline float reduce_max(size_t size, float const *x)
+static inline float reduce_max(int size, float const x[])
 {
-  if (size == 1) return x[0];
-  return fmax(x[0], reduce_max(size - 1, x + 1));
+  float max = -INFINITY;
+
+  for (int i = 0; i < size; i++)
+    max = fmaxf(max, x[i]);
+
+  return max;
 }
 
 static inline int emission_index(struct imm_eseq const *eseq,
