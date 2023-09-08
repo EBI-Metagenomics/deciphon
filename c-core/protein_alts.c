@@ -10,16 +10,14 @@ void dcp_protein_alts_init(struct dcp_protein_alts *x,
   x->core_size = 0;
   x->match_nuclt_dists = NULL;
   dcp_nuclt_dist_init(&x->insert_nuclt_dist, code->nuclt);
-  imm_dp_init(&x->zero.dp, &code->super);
   imm_dp_init(&x->full.dp, &code->super);
-
-  x->zero.S = x->full.S = 0;
-  x->zero.N = x->full.N = 0;
-  x->zero.B = x->full.B = 0;
-  x->zero.E = x->full.E = 0;
-  x->zero.J = x->full.J = 0;
-  x->zero.C = x->full.C = 0;
-  x->zero.T = x->full.T = 0;
+  x->full.S = 0;
+  x->full.N = 0;
+  x->full.B = 0;
+  x->full.E = 0;
+  x->full.J = 0;
+  x->full.C = 0;
+  x->full.T = 0;
 }
 
 static void alt_setup(struct dcp_protein_alt *alt, struct dcp_xtrans const *t)
@@ -53,7 +51,6 @@ static void alt_setup(struct dcp_protein_alt *alt, struct dcp_xtrans const *t)
 void dcp_protein_alts_setup(struct dcp_protein_alts *x,
                             struct dcp_xtrans const *t)
 {
-  alt_setup(&x->zero, t);
   alt_setup(&x->full, t);
 }
 
@@ -71,19 +68,6 @@ static int absorb_alt_dp(struct dcp_protein_alt *x,
   x->T = imm_state_idx(&s->alt.T->super);
 
   return 0;
-}
-
-static int remove_del_ins_states(struct dcp_model *x,
-                                 struct dcp_model_summary const *s)
-{
-  int rc = 0;
-  for (unsigned i = 0; i < x->core_size; ++i)
-  {
-    struct node *y = x->alt.nodes + i;
-    if ((rc = imm_hmm_del_state(s->alt.hmm, &y->D.super))) return rc;
-    if ((rc = imm_hmm_del_state(s->alt.hmm, &y->I.super))) return rc;
-  }
-  return rc;
 }
 
 static int alloc_match_nuclt_dists(struct dcp_protein_alts *x)
@@ -113,8 +97,6 @@ int dcp_protein_alts_absorb(struct dcp_protein_alts *x, struct dcp_model *m,
   x->insert_nuclt_dist = m->alt.insert.nucltd;
 
   if ((rc = absorb_alt_dp(&x->full, s))) return rc;
-  if ((rc = remove_del_ins_states(m, s))) return rc;
-  if ((rc = absorb_alt_dp(&x->zero, s))) return rc;
   return rc;
 }
 
@@ -174,13 +156,10 @@ int dcp_protein_alts_pack(struct dcp_protein_alts const *x,
                           struct lip_file *file)
 {
   int rc = 0;
-  if (!lip_write_map_size(file, 3)) return DCP_EFWRITE;
+  if (!lip_write_map_size(file, 2)) return DCP_EFWRITE;
 
   if (!lip_write_cstr(file, "shared")) return DCP_EFWRITE;
   if ((rc = pack_alt_shared(x, file))) return rc;
-
-  if (!lip_write_cstr(file, "zero")) return DCP_EFWRITE;
-  if ((rc = pack_alt(&x->zero, file))) return rc;
 
   if (!lip_write_cstr(file, "full")) return DCP_EFWRITE;
   if ((rc = pack_alt(&x->full, file))) return rc;
@@ -249,13 +228,10 @@ static int unpack_alt(struct dcp_protein_alt *x, struct lip_file *file)
 int dcp_protein_alts_unpack(struct dcp_protein_alts *x, struct lip_file *file)
 {
   int rc = 0;
-  if ((rc = dcp_expect_map_size(file, 3))) return rc;
+  if ((rc = dcp_expect_map_size(file, 2))) return rc;
 
   if ((rc = dcp_expect_map_key(file, "shared"))) return rc;
   if ((rc = unpack_alt_shared(x, file))) return rc;
-
-  if ((rc = dcp_expect_map_key(file, "zero"))) return rc;
-  if ((rc = unpack_alt(&x->zero, file))) return rc;
 
   if ((rc = dcp_expect_map_key(file, "full"))) return rc;
   if ((rc = unpack_alt(&x->full, file))) return rc;
@@ -268,15 +244,14 @@ void dcp_protein_alts_cleanup(struct dcp_protein_alts *x)
   {
     if (x->match_nuclt_dists) free(x->match_nuclt_dists);
     x->match_nuclt_dists = NULL;
-    imm_dp_cleanup(&x->zero.dp);
     imm_dp_cleanup(&x->full.dp);
 
-    x->zero.S = x->full.S = 0;
-    x->zero.N = x->full.N = 0;
-    x->zero.B = x->full.B = 0;
-    x->zero.E = x->full.E = 0;
-    x->zero.J = x->full.J = 0;
-    x->zero.C = x->full.C = 0;
-    x->zero.T = x->full.T = 0;
+    x->full.S = 0;
+    x->full.N = 0;
+    x->full.B = 0;
+    x->full.E = 0;
+    x->full.J = 0;
+    x->full.C = 0;
+    x->full.T = 0;
   }
 }

@@ -21,7 +21,6 @@ struct dcp_protein_alts
   unsigned core_size;
   struct dcp_nuclt_dist *match_nuclt_dists;
   struct dcp_nuclt_dist insert_nuclt_dist;
-  struct dcp_protein_alt zero;
   struct dcp_protein_alt full;
 };
 
