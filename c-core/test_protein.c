@@ -4,6 +4,7 @@
 #include "deciphon/vit.h"
 #include "imm/imm.h"
 #include "vendor/minctest.h"
+#include "vit.h"
 
 static void test_protein_uniform(void);
 static void test_protein_occupancy(void);
@@ -33,8 +34,8 @@ static void test_protein_uniform(void)
       .epsilon = 0.1,
   };
 
-  struct dcp_protein protein = {};
-  struct p7 p7 = {};
+  struct dcp_protein protein = {0};
+  struct p7 p7 = {0};
   dcp_protein_init(&protein, params);
   p7_init(&p7, params);
   dcp_protein_set_accession(&protein, "accession");
@@ -57,7 +58,7 @@ static void test_protein_uniform(void)
   eq(imm_dp_viterbi(dp, task, &prod), 0);
 
   close(prod.loglik, -48.9272687711);
-  close(vit_null(&p7, &eseq), prod.loglik);
+  close(dcp_vit_null(&p7, &eseq), prod.loglik);
 
   eq(imm_path_nsteps(&prod.path), 13U);
   char name[IMM_STATE_NAME_SIZE];
@@ -88,7 +89,7 @@ static void test_protein_uniform(void)
   eq(imm_dp_viterbi(dp, task, &prod), 0);
 
   close(prod.loglik, -55.59428153448);
-  close(vit(&p7, &eseq), prod.loglik);
+  close(dcp_vit(&p7, &eseq), prod.loglik);
 
   eq(imm_path_nsteps(&prod.path), 14U);
 

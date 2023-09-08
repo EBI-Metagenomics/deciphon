@@ -1,3 +1,4 @@
+#include "vit.h"
 #include "array_size.h"
 #include "array_size_field.h"
 #include "imm/imm.h"
@@ -295,7 +296,7 @@ static float match_emis_tmp(float const *restrict match_emission, int pos)
   return match_emission[pos];
 }
 
-float vit_null(struct p7 *x, struct imm_eseq const *eseq)
+float dcp_vit_null(struct p7 *x, struct imm_eseq const *eseq)
 {
   int seq_size = (int)imm_eseq_size(eseq);
   float const *restrict null_emission = x->null.emission;
@@ -331,7 +332,7 @@ float vit_null(struct p7 *x, struct imm_eseq const *eseq)
   return dp_R[5];
 }
 
-float vit(struct p7 *x, struct imm_eseq const *eseq)
+float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
 {
   int core_size = x->core_size;
   int seq_size = (int)imm_eseq_size(eseq);
@@ -464,7 +465,7 @@ float vit(struct p7 *x, struct imm_eseq const *eseq)
   return score;
 }
 
-void vit_dump(struct p7 *x, FILE *restrict fp)
+void dcp_vit_dump(struct p7 *x, FILE *restrict fp)
 {
   int core_size = x->core_size;
 
@@ -527,7 +528,7 @@ void vit_dump(struct p7 *x, FILE *restrict fp)
   }
 }
 
-void vit_dump_dot(struct p7 *x, FILE *restrict fp)
+void dcp_vit_dump_dot(struct p7 *x, FILE *restrict fp)
 {
   char const *f32f = imm_fmt_get_f32();
 

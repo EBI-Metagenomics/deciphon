@@ -91,17 +91,8 @@ int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct dcp_seq const *seq)
                       x->hmmer3_compat);
     p7_setup(&x->p7, dcp_seq_size(seq), x->multi_hits, x->hmmer3_compat);
 
-    if (imm_dp_viterbi(null_dp, null.task, &null.prod)) goto cleanup;
-    if (imm_dp_viterbi(alt_dp, alt.task, &alt.prod)) goto cleanup;
-
-    float null_score = vit_null(&x->p7, &seq->imm_eseq);
-    float alt_score = vit(&x->p7, &seq->imm_eseq);
-    null.prod.loglik = null_score;
-    alt.prod.loglik = alt_score;
-    // printf("null: %.9f %.9f err(%.5f)\n", null.prod.loglik, null_score,
-    //        null_score - null.prod.loglik);
-    // printf("alt : %.9f %.9f err(%.5f)\n", alt.prod.loglik, alt_score,
-    //        alt_score - alt.prod.loglik);
+    null.prod.loglik = dcp_vit_null(&x->p7, &seq->imm_eseq);
+    alt.prod.loglik = dcp_vit(&x->p7, &seq->imm_eseq);
 
     x->prod_thrd->match.null = null.prod.loglik;
     x->prod_thrd->match.alt = alt.prod.loglik;
@@ -109,6 +100,9 @@ int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct dcp_seq const *seq)
     float lrt = dcp_prod_match_get_lrt(&x->prod_thrd->match);
 
     if (!imm_lprob_is_finite(lrt) || lrt < x->lrt_threshold) continue;
+
+    if (imm_dp_viterbi(null_dp, null.task, &null.prod)) goto cleanup;
+    if (imm_dp_viterbi(alt_dp, alt.task, &alt.prod)) goto cleanup;
 
     dcp_prod_match_set_protein(&x->prod_thrd->match, x->protein.accession);
 

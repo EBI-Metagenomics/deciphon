@@ -25,7 +25,7 @@ int main(void)
 
   long size = 0;
   eq_or_exit(dcp_fs_size(DBFILE, &size), 0);
-  eq(size, 9933912);
+  eq(size, 10258373);
 
   long chk = 0;
   eq_or_exit(dcp_fs_cksum(DBFILE, &chk), 0);

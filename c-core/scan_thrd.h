@@ -6,6 +6,7 @@
 #include "p7.h"
 #include "protein_iter.h"
 #include "scan_task.h"
+#include "vit.h"
 #include <stdio.h>
 
 struct dcp_chararray;
