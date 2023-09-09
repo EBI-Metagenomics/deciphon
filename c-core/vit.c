@@ -17,7 +17,7 @@
 #define lookback(i) ((i))
 #define nchars(n) ((n)-1)
 
-#define CORE_OFFSET(k) (k * M_PAST_SIZE * I_PAST_SIZE * D_PAST_SIZE)
+#define CORE_OFFSET(k) ((k)*M_PAST_SIZE * I_PAST_SIZE * D_PAST_SIZE)
 #define M_OFFSET(k) (CORE_OFFSET(k))
 #define I_OFFSET(k) (CORE_OFFSET(k) + M_PAST_SIZE)
 #define D_OFFSET(k) (CORE_OFFSET(k) + M_PAST_SIZE + I_PAST_SIZE)
@@ -37,8 +37,8 @@ static inline float reduce_max(int size, float const x[])
   return max;
 }
 
-dcp_pure_template int emission_index(struct imm_eseq const *eseq,
-                                     int sequence_position, int emission_length)
+DCP_PURE int emission_index(struct imm_eseq const *eseq, int sequence_position,
+                            int emission_length)
 {
   if (sequence_position < 0) return -1;
   return imm_eseq_get(eseq, sequence_position, emission_length, 1);
@@ -345,10 +345,7 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
   dp_S[lookback(0)] = 0;
 
   float const *restrict trans_BM = x->BMk;
-  struct extra_trans const xtrans = extra_trans(x->xtrans);
-
-  float const *restrict background_emission = x->bg.emission;
-  float const *restrict null_emission = x->null.emission;
+  struct extra_trans const xt = extra_trans(x->xtrans);
 
   for (int r = 0; r < seq_size + 1; ++r)
   {
@@ -356,30 +353,29 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
     for (int i = 1; i <= 5; ++i)
       ix[i - 1] = emission_index(eseq, r - i, i);
 
-    float const null[] = {safe_get(null_emission, ix[nchars(1)]),
-                          safe_get(null_emission, ix[nchars(2)]),
-                          safe_get(null_emission, ix[nchars(3)]),
-                          safe_get(null_emission, ix[nchars(4)]),
-                          safe_get(null_emission, ix[nchars(5)])};
+    float const null[] = {safe_get(x->null.emission, ix[nchars(1)]),
+                          safe_get(x->null.emission, ix[nchars(2)]),
+                          safe_get(x->null.emission, ix[nchars(3)]),
+                          safe_get(x->null.emission, ix[nchars(4)]),
+                          safe_get(x->null.emission, ix[nchars(5)])};
 
-    float const bg[] = {safe_get(background_emission, ix[nchars(1)]),
-                        safe_get(background_emission, ix[nchars(2)]),
-                        safe_get(background_emission, ix[nchars(3)]),
-                        safe_get(background_emission, ix[nchars(4)]),
-                        safe_get(background_emission, ix[nchars(5)])};
+    float const bg[] = {safe_get(x->bg.emission, ix[nchars(1)]),
+                        safe_get(x->bg.emission, ix[nchars(2)]),
+                        safe_get(x->bg.emission, ix[nchars(3)]),
+                        safe_get(x->bg.emission, ix[nchars(4)]),
+                        safe_get(x->bg.emission, ix[nchars(5)])};
 
-    dp_E[lookback(0)] = onto_E(dp, core_size, xtrans.ME, xtrans.DE, 0);
-    dp_N[lookback(0)] = onto_N(dp_S, dp_N, xtrans.SN, xtrans.NN, null);
-    dp_B[lookback(0)] = onto_B(dp_S, dp_N, dp_E, dp_J, xtrans.SB, xtrans.NB,
-                               xtrans.EB, xtrans.JB, 0);
+    dp_E[lookback(0)] = onto_E(dp, core_size, xt.ME, xt.DE, 0);
+    dp_N[lookback(0)] = onto_N(dp_S, dp_N, xt.SN, xt.NN, null);
+    dp_B[lookback(0)] =
+        onto_B(dp_S, dp_N, dp_E, dp_J, xt.SB, xt.NB, xt.EB, xt.JB, 0);
 
     {
-      float const *match_emission = x->nodes[0].emission;
-      float const emis_M[] = {safe_get(match_emission, ix[nchars(1)]),
-                              safe_get(match_emission, ix[nchars(2)]),
-                              safe_get(match_emission, ix[nchars(3)]),
-                              safe_get(match_emission, ix[nchars(4)]),
-                              safe_get(match_emission, ix[nchars(5)])};
+      float const emis_M[] = {safe_get(x->nodes[0].emission, ix[nchars(1)]),
+                              safe_get(x->nodes[0].emission, ix[nchars(2)]),
+                              safe_get(x->nodes[0].emission, ix[nchars(3)]),
+                              safe_get(x->nodes[0].emission, ix[nchars(4)]),
+                              safe_get(x->nodes[0].emission, ix[nchars(5)])};
       DP_M(dp, 0, lookback(0)) = onto_M1(dp_B, trans_BM[0], emis_M);
     }
 
@@ -388,13 +384,12 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
       int const k0 = k;
       int const k1 = k + 1;
       struct dcp_trans const *restrict t = &x->nodes[k0].trans;
-      float const *match_emission = x->nodes[k1].emission;
 
-      float const emis_M[] = {safe_get(match_emission, ix[nchars(1)]),
-                              safe_get(match_emission, ix[nchars(2)]),
-                              safe_get(match_emission, ix[nchars(3)]),
-                              safe_get(match_emission, ix[nchars(4)]),
-                              safe_get(match_emission, ix[nchars(5)])};
+      float const emis_M[] = {safe_get(x->nodes[k1].emission, ix[nchars(1)]),
+                              safe_get(x->nodes[k1].emission, ix[nchars(2)]),
+                              safe_get(x->nodes[k1].emission, ix[nchars(3)]),
+                              safe_get(x->nodes[k1].emission, ix[nchars(4)]),
+                              safe_get(x->nodes[k1].emission, ix[nchars(5)])};
 
       DP_I(dp, k0, lookback(0)) = onto_I(dp, t->MI, t->II, bg, k0);
       DP_M(dp, k1, lookback(0)) =
@@ -402,10 +397,10 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
       DP_D(dp, k1, lookback(0)) = onto_D(dp, t->MD, t->DD, 0, k0);
     }
 
-    dp_E[lookback(0)] = onto_E(dp, core_size, xtrans.ME, xtrans.DE, 0);
-    dp_J[lookback(0)] = onto_J(dp_E, dp_J, xtrans.EJ, xtrans.JJ, null);
-    dp_C[lookback(0)] = onto_C(dp_E, dp_C, xtrans.EC, xtrans.CC, null);
-    dp_T[lookback(0)] = onto_T(dp_E, dp_C, xtrans.ET, xtrans.CT, 0);
+    dp_E[lookback(0)] = onto_E(dp, core_size, xt.ME, xt.DE, 0);
+    dp_J[lookback(0)] = onto_J(dp_E, dp_J, xt.EJ, xt.JJ, null);
+    dp_C[lookback(0)] = onto_C(dp_E, dp_C, xt.EC, xt.CC, null);
+    dp_T[lookback(0)] = onto_T(dp_E, dp_C, xt.ET, xt.CT, 0);
 
     size_t sz = sizeof(float) * (PAST_SIZE - 1);
     memmove(dp_S + lookback(1), dp_S + lookback(0), sz);
