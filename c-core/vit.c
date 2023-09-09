@@ -14,7 +14,7 @@
 #define I_PAST_SIZE PAST_SIZE
 #define D_PAST_SIZE PAST_SIZE
 
-#define lookback(i) ((i))
+#define lukbak(i) ((i))
 #define nchars(n) ((n)-1)
 
 #define CORE_OFFSET(k) ((k)*M_PAST_SIZE * I_PAST_SIZE * D_PAST_SIZE)
@@ -49,17 +49,17 @@ static inline float onto_R(float const *restrict dp_s,
                            float const trans_rr, float const *restrict emis)
 {
   float const x[] = {
-      dp_s[lookback(1)] + trans_sr + emis[nchars(1)],
-      dp_s[lookback(2)] + trans_sr + emis[nchars(2)],
-      dp_s[lookback(3)] + trans_sr + emis[nchars(3)],
-      dp_s[lookback(4)] + trans_sr + emis[nchars(4)],
-      dp_s[lookback(5)] + trans_sr + emis[nchars(5)],
+      dp_s[lukbak(1)] + trans_sr + emis[nchars(1)],
+      dp_s[lukbak(2)] + trans_sr + emis[nchars(2)],
+      dp_s[lukbak(3)] + trans_sr + emis[nchars(3)],
+      dp_s[lukbak(4)] + trans_sr + emis[nchars(4)],
+      dp_s[lukbak(5)] + trans_sr + emis[nchars(5)],
 
-      dp_r[lookback(1)] + trans_rr + emis[nchars(1)],
-      dp_r[lookback(2)] + trans_rr + emis[nchars(2)],
-      dp_r[lookback(3)] + trans_rr + emis[nchars(3)],
-      dp_r[lookback(4)] + trans_rr + emis[nchars(4)],
-      dp_r[lookback(5)] + trans_rr + emis[nchars(5)],
+      dp_r[lukbak(1)] + trans_rr + emis[nchars(1)],
+      dp_r[lukbak(2)] + trans_rr + emis[nchars(2)],
+      dp_r[lukbak(3)] + trans_rr + emis[nchars(3)],
+      dp_r[lukbak(4)] + trans_rr + emis[nchars(4)],
+      dp_r[lukbak(5)] + trans_rr + emis[nchars(5)],
   };
   return reduce_max(array_size(x), x);
 }
@@ -69,17 +69,17 @@ static inline float onto_N(float const *restrict dp_s,
                            float const trans_nn, float const *restrict emis)
 {
   float const x[] = {
-      dp_s[lookback(1)] + trans_sn + emis[nchars(1)],
-      dp_s[lookback(2)] + trans_sn + emis[nchars(2)],
-      dp_s[lookback(3)] + trans_sn + emis[nchars(3)],
-      dp_s[lookback(4)] + trans_sn + emis[nchars(4)],
-      dp_s[lookback(5)] + trans_sn + emis[nchars(5)],
+      dp_s[lukbak(1)] + trans_sn + emis[nchars(1)],
+      dp_s[lukbak(2)] + trans_sn + emis[nchars(2)],
+      dp_s[lukbak(3)] + trans_sn + emis[nchars(3)],
+      dp_s[lukbak(4)] + trans_sn + emis[nchars(4)],
+      dp_s[lukbak(5)] + trans_sn + emis[nchars(5)],
 
-      dp_n[lookback(1)] + trans_nn + emis[nchars(1)],
-      dp_n[lookback(2)] + trans_nn + emis[nchars(2)],
-      dp_n[lookback(3)] + trans_nn + emis[nchars(3)],
-      dp_n[lookback(4)] + trans_nn + emis[nchars(4)],
-      dp_n[lookback(5)] + trans_nn + emis[nchars(5)],
+      dp_n[lukbak(1)] + trans_nn + emis[nchars(1)],
+      dp_n[lukbak(2)] + trans_nn + emis[nchars(2)],
+      dp_n[lukbak(3)] + trans_nn + emis[nchars(3)],
+      dp_n[lukbak(4)] + trans_nn + emis[nchars(4)],
+      dp_n[lukbak(5)] + trans_nn + emis[nchars(5)],
   };
   return reduce_max(array_size(x), x);
 }
@@ -92,10 +92,10 @@ static inline float onto_B(float const *restrict dp_s,
                            float const trans_jb, float const emis)
 {
   float const x[] = {
-      dp_s[lookback(0)] + trans_sb + emis,
-      dp_n[lookback(0)] + trans_nb + emis,
-      dp_e[lookback(0)] + trans_eb + emis,
-      dp_j[lookback(0)] + trans_jb + emis,
+      dp_s[lukbak(0)] + trans_sb + emis,
+      dp_n[lukbak(0)] + trans_nb + emis,
+      dp_e[lukbak(0)] + trans_eb + emis,
+      dp_j[lukbak(0)] + trans_jb + emis,
   };
   return reduce_max(array_size(x), x);
 }
@@ -104,11 +104,11 @@ static inline float onto_M1(float const *restrict dp_B, float const trans_BM,
                             float const *restrict M)
 {
   float const x[] = {
-      dp_B[lookback(1)] + trans_BM + M[nchars(1)],
-      dp_B[lookback(2)] + trans_BM + M[nchars(2)],
-      dp_B[lookback(3)] + trans_BM + M[nchars(3)],
-      dp_B[lookback(4)] + trans_BM + M[nchars(4)],
-      dp_B[lookback(5)] + trans_BM + M[nchars(5)],
+      dp_B[lukbak(1)] + trans_BM + M[nchars(1)],
+      dp_B[lukbak(2)] + trans_BM + M[nchars(2)],
+      dp_B[lukbak(3)] + trans_BM + M[nchars(3)],
+      dp_B[lukbak(4)] + trans_BM + M[nchars(4)],
+      dp_B[lukbak(5)] + trans_BM + M[nchars(5)],
   };
   return reduce_max(array_size(x), x);
 }
@@ -120,29 +120,29 @@ static inline float onto_M(float const *restrict dp, float const *restrict dp_B,
 {
   // clang-format off
   float const x[] = {
-      dp_B[lookback(1)] + trans_BMk[k0 + 1] + M[nchars(1)],
-      dp_B[lookback(2)] + trans_BMk[k0 + 1] + M[nchars(2)],
-      dp_B[lookback(3)] + trans_BMk[k0 + 1] + M[nchars(3)],
-      dp_B[lookback(4)] + trans_BMk[k0 + 1] + M[nchars(4)],
-      dp_B[lookback(5)] + trans_BMk[k0 + 1] + M[nchars(5)],
+      dp_B[lukbak(1)] + trans_BMk[k0 + 1] + M[nchars(1)],
+      dp_B[lukbak(2)] + trans_BMk[k0 + 1] + M[nchars(2)],
+      dp_B[lukbak(3)] + trans_BMk[k0 + 1] + M[nchars(3)],
+      dp_B[lukbak(4)] + trans_BMk[k0 + 1] + M[nchars(4)],
+      dp_B[lukbak(5)] + trans_BMk[k0 + 1] + M[nchars(5)],
 
-      DP_M(dp, k0, lookback(1)) + MM + M[nchars(1)],
-      DP_M(dp, k0, lookback(2)) + MM + M[nchars(2)],
-      DP_M(dp, k0, lookback(3)) + MM + M[nchars(3)],
-      DP_M(dp, k0, lookback(4)) + MM + M[nchars(4)],
-      DP_M(dp, k0, lookback(5)) + MM + M[nchars(5)],
+      DP_M(dp, k0, lukbak(1)) + MM + M[nchars(1)],
+      DP_M(dp, k0, lukbak(2)) + MM + M[nchars(2)],
+      DP_M(dp, k0, lukbak(3)) + MM + M[nchars(3)],
+      DP_M(dp, k0, lukbak(4)) + MM + M[nchars(4)],
+      DP_M(dp, k0, lukbak(5)) + MM + M[nchars(5)],
 
-      DP_I(dp, k0, lookback(1)) + IM + M[nchars(1)],
-      DP_I(dp, k0, lookback(2)) + IM + M[nchars(2)],
-      DP_I(dp, k0, lookback(3)) + IM + M[nchars(3)],
-      DP_I(dp, k0, lookback(4)) + IM + M[nchars(4)],
-      DP_I(dp, k0, lookback(5)) + IM + M[nchars(5)],
+      DP_I(dp, k0, lukbak(1)) + IM + M[nchars(1)],
+      DP_I(dp, k0, lukbak(2)) + IM + M[nchars(2)],
+      DP_I(dp, k0, lukbak(3)) + IM + M[nchars(3)],
+      DP_I(dp, k0, lukbak(4)) + IM + M[nchars(4)],
+      DP_I(dp, k0, lukbak(5)) + IM + M[nchars(5)],
 
-      DP_D(dp, k0, lookback(1)) + DM + M[nchars(1)],
-      DP_D(dp, k0, lookback(2)) + DM + M[nchars(2)],
-      DP_D(dp, k0, lookback(3)) + DM + M[nchars(3)],
-      DP_D(dp, k0, lookback(4)) + DM + M[nchars(4)],
-      DP_D(dp, k0, lookback(5)) + DM + M[nchars(5)],
+      DP_D(dp, k0, lukbak(1)) + DM + M[nchars(1)],
+      DP_D(dp, k0, lukbak(2)) + DM + M[nchars(2)],
+      DP_D(dp, k0, lukbak(3)) + DM + M[nchars(3)],
+      DP_D(dp, k0, lukbak(4)) + DM + M[nchars(4)],
+      DP_D(dp, k0, lukbak(5)) + DM + M[nchars(5)],
   };
   // clang-format on
   return reduce_max(array_size(x), x);
@@ -154,17 +154,17 @@ static inline float onto_I(float const *restrict dp, float const MI,
 {
   // clang-format off
   float const x[] = {
-      DP_M(dp, k0, lookback(1)) + MI + I[nchars(1)],
-      DP_M(dp, k0, lookback(2)) + MI + I[nchars(2)],
-      DP_M(dp, k0, lookback(3)) + MI + I[nchars(3)],
-      DP_M(dp, k0, lookback(4)) + MI + I[nchars(4)],
-      DP_M(dp, k0, lookback(5)) + MI + I[nchars(5)],
+      DP_M(dp, k0, lukbak(1)) + MI + I[nchars(1)],
+      DP_M(dp, k0, lukbak(2)) + MI + I[nchars(2)],
+      DP_M(dp, k0, lukbak(3)) + MI + I[nchars(3)],
+      DP_M(dp, k0, lukbak(4)) + MI + I[nchars(4)],
+      DP_M(dp, k0, lukbak(5)) + MI + I[nchars(5)],
 
-      DP_I(dp, k0, lookback(1)) + II + I[nchars(1)],
-      DP_I(dp, k0, lookback(2)) + II + I[nchars(2)],
-      DP_I(dp, k0, lookback(3)) + II + I[nchars(3)],
-      DP_I(dp, k0, lookback(4)) + II + I[nchars(4)],
-      DP_I(dp, k0, lookback(5)) + II + I[nchars(5)],
+      DP_I(dp, k0, lukbak(1)) + II + I[nchars(1)],
+      DP_I(dp, k0, lukbak(2)) + II + I[nchars(2)],
+      DP_I(dp, k0, lukbak(3)) + II + I[nchars(3)],
+      DP_I(dp, k0, lukbak(4)) + II + I[nchars(4)],
+      DP_I(dp, k0, lukbak(5)) + II + I[nchars(5)],
   };
   // clang-format on
   return reduce_max(array_size(x), x);
@@ -175,8 +175,8 @@ static inline float onto_D(float const *restrict dp, float const MD,
 {
   // clang-format off
   float const x[] = {
-      DP_M(dp, k0, lookback(0)) + MD + D,
-      DP_D(dp, k0, lookback(0)) + DD + D,
+      DP_M(dp, k0, lukbak(0)) + MD + D,
+      DP_D(dp, k0, lukbak(0)) + DD + D,
   };
   // clang-format on
   return reduce_max(array_size(x), x);
@@ -186,11 +186,11 @@ static inline float onto_E(float const *restrict dp, int const core_size,
                            float const trans_me, float const trans_de,
                            float const emis)
 {
-  float x = DP_M(dp, 0, lookback(0)) + trans_me + emis;
+  float x = DP_M(dp, 0, lukbak(0)) + trans_me + emis;
   for (int k = 1; k < core_size; ++k)
   {
-    x = fmax(x, DP_M(dp, k, lookback(0)) + trans_me + emis);
-    x = fmax(x, DP_D(dp, k, lookback(0)) + trans_de + emis);
+    x = fmax(x, DP_M(dp, k, lukbak(0)) + trans_me + emis);
+    x = fmax(x, DP_D(dp, k, lukbak(0)) + trans_de + emis);
   }
   return x;
 }
@@ -200,17 +200,17 @@ static inline float onto_J(float const *restrict dp_e,
                            float const trans_jj, float const *restrict emis)
 {
   float const x[] = {
-      dp_e[lookback(1)] + trans_ej + emis[nchars(1)],
-      dp_e[lookback(2)] + trans_ej + emis[nchars(2)],
-      dp_e[lookback(3)] + trans_ej + emis[nchars(3)],
-      dp_e[lookback(4)] + trans_ej + emis[nchars(4)],
-      dp_e[lookback(5)] + trans_ej + emis[nchars(5)],
+      dp_e[lukbak(1)] + trans_ej + emis[nchars(1)],
+      dp_e[lukbak(2)] + trans_ej + emis[nchars(2)],
+      dp_e[lukbak(3)] + trans_ej + emis[nchars(3)],
+      dp_e[lukbak(4)] + trans_ej + emis[nchars(4)],
+      dp_e[lukbak(5)] + trans_ej + emis[nchars(5)],
 
-      dp_j[lookback(1)] + trans_jj + emis[nchars(1)],
-      dp_j[lookback(2)] + trans_jj + emis[nchars(2)],
-      dp_j[lookback(3)] + trans_jj + emis[nchars(3)],
-      dp_j[lookback(4)] + trans_jj + emis[nchars(4)],
-      dp_j[lookback(5)] + trans_jj + emis[nchars(5)],
+      dp_j[lukbak(1)] + trans_jj + emis[nchars(1)],
+      dp_j[lukbak(2)] + trans_jj + emis[nchars(2)],
+      dp_j[lukbak(3)] + trans_jj + emis[nchars(3)],
+      dp_j[lukbak(4)] + trans_jj + emis[nchars(4)],
+      dp_j[lukbak(5)] + trans_jj + emis[nchars(5)],
   };
   return reduce_max(array_size(x), x);
 }
@@ -220,17 +220,17 @@ static inline float onto_C(float const *restrict dp_e,
                            float const trans_cc, float const *restrict emis)
 {
   float const x[] = {
-      dp_e[lookback(1)] + trans_ec + emis[nchars(1)],
-      dp_e[lookback(2)] + trans_ec + emis[nchars(2)],
-      dp_e[lookback(3)] + trans_ec + emis[nchars(3)],
-      dp_e[lookback(4)] + trans_ec + emis[nchars(4)],
-      dp_e[lookback(5)] + trans_ec + emis[nchars(5)],
+      dp_e[lukbak(1)] + trans_ec + emis[nchars(1)],
+      dp_e[lukbak(2)] + trans_ec + emis[nchars(2)],
+      dp_e[lukbak(3)] + trans_ec + emis[nchars(3)],
+      dp_e[lukbak(4)] + trans_ec + emis[nchars(4)],
+      dp_e[lukbak(5)] + trans_ec + emis[nchars(5)],
 
-      dp_c[lookback(1)] + trans_cc + emis[nchars(1)],
-      dp_c[lookback(2)] + trans_cc + emis[nchars(2)],
-      dp_c[lookback(3)] + trans_cc + emis[nchars(3)],
-      dp_c[lookback(4)] + trans_cc + emis[nchars(4)],
-      dp_c[lookback(5)] + trans_cc + emis[nchars(5)],
+      dp_c[lukbak(1)] + trans_cc + emis[nchars(1)],
+      dp_c[lukbak(2)] + trans_cc + emis[nchars(2)],
+      dp_c[lukbak(3)] + trans_cc + emis[nchars(3)],
+      dp_c[lukbak(4)] + trans_cc + emis[nchars(4)],
+      dp_c[lukbak(5)] + trans_cc + emis[nchars(5)],
   };
   return reduce_max(array_size(x), x);
 }
@@ -239,8 +239,8 @@ static inline float onto_T(float const *restrict dp_e,
                            float const *restrict dp_c, float const trans_et,
                            float const trans_ct, float const emis)
 {
-  float const tmp[] = {dp_e[lookback(0)] + trans_et + emis,
-                       dp_c[lookback(0)] + trans_ct + emis};
+  float const tmp[] = {dp_e[lukbak(0)] + trans_et + emis,
+                       dp_c[lukbak(0)] + trans_ct + emis};
   return reduce_max(array_size(tmp), tmp);
 }
 
@@ -304,7 +304,7 @@ float dcp_vit_null(struct p7 *x, struct imm_eseq const *eseq)
   float dp_S[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
   float dp_R[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
 #undef NINF
-  dp_S[lookback(0)] = 0;
+  dp_S[lukbak(0)] = 0;
 
   for (int r = 0; r < seq_size + 1; ++r)
   {
@@ -315,14 +315,14 @@ float dcp_vit_null(struct p7 *x, struct imm_eseq const *eseq)
         safe_get(null_emission, emission_index(eseq, r - 4, 4)),
         safe_get(null_emission, emission_index(eseq, r - 5, 5))};
 
-    dp_R[lookback(0)] = onto_R(dp_S, dp_R, SR, RR, null);
+    dp_R[lukbak(0)] = onto_R(dp_S, dp_R, SR, RR, null);
     size_t sz = sizeof(float) * (PAST_SIZE - 1);
-    memmove(dp_S + lookback(1), dp_S + lookback(0), sz);
-    memmove(dp_R + lookback(1), dp_R + lookback(0), sz);
-    dp_S[lookback(0)] = IMM_LPROB_ZERO;
+    memmove(dp_S + lukbak(1), dp_S + lukbak(0), sz);
+    memmove(dp_R + lukbak(1), dp_R + lukbak(0), sz);
+    dp_S[lukbak(0)] = IMM_LPROB_ZERO;
     // dp_R[PAST_SIZE - 1] = IMM_LPROB_ZERO;
   }
-  return dp_R[lookback(0)];
+  return dp_R[lukbak(0)];
 }
 
 float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
@@ -342,9 +342,9 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
   float C[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
   float T[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
 #undef NINF
-  S[lookback(0)] = 0;
+  S[lukbak(0)] = 0;
 
-  float const *restrict trans_BM = x->BMk;
+  float const *restrict BM = x->BMk;
   struct extra_trans const xt = extra_trans(x->xtrans);
 
   for (int r = 0; r < seq_size + 1; ++r)
@@ -365,9 +365,9 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
                         safe_get(x->bg.emission, ix[nchars(4)]),
                         safe_get(x->bg.emission, ix[nchars(5)])};
 
-    E[lookback(0)] = onto_E(dp, core_size, xt.ME, xt.DE, 0);
-    N[lookback(0)] = onto_N(S, N, xt.SN, xt.NN, null);
-    B[lookback(0)] = onto_B(S, N, E, J, xt.SB, xt.NB, xt.EB, xt.JB, 0);
+    E[lukbak(0)] = onto_E(dp, core_size, xt.ME, xt.DE, 0);
+    N[lukbak(0)] = onto_N(S, N, xt.SN, xt.NN, null);
+    B[lukbak(0)] = onto_B(S, N, E, J, xt.SB, xt.NB, xt.EB, xt.JB, 0);
 
     {
       float const M[] = {safe_get(x->nodes[0].emission, ix[nchars(1)]),
@@ -375,7 +375,7 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
                          safe_get(x->nodes[0].emission, ix[nchars(3)]),
                          safe_get(x->nodes[0].emission, ix[nchars(4)]),
                          safe_get(x->nodes[0].emission, ix[nchars(5)])};
-      DP_M(dp, 0, lookback(0)) = onto_M1(B, trans_BM[0], M);
+      DP_M(dp, 0, lukbak(0)) = onto_M1(B, BM[0], M);
     }
 
     for (int k = 0; k + 1 < core_size; ++k)
@@ -390,36 +390,35 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
                          safe_get(x->nodes[k1].emission, ix[nchars(4)]),
                          safe_get(x->nodes[k1].emission, ix[nchars(5)])};
 
-      DP_I(dp, k0, lookback(0)) = onto_I(dp, t->MI, t->II, bg, k0);
-      DP_M(dp, k1, lookback(0)) =
-          onto_M(dp, B, t->MM, t->IM, t->DM, trans_BM, M, k0);
-      DP_D(dp, k1, lookback(0)) = onto_D(dp, t->MD, t->DD, 0, k0);
+      DP_I(dp, k0, lukbak(0)) = onto_I(dp, t->MI, t->II, bg, k0);
+      DP_M(dp, k1, lukbak(0)) = onto_M(dp, B, t->MM, t->IM, t->DM, BM, M, k0);
+      DP_D(dp, k1, lukbak(0)) = onto_D(dp, t->MD, t->DD, 0, k0);
     }
 
-    E[lookback(0)] = onto_E(dp, core_size, xt.ME, xt.DE, 0);
-    J[lookback(0)] = onto_J(E, J, xt.EJ, xt.JJ, null);
-    C[lookback(0)] = onto_C(E, C, xt.EC, xt.CC, null);
-    T[lookback(0)] = onto_T(E, C, xt.ET, xt.CT, 0);
+    E[lukbak(0)] = onto_E(dp, core_size, xt.ME, xt.DE, 0);
+    J[lukbak(0)] = onto_J(E, J, xt.EJ, xt.JJ, null);
+    C[lukbak(0)] = onto_C(E, C, xt.EC, xt.CC, null);
+    T[lukbak(0)] = onto_T(E, C, xt.ET, xt.CT, 0);
 
     size_t sz = sizeof(float) * (PAST_SIZE - 1);
-    memmove(S + lookback(1), S + lookback(0), sz);
-    S[lookback(0)] = IMM_LPROB_ZERO;
-    memmove(N + lookback(1), N + lookback(0), sz);
-    memmove(B + lookback(1), B + lookback(0), sz);
-    memmove(J + lookback(1), J + lookback(0), sz);
-    memmove(E + lookback(1), E + lookback(0), sz);
-    memmove(C + lookback(1), C + lookback(0), sz);
-    memmove(T + lookback(1), T + lookback(0), sz);
+    memmove(S + lukbak(1), S + lukbak(0), sz);
+    S[lukbak(0)] = IMM_LPROB_ZERO;
+    memmove(N + lukbak(1), N + lukbak(0), sz);
+    memmove(B + lukbak(1), B + lukbak(0), sz);
+    memmove(J + lukbak(1), J + lukbak(0), sz);
+    memmove(E + lukbak(1), E + lukbak(0), sz);
+    memmove(C + lukbak(1), C + lukbak(0), sz);
+    memmove(T + lukbak(1), T + lukbak(0), sz);
     for (int i = 0; i < core_size; ++i)
     {
       size_t count = sizeof(float) * (PAST_SIZE - 1);
-      memmove(&DP_I(dp, i, lookback(1)), &DP_I(dp, i, lookback(0)), count);
-      memmove(&DP_M(dp, i, lookback(1)), &DP_M(dp, i, lookback(0)), count);
-      memmove(&DP_D(dp, i, lookback(1)), &DP_D(dp, i, lookback(0)), count);
+      memmove(&DP_I(dp, i, lukbak(1)), &DP_I(dp, i, lukbak(0)), count);
+      memmove(&DP_M(dp, i, lukbak(1)), &DP_M(dp, i, lukbak(0)), count);
+      memmove(&DP_D(dp, i, lukbak(1)), &DP_D(dp, i, lukbak(0)), count);
     }
   }
 
-  float score = T[lookback(0)];
+  float score = T[lukbak(0)];
   free(dp);
   return score;
 }
