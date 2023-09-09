@@ -113,8 +113,10 @@ static inline float onto_M1(float const *restrict dp_B, float const trans_BM,
   return reduce_max(array_size(x), x);
 }
 
-static inline float onto_M(float const DPM[restrict], float const DPI[restrict], float const DPD[restrict], float const *restrict dp_B,
-                           float const MM, float const IM, float const DM,
+static inline float onto_M(float const DPM[restrict], float const DPI[restrict],
+                           float const DPD[restrict],
+                           float const *restrict dp_B, float const MM,
+                           float const IM, float const DM,
                            float const *restrict trans_BMk,
                            float const *restrict M, int const k0)
 {
@@ -148,9 +150,9 @@ static inline float onto_M(float const DPM[restrict], float const DPI[restrict],
   return reduce_max(array_size(x), x);
 }
 
-static inline float onto_I(float const DPM[restrict], float const DPI[restrict], float const MI,
-                           float const II, float const *restrict I,
-                           int const k0)
+static inline float onto_I(float const DPM[restrict], float const DPI[restrict],
+                           float const MI, float const II,
+                           float const *restrict I)
 {
   // clang-format off
   float const x[] = {
@@ -170,8 +172,8 @@ static inline float onto_I(float const DPM[restrict], float const DPI[restrict],
   return reduce_max(array_size(x), x);
 }
 
-static inline float onto_D(float const DPM[restrict], float const DPD[restrict], float const MD,
-                           float const DD, float const D, int const k0)
+static inline float onto_D(float const DPM[restrict], float const DPD[restrict],
+                           float const MD, float const DD, float const D)
 {
   // clang-format off
   float const x[] = {
@@ -186,11 +188,13 @@ static inline float onto_E(float const *restrict dp, int const core_size,
                            float const trans_me, float const trans_de,
                            float const emis)
 {
-  float x = DP_M(dp, 0, lukbak(0)) + trans_me + emis;
+  // Using lukbak(1) because I'm already in the future (as per make_future)
+  // It would be lukbak(0) if I hadn't call make_future on DP_M and DP_D
+  float x = DP_M(dp, 0, lukbak(1)) + trans_me + emis;
   for (int k = 1; k < core_size; ++k)
   {
-    x = fmax(x, DP_M(dp, k, lukbak(0)) + trans_me + emis);
-    x = fmax(x, DP_D(dp, k, lukbak(0)) + trans_de + emis);
+    x = fmax(x, DP_M(dp, k, lukbak(1)) + trans_me + emis);
+    x = fmax(x, DP_D(dp, k, lukbak(1)) + trans_de + emis);
   }
   return x;
 }
@@ -373,6 +377,8 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
     E[lukbak(0)] = onto_E(dp, core_size, xt.ME, xt.DE, 0);
     N[lukbak(0)] = onto_N(S, N, xt.SN, xt.NN, null);
     B[lukbak(0)] = onto_B(S, N, E, J, xt.SB, xt.NB, xt.EB, xt.JB, 0);
+    make_future(S);
+    make_future(N);
 
     float const M[] = {safe_get(x->nodes[0].emission, ix[nchars(1)]),
                        safe_get(x->nodes[0].emission, ix[nchars(2)]),
@@ -396,9 +402,10 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
                          safe_get(x->nodes[k1].emission, ix[nchars(4)]),
                          safe_get(x->nodes[k1].emission, ix[nchars(5)])};
 
-      DP_I(dp, k0, lukbak(0)) = onto_I(DPM, DPI, t->MI, t->II, bg, k0);
-      DP_M(dp, k1, lukbak(0)) = onto_M(DPM, DPI, DPD, B, t->MM, t->IM, t->DM, BM, M, k0); // DP_D(dp, k0, lukbak(1..5))
-      DP_D(dp, k1, lukbak(0)) = onto_D(DPM, DPD, t->MD, t->DD, 0, k0);                    // DP_D(dp, k0, lukbak(0))
+      DPI[lukbak(0)] = onto_I(DPM, DPI, t->MI, t->II, bg);
+      DP_M(dp, k1, lukbak(0)) =
+          onto_M(DPM, DPI, DPD, B, t->MM, t->IM, t->DM, BM, M, k0);
+      DP_D(dp, k1, lukbak(0)) = onto_D(DPM, DPD, t->MD, t->DD, 0);
       make_future(DPM);
       make_future(DPI);
       make_future(DPD);
@@ -406,31 +413,20 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
       DPI = &DP_I(dp, k1, lukbak(0));
       DPD = &DP_D(dp, k1, lukbak(0));
     }
-
-    E[lukbak(0)] = onto_E(dp, core_size, xt.ME, xt.DE, 0); // DP_D(dp, k=0..core_size-1, lukbak(0))
-    J[lukbak(0)] = onto_J(E, J, xt.EJ, xt.JJ, null);
-    C[lukbak(0)] = onto_C(E, C, xt.EC, xt.CC, null);
-    T[lukbak(0)] = onto_T(E, C, xt.ET, xt.CT, 0);
     make_future(DPM);
     make_future(DPI);
     make_future(DPD);
+    make_future(B);
 
-    size_t sz = sizeof(float) * (PAST_SIZE - 1);
-    memmove(S + lukbak(1), S + lukbak(0), sz);
+    E[lukbak(0)] = onto_E(dp, core_size, xt.ME, xt.DE, 0);
+    J[lukbak(0)] = onto_J(E, J, xt.EJ, xt.JJ, null);
+    make_future(J);
+    C[lukbak(0)] = onto_C(E, C, xt.EC, xt.CC, null);
+    T[lukbak(0)] = onto_T(E, C, xt.ET, xt.CT, 0);
+    make_future(E);
+    make_future(C);
+    make_future(T);
     S[lukbak(0)] = IMM_LPROB_ZERO;
-    memmove(N + lukbak(1), N + lukbak(0), sz);
-    memmove(B + lukbak(1), B + lukbak(0), sz);
-    memmove(J + lukbak(1), J + lukbak(0), sz);
-    memmove(E + lukbak(1), E + lukbak(0), sz);
-    memmove(C + lukbak(1), C + lukbak(0), sz);
-    memmove(T + lukbak(1), T + lukbak(0), sz);
-    for (int i = 0; i < core_size; ++i)
-    {
-      size_t count = sizeof(float) * (PAST_SIZE - 1);
-      // memmove(&DP_I(dp, i, lukbak(1)), &DP_I(dp, i, lukbak(0)), count);
-      // memmove(&DP_M(dp, i, lukbak(1)), &DP_M(dp, i, lukbak(0)), count);
-      // memmove(&DP_D(dp, i, lukbak(1)), &DP_D(dp, i, lukbak(0)), count);
-    }
   }
 
   float score = T[lukbak(0)];
