@@ -100,15 +100,13 @@ static inline float onto_B(float const *restrict dp_s,
   return reduce_max(array_size(x), x);
 }
 
-static inline float onto_M1(float const *restrict dp_B, float const trans_BM,
+static inline float onto_M1(float const *restrict B, float const BM,
                             float const *restrict M)
 {
   float const x[] = {
-      dp_B[lukbak(1)] + trans_BM + M[nchars(1)],
-      dp_B[lukbak(2)] + trans_BM + M[nchars(2)],
-      dp_B[lukbak(3)] + trans_BM + M[nchars(3)],
-      dp_B[lukbak(4)] + trans_BM + M[nchars(4)],
-      dp_B[lukbak(5)] + trans_BM + M[nchars(5)],
+      B[lukbak(1)] + BM + M[nchars(1)], B[lukbak(2)] + BM + M[nchars(2)],
+      B[lukbak(3)] + BM + M[nchars(3)], B[lukbak(4)] + BM + M[nchars(4)],
+      B[lukbak(5)] + BM + M[nchars(5)],
   };
   return reduce_max(array_size(x), x);
 }
