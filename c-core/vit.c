@@ -113,10 +113,10 @@ static inline float onto_M1(float const *restrict dp_B, float const trans_BM,
   return reduce_max(array_size(x), x);
 }
 
-static inline float onto_M(float const DPM[restrict], float const DPI[restrict],
-                           float const DPD[restrict], float const B[restrict],
-                           float const MM, float const IM, float const DM,
-                           float const BM, float const M[restrict])
+DCP_INLINE float onto_M(float const DPM[restrict], float const DPI[restrict],
+                        float const DPD[restrict], float const B[restrict],
+                        float const MM, float const IM, float const DM,
+                        float const BM, float const M[restrict])
 {
   // clang-format off
   float const x[] = {
@@ -148,9 +148,8 @@ static inline float onto_M(float const DPM[restrict], float const DPI[restrict],
   return reduce_max(array_size(x), x);
 }
 
-static inline float onto_I(float const DPM[restrict], float const DPI[restrict],
-                           float const MI, float const II,
-                           float const I[restrict])
+DCP_INLINE float onto_I(float const DPM[restrict], float const DPI[restrict],
+                        float const MI, float const II, float const I[restrict])
 {
   // clang-format off
   float const x[] = {
@@ -170,8 +169,8 @@ static inline float onto_I(float const DPM[restrict], float const DPI[restrict],
   return reduce_max(array_size(x), x);
 }
 
-static inline float onto_D(float const DPM[restrict], float const DPD[restrict],
-                           float const MD, float const DD, float const D)
+DCP_INLINE float onto_D(float const DPM[restrict], float const DPD[restrict],
+                        float const MD, float const DD, float const D)
 {
   // clang-format off
   float const x[] = {
