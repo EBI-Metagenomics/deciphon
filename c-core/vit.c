@@ -27,15 +27,54 @@
 #define DP_I(dp, k, i) dp[I_OFFSET(k) + i]
 #define DP_D(dp, k, i) dp[D_OFFSET(k) + i]
 
-static inline float reduce_max(int size, float const x[])
+#if defined(__aarch64__)
+IMM_CONST float fast_fmax(float a, float b)
+{
+  __asm__("fmaxnm %s0, %s1, %s2" : "=w"(a) : "w"(a), "w"(b));
+  return a;
+}
+IMM_PURE float reduce_max(int size, float const x[])
 {
   float max = -INFINITY;
 
   for (int i = 0; i < size; i++)
-    max = fmaxf(max, x[i]);
+    max = fast_fmax(max, x[i]);
 
   return max;
 }
+#else
+#include <immintrin.h>
+static inline float reduce_max(int size, float const *x)
+{
+  float max = x[0];
+
+  for (int i = 1; i < size; i++)
+    max = max < x[i] ? max : x[i];
+
+  return max;
+}
+
+static inline float pfirst4(const __m128 a) { return _mm_cvtss_f32(a); }
+
+static inline float predux_max(const __m128 a)
+{
+  __m128 tmp = _mm_max_ps(a, _mm_movehl_ps(a, a));
+  return pfirst4(_mm_max_ss(tmp, _mm_shuffle_ps(tmp, tmp, 1)));
+}
+
+static inline float pfirst8(const __m256 a) {
+  return _mm_cvtss_f32(_mm256_castps256_ps128(a));
+}
+
+// __AVX2__
+static inline float predux_max8(const __m256 a)
+{
+  __m256 tmp = _mm256_max_ps(a, _mm256_permute2f128_ps(a,a,1));
+  tmp = _mm256_max_ps(tmp, _mm256_shuffle_ps(tmp,tmp,_MM_SHUFFLE(1,0,3,2)));
+  return pfirst8(_mm256_max_ps(tmp, _mm256_shuffle_ps(tmp,tmp,1)));
+}
+
+#endif
 
 DCP_PURE int emission_index(struct imm_eseq const *eseq, int sequence_position,
                             int emission_length)
@@ -146,22 +185,21 @@ DCP_INLINE float onto_M(float const DPM[restrict], float const DPI[restrict],
   return reduce_max(array_size(x), x);
 }
 
-DCP_INLINE float onto_I(float const DPM[restrict], float const DPI[restrict],
-                        float const MI, float const II, float const I[restrict])
+DCP_INLINE float onto_I(float const DPMI[restrict], float const MI,
+                        float const II, float const I[restrict])
 {
   // clang-format off
   float const x[] = {
-      DPM[lukbak(1)] + MI + I[nchars(1)],
-      DPM[lukbak(2)] + MI + I[nchars(2)],
-      DPM[lukbak(3)] + MI + I[nchars(3)],
-      DPM[lukbak(4)] + MI + I[nchars(4)],
-      DPM[lukbak(5)] + MI + I[nchars(5)],
-
-      DPI[lukbak(1)] + II + I[nchars(1)],
-      DPI[lukbak(2)] + II + I[nchars(2)],
-      DPI[lukbak(3)] + II + I[nchars(3)],
-      DPI[lukbak(4)] + II + I[nchars(4)],
-      DPI[lukbak(5)] + II + I[nchars(5)],
+      DPMI[lukbak(1)] + MI + I[nchars(1)],
+      DPMI[lukbak(2)] + MI + I[nchars(2)],
+      DPMI[lukbak(3)] + MI + I[nchars(3)],
+      DPMI[lukbak(4)] + MI + I[nchars(4)],
+      DPMI[lukbak(5)] + MI + I[nchars(5)],
+      DPMI[lukbak(5)+lukbak(1)] + II + I[nchars(1)],
+      DPMI[lukbak(5)+lukbak(2)] + II + I[nchars(2)],
+      DPMI[lukbak(5)+lukbak(3)] + II + I[nchars(3)],
+      DPMI[lukbak(5)+lukbak(4)] + II + I[nchars(4)],
+      DPMI[lukbak(5)+lukbak(5)] + II + I[nchars(5)],
   };
   // clang-format on
   return reduce_max(array_size(x), x);
@@ -397,7 +435,7 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
                          safe_get(x->nodes[k1].emission, ix[nchars(4)]),
                          safe_get(x->nodes[k1].emission, ix[nchars(5)])};
 
-      DPI[lukbak(0)] = onto_I(DPM, DPI, t->MI, t->II, bg);
+      DPI[lukbak(0)] = onto_I(DPM, t->MI, t->II, bg);
       float tmpM = onto_M(DPM, DPI, DPD, B, t->MM, t->IM, t->DM, BM[k1], M);
       float tmpD = onto_D(DPM, DPD, t->MD, t->DD, 0);
       make_future(DPM);
