@@ -334,15 +334,15 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
   float *restrict dp = malloc(sizeof(*dp) * DP_SIZE(core_size));
   for (int i = 0; i < DP_SIZE(core_size); ++i)
     dp[i] = NINF;
-  float dp_S[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
-  float dp_N[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
-  float dp_B[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
-  float dp_J[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
-  float dp_E[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
-  float dp_C[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
-  float dp_T[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
+  float S[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
+  float N[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
+  float B[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
+  float J[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
+  float E[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
+  float C[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
+  float T[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
 #undef NINF
-  dp_S[lookback(0)] = 0;
+  S[lookback(0)] = 0;
 
   float const *restrict trans_BM = x->BMk;
   struct extra_trans const xt = extra_trans(x->xtrans);
@@ -365,18 +365,17 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
                         safe_get(x->bg.emission, ix[nchars(4)]),
                         safe_get(x->bg.emission, ix[nchars(5)])};
 
-    dp_E[lookback(0)] = onto_E(dp, core_size, xt.ME, xt.DE, 0);
-    dp_N[lookback(0)] = onto_N(dp_S, dp_N, xt.SN, xt.NN, null);
-    dp_B[lookback(0)] =
-        onto_B(dp_S, dp_N, dp_E, dp_J, xt.SB, xt.NB, xt.EB, xt.JB, 0);
+    E[lookback(0)] = onto_E(dp, core_size, xt.ME, xt.DE, 0);
+    N[lookback(0)] = onto_N(S, N, xt.SN, xt.NN, null);
+    B[lookback(0)] = onto_B(S, N, E, J, xt.SB, xt.NB, xt.EB, xt.JB, 0);
 
     {
-      float const emis_M[] = {safe_get(x->nodes[0].emission, ix[nchars(1)]),
-                              safe_get(x->nodes[0].emission, ix[nchars(2)]),
-                              safe_get(x->nodes[0].emission, ix[nchars(3)]),
-                              safe_get(x->nodes[0].emission, ix[nchars(4)]),
-                              safe_get(x->nodes[0].emission, ix[nchars(5)])};
-      DP_M(dp, 0, lookback(0)) = onto_M1(dp_B, trans_BM[0], emis_M);
+      float const M[] = {safe_get(x->nodes[0].emission, ix[nchars(1)]),
+                         safe_get(x->nodes[0].emission, ix[nchars(2)]),
+                         safe_get(x->nodes[0].emission, ix[nchars(3)]),
+                         safe_get(x->nodes[0].emission, ix[nchars(4)]),
+                         safe_get(x->nodes[0].emission, ix[nchars(5)])};
+      DP_M(dp, 0, lookback(0)) = onto_M1(B, trans_BM[0], M);
     }
 
     for (int k = 0; k + 1 < core_size; ++k)
@@ -385,32 +384,32 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
       int const k1 = k + 1;
       struct dcp_trans const *restrict t = &x->nodes[k0].trans;
 
-      float const emis_M[] = {safe_get(x->nodes[k1].emission, ix[nchars(1)]),
-                              safe_get(x->nodes[k1].emission, ix[nchars(2)]),
-                              safe_get(x->nodes[k1].emission, ix[nchars(3)]),
-                              safe_get(x->nodes[k1].emission, ix[nchars(4)]),
-                              safe_get(x->nodes[k1].emission, ix[nchars(5)])};
+      float const M[] = {safe_get(x->nodes[k1].emission, ix[nchars(1)]),
+                         safe_get(x->nodes[k1].emission, ix[nchars(2)]),
+                         safe_get(x->nodes[k1].emission, ix[nchars(3)]),
+                         safe_get(x->nodes[k1].emission, ix[nchars(4)]),
+                         safe_get(x->nodes[k1].emission, ix[nchars(5)])};
 
       DP_I(dp, k0, lookback(0)) = onto_I(dp, t->MI, t->II, bg, k0);
       DP_M(dp, k1, lookback(0)) =
-          onto_M(dp, dp_B, t->MM, t->IM, t->DM, trans_BM, emis_M, k0);
+          onto_M(dp, B, t->MM, t->IM, t->DM, trans_BM, M, k0);
       DP_D(dp, k1, lookback(0)) = onto_D(dp, t->MD, t->DD, 0, k0);
     }
 
-    dp_E[lookback(0)] = onto_E(dp, core_size, xt.ME, xt.DE, 0);
-    dp_J[lookback(0)] = onto_J(dp_E, dp_J, xt.EJ, xt.JJ, null);
-    dp_C[lookback(0)] = onto_C(dp_E, dp_C, xt.EC, xt.CC, null);
-    dp_T[lookback(0)] = onto_T(dp_E, dp_C, xt.ET, xt.CT, 0);
+    E[lookback(0)] = onto_E(dp, core_size, xt.ME, xt.DE, 0);
+    J[lookback(0)] = onto_J(E, J, xt.EJ, xt.JJ, null);
+    C[lookback(0)] = onto_C(E, C, xt.EC, xt.CC, null);
+    T[lookback(0)] = onto_T(E, C, xt.ET, xt.CT, 0);
 
     size_t sz = sizeof(float) * (PAST_SIZE - 1);
-    memmove(dp_S + lookback(1), dp_S + lookback(0), sz);
-    dp_S[lookback(0)] = IMM_LPROB_ZERO;
-    memmove(dp_N + lookback(1), dp_N + lookback(0), sz);
-    memmove(dp_B + lookback(1), dp_B + lookback(0), sz);
-    memmove(dp_J + lookback(1), dp_J + lookback(0), sz);
-    memmove(dp_E + lookback(1), dp_E + lookback(0), sz);
-    memmove(dp_C + lookback(1), dp_C + lookback(0), sz);
-    memmove(dp_T + lookback(1), dp_T + lookback(0), sz);
+    memmove(S + lookback(1), S + lookback(0), sz);
+    S[lookback(0)] = IMM_LPROB_ZERO;
+    memmove(N + lookback(1), N + lookback(0), sz);
+    memmove(B + lookback(1), B + lookback(0), sz);
+    memmove(J + lookback(1), J + lookback(0), sz);
+    memmove(E + lookback(1), E + lookback(0), sz);
+    memmove(C + lookback(1), C + lookback(0), sz);
+    memmove(T + lookback(1), T + lookback(0), sz);
     for (int i = 0; i < core_size; ++i)
     {
       size_t count = sizeof(float) * (PAST_SIZE - 1);
@@ -420,7 +419,7 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
     }
   }
 
-  float score = dp_T[lookback(0)];
+  float score = T[lookback(0)];
   free(dp);
   return score;
 }
