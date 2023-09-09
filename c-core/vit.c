@@ -403,15 +403,16 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
                          safe_get(x->nodes[k1].emission, ix[nchars(5)])};
 
       DPI[lukbak(0)] = onto_I(DPM, DPI, t->MI, t->II, bg);
-      DP_M(dp, k1, lukbak(0)) =
-          onto_M(DPM, DPI, DPD, B, t->MM, t->IM, t->DM, BM, M, k0);
-      DP_D(dp, k1, lukbak(0)) = onto_D(DPM, DPD, t->MD, t->DD, 0);
+      float tmpM = onto_M(DPM, DPI, DPD, B, t->MM, t->IM, t->DM, BM, M, k0);
+      float tmpD = onto_D(DPM, DPD, t->MD, t->DD, 0);
       make_future(DPM);
       make_future(DPI);
       make_future(DPD);
       DPM = &DP_M(dp, k1, lukbak(0));
+      DPM[lukbak(0)] = tmpM;
       DPI = &DP_I(dp, k1, lukbak(0));
       DPD = &DP_D(dp, k1, lukbak(0));
+      DPD[lukbak(0)] = tmpD;
     }
     make_future(DPM);
     make_future(DPI);
