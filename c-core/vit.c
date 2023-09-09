@@ -15,7 +15,7 @@
 #define D_PAST_SIZE PAST_SIZE
 
 #define lookback(i) (PAST_SIZE - 1 - (i))
-#define emis_idx(nchars) ((nchars)-1)
+#define nchars(n) ((n)-1)
 
 #define CORE_OFFSET(k) (k * M_PAST_SIZE * I_PAST_SIZE * D_PAST_SIZE)
 #define M_OFFSET(k) (CORE_OFFSET(k))
@@ -49,17 +49,17 @@ static inline float onto_R(float const *restrict dp_s,
                            float const trans_rr, float const *restrict emis)
 {
   float const x[] = {
-      dp_s[lookback(1)] + trans_sr + emis[emis_idx(1)],
-      dp_s[lookback(2)] + trans_sr + emis[emis_idx(2)],
-      dp_s[lookback(3)] + trans_sr + emis[emis_idx(3)],
-      dp_s[lookback(4)] + trans_sr + emis[emis_idx(4)],
-      dp_s[lookback(5)] + trans_sr + emis[emis_idx(5)],
+      dp_s[lookback(1)] + trans_sr + emis[nchars(1)],
+      dp_s[lookback(2)] + trans_sr + emis[nchars(2)],
+      dp_s[lookback(3)] + trans_sr + emis[nchars(3)],
+      dp_s[lookback(4)] + trans_sr + emis[nchars(4)],
+      dp_s[lookback(5)] + trans_sr + emis[nchars(5)],
 
-      dp_r[lookback(1)] + trans_rr + emis[emis_idx(1)],
-      dp_r[lookback(2)] + trans_rr + emis[emis_idx(2)],
-      dp_r[lookback(3)] + trans_rr + emis[emis_idx(3)],
-      dp_r[lookback(4)] + trans_rr + emis[emis_idx(4)],
-      dp_r[lookback(5)] + trans_rr + emis[emis_idx(5)],
+      dp_r[lookback(1)] + trans_rr + emis[nchars(1)],
+      dp_r[lookback(2)] + trans_rr + emis[nchars(2)],
+      dp_r[lookback(3)] + trans_rr + emis[nchars(3)],
+      dp_r[lookback(4)] + trans_rr + emis[nchars(4)],
+      dp_r[lookback(5)] + trans_rr + emis[nchars(5)],
   };
   return reduce_max(array_size(x), x);
 }
@@ -69,17 +69,17 @@ static inline float onto_N(float const *restrict dp_s,
                            float const trans_nn, float const *restrict emis)
 {
   float const x[] = {
-      dp_s[lookback(1)] + trans_sn + emis[emis_idx(1)],
-      dp_s[lookback(2)] + trans_sn + emis[emis_idx(2)],
-      dp_s[lookback(3)] + trans_sn + emis[emis_idx(3)],
-      dp_s[lookback(4)] + trans_sn + emis[emis_idx(4)],
-      dp_s[lookback(5)] + trans_sn + emis[emis_idx(5)],
+      dp_s[lookback(1)] + trans_sn + emis[nchars(1)],
+      dp_s[lookback(2)] + trans_sn + emis[nchars(2)],
+      dp_s[lookback(3)] + trans_sn + emis[nchars(3)],
+      dp_s[lookback(4)] + trans_sn + emis[nchars(4)],
+      dp_s[lookback(5)] + trans_sn + emis[nchars(5)],
 
-      dp_n[lookback(1)] + trans_nn + emis[emis_idx(1)],
-      dp_n[lookback(2)] + trans_nn + emis[emis_idx(2)],
-      dp_n[lookback(3)] + trans_nn + emis[emis_idx(3)],
-      dp_n[lookback(4)] + trans_nn + emis[emis_idx(4)],
-      dp_n[lookback(5)] + trans_nn + emis[emis_idx(5)],
+      dp_n[lookback(1)] + trans_nn + emis[nchars(1)],
+      dp_n[lookback(2)] + trans_nn + emis[nchars(2)],
+      dp_n[lookback(3)] + trans_nn + emis[nchars(3)],
+      dp_n[lookback(4)] + trans_nn + emis[nchars(4)],
+      dp_n[lookback(5)] + trans_nn + emis[nchars(5)],
   };
   return reduce_max(array_size(x), x);
 }
@@ -104,11 +104,11 @@ static inline float onto_M1(float const *restrict dp_B, float const trans_BM,
                             float const *restrict emis_M)
 {
   float const x[] = {
-      dp_B[lookback(1)] + trans_BM + emis_M[emis_idx(1)],
-      dp_B[lookback(2)] + trans_BM + emis_M[emis_idx(2)],
-      dp_B[lookback(3)] + trans_BM + emis_M[emis_idx(3)],
-      dp_B[lookback(4)] + trans_BM + emis_M[emis_idx(4)],
-      dp_B[lookback(5)] + trans_BM + emis_M[emis_idx(5)],
+      dp_B[lookback(1)] + trans_BM + emis_M[nchars(1)],
+      dp_B[lookback(2)] + trans_BM + emis_M[nchars(2)],
+      dp_B[lookback(3)] + trans_BM + emis_M[nchars(3)],
+      dp_B[lookback(4)] + trans_BM + emis_M[nchars(4)],
+      dp_B[lookback(5)] + trans_BM + emis_M[nchars(5)],
   };
   return reduce_max(array_size(x), x);
 }
@@ -116,63 +116,63 @@ static inline float onto_M1(float const *restrict dp_B, float const trans_BM,
 static inline float onto_M(float const *restrict dp, float const *restrict dp_B,
                            struct dcp_trans const *restrict trans,
                            float const *restrict trans_BMk,
-                           float const *restrict emis_M, int const k)
+                           float const *restrict emis_M, int const k0)
 {
   float const x[] = {
-      dp_B[lookback(1)] + trans_BMk[k + 1] + emis_M[emis_idx(1)],
-      dp_B[lookback(2)] + trans_BMk[k + 1] + emis_M[emis_idx(2)],
-      dp_B[lookback(3)] + trans_BMk[k + 1] + emis_M[emis_idx(3)],
-      dp_B[lookback(4)] + trans_BMk[k + 1] + emis_M[emis_idx(4)],
-      dp_B[lookback(5)] + trans_BMk[k + 1] + emis_M[emis_idx(5)],
+      dp_B[lookback(1)] + trans_BMk[k0 + 1] + emis_M[nchars(1)],
+      dp_B[lookback(2)] + trans_BMk[k0 + 1] + emis_M[nchars(2)],
+      dp_B[lookback(3)] + trans_BMk[k0 + 1] + emis_M[nchars(3)],
+      dp_B[lookback(4)] + trans_BMk[k0 + 1] + emis_M[nchars(4)],
+      dp_B[lookback(5)] + trans_BMk[k0 + 1] + emis_M[nchars(5)],
 
-      DP_M(dp, k, lookback(1)) + trans->MM + emis_M[emis_idx(1)],
-      DP_M(dp, k, lookback(2)) + trans->MM + emis_M[emis_idx(2)],
-      DP_M(dp, k, lookback(3)) + trans->MM + emis_M[emis_idx(3)],
-      DP_M(dp, k, lookback(4)) + trans->MM + emis_M[emis_idx(4)],
-      DP_M(dp, k, lookback(5)) + trans->MM + emis_M[emis_idx(5)],
+      DP_M(dp, k0, lookback(1)) + trans->MM + emis_M[nchars(1)],
+      DP_M(dp, k0, lookback(2)) + trans->MM + emis_M[nchars(2)],
+      DP_M(dp, k0, lookback(3)) + trans->MM + emis_M[nchars(3)],
+      DP_M(dp, k0, lookback(4)) + trans->MM + emis_M[nchars(4)],
+      DP_M(dp, k0, lookback(5)) + trans->MM + emis_M[nchars(5)],
 
-      DP_I(dp, k, lookback(1)) + trans->IM + emis_M[emis_idx(1)],
-      DP_I(dp, k, lookback(2)) + trans->IM + emis_M[emis_idx(2)],
-      DP_I(dp, k, lookback(3)) + trans->IM + emis_M[emis_idx(3)],
-      DP_I(dp, k, lookback(4)) + trans->IM + emis_M[emis_idx(4)],
-      DP_I(dp, k, lookback(5)) + trans->IM + emis_M[emis_idx(5)],
+      DP_I(dp, k0, lookback(1)) + trans->IM + emis_M[nchars(1)],
+      DP_I(dp, k0, lookback(2)) + trans->IM + emis_M[nchars(2)],
+      DP_I(dp, k0, lookback(3)) + trans->IM + emis_M[nchars(3)],
+      DP_I(dp, k0, lookback(4)) + trans->IM + emis_M[nchars(4)],
+      DP_I(dp, k0, lookback(5)) + trans->IM + emis_M[nchars(5)],
 
-      DP_D(dp, k, lookback(1)) + trans->DM + emis_M[emis_idx(1)],
-      DP_D(dp, k, lookback(2)) + trans->DM + emis_M[emis_idx(2)],
-      DP_D(dp, k, lookback(3)) + trans->DM + emis_M[emis_idx(3)],
-      DP_D(dp, k, lookback(4)) + trans->DM + emis_M[emis_idx(4)],
-      DP_D(dp, k, lookback(5)) + trans->DM + emis_M[emis_idx(5)],
+      DP_D(dp, k0, lookback(1)) + trans->DM + emis_M[nchars(1)],
+      DP_D(dp, k0, lookback(2)) + trans->DM + emis_M[nchars(2)],
+      DP_D(dp, k0, lookback(3)) + trans->DM + emis_M[nchars(3)],
+      DP_D(dp, k0, lookback(4)) + trans->DM + emis_M[nchars(4)],
+      DP_D(dp, k0, lookback(5)) + trans->DM + emis_M[nchars(5)],
   };
   return reduce_max(array_size(x), x);
 }
 
 static inline float onto_I(float const *restrict dp,
                            struct dcp_trans const *restrict trans,
-                           float const *restrict emis_I, int const k)
+                           float const *restrict emis_I, int const k0)
 {
   float const x[] = {
-      DP_M(dp, k, lookback(1)) + trans->MI + emis_I[emis_idx(1)],
-      DP_M(dp, k, lookback(2)) + trans->MI + emis_I[emis_idx(2)],
-      DP_M(dp, k, lookback(3)) + trans->MI + emis_I[emis_idx(3)],
-      DP_M(dp, k, lookback(4)) + trans->MI + emis_I[emis_idx(4)],
-      DP_M(dp, k, lookback(5)) + trans->MI + emis_I[emis_idx(5)],
+      DP_M(dp, k0, lookback(1)) + trans->MI + emis_I[nchars(1)],
+      DP_M(dp, k0, lookback(2)) + trans->MI + emis_I[nchars(2)],
+      DP_M(dp, k0, lookback(3)) + trans->MI + emis_I[nchars(3)],
+      DP_M(dp, k0, lookback(4)) + trans->MI + emis_I[nchars(4)],
+      DP_M(dp, k0, lookback(5)) + trans->MI + emis_I[nchars(5)],
 
-      DP_I(dp, k, lookback(1)) + trans->II + emis_I[emis_idx(1)],
-      DP_I(dp, k, lookback(2)) + trans->II + emis_I[emis_idx(2)],
-      DP_I(dp, k, lookback(3)) + trans->II + emis_I[emis_idx(3)],
-      DP_I(dp, k, lookback(4)) + trans->II + emis_I[emis_idx(4)],
-      DP_I(dp, k, lookback(5)) + trans->II + emis_I[emis_idx(5)],
+      DP_I(dp, k0, lookback(1)) + trans->II + emis_I[nchars(1)],
+      DP_I(dp, k0, lookback(2)) + trans->II + emis_I[nchars(2)],
+      DP_I(dp, k0, lookback(3)) + trans->II + emis_I[nchars(3)],
+      DP_I(dp, k0, lookback(4)) + trans->II + emis_I[nchars(4)],
+      DP_I(dp, k0, lookback(5)) + trans->II + emis_I[nchars(5)],
   };
   return reduce_max(array_size(x), x);
 }
 
 static inline float onto_D(float const *restrict dp,
                            struct dcp_trans const *restrict trans,
-                           float const emis_D, int const k)
+                           float const emis_D, int const k0)
 {
   float const x[] = {
-      DP_M(dp, k, lookback(0)) + trans->MD + emis_D,
-      DP_D(dp, k, lookback(0)) + trans->DD + emis_D,
+      DP_M(dp, k0, lookback(0)) + trans->MD + emis_D,
+      DP_D(dp, k0, lookback(0)) + trans->DD + emis_D,
   };
   return reduce_max(array_size(x), x);
 }
@@ -195,17 +195,17 @@ static inline float onto_J(float const *restrict dp_e,
                            float const trans_jj, float const *restrict emis)
 {
   float const x[] = {
-      dp_e[lookback(1)] + trans_ej + emis[emis_idx(1)],
-      dp_e[lookback(2)] + trans_ej + emis[emis_idx(2)],
-      dp_e[lookback(3)] + trans_ej + emis[emis_idx(3)],
-      dp_e[lookback(4)] + trans_ej + emis[emis_idx(4)],
-      dp_e[lookback(5)] + trans_ej + emis[emis_idx(5)],
+      dp_e[lookback(1)] + trans_ej + emis[nchars(1)],
+      dp_e[lookback(2)] + trans_ej + emis[nchars(2)],
+      dp_e[lookback(3)] + trans_ej + emis[nchars(3)],
+      dp_e[lookback(4)] + trans_ej + emis[nchars(4)],
+      dp_e[lookback(5)] + trans_ej + emis[nchars(5)],
 
-      dp_j[lookback(1)] + trans_jj + emis[emis_idx(1)],
-      dp_j[lookback(2)] + trans_jj + emis[emis_idx(2)],
-      dp_j[lookback(3)] + trans_jj + emis[emis_idx(3)],
-      dp_j[lookback(4)] + trans_jj + emis[emis_idx(4)],
-      dp_j[lookback(5)] + trans_jj + emis[emis_idx(5)],
+      dp_j[lookback(1)] + trans_jj + emis[nchars(1)],
+      dp_j[lookback(2)] + trans_jj + emis[nchars(2)],
+      dp_j[lookback(3)] + trans_jj + emis[nchars(3)],
+      dp_j[lookback(4)] + trans_jj + emis[nchars(4)],
+      dp_j[lookback(5)] + trans_jj + emis[nchars(5)],
   };
   return reduce_max(array_size(x), x);
 }
@@ -215,17 +215,17 @@ static inline float onto_C(float const *restrict dp_e,
                            float const trans_cc, float const *restrict emis)
 {
   float const x[] = {
-      dp_e[lookback(1)] + trans_ec + emis[emis_idx(1)],
-      dp_e[lookback(2)] + trans_ec + emis[emis_idx(2)],
-      dp_e[lookback(3)] + trans_ec + emis[emis_idx(3)],
-      dp_e[lookback(4)] + trans_ec + emis[emis_idx(4)],
-      dp_e[lookback(5)] + trans_ec + emis[emis_idx(5)],
+      dp_e[lookback(1)] + trans_ec + emis[nchars(1)],
+      dp_e[lookback(2)] + trans_ec + emis[nchars(2)],
+      dp_e[lookback(3)] + trans_ec + emis[nchars(3)],
+      dp_e[lookback(4)] + trans_ec + emis[nchars(4)],
+      dp_e[lookback(5)] + trans_ec + emis[nchars(5)],
 
-      dp_c[lookback(1)] + trans_cc + emis[emis_idx(1)],
-      dp_c[lookback(2)] + trans_cc + emis[emis_idx(2)],
-      dp_c[lookback(3)] + trans_cc + emis[emis_idx(3)],
-      dp_c[lookback(4)] + trans_cc + emis[emis_idx(4)],
-      dp_c[lookback(5)] + trans_cc + emis[emis_idx(5)],
+      dp_c[lookback(1)] + trans_cc + emis[nchars(1)],
+      dp_c[lookback(2)] + trans_cc + emis[nchars(2)],
+      dp_c[lookback(3)] + trans_cc + emis[nchars(3)],
+      dp_c[lookback(4)] + trans_cc + emis[nchars(4)],
+      dp_c[lookback(5)] + trans_cc + emis[nchars(5)],
   };
   return reduce_max(array_size(x), x);
 }
@@ -309,9 +309,10 @@ float dcp_vit_null(struct p7 *x, struct imm_eseq const *eseq)
   float RR = x->null.RR;
 
 #define NINF IMM_LPROB_ZERO
-  float dp_S[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, x->start_lprob};
+  float dp_S[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
   float dp_R[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
 #undef NINF
+  dp_S[lookback(0)] = 0;
 
   for (int r = 0; r < seq_size + 1; ++r)
   {
@@ -340,7 +341,7 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
   float *restrict dp = malloc(sizeof(*dp) * DP_SIZE(core_size));
   for (int i = 0; i < DP_SIZE(core_size); ++i)
     dp[i] = NINF;
-  float dp_S[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, x->start_lprob};
+  float dp_S[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
   float dp_N[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
   float dp_B[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
   float dp_J[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
@@ -349,6 +350,7 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
   float dp_T[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
 #undef NINF
 
+  dp_S[lookback(1)] = 0;
   float const *restrict trans_BM = x->BMk;
   struct extra_trans const xtrans = extra_trans(x->xtrans);
 
@@ -363,21 +365,21 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
 
   for (int r = 0; r < seq_size + 1; ++r)
   {
-    int emis_idx[5];
+    int emisx[5];
     for (int i = 1; i <= 5; ++i)
-      emis_idx[i - 1] = emission_index(eseq, r - i, i);
+      emisx[i - 1] = emission_index(eseq, r - i, i);
 
-    float const null[] = {null_emis_tmp(null_emission, emis_idx[0]),
-                          null_emis_tmp(null_emission, emis_idx[1]),
-                          null_emis_tmp(null_emission, emis_idx[2]),
-                          null_emis_tmp(null_emission, emis_idx[3]),
-                          null_emis_tmp(null_emission, emis_idx[4])};
+    float const null[] = {null_emis_tmp(null_emission, emisx[0]),
+                          null_emis_tmp(null_emission, emisx[1]),
+                          null_emis_tmp(null_emission, emisx[2]),
+                          null_emis_tmp(null_emission, emisx[3]),
+                          null_emis_tmp(null_emission, emisx[4])};
 
-    float const bg[] = {bg_emis_tmp(background_emission, emis_idx[0]),
-                        bg_emis_tmp(background_emission, emis_idx[1]),
-                        bg_emis_tmp(background_emission, emis_idx[2]),
-                        bg_emis_tmp(background_emission, emis_idx[3]),
-                        bg_emis_tmp(background_emission, emis_idx[4])};
+    float const bg[] = {bg_emis_tmp(background_emission, emisx[0]),
+                        bg_emis_tmp(background_emission, emisx[1]),
+                        bg_emis_tmp(background_emission, emisx[2]),
+                        bg_emis_tmp(background_emission, emisx[3]),
+                        bg_emis_tmp(background_emission, emisx[4])};
 
     float const *restrict emis_I = bg;
     float const *restrict emis_N = null;
@@ -391,11 +393,11 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
 
     {
       float const *match_emission = x->nodes[0].emission;
-      float const emis_M[5] = {match_emis_tmp(match_emission, emis_idx[0]),
-                               match_emis_tmp(match_emission, emis_idx[1]),
-                               match_emis_tmp(match_emission, emis_idx[2]),
-                               match_emis_tmp(match_emission, emis_idx[3]),
-                               match_emis_tmp(match_emission, emis_idx[4])};
+      float const emis_M[] = {match_emis_tmp(match_emission, emisx[0]),
+                              match_emis_tmp(match_emission, emisx[1]),
+                              match_emis_tmp(match_emission, emisx[2]),
+                              match_emis_tmp(match_emission, emisx[3]),
+                              match_emis_tmp(match_emission, emisx[4])};
       DP_M(dp, 0, lookback(0)) = onto_M1(dp_B, trans_BM[0], emis_M);
     }
 
@@ -406,11 +408,11 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
       struct dcp_trans const *restrict trans = &x->nodes[k0].trans;
       float const *match_emission = x->nodes[k1].emission;
 
-      float const emis_M[5] = {match_emis_tmp(match_emission, emis_idx[0]),
-                               match_emis_tmp(match_emission, emis_idx[1]),
-                               match_emis_tmp(match_emission, emis_idx[2]),
-                               match_emis_tmp(match_emission, emis_idx[3]),
-                               match_emis_tmp(match_emission, emis_idx[4])};
+      float const emis_M[] = {match_emis_tmp(match_emission, emisx[0]),
+                              match_emis_tmp(match_emission, emisx[1]),
+                              match_emis_tmp(match_emission, emisx[2]),
+                              match_emis_tmp(match_emission, emisx[3]),
+                              match_emis_tmp(match_emission, emisx[4])};
 
       DP_I(dp, k0, lookback(0)) = onto_I(dp, trans, emis_I, k0);
       DP_M(dp, k1, lookback(0)) = onto_M(dp, dp_B, trans, trans_BM, emis_M, k0);
@@ -439,7 +441,7 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
     }
   }
 
-  float score = dp_T[5];
+  float score = dp_T[lookback(0)];
   free(dp);
   return score;
 }
