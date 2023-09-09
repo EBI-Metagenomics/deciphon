@@ -114,19 +114,17 @@ static inline float onto_M1(float const *restrict dp_B, float const trans_BM,
 }
 
 static inline float onto_M(float const DPM[restrict], float const DPI[restrict],
-                           float const DPD[restrict],
-                           float const *restrict dp_B, float const MM,
-                           float const IM, float const DM,
-                           float const *restrict trans_BMk,
-                           float const *restrict M, int const k0)
+                           float const DPD[restrict], float const *restrict B,
+                           float const MM, float const IM, float const DM,
+                           float const BM, float const *restrict M)
 {
   // clang-format off
   float const x[] = {
-      dp_B[lukbak(1)] + trans_BMk[k0 + 1] + M[nchars(1)],
-      dp_B[lukbak(2)] + trans_BMk[k0 + 1] + M[nchars(2)],
-      dp_B[lukbak(3)] + trans_BMk[k0 + 1] + M[nchars(3)],
-      dp_B[lukbak(4)] + trans_BMk[k0 + 1] + M[nchars(4)],
-      dp_B[lukbak(5)] + trans_BMk[k0 + 1] + M[nchars(5)],
+      B[lukbak(1)] + BM + M[nchars(1)],
+      B[lukbak(2)] + BM + M[nchars(2)],
+      B[lukbak(3)] + BM + M[nchars(3)],
+      B[lukbak(4)] + BM + M[nchars(4)],
+      B[lukbak(5)] + BM + M[nchars(5)],
 
       DPM[lukbak(1)] + MM + M[nchars(1)],
       DPM[lukbak(2)] + MM + M[nchars(2)],
@@ -403,7 +401,7 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
                          safe_get(x->nodes[k1].emission, ix[nchars(5)])};
 
       DPI[lukbak(0)] = onto_I(DPM, DPI, t->MI, t->II, bg);
-      float tmpM = onto_M(DPM, DPI, DPD, B, t->MM, t->IM, t->DM, BM, M, k0);
+      float tmpM = onto_M(DPM, DPI, DPD, B, t->MM, t->IM, t->DM, BM[k1], M);
       float tmpD = onto_D(DPM, DPD, t->MD, t->DD, 0);
       make_future(DPM);
       make_future(DPI);
