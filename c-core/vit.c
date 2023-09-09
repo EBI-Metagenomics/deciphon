@@ -14,7 +14,7 @@
 #define I_PAST_SIZE PAST_SIZE
 #define D_PAST_SIZE PAST_SIZE
 
-#define lookback(i) (PAST_SIZE - 1 - (i))
+#define lookback(i) ((i))
 #define nchars(n) ((n)-1)
 
 #define CORE_OFFSET(k) (k * M_PAST_SIZE * I_PAST_SIZE * D_PAST_SIZE)
@@ -324,12 +324,13 @@ float dcp_vit_null(struct p7 *x, struct imm_eseq const *eseq)
         null_emis_tmp(null_emission, emission_index(eseq, r - 5, 5))};
 
     dp_R[lookback(0)] = onto_R(dp_S, dp_R, SR, RR, null);
-    memmove(dp_S, dp_S + 1, sizeof(float) * (PAST_SIZE - 1));
-    memmove(dp_R, dp_R + 1, sizeof(float) * (PAST_SIZE - 1));
-    dp_S[PAST_SIZE - 1] = IMM_LPROB_ZERO;
+    size_t sz = sizeof(float) * (PAST_SIZE - 1);
+    memmove(dp_S + lookback(1), dp_S + lookback(0), sz);
+    memmove(dp_R + lookback(1), dp_R + lookback(0), sz);
+    dp_S[lookback(0)] = IMM_LPROB_ZERO;
     // dp_R[PAST_SIZE - 1] = IMM_LPROB_ZERO;
   }
-  return dp_R[5];
+  return dp_R[lookback(0)];
 }
 
 float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
@@ -349,8 +350,8 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
   float dp_C[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
   float dp_T[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
 #undef NINF
+  dp_S[lookback(0)] = 0;
 
-  dp_S[lookback(1)] = 0;
   float const *restrict trans_BM = x->BMk;
   struct extra_trans const xtrans = extra_trans(x->xtrans);
 
@@ -365,21 +366,21 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
 
   for (int r = 0; r < seq_size + 1; ++r)
   {
-    int emisx[5];
+    int ix[5];
     for (int i = 1; i <= 5; ++i)
-      emisx[i - 1] = emission_index(eseq, r - i, i);
+      ix[i - 1] = emission_index(eseq, r - i, i);
 
-    float const null[] = {null_emis_tmp(null_emission, emisx[0]),
-                          null_emis_tmp(null_emission, emisx[1]),
-                          null_emis_tmp(null_emission, emisx[2]),
-                          null_emis_tmp(null_emission, emisx[3]),
-                          null_emis_tmp(null_emission, emisx[4])};
+    float const null[] = {null_emis_tmp(null_emission, ix[nchars(1)]),
+                          null_emis_tmp(null_emission, ix[nchars(2)]),
+                          null_emis_tmp(null_emission, ix[nchars(3)]),
+                          null_emis_tmp(null_emission, ix[nchars(4)]),
+                          null_emis_tmp(null_emission, ix[nchars(5)])};
 
-    float const bg[] = {bg_emis_tmp(background_emission, emisx[0]),
-                        bg_emis_tmp(background_emission, emisx[1]),
-                        bg_emis_tmp(background_emission, emisx[2]),
-                        bg_emis_tmp(background_emission, emisx[3]),
-                        bg_emis_tmp(background_emission, emisx[4])};
+    float const bg[] = {bg_emis_tmp(background_emission, ix[nchars(1)]),
+                        bg_emis_tmp(background_emission, ix[nchars(2)]),
+                        bg_emis_tmp(background_emission, ix[nchars(3)]),
+                        bg_emis_tmp(background_emission, ix[nchars(4)]),
+                        bg_emis_tmp(background_emission, ix[nchars(5)])};
 
     float const *restrict emis_I = bg;
     float const *restrict emis_N = null;
@@ -393,11 +394,11 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
 
     {
       float const *match_emission = x->nodes[0].emission;
-      float const emis_M[] = {match_emis_tmp(match_emission, emisx[0]),
-                              match_emis_tmp(match_emission, emisx[1]),
-                              match_emis_tmp(match_emission, emisx[2]),
-                              match_emis_tmp(match_emission, emisx[3]),
-                              match_emis_tmp(match_emission, emisx[4])};
+      float const emis_M[] = {match_emis_tmp(match_emission, ix[nchars(1)]),
+                              match_emis_tmp(match_emission, ix[nchars(2)]),
+                              match_emis_tmp(match_emission, ix[nchars(3)]),
+                              match_emis_tmp(match_emission, ix[nchars(4)]),
+                              match_emis_tmp(match_emission, ix[nchars(5)])};
       DP_M(dp, 0, lookback(0)) = onto_M1(dp_B, trans_BM[0], emis_M);
     }
 
@@ -408,11 +409,11 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
       struct dcp_trans const *restrict trans = &x->nodes[k0].trans;
       float const *match_emission = x->nodes[k1].emission;
 
-      float const emis_M[] = {match_emis_tmp(match_emission, emisx[0]),
-                              match_emis_tmp(match_emission, emisx[1]),
-                              match_emis_tmp(match_emission, emisx[2]),
-                              match_emis_tmp(match_emission, emisx[3]),
-                              match_emis_tmp(match_emission, emisx[4])};
+      float const emis_M[] = {match_emis_tmp(match_emission, ix[nchars(1)]),
+                              match_emis_tmp(match_emission, ix[nchars(2)]),
+                              match_emis_tmp(match_emission, ix[nchars(3)]),
+                              match_emis_tmp(match_emission, ix[nchars(4)]),
+                              match_emis_tmp(match_emission, ix[nchars(5)])};
 
       DP_I(dp, k0, lookback(0)) = onto_I(dp, trans, emis_I, k0);
       DP_M(dp, k1, lookback(0)) = onto_M(dp, dp_B, trans, trans_BM, emis_M, k0);
@@ -424,20 +425,21 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
     dp_C[lookback(0)] = onto_C(dp_E, dp_C, xtrans.EC, xtrans.CC, emis_C);
     dp_T[lookback(0)] = onto_T(dp_E, dp_C, xtrans.ET, xtrans.CT, emis_T);
 
-    memmove(dp_S, dp_S + 1, sizeof(float) * (PAST_SIZE - 1));
-    dp_S[PAST_SIZE - 1] = IMM_LPROB_ZERO;
-    memmove(dp_N, dp_N + 1, sizeof(float) * (PAST_SIZE - 1));
-    memmove(dp_B, dp_B + 1, sizeof(float) * (PAST_SIZE - 1));
-    memmove(dp_J, dp_J + 1, sizeof(float) * (PAST_SIZE - 1));
-    memmove(dp_E, dp_E + 1, sizeof(float) * (PAST_SIZE - 1));
-    memmove(dp_C, dp_C + 1, sizeof(float) * (PAST_SIZE - 1));
-    memmove(dp_T, dp_T + 1, sizeof(float) * (PAST_SIZE - 1));
+    size_t sz = sizeof(float) * (PAST_SIZE - 1);
+    memmove(dp_S + lookback(1), dp_S + lookback(0), sz);
+    dp_S[lookback(0)] = IMM_LPROB_ZERO;
+    memmove(dp_N + lookback(1), dp_N + lookback(0), sz);
+    memmove(dp_B + lookback(1), dp_B + lookback(0), sz);
+    memmove(dp_J + lookback(1), dp_J + lookback(0), sz);
+    memmove(dp_E + lookback(1), dp_E + lookback(0), sz);
+    memmove(dp_C + lookback(1), dp_C + lookback(0), sz);
+    memmove(dp_T + lookback(1), dp_T + lookback(0), sz);
     for (int i = 0; i < core_size; ++i)
     {
       size_t count = sizeof(float) * (PAST_SIZE - 1);
-      memmove(&DP_I(dp, i, lookback(5)), &DP_I(dp, i, lookback(4)), count);
-      memmove(&DP_M(dp, i, lookback(5)), &DP_M(dp, i, lookback(4)), count);
-      memmove(&DP_D(dp, i, lookback(5)), &DP_D(dp, i, lookback(4)), count);
+      memmove(&DP_I(dp, i, lookback(1)), &DP_I(dp, i, lookback(0)), count);
+      memmove(&DP_M(dp, i, lookback(1)), &DP_M(dp, i, lookback(0)), count);
+      memmove(&DP_D(dp, i, lookback(1)), &DP_D(dp, i, lookback(0)), count);
     }
   }
 
