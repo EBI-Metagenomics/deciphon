@@ -113,7 +113,7 @@ static inline float onto_M1(float const *restrict dp_B, float const trans_BM,
   return reduce_max(array_size(x), x);
 }
 
-static inline float onto_M(float const DPM[restrict], float const DPI[restrict], float const *restrict dp, float const *restrict dp_B,
+static inline float onto_M(float const DPM[restrict], float const DPI[restrict], float const DPD[restrict], float const *restrict dp_B,
                            float const MM, float const IM, float const DM,
                            float const *restrict trans_BMk,
                            float const *restrict M, int const k0)
@@ -138,11 +138,11 @@ static inline float onto_M(float const DPM[restrict], float const DPI[restrict],
       DPI[lukbak(4)] + IM + M[nchars(4)],
       DPI[lukbak(5)] + IM + M[nchars(5)],
 
-      DP_D(dp, k0, lukbak(1)) + DM + M[nchars(1)],
-      DP_D(dp, k0, lukbak(2)) + DM + M[nchars(2)],
-      DP_D(dp, k0, lukbak(3)) + DM + M[nchars(3)],
-      DP_D(dp, k0, lukbak(4)) + DM + M[nchars(4)],
-      DP_D(dp, k0, lukbak(5)) + DM + M[nchars(5)],
+      DPD[lukbak(1)] + DM + M[nchars(1)],
+      DPD[lukbak(2)] + DM + M[nchars(2)],
+      DPD[lukbak(3)] + DM + M[nchars(3)],
+      DPD[lukbak(4)] + DM + M[nchars(4)],
+      DPD[lukbak(5)] + DM + M[nchars(5)],
   };
   // clang-format on
   return reduce_max(array_size(x), x);
@@ -170,13 +170,13 @@ static inline float onto_I(float const DPM[restrict], float const DPI[restrict],
   return reduce_max(array_size(x), x);
 }
 
-static inline float onto_D(float const DPM[restrict], float const *restrict dp, float const MD,
+static inline float onto_D(float const DPM[restrict], float const DPD[restrict], float const MD,
                            float const DD, float const D, int const k0)
 {
   // clang-format off
   float const x[] = {
       DPM[lukbak(0)] + MD + D,
-      DP_D(dp, k0, lukbak(0)) + DD + D,
+      DPD[lukbak(0)] + DD + D,
   };
   // clang-format on
   return reduce_max(array_size(x), x);
@@ -381,6 +381,7 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
                        safe_get(x->nodes[0].emission, ix[nchars(5)])};
     float *DPM = &DP_M(dp, 0, lukbak(0));
     float *DPI = &DP_I(dp, 0, lukbak(0));
+    float *DPD = &DP_D(dp, 0, lukbak(0));
     DPM[lukbak(0)] = onto_M1(B, BM[0], M);
 
     for (int k = 0; k + 1 < core_size; ++k)
@@ -395,21 +396,24 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
                          safe_get(x->nodes[k1].emission, ix[nchars(4)]),
                          safe_get(x->nodes[k1].emission, ix[nchars(5)])};
 
-      DP_I(dp, k0, lukbak(0)) = onto_I(DPM, DPI, t->MI, t->II, bg, k0);                  // DP_I(dp, k0, lukbak(1..5))
-      DP_M(dp, k1, lukbak(0)) = onto_M(DPM, DPI, dp, B, t->MM, t->IM, t->DM, BM, M, k0); // DP_I(dp, k0, lukbak(1..5))
-      DP_D(dp, k1, lukbak(0)) = onto_D(DPM, dp, t->MD, t->DD, 0, k0);
+      DP_I(dp, k0, lukbak(0)) = onto_I(DPM, DPI, t->MI, t->II, bg, k0);
+      DP_M(dp, k1, lukbak(0)) = onto_M(DPM, DPI, DPD, B, t->MM, t->IM, t->DM, BM, M, k0); // DP_D(dp, k0, lukbak(1..5))
+      DP_D(dp, k1, lukbak(0)) = onto_D(DPM, DPD, t->MD, t->DD, 0, k0);                    // DP_D(dp, k0, lukbak(0))
       make_future(DPM);
       make_future(DPI);
+      make_future(DPD);
       DPM = &DP_M(dp, k1, lukbak(0));
       DPI = &DP_I(dp, k1, lukbak(0));
+      DPD = &DP_D(dp, k1, lukbak(0));
     }
 
-    E[lukbak(0)] = onto_E(dp, core_size, xt.ME, xt.DE, 0);
+    E[lukbak(0)] = onto_E(dp, core_size, xt.ME, xt.DE, 0); // DP_D(dp, k=0..core_size-1, lukbak(0))
     J[lukbak(0)] = onto_J(E, J, xt.EJ, xt.JJ, null);
     C[lukbak(0)] = onto_C(E, C, xt.EC, xt.CC, null);
     T[lukbak(0)] = onto_T(E, C, xt.ET, xt.CT, 0);
     make_future(DPM);
     make_future(DPI);
+    make_future(DPD);
 
     size_t sz = sizeof(float) * (PAST_SIZE - 1);
     memmove(S + lukbak(1), S + lukbak(0), sz);
@@ -425,7 +429,7 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
       size_t count = sizeof(float) * (PAST_SIZE - 1);
       // memmove(&DP_I(dp, i, lukbak(1)), &DP_I(dp, i, lukbak(0)), count);
       // memmove(&DP_M(dp, i, lukbak(1)), &DP_M(dp, i, lukbak(0)), count);
-      memmove(&DP_D(dp, i, lukbak(1)), &DP_D(dp, i, lukbak(0)), count);
+      // memmove(&DP_D(dp, i, lukbak(1)), &DP_D(dp, i, lukbak(0)), count);
     }
   }
 
