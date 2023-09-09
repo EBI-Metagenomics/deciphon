@@ -101,79 +101,84 @@ static inline float onto_B(float const *restrict dp_s,
 }
 
 static inline float onto_M1(float const *restrict dp_B, float const trans_BM,
-                            float const *restrict emis_M)
+                            float const *restrict M)
 {
   float const x[] = {
-      dp_B[lookback(1)] + trans_BM + emis_M[nchars(1)],
-      dp_B[lookback(2)] + trans_BM + emis_M[nchars(2)],
-      dp_B[lookback(3)] + trans_BM + emis_M[nchars(3)],
-      dp_B[lookback(4)] + trans_BM + emis_M[nchars(4)],
-      dp_B[lookback(5)] + trans_BM + emis_M[nchars(5)],
+      dp_B[lookback(1)] + trans_BM + M[nchars(1)],
+      dp_B[lookback(2)] + trans_BM + M[nchars(2)],
+      dp_B[lookback(3)] + trans_BM + M[nchars(3)],
+      dp_B[lookback(4)] + trans_BM + M[nchars(4)],
+      dp_B[lookback(5)] + trans_BM + M[nchars(5)],
   };
   return reduce_max(array_size(x), x);
 }
 
 static inline float onto_M(float const *restrict dp, float const *restrict dp_B,
-                           struct dcp_trans const *restrict trans,
+                           float const MM, float const IM, float const DM,
                            float const *restrict trans_BMk,
-                           float const *restrict emis_M, int const k0)
+                           float const *restrict M, int const k0)
 {
+  // clang-format off
   float const x[] = {
-      dp_B[lookback(1)] + trans_BMk[k0 + 1] + emis_M[nchars(1)],
-      dp_B[lookback(2)] + trans_BMk[k0 + 1] + emis_M[nchars(2)],
-      dp_B[lookback(3)] + trans_BMk[k0 + 1] + emis_M[nchars(3)],
-      dp_B[lookback(4)] + trans_BMk[k0 + 1] + emis_M[nchars(4)],
-      dp_B[lookback(5)] + trans_BMk[k0 + 1] + emis_M[nchars(5)],
+      dp_B[lookback(1)] + trans_BMk[k0 + 1] + M[nchars(1)],
+      dp_B[lookback(2)] + trans_BMk[k0 + 1] + M[nchars(2)],
+      dp_B[lookback(3)] + trans_BMk[k0 + 1] + M[nchars(3)],
+      dp_B[lookback(4)] + trans_BMk[k0 + 1] + M[nchars(4)],
+      dp_B[lookback(5)] + trans_BMk[k0 + 1] + M[nchars(5)],
 
-      DP_M(dp, k0, lookback(1)) + trans->MM + emis_M[nchars(1)],
-      DP_M(dp, k0, lookback(2)) + trans->MM + emis_M[nchars(2)],
-      DP_M(dp, k0, lookback(3)) + trans->MM + emis_M[nchars(3)],
-      DP_M(dp, k0, lookback(4)) + trans->MM + emis_M[nchars(4)],
-      DP_M(dp, k0, lookback(5)) + trans->MM + emis_M[nchars(5)],
+      DP_M(dp, k0, lookback(1)) + MM + M[nchars(1)],
+      DP_M(dp, k0, lookback(2)) + MM + M[nchars(2)],
+      DP_M(dp, k0, lookback(3)) + MM + M[nchars(3)],
+      DP_M(dp, k0, lookback(4)) + MM + M[nchars(4)],
+      DP_M(dp, k0, lookback(5)) + MM + M[nchars(5)],
 
-      DP_I(dp, k0, lookback(1)) + trans->IM + emis_M[nchars(1)],
-      DP_I(dp, k0, lookback(2)) + trans->IM + emis_M[nchars(2)],
-      DP_I(dp, k0, lookback(3)) + trans->IM + emis_M[nchars(3)],
-      DP_I(dp, k0, lookback(4)) + trans->IM + emis_M[nchars(4)],
-      DP_I(dp, k0, lookback(5)) + trans->IM + emis_M[nchars(5)],
+      DP_I(dp, k0, lookback(1)) + IM + M[nchars(1)],
+      DP_I(dp, k0, lookback(2)) + IM + M[nchars(2)],
+      DP_I(dp, k0, lookback(3)) + IM + M[nchars(3)],
+      DP_I(dp, k0, lookback(4)) + IM + M[nchars(4)],
+      DP_I(dp, k0, lookback(5)) + IM + M[nchars(5)],
 
-      DP_D(dp, k0, lookback(1)) + trans->DM + emis_M[nchars(1)],
-      DP_D(dp, k0, lookback(2)) + trans->DM + emis_M[nchars(2)],
-      DP_D(dp, k0, lookback(3)) + trans->DM + emis_M[nchars(3)],
-      DP_D(dp, k0, lookback(4)) + trans->DM + emis_M[nchars(4)],
-      DP_D(dp, k0, lookback(5)) + trans->DM + emis_M[nchars(5)],
+      DP_D(dp, k0, lookback(1)) + DM + M[nchars(1)],
+      DP_D(dp, k0, lookback(2)) + DM + M[nchars(2)],
+      DP_D(dp, k0, lookback(3)) + DM + M[nchars(3)],
+      DP_D(dp, k0, lookback(4)) + DM + M[nchars(4)],
+      DP_D(dp, k0, lookback(5)) + DM + M[nchars(5)],
   };
+  // clang-format on
   return reduce_max(array_size(x), x);
 }
 
-static inline float onto_I(float const *restrict dp,
-                           struct dcp_trans const *restrict trans,
-                           float const *restrict emis_I, int const k0)
+static inline float onto_I(float const *restrict dp, float const MI,
+                           float const II, float const *restrict I,
+                           int const k0)
 {
+  // clang-format off
   float const x[] = {
-      DP_M(dp, k0, lookback(1)) + trans->MI + emis_I[nchars(1)],
-      DP_M(dp, k0, lookback(2)) + trans->MI + emis_I[nchars(2)],
-      DP_M(dp, k0, lookback(3)) + trans->MI + emis_I[nchars(3)],
-      DP_M(dp, k0, lookback(4)) + trans->MI + emis_I[nchars(4)],
-      DP_M(dp, k0, lookback(5)) + trans->MI + emis_I[nchars(5)],
+      DP_M(dp, k0, lookback(1)) + MI + I[nchars(1)],
+      DP_M(dp, k0, lookback(2)) + MI + I[nchars(2)],
+      DP_M(dp, k0, lookback(3)) + MI + I[nchars(3)],
+      DP_M(dp, k0, lookback(4)) + MI + I[nchars(4)],
+      DP_M(dp, k0, lookback(5)) + MI + I[nchars(5)],
 
-      DP_I(dp, k0, lookback(1)) + trans->II + emis_I[nchars(1)],
-      DP_I(dp, k0, lookback(2)) + trans->II + emis_I[nchars(2)],
-      DP_I(dp, k0, lookback(3)) + trans->II + emis_I[nchars(3)],
-      DP_I(dp, k0, lookback(4)) + trans->II + emis_I[nchars(4)],
-      DP_I(dp, k0, lookback(5)) + trans->II + emis_I[nchars(5)],
+      DP_I(dp, k0, lookback(1)) + II + I[nchars(1)],
+      DP_I(dp, k0, lookback(2)) + II + I[nchars(2)],
+      DP_I(dp, k0, lookback(3)) + II + I[nchars(3)],
+      DP_I(dp, k0, lookback(4)) + II + I[nchars(4)],
+      DP_I(dp, k0, lookback(5)) + II + I[nchars(5)],
   };
+  // clang-format on
   return reduce_max(array_size(x), x);
 }
 
-static inline float onto_D(float const *restrict dp,
-                           struct dcp_trans const *restrict trans,
-                           float const emis_D, int const k0)
+static inline float onto_D(float const *restrict dp, float const MD,
+                           float const DD, float const D, int const k0)
 {
+  // clang-format off
   float const x[] = {
-      DP_M(dp, k0, lookback(0)) + trans->MD + emis_D,
-      DP_D(dp, k0, lookback(0)) + trans->DD + emis_D,
+      DP_M(dp, k0, lookback(0)) + MD + D,
+      DP_D(dp, k0, lookback(0)) + DD + D,
   };
+  // clang-format on
   return reduce_max(array_size(x), x);
 }
 
@@ -283,22 +288,9 @@ static struct extra_trans extra_trans(struct dcp_xtrans xt)
   };
 }
 
-static float null_emis_tmp(float const *restrict null_emission, int pos)
+DCP_PURE float safe_get(float const x[restrict], int pos)
 {
-  if (pos < 0) return IMM_LPROB_ZERO;
-  return null_emission[pos];
-}
-
-static float bg_emis_tmp(float const *restrict bg_emission, int pos)
-{
-  if (pos < 0) return IMM_LPROB_ZERO;
-  return bg_emission[pos];
-}
-
-static float match_emis_tmp(float const *restrict match_emission, int pos)
-{
-  if (pos < 0) return IMM_LPROB_ZERO;
-  return match_emission[pos];
+  return pos >= 0 ? x[pos] : IMM_LPROB_ZERO;
 }
 
 float dcp_vit_null(struct p7 *x, struct imm_eseq const *eseq)
@@ -317,11 +309,11 @@ float dcp_vit_null(struct p7 *x, struct imm_eseq const *eseq)
   for (int r = 0; r < seq_size + 1; ++r)
   {
     float const null[] = {
-        null_emis_tmp(null_emission, emission_index(eseq, r - 1, 1)),
-        null_emis_tmp(null_emission, emission_index(eseq, r - 2, 2)),
-        null_emis_tmp(null_emission, emission_index(eseq, r - 3, 3)),
-        null_emis_tmp(null_emission, emission_index(eseq, r - 4, 4)),
-        null_emis_tmp(null_emission, emission_index(eseq, r - 5, 5))};
+        safe_get(null_emission, emission_index(eseq, r - 1, 1)),
+        safe_get(null_emission, emission_index(eseq, r - 2, 2)),
+        safe_get(null_emission, emission_index(eseq, r - 3, 3)),
+        safe_get(null_emission, emission_index(eseq, r - 4, 4)),
+        safe_get(null_emission, emission_index(eseq, r - 5, 5))};
 
     dp_R[lookback(0)] = onto_R(dp_S, dp_R, SR, RR, null);
     size_t sz = sizeof(float) * (PAST_SIZE - 1);
@@ -356,12 +348,6 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
   struct extra_trans const xtrans = extra_trans(x->xtrans);
 
   float const *restrict background_emission = x->bg.emission;
-  float const mute_emission = IMM_LPROB_ONE;
-  float const emis_B = mute_emission;
-  float const emis_D = mute_emission;
-  float const emis_E = mute_emission;
-  float const emis_T = mute_emission;
-
   float const *restrict null_emission = x->null.emission;
 
   for (int r = 0; r < seq_size + 1; ++r)
@@ -370,35 +356,30 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
     for (int i = 1; i <= 5; ++i)
       ix[i - 1] = emission_index(eseq, r - i, i);
 
-    float const null[] = {null_emis_tmp(null_emission, ix[nchars(1)]),
-                          null_emis_tmp(null_emission, ix[nchars(2)]),
-                          null_emis_tmp(null_emission, ix[nchars(3)]),
-                          null_emis_tmp(null_emission, ix[nchars(4)]),
-                          null_emis_tmp(null_emission, ix[nchars(5)])};
+    float const null[] = {safe_get(null_emission, ix[nchars(1)]),
+                          safe_get(null_emission, ix[nchars(2)]),
+                          safe_get(null_emission, ix[nchars(3)]),
+                          safe_get(null_emission, ix[nchars(4)]),
+                          safe_get(null_emission, ix[nchars(5)])};
 
-    float const bg[] = {bg_emis_tmp(background_emission, ix[nchars(1)]),
-                        bg_emis_tmp(background_emission, ix[nchars(2)]),
-                        bg_emis_tmp(background_emission, ix[nchars(3)]),
-                        bg_emis_tmp(background_emission, ix[nchars(4)]),
-                        bg_emis_tmp(background_emission, ix[nchars(5)])};
+    float const bg[] = {safe_get(background_emission, ix[nchars(1)]),
+                        safe_get(background_emission, ix[nchars(2)]),
+                        safe_get(background_emission, ix[nchars(3)]),
+                        safe_get(background_emission, ix[nchars(4)]),
+                        safe_get(background_emission, ix[nchars(5)])};
 
-    float const *restrict emis_I = bg;
-    float const *restrict emis_N = null;
-    float const *restrict emis_J = null;
-    float const *restrict emis_C = null;
-
-    dp_E[lookback(0)] = onto_E(dp, core_size, xtrans.ME, xtrans.DE, emis_E);
-    dp_N[lookback(0)] = onto_N(dp_S, dp_N, xtrans.SN, xtrans.NN, emis_N);
+    dp_E[lookback(0)] = onto_E(dp, core_size, xtrans.ME, xtrans.DE, 0);
+    dp_N[lookback(0)] = onto_N(dp_S, dp_N, xtrans.SN, xtrans.NN, null);
     dp_B[lookback(0)] = onto_B(dp_S, dp_N, dp_E, dp_J, xtrans.SB, xtrans.NB,
-                               xtrans.EB, xtrans.JB, emis_B);
+                               xtrans.EB, xtrans.JB, 0);
 
     {
       float const *match_emission = x->nodes[0].emission;
-      float const emis_M[] = {match_emis_tmp(match_emission, ix[nchars(1)]),
-                              match_emis_tmp(match_emission, ix[nchars(2)]),
-                              match_emis_tmp(match_emission, ix[nchars(3)]),
-                              match_emis_tmp(match_emission, ix[nchars(4)]),
-                              match_emis_tmp(match_emission, ix[nchars(5)])};
+      float const emis_M[] = {safe_get(match_emission, ix[nchars(1)]),
+                              safe_get(match_emission, ix[nchars(2)]),
+                              safe_get(match_emission, ix[nchars(3)]),
+                              safe_get(match_emission, ix[nchars(4)]),
+                              safe_get(match_emission, ix[nchars(5)])};
       DP_M(dp, 0, lookback(0)) = onto_M1(dp_B, trans_BM[0], emis_M);
     }
 
@@ -406,24 +387,25 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
     {
       int const k0 = k;
       int const k1 = k + 1;
-      struct dcp_trans const *restrict trans = &x->nodes[k0].trans;
+      struct dcp_trans const *restrict t = &x->nodes[k0].trans;
       float const *match_emission = x->nodes[k1].emission;
 
-      float const emis_M[] = {match_emis_tmp(match_emission, ix[nchars(1)]),
-                              match_emis_tmp(match_emission, ix[nchars(2)]),
-                              match_emis_tmp(match_emission, ix[nchars(3)]),
-                              match_emis_tmp(match_emission, ix[nchars(4)]),
-                              match_emis_tmp(match_emission, ix[nchars(5)])};
+      float const emis_M[] = {safe_get(match_emission, ix[nchars(1)]),
+                              safe_get(match_emission, ix[nchars(2)]),
+                              safe_get(match_emission, ix[nchars(3)]),
+                              safe_get(match_emission, ix[nchars(4)]),
+                              safe_get(match_emission, ix[nchars(5)])};
 
-      DP_I(dp, k0, lookback(0)) = onto_I(dp, trans, emis_I, k0);
-      DP_M(dp, k1, lookback(0)) = onto_M(dp, dp_B, trans, trans_BM, emis_M, k0);
-      DP_D(dp, k1, lookback(0)) = onto_D(dp, trans, emis_D, k0);
+      DP_I(dp, k0, lookback(0)) = onto_I(dp, t->MI, t->II, bg, k0);
+      DP_M(dp, k1, lookback(0)) =
+          onto_M(dp, dp_B, t->MM, t->IM, t->DM, trans_BM, emis_M, k0);
+      DP_D(dp, k1, lookback(0)) = onto_D(dp, t->MD, t->DD, 0, k0);
     }
 
-    dp_E[lookback(0)] = onto_E(dp, core_size, xtrans.ME, xtrans.DE, emis_E);
-    dp_J[lookback(0)] = onto_J(dp_E, dp_J, xtrans.EJ, xtrans.JJ, emis_J);
-    dp_C[lookback(0)] = onto_C(dp_E, dp_C, xtrans.EC, xtrans.CC, emis_C);
-    dp_T[lookback(0)] = onto_T(dp_E, dp_C, xtrans.ET, xtrans.CT, emis_T);
+    dp_E[lookback(0)] = onto_E(dp, core_size, xtrans.ME, xtrans.DE, 0);
+    dp_J[lookback(0)] = onto_J(dp_E, dp_J, xtrans.EJ, xtrans.JJ, null);
+    dp_C[lookback(0)] = onto_C(dp_E, dp_C, xtrans.EC, xtrans.CC, null);
+    dp_T[lookback(0)] = onto_T(dp_E, dp_C, xtrans.ET, xtrans.CT, 0);
 
     size_t sz = sizeof(float) * (PAST_SIZE - 1);
     memmove(dp_S + lookback(1), dp_S + lookback(0), sz);

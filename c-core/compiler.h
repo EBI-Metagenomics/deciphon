@@ -43,4 +43,6 @@
 #define dcp_const_template dcp_const dcp_template
 #define dcp_pure_template dcp_pure dcp_template
 
+#define DCP_PURE dcp_pure static inline dcp_force_inline
+
 #endif
