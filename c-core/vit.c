@@ -113,7 +113,7 @@ static inline float onto_M1(float const *restrict dp_B, float const trans_BM,
   return reduce_max(array_size(x), x);
 }
 
-static inline float onto_M(float const DPM[restrict], float const *restrict dp, float const *restrict dp_B,
+static inline float onto_M(float const DPM[restrict], float const DPI[restrict], float const *restrict dp, float const *restrict dp_B,
                            float const MM, float const IM, float const DM,
                            float const *restrict trans_BMk,
                            float const *restrict M, int const k0)
@@ -132,11 +132,11 @@ static inline float onto_M(float const DPM[restrict], float const *restrict dp, 
       DPM[lukbak(4)] + MM + M[nchars(4)],
       DPM[lukbak(5)] + MM + M[nchars(5)],
 
-      DP_I(dp, k0, lukbak(1)) + IM + M[nchars(1)],
-      DP_I(dp, k0, lukbak(2)) + IM + M[nchars(2)],
-      DP_I(dp, k0, lukbak(3)) + IM + M[nchars(3)],
-      DP_I(dp, k0, lukbak(4)) + IM + M[nchars(4)],
-      DP_I(dp, k0, lukbak(5)) + IM + M[nchars(5)],
+      DPI[lukbak(1)] + IM + M[nchars(1)],
+      DPI[lukbak(2)] + IM + M[nchars(2)],
+      DPI[lukbak(3)] + IM + M[nchars(3)],
+      DPI[lukbak(4)] + IM + M[nchars(4)],
+      DPI[lukbak(5)] + IM + M[nchars(5)],
 
       DP_D(dp, k0, lukbak(1)) + DM + M[nchars(1)],
       DP_D(dp, k0, lukbak(2)) + DM + M[nchars(2)],
@@ -148,7 +148,7 @@ static inline float onto_M(float const DPM[restrict], float const *restrict dp, 
   return reduce_max(array_size(x), x);
 }
 
-static inline float onto_I(float const DPM[restrict], float const *restrict dp, float const MI,
+static inline float onto_I(float const DPM[restrict], float const DPI[restrict], float const MI,
                            float const II, float const *restrict I,
                            int const k0)
 {
@@ -160,11 +160,11 @@ static inline float onto_I(float const DPM[restrict], float const *restrict dp, 
       DPM[lukbak(4)] + MI + I[nchars(4)],
       DPM[lukbak(5)] + MI + I[nchars(5)],
 
-      DP_I(dp, k0, lukbak(1)) + II + I[nchars(1)],
-      DP_I(dp, k0, lukbak(2)) + II + I[nchars(2)],
-      DP_I(dp, k0, lukbak(3)) + II + I[nchars(3)],
-      DP_I(dp, k0, lukbak(4)) + II + I[nchars(4)],
-      DP_I(dp, k0, lukbak(5)) + II + I[nchars(5)],
+      DPI[lukbak(1)] + II + I[nchars(1)],
+      DPI[lukbak(2)] + II + I[nchars(2)],
+      DPI[lukbak(3)] + II + I[nchars(3)],
+      DPI[lukbak(4)] + II + I[nchars(4)],
+      DPI[lukbak(5)] + II + I[nchars(5)],
   };
   // clang-format on
   return reduce_max(array_size(x), x);
@@ -380,7 +380,7 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
                        safe_get(x->nodes[0].emission, ix[nchars(4)]),
                        safe_get(x->nodes[0].emission, ix[nchars(5)])};
     float *DPM = &DP_M(dp, 0, lukbak(0));
-    // DP_M(dp, 0, lukbak(0)) = onto_M1(B, BM[0], M);
+    float *DPI = &DP_I(dp, 0, lukbak(0));
     DPM[lukbak(0)] = onto_M1(B, BM[0], M);
 
     for (int k = 0; k + 1 < core_size; ++k)
@@ -395,18 +395,21 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
                          safe_get(x->nodes[k1].emission, ix[nchars(4)]),
                          safe_get(x->nodes[k1].emission, ix[nchars(5)])};
 
-      DP_I(dp, k0, lukbak(0)) = onto_I(DPM, dp, t->MI, t->II, bg, k0);              // DP_M(dp, k0, lukbak(1..5))
-      DP_M(dp, k1, lukbak(0)) = onto_M(DPM, dp, B, t->MM, t->IM, t->DM, BM, M, k0); // DP_M(dp, k0, lukbak(1..5))
-      DP_D(dp, k1, lukbak(0)) = onto_D(DPM, dp, t->MD, t->DD, 0, k0);               // DP_M(dp, k0, lukbak(0))
+      DP_I(dp, k0, lukbak(0)) = onto_I(DPM, DPI, t->MI, t->II, bg, k0);                  // DP_I(dp, k0, lukbak(1..5))
+      DP_M(dp, k1, lukbak(0)) = onto_M(DPM, DPI, dp, B, t->MM, t->IM, t->DM, BM, M, k0); // DP_I(dp, k0, lukbak(1..5))
+      DP_D(dp, k1, lukbak(0)) = onto_D(DPM, dp, t->MD, t->DD, 0, k0);
       make_future(DPM);
+      make_future(DPI);
       DPM = &DP_M(dp, k1, lukbak(0));
+      DPI = &DP_I(dp, k1, lukbak(0));
     }
 
-    E[lukbak(0)] = onto_E(dp, core_size, xt.ME, xt.DE, 0); // DP_M(dp, k=0..core_size-1, lukbak(0))
+    E[lukbak(0)] = onto_E(dp, core_size, xt.ME, xt.DE, 0);
     J[lukbak(0)] = onto_J(E, J, xt.EJ, xt.JJ, null);
     C[lukbak(0)] = onto_C(E, C, xt.EC, xt.CC, null);
     T[lukbak(0)] = onto_T(E, C, xt.ET, xt.CT, 0);
     make_future(DPM);
+    make_future(DPI);
 
     size_t sz = sizeof(float) * (PAST_SIZE - 1);
     memmove(S + lukbak(1), S + lukbak(0), sz);
@@ -420,7 +423,7 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
     for (int i = 0; i < core_size; ++i)
     {
       size_t count = sizeof(float) * (PAST_SIZE - 1);
-      memmove(&DP_I(dp, i, lukbak(1)), &DP_I(dp, i, lukbak(0)), count);
+      // memmove(&DP_I(dp, i, lukbak(1)), &DP_I(dp, i, lukbak(0)), count);
       // memmove(&DP_M(dp, i, lukbak(1)), &DP_M(dp, i, lukbak(0)), count);
       memmove(&DP_D(dp, i, lukbak(1)), &DP_D(dp, i, lukbak(0)), count);
     }
