@@ -4,6 +4,7 @@
 #include "compiler.h"
 #include "imm/imm.h"
 #include "p7.h"
+#include "reduce.h"
 #include "scan_thrd.h"
 #include <stdlib.h>
 #include <string.h>
@@ -26,55 +27,6 @@
 #define DP_M(dp, k, i) dp[M_OFFSET(k) + i]
 #define DP_I(dp, k, i) dp[I_OFFSET(k) + i]
 #define DP_D(dp, k, i) dp[D_OFFSET(k) + i]
-
-#if defined(__aarch64__)
-IMM_CONST float fast_fmax(float a, float b)
-{
-  __asm__("fmaxnm %s0, %s1, %s2" : "=w"(a) : "w"(a), "w"(b));
-  return a;
-}
-IMM_PURE float reduce_max(int size, float const x[])
-{
-  float max = -INFINITY;
-
-  for (int i = 0; i < size; i++)
-    max = fast_fmax(max, x[i]);
-
-  return max;
-}
-#else
-#include <immintrin.h>
-static inline float reduce_max(int size, float const *x)
-{
-  float max = x[0];
-
-  for (int i = 1; i < size; i++)
-    max = max < x[i] ? max : x[i];
-
-  return max;
-}
-
-static inline float pfirst4(const __m128 a) { return _mm_cvtss_f32(a); }
-
-static inline float predux_max(const __m128 a)
-{
-  __m128 tmp = _mm_max_ps(a, _mm_movehl_ps(a, a));
-  return pfirst4(_mm_max_ss(tmp, _mm_shuffle_ps(tmp, tmp, 1)));
-}
-
-static inline float pfirst8(const __m256 a) {
-  return _mm_cvtss_f32(_mm256_castps256_ps128(a));
-}
-
-// __AVX2__
-static inline float predux_max8(const __m256 a)
-{
-  __m256 tmp = _mm256_max_ps(a, _mm256_permute2f128_ps(a,a,1));
-  tmp = _mm256_max_ps(tmp, _mm256_shuffle_ps(tmp,tmp,_MM_SHUFFLE(1,0,3,2)));
-  return pfirst8(_mm256_max_ps(tmp, _mm256_shuffle_ps(tmp,tmp,1)));
-}
-
-#endif
 
 DCP_PURE int emission_index(struct imm_eseq const *eseq, int sequence_position,
                             int emission_length)
@@ -100,7 +52,7 @@ static inline float onto_R(float const *restrict dp_s,
       dp_r[lukbak(4)] + trans_rr + emis[nchars(4)],
       dp_r[lukbak(5)] + trans_rr + emis[nchars(5)],
   };
-  return reduce_max(array_size(x), x);
+  return reduce_fmax(array_size(x), x);
 }
 
 static inline float onto_N(float const *restrict dp_s,
@@ -120,7 +72,7 @@ static inline float onto_N(float const *restrict dp_s,
       dp_n[lukbak(4)] + trans_nn + emis[nchars(4)],
       dp_n[lukbak(5)] + trans_nn + emis[nchars(5)],
   };
-  return reduce_max(array_size(x), x);
+  return reduce_fmax(array_size(x), x);
 }
 
 static inline float onto_B(float const *restrict dp_s,
@@ -136,7 +88,7 @@ static inline float onto_B(float const *restrict dp_s,
       dp_e[lukbak(0)] + trans_eb + emis,
       dp_j[lukbak(0)] + trans_jb + emis,
   };
-  return reduce_max(array_size(x), x);
+  return reduce_fmax(array_size(x), x);
 }
 
 static inline float onto_M1(float const *restrict B, float const BM,
@@ -147,7 +99,7 @@ static inline float onto_M1(float const *restrict B, float const BM,
       B[lukbak(3)] + BM + M[nchars(3)], B[lukbak(4)] + BM + M[nchars(4)],
       B[lukbak(5)] + BM + M[nchars(5)],
   };
-  return reduce_max(array_size(x), x);
+  return reduce_fmax(array_size(x), x);
 }
 
 DCP_INLINE float onto_M(float const DPM[restrict], float const DPI[restrict],
@@ -182,7 +134,7 @@ DCP_INLINE float onto_M(float const DPM[restrict], float const DPI[restrict],
       DPD[lukbak(5)] + DM + M[nchars(5)],
   };
   // clang-format on
-  return reduce_max(array_size(x), x);
+  return reduce_fmax(array_size(x), x);
 }
 
 DCP_INLINE float onto_I(float const DPMI[restrict], float const MI,
@@ -202,7 +154,7 @@ DCP_INLINE float onto_I(float const DPMI[restrict], float const MI,
       DPMI[lukbak(5)+lukbak(5)] + II + I[nchars(5)],
   };
   // clang-format on
-  return reduce_max(array_size(x), x);
+  return reduce_fmax(array_size(x), x);
 }
 
 DCP_INLINE float onto_D(float const DPM[restrict], float const DPD[restrict],
@@ -214,7 +166,7 @@ DCP_INLINE float onto_D(float const DPM[restrict], float const DPD[restrict],
       DPD[lukbak(0)] + DD + D,
   };
   // clang-format on
-  return reduce_max(array_size(x), x);
+  return reduce_fmax(array_size(x), x);
 }
 
 static inline float onto_E(float const *restrict dp, int const core_size,
@@ -249,7 +201,7 @@ static inline float onto_J(float const *restrict dp_e,
       dp_j[lukbak(4)] + trans_jj + emis[nchars(4)],
       dp_j[lukbak(5)] + trans_jj + emis[nchars(5)],
   };
-  return reduce_max(array_size(x), x);
+  return reduce_fmax(array_size(x), x);
 }
 
 static inline float onto_C(float const *restrict dp_e,
@@ -269,7 +221,7 @@ static inline float onto_C(float const *restrict dp_e,
       dp_c[lukbak(4)] + trans_cc + emis[nchars(4)],
       dp_c[lukbak(5)] + trans_cc + emis[nchars(5)],
   };
-  return reduce_max(array_size(x), x);
+  return reduce_fmax(array_size(x), x);
 }
 
 static inline float onto_T(float const *restrict dp_e,
@@ -278,7 +230,7 @@ static inline float onto_T(float const *restrict dp_e,
 {
   float const tmp[] = {dp_e[lukbak(0)] + trans_et + emis,
                        dp_c[lukbak(0)] + trans_ct + emis};
-  return reduce_max(array_size(tmp), tmp);
+  return reduce_fmax(array_size(tmp), tmp);
 }
 
 struct extra_trans
