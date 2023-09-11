@@ -29,6 +29,14 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
+# A modern CPU having SSE2 will likely have AVX.
+# Until Cmake team implements a check for AVX I
+# will leave it like that.
+cmake_host_system_information(RESULT HAS_AVX QUERY HAS_SSE2)
+if(HAS_AVX)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mavx")
+endif()
+
 file(GLOB DECIPHON_SOURCES "*.c")
 file(GLOB DECIPHON_HEADERS "*.h")
 list(FILTER DECIPHON_SOURCES EXCLUDE REGEX "test_.*")
@@ -81,7 +89,7 @@ install(
 
 install(
   FILES ${PROJECT_SOURCE_DIR}/README.md ${PROJECT_SOURCE_DIR}/LICENSE
-  DESTINATION share/docs/imm)
+  DESTINATION share/docs/deciphon)
 
 include(CMakePackageConfigHelpers)
 set(PROJECT_CONFIG ${PROJECT_BINARY_DIR}/deciphon-config.cmake)
