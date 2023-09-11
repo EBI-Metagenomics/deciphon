@@ -28,6 +28,8 @@
 #define DP_I(dp, k, i) dp[I_OFFSET(k) + i]
 #define DP_D(dp, k, i) dp[D_OFFSET(k) + i]
 
+#define LOCALITY 1
+
 DCP_PURE int emission_index(struct imm_eseq const *eseq, int sequence_position,
                             int emission_length, int safe_range)
 {
@@ -285,7 +287,7 @@ static struct extra_trans extra_trans(struct dcp_xtrans xt)
 // }
 
 #define safe_get(x, i, safe_range)                                             \
-  (safe_range ? (x)[(i)] : (i) >= 0 ? x[(i)] : IMM_LPROB_ZERO)
+  (safe_range ? (x)[(i)] : (i) >= 0 ? (x)[(i)] : IMM_LPROB_ZERO)
 
 #define SAFE_GET(x, i, safe_range) (x)[(i)]
 
@@ -337,6 +339,7 @@ IMM_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
   float const *restrict BM = x->BMk;
   struct extra_trans const xt = extra_trans(x->xtrans);
 
+  float *restrict emission = x->nodes_emission;
   for (int r = row_start; r < row_end; ++r)
   {
     int ix[5] = {emission_index(eseq, r - 1, 1, safe),
@@ -363,11 +366,11 @@ IMM_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
     make_future(S);
     make_future(N);
 
-    float const M[] = {safe_get(x->nodes[0].emission, ix[nchars(1)], safe),
-                       safe_get(x->nodes[0].emission, ix[nchars(2)], safe),
-                       safe_get(x->nodes[0].emission, ix[nchars(3)], safe),
-                       safe_get(x->nodes[0].emission, ix[nchars(4)], safe),
-                       safe_get(x->nodes[0].emission, ix[nchars(5)], safe)};
+    float const M[] = {safe_get(emission, ix[nchars(1)], safe),
+                       safe_get(emission, ix[nchars(2)], safe),
+                       safe_get(emission, ix[nchars(3)], safe),
+                       safe_get(emission, ix[nchars(4)], safe),
+                       safe_get(emission, ix[nchars(5)], safe)};
     float *DPM = &DP_M(dp, 0, lukbak(0));
     float *DPI = &DP_I(dp, 0, lukbak(0));
     float *DPD = &DP_D(dp, 0, lukbak(0));
@@ -379,14 +382,25 @@ IMM_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
       int const k1 = k + 1;
       struct dcp_trans const *restrict t = &x->nodes[k0].trans;
 
-      float const M[] = {safe_get(x->nodes[k1].emission, ix[nchars(1)], safe),
-                         safe_get(x->nodes[k1].emission, ix[nchars(2)], safe),
-                         safe_get(x->nodes[k1].emission, ix[nchars(3)], safe),
-                         safe_get(x->nodes[k1].emission, ix[nchars(4)], safe),
-                         safe_get(x->nodes[k1].emission, ix[nchars(5)], safe)};
+      float const M[] = {
+          safe_get(emission + k1 * P7_NODE_SIZE, ix[nchars(1)], safe),
+          safe_get(emission + k1 * P7_NODE_SIZE, ix[nchars(2)], safe),
+          safe_get(emission + k1 * P7_NODE_SIZE, ix[nchars(3)], safe),
+          safe_get(emission + k1 * P7_NODE_SIZE, ix[nchars(4)], safe),
+          safe_get(emission + k1 * P7_NODE_SIZE, ix[nchars(5)], safe)};
 
       DPI[lukbak(0)] = onto_I(DPM, t->MI, t->II, bg);
       float tmpM = onto_M(DPM, DPI, DPD, B, t->MM, t->IM, t->DM, BM[k1], M);
+      __builtin_prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(1)], 0,
+                         LOCALITY);
+      __builtin_prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(2)], 0,
+                         LOCALITY);
+      __builtin_prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(3)], 0,
+                         LOCALITY);
+      __builtin_prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(4)], 0,
+                         LOCALITY);
+      __builtin_prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(5)], 0,
+                         LOCALITY);
       float tmpD = onto_D(DPM, DPD, t->MD, t->DD, 0);
       make_future(DPM);
       make_future(DPI);
@@ -425,6 +439,7 @@ IMM_INLINE void vit2(struct p7 *x, struct imm_eseq const *eseq, int row_start,
   float const *restrict BM = x->BMk;
   struct extra_trans const xt = extra_trans(x->xtrans);
 
+  float *restrict emission = x->nodes_emission;
   for (int r = row_start; r < row_end; ++r)
   {
     int ix[5] = {EMISSION_INDEX(eseq, r - 1, 1, safe),
@@ -451,30 +466,43 @@ IMM_INLINE void vit2(struct p7 *x, struct imm_eseq const *eseq, int row_start,
     make_future(S);
     make_future(N);
 
-    float const M[] = {SAFE_GET(x->nodes[0].emission, ix[nchars(1)], safe),
-                       SAFE_GET(x->nodes[0].emission, ix[nchars(2)], safe),
-                       SAFE_GET(x->nodes[0].emission, ix[nchars(3)], safe),
-                       SAFE_GET(x->nodes[0].emission, ix[nchars(4)], safe),
-                       SAFE_GET(x->nodes[0].emission, ix[nchars(5)], safe)};
+    float const M[] = {SAFE_GET(emission, ix[nchars(1)], safe),
+                       SAFE_GET(emission, ix[nchars(2)], safe),
+                       SAFE_GET(emission, ix[nchars(3)], safe),
+                       SAFE_GET(emission, ix[nchars(4)], safe),
+                       SAFE_GET(emission, ix[nchars(5)], safe)};
     float *DPM = &DP_M(dp, 0, lukbak(0));
     float *DPI = &DP_I(dp, 0, lukbak(0));
     float *DPD = &DP_D(dp, 0, lukbak(0));
     DPM[lukbak(0)] = onto_M1(B, BM[0], M);
 
+    // printf("%d %d %d %d %d\n", ix[nchars(1)], ix[nchars(2)], ix[nchars(3)],
+    // ix[nchars(4)], ix[nchars(5)]);
     for (int k = 0; k + 1 < core_size; ++k)
     {
       int const k0 = k;
       int const k1 = k + 1;
       struct dcp_trans const *restrict t = &x->nodes[k0].trans;
 
-      float const M[] = {SAFE_GET(x->nodes[k1].emission, ix[nchars(1)], safe),
-                         SAFE_GET(x->nodes[k1].emission, ix[nchars(2)], safe),
-                         SAFE_GET(x->nodes[k1].emission, ix[nchars(3)], safe),
-                         SAFE_GET(x->nodes[k1].emission, ix[nchars(4)], safe),
-                         SAFE_GET(x->nodes[k1].emission, ix[nchars(5)], safe)};
+      float const M[] = {
+          SAFE_GET(emission + k1 * P7_NODE_SIZE, ix[nchars(1)], safe),
+          SAFE_GET(emission + k1 * P7_NODE_SIZE, ix[nchars(2)], safe),
+          SAFE_GET(emission + k1 * P7_NODE_SIZE, ix[nchars(3)], safe),
+          SAFE_GET(emission + k1 * P7_NODE_SIZE, ix[nchars(4)], safe),
+          SAFE_GET(emission + k1 * P7_NODE_SIZE, ix[nchars(5)], safe)};
 
       DPI[lukbak(0)] = onto_I(DPM, t->MI, t->II, bg);
       float tmpM = onto_M(DPM, DPI, DPD, B, t->MM, t->IM, t->DM, BM[k1], M);
+      __builtin_prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(1)], 0,
+                         LOCALITY);
+      __builtin_prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(2)], 0,
+                         LOCALITY);
+      __builtin_prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(3)], 0,
+                         LOCALITY);
+      __builtin_prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(4)], 0,
+                         LOCALITY);
+      __builtin_prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(5)], 0,
+                         LOCALITY);
       float tmpD = onto_D(DPM, DPD, t->MD, t->DD, 0);
       make_future(DPM);
       make_future(DPI);
@@ -590,7 +618,7 @@ void dcp_vit_dump(struct p7 *x, FILE *restrict fp)
     float const *match_emission = x->nodes[k].emission;
 
     fprintf(fp, "M%d: ", k + 1);
-    size_t n = array_size_field(struct p7_node, emission);
+    size_t n = P7_NODE_SIZE;
     imm_dump_array_f32(n, match_emission, fp);
     fputc('\n', fp);
   }

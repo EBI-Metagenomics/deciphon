@@ -29,6 +29,7 @@ void p7_init(struct p7 *x, struct dcp_model_params params)
   p7_null_init(&x->null);
   p7_background_init(&x->bg);
   x->nodes = NULL;
+  x->nodes_emission = NULL;
   dcp_xtrans_init(&x->xtrans);
   x->BMk = NULL;
 }
@@ -99,16 +100,22 @@ int p7_absorb(struct p7 *x, struct dcp_model *m)
   if (!ptr) defer_return(DCP_ENOMEM);
   x->nodes = ptr;
 
+  ptr = realloc(x->nodes_emission,
+                (core_size + 1) * sizeof(*x->nodes_emission) * P7_NODE_SIZE);
+  if (!ptr) defer_return(DCP_ENOMEM);
+  x->nodes_emission = ptr;
+
   for (unsigned i = 0; i < core_size; ++i)
   {
-    p7_node_absorb_emission(x->nodes + i, &m->alt.nodes[i].match.nucltd,
-                            &x->score_table,
+    p7_node_absorb_emission(x->nodes + i, x->nodes_emission + i * P7_NODE_SIZE,
+                            &m->alt.nodes[i].match.nucltd, &x->score_table,
                             &m->alt.nodes[i].match.state.super);
     p7_node_absorb_transition(x->nodes + i, m->alt.trans + i + 1);
   }
   p7_node_absorb_emission(
-      x->nodes + core_size, &m->alt.nodes[core_size - 1].match.nucltd,
-      &x->score_table, &m->alt.nodes[core_size - 1].match.state.super);
+      x->nodes + core_size, x->nodes_emission + core_size * P7_NODE_SIZE,
+      &m->alt.nodes[core_size - 1].match.nucltd, &x->score_table,
+      &m->alt.nodes[core_size - 1].match.state.super);
   p7_node_absorb_transition(x->nodes + core_size, m->alt.trans + core_size);
 
   ptr = realloc(x->BMk, core_size * sizeof(*x->BMk));
@@ -120,8 +127,10 @@ int p7_absorb(struct p7 *x, struct dcp_model *m)
 
 defer:
   if (x->nodes) free(x->nodes);
+  if (x->nodes_emission) free(x->nodes_emission);
   if (x->BMk) free(x->BMk);
   x->nodes = NULL;
+  x->nodes_emission = NULL;
   x->BMk = NULL;
   return rc;
 }
@@ -180,8 +189,10 @@ void p7_cleanup(struct p7 *x)
   {
     imm_score_table_cleanup(&x->score_table);
     if (x->nodes) free(x->nodes);
+    if (x->nodes_emission) free(x->nodes_emission);
     if (x->BMk) free(x->BMk);
     x->nodes = NULL;
+    x->nodes_emission = NULL;
     x->BMk = NULL;
   }
 }
@@ -350,6 +361,11 @@ int p7_unpack(struct p7 *x, struct lip_file *file)
   if (!ptr) return DCP_EFWRITE;
   x->nodes = ptr;
 
+  ptr = realloc(x->nodes_emission,
+                (x->core_size + 1) * sizeof(*x->nodes_emission) * P7_NODE_SIZE);
+  if (!ptr) return DCP_EFWRITE;
+  x->nodes_emission = ptr;
+
   if ((rc = dcp_expect_map_key(file, "nodes"))) return rc;
   if ((rc = dcp_expect_map_size(file, (x->core_size + 1) * 3))) return rc;
   for (unsigned i = 0; i < x->core_size + 1; ++i)
@@ -364,6 +380,8 @@ int p7_unpack(struct p7 *x, struct lip_file *file)
     if (!lip_read_1darray_float_data(file, TRANS_SIZE, x->nodes[i].trans.data))
       return DCP_EFWRITE;
 
+    float *emission = x->nodes_emission + i * P7_NODE_SIZE;
+    x->nodes[i].emission = emission;
     if ((rc = dcp_expect_map_key(file, "emission"))) return rc;
     lip_read_1darray_size_type(file, &size, &type);
     if (type != LIP_1DARRAY_F32) return rc;

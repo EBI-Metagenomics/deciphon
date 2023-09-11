@@ -10,13 +10,14 @@ struct p7_node
 {
   struct dcp_nuclt_dist nuclt_dist;
   struct dcp_trans trans;
-  float emission[P7_NODE_SIZE];
+  float *emission;
 };
 
 struct imm_score_table;
 struct imm_state;
 
-void p7_node_absorb_emission(struct p7_node *, struct dcp_nuclt_dist const *,
+void p7_node_absorb_emission(struct p7_node *, float *emission,
+                             struct dcp_nuclt_dist const *,
                              struct imm_score_table *,
                              struct imm_state const *);
 void p7_node_absorb_transition(struct p7_node *, struct dcp_trans const *);

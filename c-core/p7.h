@@ -25,6 +25,7 @@ struct p7
   struct p7_null null;
   struct p7_background bg;
   struct p7_node *nodes;
+  float *nodes_emission;
   struct dcp_xtrans xtrans;
   float *BMk;
 };
