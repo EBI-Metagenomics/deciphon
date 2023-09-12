@@ -28,7 +28,7 @@
 #define DP_I(dp, k, i) dp[I_OFFSET(k) + i]
 #define DP_D(dp, k, i) dp[D_OFFSET(k) + i]
 
-#define LOCALITY 1
+#define prefetch(x) __builtin_prefetch((x), 0, 1)
 
 #define emission_index(a, b, c, safe)                                          \
   ((!safe && (b) < 0) ? -1 : (int)imm_eseq_get((a), (b), (c), 1))
@@ -383,16 +383,11 @@ DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
 
       DPI[lukbak(0)] = onto_I(DPM, t->MI, t->II, bg);
       float tmpM = onto_M(DPM, DPI, DPD, B, t->MM, t->IM, t->DM, BM[k1], M);
-      __builtin_prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(1)], 0,
-                         LOCALITY);
-      __builtin_prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(2)], 0,
-                         LOCALITY);
-      __builtin_prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(3)], 0,
-                         LOCALITY);
-      __builtin_prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(4)], 0,
-                         LOCALITY);
-      __builtin_prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(5)], 0,
-                         LOCALITY);
+      prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(1)]);
+      prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(2)]);
+      prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(3)]);
+      prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(4)]);
+      prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(5)]);
       float tmpD = onto_D(DPM, DPD, t->MD, t->DD, 0);
       make_future(DPM);
       make_future(DPI);
