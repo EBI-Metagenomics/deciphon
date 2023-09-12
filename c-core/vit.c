@@ -36,118 +36,130 @@
 #define safe_get(x, i, safe_range)                                             \
   (safe_range ? (x)[(i)] : (i) >= 0 ? (x)[(i)] : IMM_LPROB_ZERO)
 
-static inline float onto_R(float const *restrict s, float const *restrict R,
-                           float const RR, float const *restrict emis)
-{
-  float const x[] = {
-      s[lukbak(1)] + 0 + emis[nchars(1)],  s[lukbak(2)] + 0 + emis[nchars(2)],
-      s[lukbak(3)] + 0 + emis[nchars(3)],  s[lukbak(4)] + 0 + emis[nchars(4)],
-      s[lukbak(5)] + 0 + emis[nchars(5)],
-
-      R[lukbak(1)] + RR + emis[nchars(1)], R[lukbak(2)] + RR + emis[nchars(2)],
-      R[lukbak(3)] + RR + emis[nchars(3)], R[lukbak(4)] + RR + emis[nchars(4)],
-      R[lukbak(5)] + RR + emis[nchars(5)],
-  };
-  return reduce_fmax(array_size(x), x);
-}
-
-static inline float onto_N(float const *restrict dp_s,
-                           float const *restrict dp_n, float const trans_sn,
-                           float const trans_nn, float const *restrict emis)
-{
-  float const x[] = {
-      dp_s[lukbak(1)] + trans_sn + emis[nchars(1)],
-      dp_s[lukbak(2)] + trans_sn + emis[nchars(2)],
-      dp_s[lukbak(3)] + trans_sn + emis[nchars(3)],
-      dp_s[lukbak(4)] + trans_sn + emis[nchars(4)],
-      dp_s[lukbak(5)] + trans_sn + emis[nchars(5)],
-
-      dp_n[lukbak(1)] + trans_nn + emis[nchars(1)],
-      dp_n[lukbak(2)] + trans_nn + emis[nchars(2)],
-      dp_n[lukbak(3)] + trans_nn + emis[nchars(3)],
-      dp_n[lukbak(4)] + trans_nn + emis[nchars(4)],
-      dp_n[lukbak(5)] + trans_nn + emis[nchars(5)],
-  };
-  return reduce_fmax(array_size(x), x);
-}
-
-static inline float onto_B(float const *restrict dp_s,
-                           float const *restrict dp_n,
-                           float const *restrict dp_e,
-                           float const *restrict dp_j, float const trans_sb,
-                           float const trans_nb, float const trans_eb,
-                           float const trans_jb, float const emis)
-{
-  float const x[] = {
-      dp_s[lukbak(0)] + trans_sb + emis,
-      dp_n[lukbak(0)] + trans_nb + emis,
-      dp_e[lukbak(0)] + trans_eb + emis,
-      dp_j[lukbak(0)] + trans_jb + emis,
-  };
-  return reduce_fmax(array_size(x), x);
-}
-
-static inline float onto_M1(float const *restrict B, float const BM,
-                            float const *restrict M)
-{
-  float const x[] = {
-      B[lukbak(1)] + BM + M[nchars(1)], B[lukbak(2)] + BM + M[nchars(2)],
-      B[lukbak(3)] + BM + M[nchars(3)], B[lukbak(4)] + BM + M[nchars(4)],
-      B[lukbak(5)] + BM + M[nchars(5)],
-  };
-  return reduce_fmax(array_size(x), x);
-}
-
-DCP_PURE float onto_M(float const DPM[restrict], float const DPI[restrict],
-                      float const DPD[restrict], float const B[restrict],
-                      float const MM, float const IM, float const DM,
-                      float const BM, float const M[restrict])
+static inline float onto_R(float const S[restrict], float const R[restrict],
+                           float const RR, float const emis[restrict])
 {
   // clang-format off
   float const x[] = {
-      B[lukbak(1)] + BM + M[nchars(1)],
-      B[lukbak(2)] + BM + M[nchars(2)],
-      B[lukbak(3)] + BM + M[nchars(3)],
-      B[lukbak(4)] + BM + M[nchars(4)],
-      B[lukbak(5)] + BM + M[nchars(5)],
+      S[lukbak(1)] + 0 + emis[nchars(1)],
+      S[lukbak(2)] + 0 + emis[nchars(2)],
+      S[lukbak(3)] + 0 + emis[nchars(3)],
+      S[lukbak(4)] + 0 + emis[nchars(4)],
+      S[lukbak(5)] + 0 + emis[nchars(5)],
 
-      DPM[lukbak(1)] + MM + M[nchars(1)],
-      DPM[lukbak(2)] + MM + M[nchars(2)],
-      DPM[lukbak(3)] + MM + M[nchars(3)],
-      DPM[lukbak(4)] + MM + M[nchars(4)],
-      DPM[lukbak(5)] + MM + M[nchars(5)],
+      R[lukbak(1)] + RR + emis[nchars(1)],
+      R[lukbak(2)] + RR + emis[nchars(2)],
+      R[lukbak(3)] + RR + emis[nchars(3)],
+      R[lukbak(4)] + RR + emis[nchars(4)],
+      R[lukbak(5)] + RR + emis[nchars(5)],
+  };
+  // clang-format on
+  return reduce_fmax(array_size(x), x);
+}
 
-      DPI[lukbak(1)] + IM + M[nchars(1)],
-      DPI[lukbak(2)] + IM + M[nchars(2)],
-      DPI[lukbak(3)] + IM + M[nchars(3)],
-      DPI[lukbak(4)] + IM + M[nchars(4)],
-      DPI[lukbak(5)] + IM + M[nchars(5)],
+static inline float onto_N(float const S[restrict], float const N[restrict],
+                           float const SN, float const NN,
+                           float const emis[restrict])
+{
+  // clang-format off
+  float const x[] = {
+      S[lukbak(1)] + SN + emis[nchars(1)],
+      S[lukbak(2)] + SN + emis[nchars(2)],
+      S[lukbak(3)] + SN + emis[nchars(3)],
+      S[lukbak(4)] + SN + emis[nchars(4)],
+      S[lukbak(5)] + SN + emis[nchars(5)],
 
-      DPD[lukbak(1)] + DM + M[nchars(1)],
-      DPD[lukbak(2)] + DM + M[nchars(2)],
-      DPD[lukbak(3)] + DM + M[nchars(3)],
-      DPD[lukbak(4)] + DM + M[nchars(4)],
-      DPD[lukbak(5)] + DM + M[nchars(5)],
+      N[lukbak(1)] + NN + emis[nchars(1)],
+      N[lukbak(2)] + NN + emis[nchars(2)],
+      N[lukbak(3)] + NN + emis[nchars(3)],
+      N[lukbak(4)] + NN + emis[nchars(4)],
+      N[lukbak(5)] + NN + emis[nchars(5)],
+  };
+  // clang-format on
+  return reduce_fmax(array_size(x), x);
+}
+
+static inline float onto_B(float const S[restrict], float const N[restrict],
+                           float const E[restrict], float const J[restrict],
+                           float const SB, float const NB, float const EB,
+                           float const JB, float const emis)
+{
+  // clang-format off
+  float const x[] = {
+      S[lukbak(0)] + SB + emis,
+      N[lukbak(0)] + NB + emis,
+      E[lukbak(0)] + EB + emis,
+      J[lukbak(0)] + JB + emis,
+  };
+  // clang-format on
+  return reduce_fmax(array_size(x), x);
+}
+
+static inline float onto_M1(float const B[restrict], float const BM,
+                            float const emis[restrict])
+{
+  // clang-format off
+  float const x[] = {
+      B[lukbak(1)] + BM + emis[nchars(1)],
+      B[lukbak(2)] + BM + emis[nchars(2)],
+      B[lukbak(3)] + BM + emis[nchars(3)],
+      B[lukbak(4)] + BM + emis[nchars(4)],
+      B[lukbak(5)] + BM + emis[nchars(5)],
+  };
+  // clang-format on
+  return reduce_fmax(array_size(x), x);
+}
+
+DCP_PURE float onto_M(float const M[restrict], float const I[restrict],
+                      float const D[restrict], float const B[restrict],
+                      float const MM, float const IM, float const DM,
+                      float const BM, float const emis[restrict])
+{
+  // clang-format off
+  float const x[] = {
+      B[lukbak(1)] + BM + emis[nchars(1)],
+      B[lukbak(2)] + BM + emis[nchars(2)],
+      B[lukbak(3)] + BM + emis[nchars(3)],
+      B[lukbak(4)] + BM + emis[nchars(4)],
+      B[lukbak(5)] + BM + emis[nchars(5)],
+
+      M[lukbak(1)] + MM + emis[nchars(1)],
+      M[lukbak(2)] + MM + emis[nchars(2)],
+      M[lukbak(3)] + MM + emis[nchars(3)],
+      M[lukbak(4)] + MM + emis[nchars(4)],
+      M[lukbak(5)] + MM + emis[nchars(5)],
+
+      I[lukbak(1)] + IM + emis[nchars(1)],
+      I[lukbak(2)] + IM + emis[nchars(2)],
+      I[lukbak(3)] + IM + emis[nchars(3)],
+      I[lukbak(4)] + IM + emis[nchars(4)],
+      I[lukbak(5)] + IM + emis[nchars(5)],
+
+      D[lukbak(1)] + DM + emis[nchars(1)],
+      D[lukbak(2)] + DM + emis[nchars(2)],
+      D[lukbak(3)] + DM + emis[nchars(3)],
+      D[lukbak(4)] + DM + emis[nchars(4)],
+      D[lukbak(5)] + DM + emis[nchars(5)],
   };
   // clang-format on
   return reduce_fmax(array_size(x), x);
 }
 
 DCP_PURE float onto_I(float const DPMI[restrict], float const MI,
-                      float const II, float const I[restrict])
+                      float const II, float const emis[restrict])
 {
   // clang-format off
   float const x[] = {
-      DPMI[lukbak(1)] + MI + I[nchars(1)],
-      DPMI[lukbak(2)] + MI + I[nchars(2)],
-      DPMI[lukbak(3)] + MI + I[nchars(3)],
-      DPMI[lukbak(4)] + MI + I[nchars(4)],
-      DPMI[lukbak(5)] + MI + I[nchars(5)],
-      DPMI[lukbak(5)+lukbak(1)] + II + I[nchars(1)],
-      DPMI[lukbak(5)+lukbak(2)] + II + I[nchars(2)],
-      DPMI[lukbak(5)+lukbak(3)] + II + I[nchars(3)],
-      DPMI[lukbak(5)+lukbak(4)] + II + I[nchars(4)],
-      DPMI[lukbak(5)+lukbak(5)] + II + I[nchars(5)],
+      DPMI[lukbak(1)] + MI + emis[nchars(1)],
+      DPMI[lukbak(2)] + MI + emis[nchars(2)],
+      DPMI[lukbak(3)] + MI + emis[nchars(3)],
+      DPMI[lukbak(4)] + MI + emis[nchars(4)],
+      DPMI[lukbak(5)] + MI + emis[nchars(5)],
+      DPMI[lukbak(5)+lukbak(1)] + II + emis[nchars(1)],
+      DPMI[lukbak(5)+lukbak(2)] + II + emis[nchars(2)],
+      DPMI[lukbak(5)+lukbak(3)] + II + emis[nchars(3)],
+      DPMI[lukbak(5)+lukbak(4)] + II + emis[nchars(4)],
+      DPMI[lukbak(5)+lukbak(5)] + II + emis[nchars(5)],
   };
   // clang-format on
   return reduce_fmax(array_size(x), x);
@@ -165,68 +177,69 @@ DCP_PURE float onto_D(float const DPM[restrict], float const DPD[restrict],
   return reduce_fmax(array_size(x), x);
 }
 
-static inline float onto_E(float const *restrict dp, int const core_size,
-                           float const trans_me, float const trans_de,
-                           float const emis)
+static inline float onto_E(float const dp[restrict], int const core_size,
+                           float const ME, float const DE, float const emis)
 {
   // Using lukbak(1) because I'm already in the future (as per make_future)
   // It would be lukbak(0) if I hadn't call make_future on DP_M and DP_D
-  float x = DP_M(dp, 0, lukbak(1)) + trans_me + emis;
+  float x = DP_M(dp, 0, lukbak(1)) + ME + emis;
   for (int k = 1; k < core_size; ++k)
   {
-    x = dcp_fmax(x, DP_M(dp, k, lukbak(1)) + trans_me + emis);
-    x = dcp_fmax(x, DP_D(dp, k, lukbak(1)) + trans_de + emis);
+    x = dcp_fmax(x, DP_M(dp, k, lukbak(1)) + ME + emis);
+    x = dcp_fmax(x, DP_D(dp, k, lukbak(1)) + DE + emis);
   }
   return x;
 }
 
-static inline float onto_J(float const *restrict dp_e,
-                           float const *restrict dp_j, float const trans_ej,
-                           float const trans_jj, float const *restrict emis)
+static inline float onto_J(float const E[restrict], float const J[restrict],
+                           float const EJ, float const JJ,
+                           float const emis[restrict])
 {
+  // clang-format off
   float const x[] = {
-      dp_e[lukbak(1)] + trans_ej + emis[nchars(1)],
-      dp_e[lukbak(2)] + trans_ej + emis[nchars(2)],
-      dp_e[lukbak(3)] + trans_ej + emis[nchars(3)],
-      dp_e[lukbak(4)] + trans_ej + emis[nchars(4)],
-      dp_e[lukbak(5)] + trans_ej + emis[nchars(5)],
+      E[lukbak(1)] + EJ + emis[nchars(1)],
+      E[lukbak(2)] + EJ + emis[nchars(2)],
+      E[lukbak(3)] + EJ + emis[nchars(3)],
+      E[lukbak(4)] + EJ + emis[nchars(4)],
+      E[lukbak(5)] + EJ + emis[nchars(5)],
 
-      dp_j[lukbak(1)] + trans_jj + emis[nchars(1)],
-      dp_j[lukbak(2)] + trans_jj + emis[nchars(2)],
-      dp_j[lukbak(3)] + trans_jj + emis[nchars(3)],
-      dp_j[lukbak(4)] + trans_jj + emis[nchars(4)],
-      dp_j[lukbak(5)] + trans_jj + emis[nchars(5)],
+      J[lukbak(1)] + JJ + emis[nchars(1)],
+      J[lukbak(2)] + JJ + emis[nchars(2)],
+      J[lukbak(3)] + JJ + emis[nchars(3)],
+      J[lukbak(4)] + JJ + emis[nchars(4)],
+      J[lukbak(5)] + JJ + emis[nchars(5)],
   };
+  // clang-format on
   return reduce_fmax(array_size(x), x);
 }
 
-static inline float onto_C(float const *restrict dp_e,
-                           float const *restrict dp_c, float const trans_ec,
-                           float const trans_cc, float const *restrict emis)
+static inline float onto_C(float const E[restrict], float const C[restrict],
+                           float const EC, float const CC,
+                           float const emis[restrict])
 {
+  // clang-format off
   float const x[] = {
-      dp_e[lukbak(1)] + trans_ec + emis[nchars(1)],
-      dp_e[lukbak(2)] + trans_ec + emis[nchars(2)],
-      dp_e[lukbak(3)] + trans_ec + emis[nchars(3)],
-      dp_e[lukbak(4)] + trans_ec + emis[nchars(4)],
-      dp_e[lukbak(5)] + trans_ec + emis[nchars(5)],
+      E[lukbak(1)] + EC + emis[nchars(1)],
+      E[lukbak(2)] + EC + emis[nchars(2)],
+      E[lukbak(3)] + EC + emis[nchars(3)],
+      E[lukbak(4)] + EC + emis[nchars(4)],
+      E[lukbak(5)] + EC + emis[nchars(5)],
 
-      dp_c[lukbak(1)] + trans_cc + emis[nchars(1)],
-      dp_c[lukbak(2)] + trans_cc + emis[nchars(2)],
-      dp_c[lukbak(3)] + trans_cc + emis[nchars(3)],
-      dp_c[lukbak(4)] + trans_cc + emis[nchars(4)],
-      dp_c[lukbak(5)] + trans_cc + emis[nchars(5)],
+      C[lukbak(1)] + CC + emis[nchars(1)],
+      C[lukbak(2)] + CC + emis[nchars(2)],
+      C[lukbak(3)] + CC + emis[nchars(3)],
+      C[lukbak(4)] + CC + emis[nchars(4)],
+      C[lukbak(5)] + CC + emis[nchars(5)],
   };
+  // clang-format on
   return reduce_fmax(array_size(x), x);
 }
 
-static inline float onto_T(float const *restrict dp_e,
-                           float const *restrict dp_c, float const trans_et,
-                           float const trans_ct, float const emis)
+static inline float onto_T(float const E[restrict], float const C[restrict],
+                           float const ET, float const CT, float const emis)
 {
-  float const tmp[] = {dp_e[lukbak(0)] + trans_et + emis,
-                       dp_c[lukbak(0)] + trans_ct + emis};
-  return reduce_fmax(array_size(tmp), tmp);
+  float const x[] = {E[lukbak(0)] + ET + emis, C[lukbak(0)] + CT + emis};
+  return reduce_fmax(array_size(x), x);
 }
 
 struct extra_trans
@@ -308,7 +321,7 @@ float dcp_vit_null(struct p7 *x, struct imm_eseq const *eseq)
 }
 
 DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
-                    int row_end, float *restrict dp, float S[restrict],
+                    int row_end, float dp[restrict], float S[restrict],
                     float N[restrict], float B[restrict], float J[restrict],
                     float E[restrict], float C[restrict], float T[restrict],
                     int const safe)
