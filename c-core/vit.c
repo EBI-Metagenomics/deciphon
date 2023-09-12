@@ -36,15 +36,17 @@
 #define safe_get(x, i, safe_range)                                             \
   (safe_range ? (x)[(i)] : (i) >= 0 ? (x)[(i)] : IMM_LPROB_ZERO)
 
-static inline float onto_R(float const *restrict dp_r, float const trans_rr,
-                           float const *restrict emis)
+static inline float onto_R(float const *restrict s, float const *restrict R,
+                           float const RR, float const *restrict emis)
 {
   float const x[] = {
-      dp_r[lukbak(1)] + trans_rr + emis[nchars(1)],
-      dp_r[lukbak(2)] + trans_rr + emis[nchars(2)],
-      dp_r[lukbak(3)] + trans_rr + emis[nchars(3)],
-      dp_r[lukbak(4)] + trans_rr + emis[nchars(4)],
-      dp_r[lukbak(5)] + trans_rr + emis[nchars(5)],
+      s[lukbak(1)] + 0 + emis[nchars(1)],  s[lukbak(2)] + 0 + emis[nchars(2)],
+      s[lukbak(3)] + 0 + emis[nchars(3)],  s[lukbak(4)] + 0 + emis[nchars(4)],
+      s[lukbak(5)] + 0 + emis[nchars(5)],
+
+      R[lukbak(1)] + RR + emis[nchars(1)], R[lukbak(2)] + RR + emis[nchars(2)],
+      R[lukbak(3)] + RR + emis[nchars(3)], R[lukbak(4)] + RR + emis[nchars(4)],
+      R[lukbak(5)] + RR + emis[nchars(5)],
   };
   return reduce_fmax(array_size(x), x);
 }
@@ -283,12 +285,12 @@ float dcp_vit_null(struct p7 *x, struct imm_eseq const *eseq)
   float RR = x->null.RR;
 
 #define NINF IMM_LPROB_ZERO
-  float dp_R[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
+  float S[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
+  float R[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
 #undef NINF
-  dp_R[lukbak(0)] = 0;
-  make_future(dp_R);
+  S[lukbak(0)] = 0;
 
-  for (int r = 1; r < seq_size + 1; ++r)
+  for (int r = 0; r < seq_size + 1; ++r)
   {
     float const null[] = {
         safe_get(null_emission, emission_index(eseq, r - 1, 1, 0), 0),
@@ -297,10 +299,12 @@ float dcp_vit_null(struct p7 *x, struct imm_eseq const *eseq)
         safe_get(null_emission, emission_index(eseq, r - 4, 4, 0), 0),
         safe_get(null_emission, emission_index(eseq, r - 5, 5, 0), 0)};
 
-    dp_R[lukbak(0)] = onto_R(dp_R, RR, null);
-    make_future(dp_R);
+    R[lukbak(0)] = onto_R(S, R, RR, null);
+    make_future(S);
+    make_future(R);
+    S[lukbak(0)] = IMM_LPROB_ZERO;
   }
-  return dp_R[lukbak(0)];
+  return R[lukbak(0)];
 }
 
 DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
