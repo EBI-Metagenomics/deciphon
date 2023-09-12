@@ -30,10 +30,10 @@
 
 #define prefetch(x) __builtin_prefetch((x), 0, 1)
 
-#define emission_index(a, b, c, safe)                                          \
+#define EIDX(a, b, c, safe)                                                    \
   ((!safe && (b) < 0) ? -1 : (int)imm_eseq_get((a), (b), (c), 1))
 
-#define safe_get(x, i, safe_range)                                             \
+#define GET(x, i, safe_range)                                                  \
   (safe_range ? (x)[(i)] : (i) >= 0 ? (x)[(i)] : IMM_LPROB_ZERO)
 
 static inline float onto_R(float const S[restrict], float const R[restrict],
@@ -82,14 +82,14 @@ static inline float onto_N(float const S[restrict], float const N[restrict],
 static inline float onto_B(float const S[restrict], float const N[restrict],
                            float const E[restrict], float const J[restrict],
                            float const SB, float const NB, float const EB,
-                           float const JB, float const emis)
+                           float const JB)
 {
   // clang-format off
   float const x[] = {
-      S[lukbak(0)] + SB + emis,
-      N[lukbak(0)] + NB + emis,
-      E[lukbak(0)] + EB + emis,
-      J[lukbak(0)] + JB + emis,
+      S[lukbak(0)] + SB,
+      N[lukbak(0)] + NB,
+      E[lukbak(0)] + EB,
+      J[lukbak(0)] + JB,
   };
   // clang-format on
   return reduce_fmax(array_size(x), x);
@@ -145,48 +145,47 @@ DCP_PURE float onto_M(float const M[restrict], float const I[restrict],
   return reduce_fmax(array_size(x), x);
 }
 
-DCP_PURE float onto_I(float const DPMI[restrict], float const MI,
-                      float const II, float const emis[restrict])
+DCP_PURE float onto_I(float const M[restrict], float const I[restrict],
+                      float const MI, float const II,
+                      float const emis[restrict])
 {
   // clang-format off
   float const x[] = {
-      DPMI[lukbak(1)] + MI + emis[nchars(1)],
-      DPMI[lukbak(2)] + MI + emis[nchars(2)],
-      DPMI[lukbak(3)] + MI + emis[nchars(3)],
-      DPMI[lukbak(4)] + MI + emis[nchars(4)],
-      DPMI[lukbak(5)] + MI + emis[nchars(5)],
-      DPMI[lukbak(5)+lukbak(1)] + II + emis[nchars(1)],
-      DPMI[lukbak(5)+lukbak(2)] + II + emis[nchars(2)],
-      DPMI[lukbak(5)+lukbak(3)] + II + emis[nchars(3)],
-      DPMI[lukbak(5)+lukbak(4)] + II + emis[nchars(4)],
-      DPMI[lukbak(5)+lukbak(5)] + II + emis[nchars(5)],
+      M[lukbak(1)] + MI + emis[nchars(1)],
+      M[lukbak(2)] + MI + emis[nchars(2)],
+      M[lukbak(3)] + MI + emis[nchars(3)],
+      M[lukbak(4)] + MI + emis[nchars(4)],
+      M[lukbak(5)] + MI + emis[nchars(5)],
+      I[lukbak(1)] + II + emis[nchars(1)],
+      I[lukbak(2)] + II + emis[nchars(2)],
+      I[lukbak(3)] + II + emis[nchars(3)],
+      I[lukbak(4)] + II + emis[nchars(4)],
+      I[lukbak(5)] + II + emis[nchars(5)],
   };
   // clang-format on
   return reduce_fmax(array_size(x), x);
 }
 
-DCP_PURE float onto_D(float const DPM[restrict], float const DPD[restrict],
-                      float const MD, float const DD, float const D)
+DCP_PURE float onto_D(float const M[restrict], float const D[restrict],
+                      float const MD, float const DD)
 {
   // clang-format off
   float const x[] = {
-      DPM[lukbak(0)] + MD + D,
-      DPD[lukbak(0)] + DD + D,
+      M[lukbak(0)] + MD,
+      D[lukbak(0)] + DD,
   };
   // clang-format on
   return reduce_fmax(array_size(x), x);
 }
 
 static inline float onto_E(float const dp[restrict], int const core_size,
-                           float const ME, float const DE, float const emis)
+                           float const ME, float const DE, int lookback)
 {
-  // Using lukbak(1) because I'm already in the future (as per make_future)
-  // It would be lukbak(0) if I hadn't call make_future on DP_M and DP_D
-  float x = DP_M(dp, 0, lukbak(1)) + ME + emis;
+  float x = DP_M(dp, 0, lookback) + ME;
   for (int k = 1; k < core_size; ++k)
   {
-    x = dcp_fmax(x, DP_M(dp, k, lukbak(1)) + ME + emis);
-    x = dcp_fmax(x, DP_D(dp, k, lukbak(1)) + DE + emis);
+    x = dcp_fmax(x, DP_M(dp, k, lookback) + ME);
+    x = dcp_fmax(x, DP_D(dp, k, lookback) + DE);
   }
   return x;
 }
@@ -236,9 +235,9 @@ static inline float onto_C(float const E[restrict], float const C[restrict],
 }
 
 static inline float onto_T(float const E[restrict], float const C[restrict],
-                           float const ET, float const CT, float const emis)
+                           float const ET, float const CT)
 {
-  float const x[] = {E[lukbak(0)] + ET + emis, C[lukbak(0)] + CT + emis};
+  float const x[] = {E[lukbak(0)] + ET, C[lukbak(0)] + CT};
   return reduce_fmax(array_size(x), x);
 }
 
@@ -305,12 +304,11 @@ float dcp_vit_null(struct p7 *x, struct imm_eseq const *eseq)
 
   for (int r = 0; r < seq_size + 1; ++r)
   {
-    float const null[] = {
-        safe_get(null_emission, emission_index(eseq, r - 1, 1, 0), 0),
-        safe_get(null_emission, emission_index(eseq, r - 2, 2, 0), 0),
-        safe_get(null_emission, emission_index(eseq, r - 3, 3, 0), 0),
-        safe_get(null_emission, emission_index(eseq, r - 4, 4, 0), 0),
-        safe_get(null_emission, emission_index(eseq, r - 5, 5, 0), 0)};
+    float const null[] = {GET(null_emission, EIDX(eseq, r - 1, 1, 0), 0),
+                          GET(null_emission, EIDX(eseq, r - 2, 2, 0), 0),
+                          GET(null_emission, EIDX(eseq, r - 3, 3, 0), 0),
+                          GET(null_emission, EIDX(eseq, r - 4, 4, 0), 0),
+                          GET(null_emission, EIDX(eseq, r - 5, 5, 0), 0)};
 
     R[lukbak(0)] = onto_R(S, R, RR, null);
     make_future(S);
@@ -334,35 +332,32 @@ DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
   float *restrict emission = x->nodes_emission;
   for (int r = row_start; r < row_end; ++r)
   {
-    int ix[5] = {emission_index(eseq, r - 1, 1, safe),
-                 emission_index(eseq, r - 2, 2, safe),
-                 emission_index(eseq, r - 3, 3, safe),
-                 emission_index(eseq, r - 4, 4, safe),
-                 emission_index(eseq, r - 5, 5, safe)};
+    int ix[5] = {EIDX(eseq, r - 1, 1, safe), EIDX(eseq, r - 2, 2, safe),
+                 EIDX(eseq, r - 3, 3, safe), EIDX(eseq, r - 4, 4, safe),
+                 EIDX(eseq, r - 5, 5, safe)};
 
-    float const null[] = {safe_get(x->null.emission, ix[nchars(1)], safe),
-                          safe_get(x->null.emission, ix[nchars(2)], safe),
-                          safe_get(x->null.emission, ix[nchars(3)], safe),
-                          safe_get(x->null.emission, ix[nchars(4)], safe),
-                          safe_get(x->null.emission, ix[nchars(5)], safe)};
+    float const null[] = {GET(x->null.emission, ix[nchars(1)], safe),
+                          GET(x->null.emission, ix[nchars(2)], safe),
+                          GET(x->null.emission, ix[nchars(3)], safe),
+                          GET(x->null.emission, ix[nchars(4)], safe),
+                          GET(x->null.emission, ix[nchars(5)], safe)};
 
-    float const bg[] = {safe_get(x->bg.emission, ix[nchars(1)], safe),
-                        safe_get(x->bg.emission, ix[nchars(2)], safe),
-                        safe_get(x->bg.emission, ix[nchars(3)], safe),
-                        safe_get(x->bg.emission, ix[nchars(4)], safe),
-                        safe_get(x->bg.emission, ix[nchars(5)], safe)};
+    float const bg[] = {GET(x->bg.emission, ix[nchars(1)], safe),
+                        GET(x->bg.emission, ix[nchars(2)], safe),
+                        GET(x->bg.emission, ix[nchars(3)], safe),
+                        GET(x->bg.emission, ix[nchars(4)], safe),
+                        GET(x->bg.emission, ix[nchars(5)], safe)};
 
-    E[lukbak(0)] = onto_E(dp, core_size, xt.ME, xt.DE, 0);
+    E[lukbak(0)] = onto_E(dp, core_size, xt.ME, xt.DE, lukbak(0));
     N[lukbak(0)] = onto_N(S, N, xt.SN, xt.NN, null);
-    B[lukbak(0)] = onto_B(S, N, E, J, xt.SB, xt.NB, xt.EB, xt.JB, 0);
+    B[lukbak(0)] = onto_B(S, N, E, J, xt.SB, xt.NB, xt.EB, xt.JB);
     make_future(S);
     make_future(N);
 
-    float const M[] = {safe_get(emission, ix[nchars(1)], safe),
-                       safe_get(emission, ix[nchars(2)], safe),
-                       safe_get(emission, ix[nchars(3)], safe),
-                       safe_get(emission, ix[nchars(4)], safe),
-                       safe_get(emission, ix[nchars(5)], safe)};
+    float const M[] = {
+        GET(emission, ix[nchars(1)], safe), GET(emission, ix[nchars(2)], safe),
+        GET(emission, ix[nchars(3)], safe), GET(emission, ix[nchars(4)], safe),
+        GET(emission, ix[nchars(5)], safe)};
     float *DPM = &DP_M(dp, 0, lukbak(0));
     float *DPI = &DP_I(dp, 0, lukbak(0));
     float *DPD = &DP_D(dp, 0, lukbak(0));
@@ -375,20 +370,20 @@ DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
       struct dcp_trans const *restrict t = &x->nodes[k0].trans;
 
       float const M[] = {
-          safe_get(emission + k1 * P7_NODE_SIZE, ix[nchars(1)], safe),
-          safe_get(emission + k1 * P7_NODE_SIZE, ix[nchars(2)], safe),
-          safe_get(emission + k1 * P7_NODE_SIZE, ix[nchars(3)], safe),
-          safe_get(emission + k1 * P7_NODE_SIZE, ix[nchars(4)], safe),
-          safe_get(emission + k1 * P7_NODE_SIZE, ix[nchars(5)], safe)};
+          GET(emission + k1 * P7_NODE_SIZE, ix[nchars(1)], safe),
+          GET(emission + k1 * P7_NODE_SIZE, ix[nchars(2)], safe),
+          GET(emission + k1 * P7_NODE_SIZE, ix[nchars(3)], safe),
+          GET(emission + k1 * P7_NODE_SIZE, ix[nchars(4)], safe),
+          GET(emission + k1 * P7_NODE_SIZE, ix[nchars(5)], safe)};
 
-      DPI[lukbak(0)] = onto_I(DPM, t->MI, t->II, bg);
+      DPI[lukbak(0)] = onto_I(DPM, DPI, t->MI, t->II, bg);
       float tmpM = onto_M(DPM, DPI, DPD, B, t->MM, t->IM, t->DM, BM[k1], M);
       prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(1)]);
       prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(2)]);
       prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(3)]);
       prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(4)]);
       prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(5)]);
-      float tmpD = onto_D(DPM, DPD, t->MD, t->DD, 0);
+      float tmpD = onto_D(DPM, DPD, t->MD, t->DD);
       make_future(DPM);
       make_future(DPI);
       make_future(DPD);
@@ -403,11 +398,13 @@ DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
     make_future(DPD);
     make_future(B);
 
-    E[lukbak(0)] = onto_E(dp, core_size, xt.ME, xt.DE, 0);
+    // It is lukbak(1) in here because I called make_future(DPM)
+    // and make_future(DPD) already (for optimisation reasons).
+    E[lukbak(0)] = onto_E(dp, core_size, xt.ME, xt.DE, lukbak(1));
     J[lukbak(0)] = onto_J(E, J, xt.EJ, xt.JJ, null);
     make_future(J);
     C[lukbak(0)] = onto_C(E, C, xt.EC, xt.CC, null);
-    T[lukbak(0)] = onto_T(E, C, xt.ET, xt.CT, 0);
+    T[lukbak(0)] = onto_T(E, C, xt.ET, xt.CT);
     make_future(E);
     make_future(C);
     make_future(T);
@@ -441,7 +438,7 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
   vit(x, eseq, row_start, row_mid, dp, S, N, B, J, E, C, T, 0);
   vit(x, eseq, row_mid, row_end, dp, S, N, B, J, E, C, T, 1);
 
-  float score = T[lukbak(0)];
+  float score = T[lukbak(1)];
   free(dp);
   return score;
 }
