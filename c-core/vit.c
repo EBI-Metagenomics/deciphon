@@ -2,6 +2,7 @@
 #include "array_size.h"
 #include "array_size_field.h"
 #include "compiler.h"
+#include "debug.h"
 #include "imm/imm.h"
 #include "p7.h"
 #include "reduce.h"
@@ -88,6 +89,18 @@ static inline float onto_B(float const S[restrict], float const N[restrict],
   float const x[] = {
       S[lukbak(0)] + SB,
       N[lukbak(0)] + NB,
+  };
+  // clang-format on
+  return reduce_fmax(array_size(x), x);
+}
+
+static inline float onto_B_adj(float const S[restrict], float const N[restrict],
+                               float const E[restrict], float const J[restrict],
+                               float const SB, float const NB, float const EB,
+                               float const JB)
+{
+  // clang-format off
+  float const x[] = {
       E[lukbak(0)] + EB,
       J[lukbak(0)] + JB,
   };
@@ -156,6 +169,7 @@ DCP_PURE float onto_I(float const M[restrict], float const I[restrict],
       M[lukbak(3)] + MI + emis[nchars(3)],
       M[lukbak(4)] + MI + emis[nchars(4)],
       M[lukbak(5)] + MI + emis[nchars(5)],
+
       I[lukbak(1)] + II + emis[nchars(1)],
       I[lukbak(2)] + II + emis[nchars(2)],
       I[lukbak(3)] + II + emis[nchars(3)],
@@ -179,13 +193,13 @@ DCP_PURE float onto_D(float const M[restrict], float const D[restrict],
 }
 
 static inline float onto_E(float const dp[restrict], int const core_size,
-                           float const ME, float const DE, int lookback)
+                           float const ME, float const DE)
 {
-  float x = DP_M(dp, 0, lookback) + ME;
+  float x = DP_M(dp, 0, lukbak(1)) + ME;
   for (int k = 1; k < core_size; ++k)
   {
-    x = dcp_fmax(x, DP_M(dp, k, lookback) + ME);
-    x = dcp_fmax(x, DP_D(dp, k, lookback) + DE);
+    x = dcp_fmax(x, DP_M(dp, k, lukbak(1)) + ME);
+    x = dcp_fmax(x, DP_D(dp, k, lukbak(1)) + DE);
   }
   return x;
 }
@@ -348,7 +362,6 @@ DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
                         GET(x->bg.emission, ix[nchars(4)], safe),
                         GET(x->bg.emission, ix[nchars(5)], safe)};
 
-    E[lukbak(0)] = onto_E(dp, core_size, xt.ME, xt.DE, lukbak(0));
     N[lukbak(0)] = onto_N(S, N, xt.SN, xt.NN, null);
     B[lukbak(0)] = onto_B(S, N, E, J, xt.SB, xt.NB, xt.EB, xt.JB);
     make_future(S);
@@ -396,12 +409,13 @@ DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
     make_future(DPM);
     make_future(DPI);
     make_future(DPD);
-    make_future(B);
 
     // It is lukbak(1) in here because I called make_future(DPM)
     // and make_future(DPD) already (for optimisation reasons).
-    E[lukbak(0)] = onto_E(dp, core_size, xt.ME, xt.DE, lukbak(1));
+    E[lukbak(0)] = onto_E(dp, core_size, xt.ME, xt.DE);
     J[lukbak(0)] = onto_J(E, J, xt.EJ, xt.JJ, null);
+    B[lukbak(0)] = dcp_fmax(B[lukbak(0)], onto_B_adj(S, N, E, J, xt.SB, xt.NB, xt.EB, xt.JB));
+    make_future(B);
     make_future(J);
     C[lukbak(0)] = onto_C(E, C, xt.EC, xt.CC, null);
     T[lukbak(0)] = onto_T(E, C, xt.ET, xt.CT);
