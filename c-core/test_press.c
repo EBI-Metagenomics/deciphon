@@ -5,6 +5,20 @@
 #define HMMFILE "minifam.hmm"
 #define DBFILE "test_press.dcp"
 
+static long chksum(char const *filename)
+{
+  long chk = 0;
+  eq_or_exit(dcp_fs_cksum(filename, &chk), 0);
+  return chk;
+}
+
+static long filesize(char const *filename)
+{
+  long size = 0;
+  eq_or_exit(dcp_fs_size(filename, &size), 0);
+  return size;
+}
+
 int main(void)
 {
   struct dcp_press *press = dcp_press_new();
@@ -23,14 +37,9 @@ int main(void)
   eq(dcp_press_close(press), 0);
   dcp_press_del(press);
 
-  long size = 0;
-  eq_or_exit(dcp_fs_size(DBFILE, &size), 0);
-  eq(size, 10258373);
-
-  long chk = 0;
-  eq_or_exit(dcp_fs_cksum(DBFILE, &chk), 0);
-  ok(chk == 6290 || chk == 16864 || chk == 50667 || chk == 39148);
-
+  eq(filesize(DBFILE), 10258373);
+  ok((chksum(DBFILE) == 10320 || chksum(DBFILE) == 24466));
   remove(DBFILE);
+
   return lfails;
 }
