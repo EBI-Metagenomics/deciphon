@@ -2,7 +2,6 @@
 #include "array_size.h"
 #include "array_size_field.h"
 #include "compiler.h"
-#include "debug.h"
 #include "imm/imm.h"
 #include "p7.h"
 #include "reduce.h"
@@ -12,30 +11,49 @@
 
 #define PAST_SIZE 6
 
-#define M_PAST_SIZE PAST_SIZE
-#define I_PAST_SIZE PAST_SIZE
-#define D_PAST_SIZE PAST_SIZE
-
 #define lukbak(i) ((i))
 #define nchars(n) ((n)-1)
 
-#define CORE_OFFSET(k) ((k)*M_PAST_SIZE * I_PAST_SIZE * D_PAST_SIZE)
-#define M_OFFSET(k) (CORE_OFFSET(k))
-#define I_OFFSET(k) (CORE_OFFSET(k) + M_PAST_SIZE)
-#define D_OFFSET(k) (CORE_OFFSET(k) + M_PAST_SIZE + I_PAST_SIZE)
-#define DP_SIZE(core_size) CORE_OFFSET(core_size)
+IMM_CONST float *dp_match_init(float *x) { return x; }
+IMM_CONST float *dp_insert_init(float *x) { return x + PAST_SIZE; }
+IMM_CONST float *dp_delete_init(float *x) { return x + PAST_SIZE + PAST_SIZE; }
+IMM_CONST float *dp_next(float *x) { return x + 3 * PAST_SIZE; }
 
-#define DP_M(dp, k, i) dp[M_OFFSET(k) + i]
-#define DP_I(dp, k, i) dp[I_OFFSET(k) + i]
-#define DP_D(dp, k, i) dp[D_OFFSET(k) + i]
+DCP_PURE int emission_index(struct imm_eseq const *x, int pos, int size,
+                            int safe)
+{
+  return ((!safe && (pos) < 0) ? -1 : (int)imm_eseq_get(x, pos, size, 1));
+}
 
-#define prefetch(x) __builtin_prefetch((x), 0, 1)
+DCP_PURE float safe_get(float const x[restrict], int i, int safe)
+{
+  return (safe ? (x)[(i)] : (i) >= 0 ? (x)[(i)] : IMM_LPROB_ZERO);
+}
 
-#define EIDX(a, b, c, safe)                                                    \
-  ((!safe && (b) < 0) ? -1 : (int)imm_eseq_get((a), (b), (c), 1))
+DCP_INLINE void fetch_indices(int x[restrict], struct imm_eseq const *eseq,
+                              int row, int safe)
+{
+  x[0] = emission_index(eseq, row - 1, 1, safe);
+  x[1] = emission_index(eseq, row - 2, 2, safe);
+  x[2] = emission_index(eseq, row - 3, 3, safe);
+  x[3] = emission_index(eseq, row - 4, 4, safe);
+  x[4] = emission_index(eseq, row - 5, 5, safe);
+}
 
-#define GET(x, i, safe_range)                                                  \
-  (safe_range ? (x)[(i)] : (i) >= 0 ? (x)[(i)] : IMM_LPROB_ZERO)
+DCP_INLINE void fetch_emission(float x[restrict], float emission[restrict],
+                               int const ix[restrict], int safe)
+{
+  x[0] = safe_get(emission, ix[nchars(1)], safe);
+  x[1] = safe_get(emission, ix[nchars(2)], safe);
+  x[2] = safe_get(emission, ix[nchars(3)], safe);
+  x[3] = safe_get(emission, ix[nchars(4)], safe);
+  x[4] = safe_get(emission, ix[nchars(5)], safe);
+}
+
+DCP_CONST float *match_next(float *restrict match)
+{
+  return match + P7_NODE_SIZE;
+}
 
 static inline float onto_R(float const S[restrict], float const R[restrict],
                            float const RR, float const emis[restrict])
@@ -81,9 +99,7 @@ static inline float onto_N(float const S[restrict], float const N[restrict],
 }
 
 static inline float onto_B(float const S[restrict], float const N[restrict],
-                           float const E[restrict], float const J[restrict],
-                           float const SB, float const NB, float const EB,
-                           float const JB)
+                           float const SB, float const NB)
 {
   // clang-format off
   float const x[] = {
@@ -94,10 +110,8 @@ static inline float onto_B(float const S[restrict], float const N[restrict],
   return reduce_fmax(array_size(x), x);
 }
 
-static inline float onto_B_adj(float const S[restrict], float const N[restrict],
-                               float const E[restrict], float const J[restrict],
-                               float const SB, float const NB, float const EB,
-                               float const JB)
+static inline float onto_B_adj(float const E[restrict], float const J[restrict],
+                               float const EB, float const JB)
 {
   // clang-format off
   float const x[] = {
@@ -195,11 +209,15 @@ DCP_PURE float onto_D(float const M[restrict], float const D[restrict],
 static inline float onto_E(float const dp[restrict], int const core_size,
                            float const ME, float const DE)
 {
-  float x = DP_M(dp, 0, lukbak(1)) + ME;
+  float const *DPM = dp_match_init((float *)dp);
+  float const *DPD = dp_delete_init((float *)dp);
+  float x = DPM[lukbak(1)] + ME;
   for (int k = 1; k < core_size; ++k)
   {
-    x = dcp_fmax(x, DP_M(dp, k, lukbak(1)) + ME);
-    x = dcp_fmax(x, DP_D(dp, k, lukbak(1)) + DE);
+    DPM = dp_next((float *)DPM);
+    DPD = dp_next((float *)DPD);
+    x = dcp_fmax(x, DPM[lukbak(1)] + ME);
+    x = dcp_fmax(x, DPD[lukbak(1)] + DE);
   }
   return x;
 }
@@ -307,8 +325,6 @@ DCP_INLINE void make_future(float x[])
 float dcp_vit_null(struct p7 *x, struct imm_eseq const *eseq)
 {
   int seq_size = (int)imm_eseq_size(eseq);
-  float const *restrict null_emission = x->null.emission;
-  float RR = x->null.RR;
 
 #define NINF IMM_LPROB_ZERO
   float S[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
@@ -316,15 +332,14 @@ float dcp_vit_null(struct p7 *x, struct imm_eseq const *eseq)
 #undef NINF
   S[lukbak(0)] = 0;
 
+  int ix[PAST_SIZE - 1] = {0};
+  float null[PAST_SIZE - 1] = {0};
   for (int r = 0; r < seq_size + 1; ++r)
   {
-    float const null[] = {GET(null_emission, EIDX(eseq, r - 1, 1, 0), 0),
-                          GET(null_emission, EIDX(eseq, r - 2, 2, 0), 0),
-                          GET(null_emission, EIDX(eseq, r - 3, 3, 0), 0),
-                          GET(null_emission, EIDX(eseq, r - 4, 4, 0), 0),
-                          GET(null_emission, EIDX(eseq, r - 5, 5, 0), 0)};
+    fetch_indices(ix, eseq, r, 0);
+    fetch_emission(null, x->null.emission, ix, 0);
 
-    R[lukbak(0)] = onto_R(S, R, RR, null);
+    R[lukbak(0)] = onto_R(S, R, x->null.RR, null);
     make_future(S);
     make_future(R);
     S[lukbak(0)] = IMM_LPROB_ZERO;
@@ -340,71 +355,60 @@ DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
 {
   int core_size = x->core_size;
 
-  float const *restrict BM = x->BMk;
   struct extra_trans const xt = extra_trans(x->xtrans);
 
-  float *restrict emission = x->nodes_emission;
+  int ix[PAST_SIZE - 1] = {0};
+  float null[PAST_SIZE - 1] = {0};
+  float bg[PAST_SIZE - 1] = {0};
+  float M[PAST_SIZE - 1] = {0};
+
   for (int r = row_start; r < row_end; ++r)
   {
-    int ix[5] = {EIDX(eseq, r - 1, 1, safe), EIDX(eseq, r - 2, 2, safe),
-                 EIDX(eseq, r - 3, 3, safe), EIDX(eseq, r - 4, 4, safe),
-                 EIDX(eseq, r - 5, 5, safe)};
-
-    float const null[] = {GET(x->null.emission, ix[nchars(1)], safe),
-                          GET(x->null.emission, ix[nchars(2)], safe),
-                          GET(x->null.emission, ix[nchars(3)], safe),
-                          GET(x->null.emission, ix[nchars(4)], safe),
-                          GET(x->null.emission, ix[nchars(5)], safe)};
-
-    float const bg[] = {GET(x->bg.emission, ix[nchars(1)], safe),
-                        GET(x->bg.emission, ix[nchars(2)], safe),
-                        GET(x->bg.emission, ix[nchars(3)], safe),
-                        GET(x->bg.emission, ix[nchars(4)], safe),
-                        GET(x->bg.emission, ix[nchars(5)], safe)};
+    float const *restrict BM = x->BMk;
+    float *restrict match = x->nodes_emission;
+    fetch_indices(ix, eseq, r, safe);
+    fetch_emission(null, x->null.emission, ix, safe);
+    fetch_emission(bg, x->bg.emission, ix, safe);
 
     N[lukbak(0)] = onto_N(S, N, xt.SN, xt.NN, null);
-    B[lukbak(0)] = onto_B(S, N, E, J, xt.SB, xt.NB, xt.EB, xt.JB);
+    B[lukbak(0)] = onto_B(S, N, xt.SB, xt.NB);
     make_future(S);
     make_future(N);
 
-    float const M[] = {
-        GET(emission, ix[nchars(1)], safe), GET(emission, ix[nchars(2)], safe),
-        GET(emission, ix[nchars(3)], safe), GET(emission, ix[nchars(4)], safe),
-        GET(emission, ix[nchars(5)], safe)};
-    float *DPM = &DP_M(dp, 0, lukbak(0));
-    float *DPI = &DP_I(dp, 0, lukbak(0));
-    float *DPD = &DP_D(dp, 0, lukbak(0));
-    DPM[lukbak(0)] = onto_M1(B, BM[0], M);
+    fetch_emission(M, match, ix, safe);
+    float *DPM = dp_match_init(dp);
+    float *DPI = dp_insert_init(dp);
+    float *DPD = dp_delete_init(dp);
+    DPM[lukbak(0)] = onto_M1(B, *BM, M);
+    BM += 1;
 
+    struct p7_node const *node = x->nodes;
     for (int k = 0; k + 1 < core_size; ++k)
     {
-      int const k0 = k;
-      int const k1 = k + 1;
-      struct dcp_trans const *restrict t = &x->nodes[k0].trans;
+      float const MM = node->trans.MM;
+      float const MI = node->trans.MI;
+      float const MD = node->trans.MD;
+      float const IM = node->trans.IM;
+      float const II = node->trans.II;
+      float const DM = node->trans.DM;
+      float const DD = node->trans.DD;
 
-      float const M[] = {
-          GET(emission + k1 * P7_NODE_SIZE, ix[nchars(1)], safe),
-          GET(emission + k1 * P7_NODE_SIZE, ix[nchars(2)], safe),
-          GET(emission + k1 * P7_NODE_SIZE, ix[nchars(3)], safe),
-          GET(emission + k1 * P7_NODE_SIZE, ix[nchars(4)], safe),
-          GET(emission + k1 * P7_NODE_SIZE, ix[nchars(5)], safe)};
+      match = match_next(match);
+      fetch_emission(M, match, ix, safe);
 
-      DPI[lukbak(0)] = onto_I(DPM, DPI, t->MI, t->II, bg);
-      float tmpM = onto_M(DPM, DPI, DPD, B, t->MM, t->IM, t->DM, BM[k1], M);
-      prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(1)]);
-      prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(2)]);
-      prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(3)]);
-      prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(4)]);
-      prefetch(emission + (k1 + 1) * P7_NODE_SIZE + ix[nchars(5)]);
-      float tmpD = onto_D(DPM, DPD, t->MD, t->DD);
+      DPI[lukbak(0)] = onto_I(DPM, DPI, MI, II, bg);
+      float tmpM = onto_M(DPM, DPI, DPD, B, MM, IM, DM, *BM, M);
+      float tmpD = onto_D(DPM, DPD, MD, DD);
       make_future(DPM);
       make_future(DPI);
       make_future(DPD);
-      DPM = &DP_M(dp, k1, lukbak(0));
+      DPM = dp_next(DPM);
       DPM[lukbak(0)] = tmpM;
-      DPI = &DP_I(dp, k1, lukbak(0));
-      DPD = &DP_D(dp, k1, lukbak(0));
+      DPI = dp_next(DPI);
+      DPD = dp_next(DPD);
       DPD[lukbak(0)] = tmpD;
+      BM += 1;
+      node += 1;
     }
     make_future(DPM);
     make_future(DPI);
@@ -414,7 +418,7 @@ DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
     // and make_future(DPD) already (for optimisation reasons).
     E[lukbak(0)] = onto_E(dp, core_size, xt.ME, xt.DE);
     J[lukbak(0)] = onto_J(E, J, xt.EJ, xt.JJ, null);
-    B[lukbak(0)] = dcp_fmax(B[lukbak(0)], onto_B_adj(S, N, E, J, xt.SB, xt.NB, xt.EB, xt.JB));
+    B[lukbak(0)] = dcp_fmax(B[lukbak(0)], onto_B_adj(E, J, xt.EB, xt.JB));
     make_future(B);
     make_future(J);
     C[lukbak(0)] = onto_C(E, C, xt.EC, xt.CC, null);
@@ -429,10 +433,11 @@ DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
 float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
 {
   int core_size = x->core_size;
+  int dp_size = 3 * PAST_SIZE * core_size;
 
 #define NINF IMM_LPROB_ZERO
-  float *restrict dp = malloc(sizeof(*dp) * DP_SIZE(core_size));
-  for (int i = 0; i < DP_SIZE(core_size); ++i)
+  float *restrict dp = malloc(sizeof(*dp) * dp_size);
+  for (int i = 0; i < dp_size; ++i)
     dp[i] = NINF;
   float S[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
   float N[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
