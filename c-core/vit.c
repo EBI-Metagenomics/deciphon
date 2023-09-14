@@ -2,6 +2,7 @@
 #include "array_size.h"
 #include "array_size_field.h"
 #include "compiler.h"
+#include "find.h"
 #include "imm/imm.h"
 #include "p7.h"
 #include "reduce.h"
@@ -10,6 +11,18 @@
 #include <string.h>
 
 #define PAST_SIZE 6
+
+#define RIDX 0
+
+#define BIDX 0
+#define NIDX 0
+#define MIDX 0
+#define IIDX 0
+#define DIDX 0
+#define SIDX 0
+#define EIDX 0
+#define JIDX 0
+#define CIDX 0
 
 #define lukbak(i) ((i))
 #define nchars(n) ((n)-1)
@@ -55,9 +68,20 @@ DCP_CONST float *match_next(float *restrict match)
   return match + P7_NODE_SIZE;
 }
 
-static inline float onto_R(float const S[restrict], float const R[restrict],
-                           float const RR, float const emis[restrict])
+DCP_INLINE void update_trellis(struct imm_trellis *t, int const src[restrict],
+                               int size, float const x[restrict],
+                               struct imm_span span)
 {
+  int idx = find_fmax(size, x);
+  imm_trellis_push(t, x[idx], src[idx], span.max % idx + span.min);
+}
+
+static inline float onto_R(struct imm_trellis *t, float const S[restrict],
+                           float const R[restrict], float const RR,
+                           float const emis[restrict])
+{
+  static int const src[] = {SIDX, SIDX, SIDX, SIDX, SIDX,
+                            RIDX, RIDX, RIDX, RIDX, RIDX};
   // clang-format off
   float const x[] = {
       S[lukbak(1)] + 0 + emis[nchars(1)],
@@ -73,13 +97,16 @@ static inline float onto_R(float const S[restrict], float const R[restrict],
       R[lukbak(5)] + RR + emis[nchars(5)],
   };
   // clang-format on
+  if (t) update_trellis(t, src, array_size(x), x, imm_span(1, 5));
   return reduce_fmax(array_size(x), x);
 }
 
-static inline float onto_N(float const S[restrict], float const N[restrict],
-                           float const SN, float const NN,
-                           float const emis[restrict])
+static inline float onto_N(struct imm_trellis *t, float const S[restrict],
+                           float const N[restrict], float const SN,
+                           float const NN, float const emis[restrict])
 {
+  static int const src[] = {SIDX, SIDX, SIDX, SIDX, SIDX,
+                            NIDX, NIDX, NIDX, NIDX, NIDX};
   // clang-format off
   float const x[] = {
       S[lukbak(1)] + SN + emis[nchars(1)],
@@ -95,36 +122,49 @@ static inline float onto_N(float const S[restrict], float const N[restrict],
       N[lukbak(5)] + NN + emis[nchars(5)],
   };
   // clang-format on
+  if (t) update_trellis(t, src, array_size(x), x, imm_span(1, 5));
   return reduce_fmax(array_size(x), x);
 }
 
-static inline float onto_B(float const S[restrict], float const N[restrict],
-                           float const SB, float const NB)
+static inline float onto_B(struct imm_trellis *t, float const S[restrict],
+                           float const N[restrict], float const SB,
+                           float const NB)
 {
+  static int const src[] = {SIDX, NIDX};
   // clang-format off
   float const x[] = {
       S[lukbak(0)] + SB,
       N[lukbak(0)] + NB,
   };
   // clang-format on
+  if (t) update_trellis(t, src, array_size(x), x, imm_span(0, 0));
   return reduce_fmax(array_size(x), x);
 }
 
-static inline float onto_B_adj(float const E[restrict], float const J[restrict],
-                               float const EB, float const JB)
+static inline void adjust_onto_B(struct imm_trellis *t, float B[restrict],
+                                 float const E[restrict],
+                                 float const J[restrict], float const EB,
+                                 float const JB)
 {
+  static int const src[] = {EIDX, JIDX};
   // clang-format off
   float const x[] = {
       E[lukbak(0)] + EB,
       J[lukbak(0)] + JB,
   };
   // clang-format on
-  return reduce_fmax(array_size(x), x);
+  if (t)
+  {
+    int idx = find_fmax(array_size(x), x);
+    if (x[idx] > B[lukbak(0)]) imm_trellis_push(t, x[idx], src[idx], 0);
+  }
+  B[lukbak(0)] = fmax(B[lukbak(0)], reduce_fmax(array_size(x), x));
 }
 
-static inline float onto_M1(float const B[restrict], float const BM,
-                            float const emis[restrict])
+static inline float onto_M1(struct imm_trellis *t, float const B[restrict],
+                            float const BM, float const emis[restrict])
 {
+  static int const src[] = {BIDX, BIDX, BIDX, BIDX, BIDX};
   // clang-format off
   float const x[] = {
       B[lukbak(1)] + BM + emis[nchars(1)],
@@ -134,14 +174,19 @@ static inline float onto_M1(float const B[restrict], float const BM,
       B[lukbak(5)] + BM + emis[nchars(5)],
   };
   // clang-format on
+  if (t) update_trellis(t, src, array_size(x), x, imm_span(1, 5));
   return reduce_fmax(array_size(x), x);
 }
 
-DCP_PURE float onto_M(float const M[restrict], float const I[restrict],
-                      float const D[restrict], float const B[restrict],
-                      float const MM, float const IM, float const DM,
-                      float const BM, float const emis[restrict])
+DCP_INLINE float onto_M(struct imm_trellis *t, float const M[restrict],
+                        float const I[restrict], float const D[restrict],
+                        float const B[restrict], float const MM, float const IM,
+                        float const DM, float const BM,
+                        float const emis[restrict])
 {
+  static int const src[] = {BIDX, BIDX, BIDX, BIDX, BIDX, MIDX, MIDX,
+                            MIDX, MIDX, MIDX, IIDX, IIDX, IIDX, IIDX,
+                            IIDX, DIDX, DIDX, DIDX, DIDX, DIDX};
   // clang-format off
   float const x[] = {
       B[lukbak(1)] + BM + emis[nchars(1)],
@@ -169,13 +214,16 @@ DCP_PURE float onto_M(float const M[restrict], float const I[restrict],
       D[lukbak(5)] + DM + emis[nchars(5)],
   };
   // clang-format on
+  if (t) update_trellis(t, src, array_size(x), x, imm_span(1, 5));
   return reduce_fmax(array_size(x), x);
 }
 
-DCP_PURE float onto_I(float const M[restrict], float const I[restrict],
-                      float const MI, float const II,
+DCP_PURE float onto_I(struct imm_trellis *t, float const M[restrict],
+                      float const I[restrict], float const MI, float const II,
                       float const emis[restrict])
 {
+  static int const src[] = {MIDX, MIDX, MIDX, MIDX, MIDX,
+                            IIDX, IIDX, IIDX, IIDX, IIDX};
   // clang-format off
   float const x[] = {
       M[lukbak(1)] + MI + emis[nchars(1)],
@@ -191,41 +239,72 @@ DCP_PURE float onto_I(float const M[restrict], float const I[restrict],
       I[lukbak(5)] + II + emis[nchars(5)],
   };
   // clang-format on
+  if (t) update_trellis(t, src, array_size(x), x, imm_span(1, 5));
   return reduce_fmax(array_size(x), x);
 }
 
-DCP_PURE float onto_D(float const M[restrict], float const D[restrict],
-                      float const MD, float const DD)
+DCP_PURE float onto_D(struct imm_trellis *t, float const M[restrict],
+                      float const D[restrict], float const MD, float const DD)
 {
+  static int const src[] = {MIDX, DIDX};
   // clang-format off
   float const x[] = {
       M[lukbak(0)] + MD,
       D[lukbak(0)] + DD,
   };
   // clang-format on
+  if (t) update_trellis(t, src, array_size(x), x, imm_span(0, 0));
   return reduce_fmax(array_size(x), x);
 }
 
-static inline float onto_E(float const dp[restrict], int const core_size,
-                           float const ME, float const DE)
+DCP_INLINE float fmax_idx(float max, int *src, int *maxk, float x, int new_src,
+                          int new_maxk)
+{
+  if (x > max)
+  {
+    max = x;
+    *src = new_src;
+    *maxk = new_maxk;
+  }
+  return max;
+}
+
+static inline float onto_E(struct imm_trellis *t, float const dp[restrict],
+                           int const core_size, float const ME, float const DE)
 {
   float const *DPM = dp_match_init((float *)dp);
   float const *DPD = dp_delete_init((float *)dp);
   float x = DPM[lukbak(1)] + ME;
+  int src = MIDX;
+  int maxk = 0;
   for (int k = 1; k < core_size; ++k)
   {
     DPM = dp_next((float *)DPM);
     DPD = dp_next((float *)DPD);
-    x = dcp_fmax(x, DPM[lukbak(1)] + ME);
-    x = dcp_fmax(x, DPD[lukbak(1)] + DE);
+    if (t)
+    {
+      x = fmax_idx(x, &src, &maxk, DPM[lukbak(1)] + ME, MIDX, k);
+      x = fmax_idx(x, &src, &maxk, DPD[lukbak(1)] + DE, DIDX, k);
+    }
+    else
+    {
+      x = dcp_fmax(x, DPM[lukbak(1)] + ME);
+      x = dcp_fmax(x, DPD[lukbak(1)] + DE);
+    }
+  }
+  if (t)
+  {
+    imm_trellis_push(t, x, 3 * maxk + src, 0);
   }
   return x;
 }
 
-static inline float onto_J(float const E[restrict], float const J[restrict],
-                           float const EJ, float const JJ,
-                           float const emis[restrict])
+static inline float onto_J(struct imm_trellis *t, float const E[restrict],
+                           float const J[restrict], float const EJ,
+                           float const JJ, float const emis[restrict])
 {
+  static int const src[] = {EIDX, EIDX, EIDX, EIDX, EIDX,
+                            JIDX, JIDX, JIDX, JIDX, JIDX};
   // clang-format off
   float const x[] = {
       E[lukbak(1)] + EJ + emis[nchars(1)],
@@ -241,13 +320,16 @@ static inline float onto_J(float const E[restrict], float const J[restrict],
       J[lukbak(5)] + JJ + emis[nchars(5)],
   };
   // clang-format on
+  if (t) update_trellis(t, src, array_size(x), x, imm_span(1, 5));
   return reduce_fmax(array_size(x), x);
 }
 
-static inline float onto_C(float const E[restrict], float const C[restrict],
-                           float const EC, float const CC,
-                           float const emis[restrict])
+static inline float onto_C(struct imm_trellis *t, float const E[restrict],
+                           float const C[restrict], float const EC,
+                           float const CC, float const emis[restrict])
 {
+  static int const src[] = {EIDX, EIDX, EIDX, EIDX, EIDX,
+                            CIDX, CIDX, CIDX, CIDX, CIDX};
   // clang-format off
   float const x[] = {
       E[lukbak(1)] + EC + emis[nchars(1)],
@@ -263,13 +345,22 @@ static inline float onto_C(float const E[restrict], float const C[restrict],
       C[lukbak(5)] + CC + emis[nchars(5)],
   };
   // clang-format on
+  if (t) update_trellis(t, src, array_size(x), x, imm_span(1, 5));
   return reduce_fmax(array_size(x), x);
 }
 
-static inline float onto_T(float const E[restrict], float const C[restrict],
-                           float const ET, float const CT)
+static inline float onto_T(struct imm_trellis *t, float const E[restrict],
+                           float const C[restrict], float const ET,
+                           float const CT)
 {
-  float const x[] = {E[lukbak(0)] + ET, C[lukbak(0)] + CT};
+  static int const src[] = {EIDX, CIDX};
+  // clang-format off
+  float const x[] = {
+    E[lukbak(0)] + ET,
+    C[lukbak(0)] + CT,
+  };
+  // clang-format on
+  if (t) update_trellis(t, src, array_size(x), x, imm_span(0, 0));
   return reduce_fmax(array_size(x), x);
 }
 
@@ -339,7 +430,7 @@ float dcp_vit_null(struct p7 *x, struct imm_eseq const *eseq)
     fetch_indices(ix, eseq, r, 0);
     fetch_emission(null, x->null.emission, ix, 0);
 
-    R[lukbak(0)] = onto_R(S, R, x->null.RR, null);
+    R[lukbak(0)] = onto_R(NULL, S, R, x->null.RR, null);
     make_future(S);
     make_future(R);
     S[lukbak(0)] = IMM_LPROB_ZERO;
@@ -353,6 +444,7 @@ DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
                     float E[restrict], float C[restrict], float T[restrict],
                     int const safe)
 {
+  struct imm_trellis *trellis = NULL;
   int core_size = x->core_size;
 
   struct extra_trans const xt = extra_trans(x->xtrans);
@@ -370,8 +462,8 @@ DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
     fetch_emission(null, x->null.emission, ix, safe);
     fetch_emission(bg, x->bg.emission, ix, safe);
 
-    N[lukbak(0)] = onto_N(S, N, xt.SN, xt.NN, null);
-    B[lukbak(0)] = onto_B(S, N, xt.SB, xt.NB);
+    N[lukbak(0)] = onto_N(trellis, S, N, xt.SN, xt.NN, null);
+    B[lukbak(0)] = onto_B(trellis, S, N, xt.SB, xt.NB);
     make_future(S);
     make_future(N);
 
@@ -379,7 +471,7 @@ DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
     float *DPM = dp_match_init(dp);
     float *DPI = dp_insert_init(dp);
     float *DPD = dp_delete_init(dp);
-    DPM[lukbak(0)] = onto_M1(B, *BM, M);
+    DPM[lukbak(0)] = onto_M1(trellis, B, *BM, M);
     BM += 1;
 
     struct p7_node const *node = x->nodes;
@@ -396,9 +488,9 @@ DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
       match = match_next(match);
       fetch_emission(M, match, ix, safe);
 
-      DPI[lukbak(0)] = onto_I(DPM, DPI, MI, II, bg);
-      float tmpM = onto_M(DPM, DPI, DPD, B, MM, IM, DM, *BM, M);
-      float tmpD = onto_D(DPM, DPD, MD, DD);
+      DPI[lukbak(0)] = onto_I(trellis, DPM, DPI, MI, II, bg);
+      float tmpM = onto_M(trellis, DPM, DPI, DPD, B, MM, IM, DM, *BM, M);
+      float tmpD = onto_D(trellis, DPM, DPD, MD, DD);
       make_future(DPM);
       make_future(DPI);
       make_future(DPD);
@@ -416,13 +508,13 @@ DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
 
     // It is lukbak(1) in here because I called make_future(DPM)
     // and make_future(DPD) already (for optimisation reasons).
-    E[lukbak(0)] = onto_E(dp, core_size, xt.ME, xt.DE);
-    J[lukbak(0)] = onto_J(E, J, xt.EJ, xt.JJ, null);
-    B[lukbak(0)] = dcp_fmax(B[lukbak(0)], onto_B_adj(E, J, xt.EB, xt.JB));
+    E[lukbak(0)] = onto_E(trellis, dp, core_size, xt.ME, xt.DE);
+    J[lukbak(0)] = onto_J(trellis, E, J, xt.EJ, xt.JJ, null);
+    adjust_onto_B(trellis, B, E, J, xt.EB, xt.JB);
     make_future(B);
     make_future(J);
-    C[lukbak(0)] = onto_C(E, C, xt.EC, xt.CC, null);
-    T[lukbak(0)] = onto_T(E, C, xt.ET, xt.CT);
+    C[lukbak(0)] = onto_C(trellis, E, C, xt.EC, xt.CC, null);
+    T[lukbak(0)] = onto_T(trellis, E, C, xt.ET, xt.CT);
     make_future(E);
     make_future(C);
     make_future(T);

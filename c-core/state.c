@@ -60,3 +60,18 @@ char *dcp_state_name(unsigned id, char *name)
     return name;
   }
 }
+
+unsigned dcp_state_make_match_id(unsigned idx)
+{
+  return STATE_MATCH | (idx + 1);
+}
+
+unsigned dcp_state_make_insert_id(unsigned idx)
+{
+  return STATE_INSERT | (idx + 1);
+}
+
+unsigned dcp_state_make_delete_id(unsigned idx)
+{
+  return STATE_DELETE | (idx + 1);
+}

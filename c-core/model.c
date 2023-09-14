@@ -329,7 +329,7 @@ bool have_finished_add(struct dcp_model const *x)
 
 void init_delete(struct imm_mute_state *state, struct dcp_model *x)
 {
-  unsigned id = STATE_DELETE | (x->alt.node_idx + 1);
+  unsigned id = dcp_state_make_delete_id(x->alt.node_idx);
   imm_mute_state_init(state, id, &x->params.code->nuclt->super);
 }
 
@@ -337,7 +337,7 @@ void init_insert(struct imm_frame_state *state, float epsilon,
                  struct dcp_nuclt_dist const *nucltd, unsigned node_idx)
 {
   float e = epsilon;
-  unsigned id = STATE_INSERT | (node_idx + 1);
+  unsigned id = dcp_state_make_insert_id(node_idx);
   struct imm_nuclt_lprob const *nucltp = &nucltd->nucltp;
   struct imm_codon_marg const *codonm = &nucltd->codonm;
 
@@ -348,7 +348,7 @@ void init_match(struct imm_frame_state *state, struct dcp_model *x,
                 struct dcp_nuclt_dist *d)
 {
   float e = x->params.epsilon;
-  unsigned id = STATE_MATCH | (x->alt.node_idx + 1);
+  unsigned id = dcp_state_make_match_id(x->alt.node_idx);
   imm_frame_state_init(state, id, &d->nucltp, &d->codonm, e, imm_span(1, 5));
 }
 

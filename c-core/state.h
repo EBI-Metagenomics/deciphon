@@ -32,5 +32,8 @@ bool dcp_state_is_delete(unsigned id);
 bool dcp_state_is_mute(unsigned id);
 unsigned dcp_state_idx(unsigned id);
 char *dcp_state_name(unsigned id, char *name);
+unsigned dcp_state_make_match_id(unsigned idx);
+unsigned dcp_state_make_insert_id(unsigned idx);
+unsigned dcp_state_make_delete_id(unsigned idx);
 
 #endif
