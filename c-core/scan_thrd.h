@@ -21,6 +21,7 @@ struct dcp_scan_thrd
   double lrt_threshold;
   bool multi_hits;
   bool hmmer3_compat;
+  bool disable_hmmer;
 
   struct dcp_prod_writer_thrd *prod_thrd;
   struct dcp_chararray amino;
@@ -40,6 +41,7 @@ struct dcp_scan_thrd_params
   double lrt_threshold;
   bool multi_hits;
   bool hmmer3_compat;
+  bool disable_hmmer;
 };
 
 void dcp_scan_thrd_init(struct dcp_scan_thrd *);

@@ -9,6 +9,7 @@ struct dcp_scan_params
   double lrt_threshold;
   bool multi_hits;
   bool hmmer3_compat;
+  bool disable_hmmer;
 };
 
 #endif

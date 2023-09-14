@@ -24,7 +24,7 @@ struct dcp_scan *dcp_scan_new(void)
 {
   struct dcp_scan *x = malloc(sizeof(*x));
   if (!x) return NULL;
-  x->params = (struct dcp_scan_params){1, 0., true, false};
+  x->params = (struct dcp_scan_params){1, 0., true, false, false};
   dcp_scan_db_init(&x->db);
   dcp_prod_writer_init(&x->prod_writer);
   return x;
@@ -75,7 +75,8 @@ int dcp_scan_run(struct dcp_scan *x, char const *dbfile, dcp_seq_next_fn *callb,
       .dialer = &x->dialer,
       .lrt_threshold = x->params.lrt_threshold,
       .multi_hits = x->params.multi_hits,
-      .hmmer3_compat = x->params.hmmer3_compat};
+      .hmmer3_compat = x->params.hmmer3_compat,
+      .disable_hmmer = x->params.disable_hmmer};
 
   for (int i = 0; i < nthreads(x); ++i)
   {

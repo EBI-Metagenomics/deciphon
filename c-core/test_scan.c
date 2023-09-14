@@ -24,6 +24,7 @@ static bool combi_seq_next(struct dcp_seq *, void *);
 
 int main(void)
 {
+  imm_fmt_set_f32("%.5g");
   setup_minifam();
   test_scan1();
   test_scan2();
@@ -42,20 +43,25 @@ struct test_seq
 
 static bool next_seq(struct dcp_seq *, void *);
 
+static long chksum(char const *filename)
+{
+  long chk = 0;
+  eq_or_exit(dcp_fs_cksum(filename, &chk), 0);
+  return chk;
+}
+
 static void test_scan1(void)
 {
   struct dcp_scan *scan = dcp_scan_new();
   ok_or_exit(scan);
 
   eq(dcp_scan_dial(scan, 51371), 0);
-  struct dcp_scan_params params = {1, 10., true, false};
+  struct dcp_scan_params params = {1, 10., true, false, false};
   eq(dcp_scan_setup(scan, params), 0);
 
   int idx = 0;
   eq(dcp_scan_run(scan, DBFILE, next_seq, &idx, "prod1"), 0);
-  long chk = 0;
-  eq_or_exit(dcp_fs_cksum("prod1/products.tsv", &chk), 0);
-  ok(chk == 2817 || chk == 17890);
+  eq_or_exit(chksum("prod1/products.tsv"), 28157);
   eq(dcp_fs_rmtree("prod1"), 0);
 
   dcp_scan_del(scan);
@@ -67,14 +73,12 @@ static void test_scan2(void)
   ok_or_exit(scan);
 
   eq(dcp_scan_dial(scan, 51371), 0);
-  struct dcp_scan_params params = {2, 10., true, false};
+  struct dcp_scan_params params = {2, 10., true, false, false};
   eq(dcp_scan_setup(scan, params), 0);
 
   int idx = 0;
   eq(dcp_scan_run(scan, DBFILE, next_seq, &idx, "prod2"), 0);
-  long chk = 0;
-  eq_or_exit(dcp_fs_cksum("prod2/products.tsv", &chk), 0);
-  ok(chk == 2817 || chk == 17890);
+  eq_or_exit(chksum("prod2/products.tsv"), 28157);
   eq(dcp_fs_rmtree("prod2"), 0);
 
   dcp_scan_del(scan);
@@ -85,14 +89,12 @@ static void test_scan3(void)
   struct dcp_scan *scan = dcp_scan_new();
 
   eq(dcp_scan_dial(scan, 51371), 0);
-  struct dcp_scan_params params = {2, 2., true, false};
+  struct dcp_scan_params params = {2, 2., true, false, false};
   eq(dcp_scan_setup(scan, params), 0);
 
   int idx = 0;
   eq(dcp_scan_run(scan, DBFILE, next_seq, &idx, "prod3"), 0);
-  long chk = 0;
-  eq_or_exit(dcp_fs_cksum("prod3/products.tsv", &chk), 0);
-  ok(chk == 2817 || chk == 17890);
+  eq_or_exit(chksum("prod3/products.tsv"), 28157);
   eq(dcp_fs_rmtree("prod3"), 0);
 
   dcp_scan_del(scan);
@@ -103,14 +105,12 @@ static void test_scan4(void)
   struct dcp_scan *scan = dcp_scan_new();
 
   eq(dcp_scan_dial(scan, 51371), 0);
-  struct dcp_scan_params params = {1, 0., true, false};
+  struct dcp_scan_params params = {1, 0., true, false, false};
   eq(dcp_scan_setup(scan, params), 0);
 
   combi_seq_init();
   eq(dcp_scan_run(scan, DBFILE, combi_seq_next, NULL, "prod4"), 0);
-  long chk = 0;
-  eq_or_exit(dcp_fs_cksum("prod4/products.tsv", &chk), 0);
-  ok(chk == 57189);
+  eq_or_exit(chksum("prod4/products.tsv"), 57189);
   eq(dcp_fs_rmtree("prod4"), 0);
 
   dcp_scan_del(scan);
