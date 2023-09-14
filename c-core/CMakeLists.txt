@@ -103,8 +103,8 @@ install(FILES ${PROJECT_CONFIG} ${VERSION_CONFIG} DESTINATION lib/cmake/deciphon
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
   enable_testing()
 
-  add_test(NAME start_hmmer COMMAND start_hmmer.sh minifam.hmm  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-  add_test(NAME stop_hmmer COMMAND stop_hmmer.sh minifam.hmm  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+  add_test(NAME start_hmmer COMMAND start_hmmer.sh minifam.hmm WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+  add_test(NAME stop_hmmer COMMAND stop_hmmer.sh minifam.hmm WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
   set_tests_properties(start_hmmer PROPERTIES FIXTURES_SETUP hmmer)
   set_tests_properties(stop_hmmer PROPERTIES FIXTURES_CLEANUP hmmer)
 
