@@ -84,7 +84,7 @@ static size_t lfails = 0;
     if (!(test))                                                               \
     {                                                                          \
       ++lfails;                                                                \
-      char _buftest[64] = {0};                                                 \
+      char _buftest[128] = {0};                                                 \
       _minctest_sprintf(_buftest, _minctest_xstr(test));                       \
       printf("%s:%d !(%s) \n", __FILE__, __LINE__, _buftest);                  \
     }                                                                          \
@@ -119,8 +119,8 @@ static size_t lfails = 0;
     if (!(equality))                                                           \
     {                                                                          \
       ++lfails;                                                                \
-      char _bufa_mt[64] = {0};                                                 \
-      char _bufb_mt[64] = {0};                                                 \
+      char _bufa_mt[128] = {0};                                                 \
+      char _bufb_mt[128] = {0};                                                 \
       _minctest_sprintf(_bufa_mt, a);                                          \
       _minctest_sprintf(_bufb_mt, b);                                          \
       printf("%s:%d (%s != %s)\n", __FILE__, __LINE__, _bufa_mt, _bufb_mt);    \
