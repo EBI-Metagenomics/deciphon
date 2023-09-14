@@ -5,6 +5,7 @@
 #include "format.h"
 #include "fs.h"
 #include "hmmer_result.h"
+#include "imm/imm.h"
 #include "match.h"
 #include "match_iter.h"
 #include "rc.h"
@@ -112,9 +113,16 @@ static int write_begin(FILE *fp, struct dcp_prod_match const *y)
   if (fprintf(fp, "%s\t", y->protein) < 0) return DCP_EWRITEPROD;
   if (fprintf(fp, "%s\t", y->abc) < 0) return DCP_EWRITEPROD;
 
-  if (fprintf(fp, DBL_FMT "\t", y->alt) < 0) return DCP_EWRITEPROD;
-  if (fprintf(fp, DBL_FMT "\t", y->null) < 0) return DCP_EWRITEPROD;
-  if (fprintf(fp, DBL_FMT "\t", y->evalue) < 0) return DCP_EWRITEPROD;
+  char const *f32 = imm_fmt_get_f32();
+
+  if (fprintf(fp, f32, y->alt) < 0) return DCP_EWRITEPROD;
+  if (fputc('\t', fp) < 0) return DCP_EWRITEPROD;
+
+  if (fprintf(fp, f32, y->null) < 0) return DCP_EWRITEPROD;
+  if (fputc('\t', fp) < 0) return DCP_EWRITEPROD;
+
+  if (fprintf(fp, f32, y->evalue) < 0) return DCP_EWRITEPROD;
+  if (fputc('\t', fp) < 0) return DCP_EWRITEPROD;
 
   return 0;
 }
