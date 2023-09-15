@@ -10,7 +10,7 @@ DCP_CONST int find_fmax(int const size, float const x[restrict])
   float max = x[maxi];
   for (int i = 1; i < size; ++i)
   {
-    if (max > x[i])
+    if (x[i] > max)
     {
       maxi = i;
       max = x[maxi];
