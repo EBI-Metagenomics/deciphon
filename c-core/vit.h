@@ -9,7 +9,7 @@ struct imm_eseq;
 struct p7;
 
 float dcp_vit_null(struct p7 *, struct imm_eseq const *);
-float dcp_vit(struct p7 *, struct imm_eseq const *);
+float dcp_vit(struct p7 *, struct imm_eseq const *, struct imm_path *);
 void dcp_vit_dump(struct p7 *, FILE *restrict);
 void dcp_vit_dump_dot(struct p7 *, FILE *restrict);
 

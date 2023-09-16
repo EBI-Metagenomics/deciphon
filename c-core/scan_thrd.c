@@ -2,6 +2,7 @@
 #include "chararray.h"
 #include "db_reader.h"
 #include "defer_return.h"
+#include <stdlib.h>
 // #include "elapsed/elapsed.h"
 #include "hmmer_dialer.h"
 #include "lrt.h"
@@ -114,12 +115,14 @@ int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct dcp_seq const *seq)
     // if (elapsed_stop(&elapsed)) return IMM_EELAPSED;
     // new_mseconds_alt += elapsed_milliseconds(&elapsed);
 
-    float fast_null = dcp_vit_null(&x->p7, &seq->imm_eseq);
-    float fast_alt = dcp_vit(&x->p7, &seq->imm_eseq);
     if (imm_dp_viterbi(null_dp, null.task, &null.prod)) goto cleanup;
     if (imm_dp_viterbi(alt_dp, alt.task, &alt.prod)) goto cleanup;
     float slow_null = null.prod.loglik;
     float slow_alt = alt.prod.loglik;
+
+    imm_path_reset(&alt.prod.path);
+    float fast_null = dcp_vit_null(&x->p7, &seq->imm_eseq);
+    float fast_alt = dcp_vit(&x->p7, &seq->imm_eseq, &alt.prod.path);
 
     // x->prod_thrd->match.null = slow_null;
     // x->prod_thrd->match.alt = slow_alt;
@@ -131,9 +134,14 @@ int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct dcp_seq const *seq)
     // printf("SLOW: %g\n", slow_alt);
     // printf("FAST: %g\n", fast_alt);
     imm_dp_set_state_name((struct imm_dp *)alt_dp, x->protein.state_name);
-    imm_trellis_set_state_table(&alt.task->trellis, &alt_dp->state_table);
+    // imm_trellis_set_state_table(&alt.task->trellis, &alt_dp->state_table);
     // imm_trellis_dump(&alt.task->trellis, stdout);
     // imm_dp_dump(alt_dp, stdout);
+    // imm_path_dump(&alt.prod.path, x->protein.state_name, &seq->imm_seq,
+    // stdout); imm_path_dump(&fast_path, x->p7.state_name, &seq->imm_seq,
+    // stdout); fflush(stdout);
+    // imm_path_cleanup(&fast_path);
+    // exit(1);
 
     // x->prod_thrd->match.null = null.prod.loglik;
     // x->prod_thrd->match.alt = alt.prod.loglik;

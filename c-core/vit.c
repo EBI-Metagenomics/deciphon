@@ -12,17 +12,16 @@
 
 #define PAST_SIZE 6
 
-#define RIDX 0
-
-#define BIDX 0
-#define NIDX 0
-#define MIDX 0
-#define IIDX 0
-#define DIDX 0
-#define SIDX 0
-#define EIDX 0
-#define JIDX 0
-#define CIDX 0
+IMM_CONST int SIDX(void) { return 0; }
+IMM_CONST int NIDX(void) { return 1; }
+IMM_CONST int BIDX(void) { return 2; }
+IMM_CONST int IIDX(int i) { return 3 + i * 3 + 0; }
+IMM_CONST int MIDX(int i) { return 3 + i * 3 + 1; }
+IMM_CONST int DIDX(int i) { return 3 + i * 3 + 2; }
+IMM_CONST int EIDX(int n) { return 3 + n * 3; }
+IMM_CONST int JIDX(int n) { return 4 + n * 3; }
+IMM_CONST int CIDX(int n) { return 5 + n * 3; }
+IMM_CONST int TIDX(int n) { return 6 + n * 3; }
 
 #define lukbak(i) ((i))
 #define nchars(n) ((n)-1)
@@ -73,15 +72,19 @@ DCP_INLINE void update_trellis(struct imm_trellis *t, int const src[restrict],
                                struct imm_span span)
 {
   int idx = find_fmax(size, x);
-  imm_trellis_push(t, x[idx], src[idx], span.max % idx + span.min);
+  imm_trellis_push(t, x[idx], src[idx], idx % span.max + span.min);
 }
 
-static inline float onto_R(struct imm_trellis *t, float const S[restrict],
-                           float const R[restrict], float const RR,
-                           float const emis[restrict])
+DCP_INLINE void update_trellis0(struct imm_trellis *t, int const src[restrict],
+                                int size, float const x[restrict])
 {
-  static int const src[] = {SIDX, SIDX, SIDX, SIDX, SIDX,
-                            RIDX, RIDX, RIDX, RIDX, RIDX};
+  int idx = find_fmax(size, x);
+  imm_trellis_push(t, x[idx], src[idx], 0);
+}
+
+static inline float onto_R(float const S[restrict], float const R[restrict],
+                           float const RR, float const emis[restrict])
+{
   // clang-format off
   float const x[] = {
       S[lukbak(1)] + 0 + emis[nchars(1)],
@@ -97,7 +100,6 @@ static inline float onto_R(struct imm_trellis *t, float const S[restrict],
       R[lukbak(5)] + RR + emis[nchars(5)],
   };
   // clang-format on
-  if (t) update_trellis(t, src, array_size(x), x, imm_span(1, 5));
   return reduce_fmax(array_size(x), x);
 }
 
@@ -105,8 +107,8 @@ static inline float onto_N(struct imm_trellis *t, float const S[restrict],
                            float const N[restrict], float const SN,
                            float const NN, float const emis[restrict])
 {
-  static int const src[] = {SIDX, SIDX, SIDX, SIDX, SIDX,
-                            NIDX, NIDX, NIDX, NIDX, NIDX};
+  int const src[] = {SIDX(), SIDX(), SIDX(), SIDX(), SIDX(),
+                     NIDX(), NIDX(), NIDX(), NIDX(), NIDX()};
   // clang-format off
   float const x[] = {
       S[lukbak(1)] + SN + emis[nchars(1)],
@@ -122,7 +124,11 @@ static inline float onto_N(struct imm_trellis *t, float const S[restrict],
       N[lukbak(5)] + NN + emis[nchars(5)],
   };
   // clang-format on
-  if (t) update_trellis(t, src, array_size(x), x, imm_span(1, 5));
+  if (t)
+  {
+    assert((int)imm_trellis_state_idx(t) == NIDX());
+    update_trellis(t, src, array_size(x), x, imm_span(1, 5));
+  }
   return reduce_fmax(array_size(x), x);
 }
 
@@ -130,23 +136,27 @@ static inline float onto_B(struct imm_trellis *t, float const S[restrict],
                            float const N[restrict], float const SB,
                            float const NB)
 {
-  static int const src[] = {SIDX, NIDX};
+  int const src[] = {SIDX(), NIDX()};
   // clang-format off
   float const x[] = {
       S[lukbak(0)] + SB,
       N[lukbak(0)] + NB,
   };
   // clang-format on
-  if (t) update_trellis(t, src, array_size(x), x, imm_span(0, 0));
+  if (t)
+  {
+    assert((int)imm_trellis_state_idx(t) == BIDX());
+    update_trellis0(t, src, array_size(x), x);
+  }
   return reduce_fmax(array_size(x), x);
 }
 
 static inline void adjust_onto_B(struct imm_trellis *t, float B[restrict],
                                  float const E[restrict],
                                  float const J[restrict], float const EB,
-                                 float const JB)
+                                 float const JB, int core_size)
 {
-  static int const src[] = {EIDX, JIDX};
+  int const src[] = {EIDX(core_size), JIDX(core_size)};
   // clang-format off
   float const x[] = {
       E[lukbak(0)] + EB,
@@ -155,8 +165,12 @@ static inline void adjust_onto_B(struct imm_trellis *t, float B[restrict],
   // clang-format on
   if (t)
   {
+    int stage = imm_trellis_stage_idx(t);
+    imm_trellis_seek(t, stage, BIDX());
+    assert((int)imm_trellis_state_idx(t) == BIDX());
     int idx = find_fmax(array_size(x), x);
     if (x[idx] > B[lukbak(0)]) imm_trellis_push(t, x[idx], src[idx], 0);
+    imm_trellis_seek(t, stage, CIDX(core_size));
   }
   B[lukbak(0)] = fmax(B[lukbak(0)], reduce_fmax(array_size(x), x));
 }
@@ -164,7 +178,7 @@ static inline void adjust_onto_B(struct imm_trellis *t, float B[restrict],
 static inline float onto_M1(struct imm_trellis *t, float const B[restrict],
                             float const BM, float const emis[restrict])
 {
-  static int const src[] = {BIDX, BIDX, BIDX, BIDX, BIDX};
+  int const src[] = {BIDX(), BIDX(), BIDX(), BIDX(), BIDX()};
   // clang-format off
   float const x[] = {
       B[lukbak(1)] + BM + emis[nchars(1)],
@@ -174,7 +188,12 @@ static inline float onto_M1(struct imm_trellis *t, float const B[restrict],
       B[lukbak(5)] + BM + emis[nchars(5)],
   };
   // clang-format on
-  if (t) update_trellis(t, src, array_size(x), x, imm_span(1, 5));
+  if (t)
+  {
+    assert((int)imm_trellis_state_idx(t) == MIDX(0));
+    update_trellis(t, src, array_size(x), x, imm_span(1, 5));
+    t->head += 1;
+  }
   return reduce_fmax(array_size(x), x);
 }
 
@@ -182,11 +201,12 @@ DCP_INLINE float onto_M(struct imm_trellis *t, float const M[restrict],
                         float const I[restrict], float const D[restrict],
                         float const B[restrict], float const MM, float const IM,
                         float const DM, float const BM,
-                        float const emis[restrict])
+                        float const emis[restrict], int k)
 {
-  static int const src[] = {BIDX, BIDX, BIDX, BIDX, BIDX, MIDX, MIDX,
-                            MIDX, MIDX, MIDX, IIDX, IIDX, IIDX, IIDX,
-                            IIDX, DIDX, DIDX, DIDX, DIDX, DIDX};
+  int const src[] = {BIDX(),  BIDX(),  BIDX(),  BIDX(),  BIDX(),
+                     MIDX(k), MIDX(k), MIDX(k), MIDX(k), MIDX(k),
+                     IIDX(k), IIDX(k), IIDX(k), IIDX(k), IIDX(k),
+                     DIDX(k), DIDX(k), DIDX(k), DIDX(k), DIDX(k)};
   // clang-format off
   float const x[] = {
       B[lukbak(1)] + BM + emis[nchars(1)],
@@ -214,16 +234,20 @@ DCP_INLINE float onto_M(struct imm_trellis *t, float const M[restrict],
       D[lukbak(5)] + DM + emis[nchars(5)],
   };
   // clang-format on
-  if (t) update_trellis(t, src, array_size(x), x, imm_span(1, 5));
+  if (t)
+  {
+    assert((int)imm_trellis_state_idx(t) == MIDX(k + 1));
+    update_trellis(t, src, array_size(x), x, imm_span(1, 5));
+  }
   return reduce_fmax(array_size(x), x);
 }
 
 DCP_PURE float onto_I(struct imm_trellis *t, float const M[restrict],
                       float const I[restrict], float const MI, float const II,
-                      float const emis[restrict])
+                      float const emis[restrict], int k)
 {
-  static int const src[] = {MIDX, MIDX, MIDX, MIDX, MIDX,
-                            IIDX, IIDX, IIDX, IIDX, IIDX};
+  int const src[] = {MIDX(k), MIDX(k), MIDX(k), MIDX(k), MIDX(k),
+                     IIDX(k), IIDX(k), IIDX(k), IIDX(k), IIDX(k)};
   // clang-format off
   float const x[] = {
       M[lukbak(1)] + MI + emis[nchars(1)],
@@ -239,30 +263,39 @@ DCP_PURE float onto_I(struct imm_trellis *t, float const M[restrict],
       I[lukbak(5)] + II + emis[nchars(5)],
   };
   // clang-format on
-  if (t) update_trellis(t, src, array_size(x), x, imm_span(1, 5));
+  if (t)
+  {
+    assert((int)imm_trellis_state_idx(t) == IIDX(k + 1));
+    update_trellis(t, src, array_size(x), x, imm_span(1, 5));
+  }
   return reduce_fmax(array_size(x), x);
 }
 
 DCP_PURE float onto_D(struct imm_trellis *t, float const M[restrict],
-                      float const D[restrict], float const MD, float const DD)
+                      float const D[restrict], float const MD, float const DD,
+                      int k)
 {
-  static int const src[] = {MIDX, DIDX};
+  int const src[] = {MIDX(k), DIDX(k)};
   // clang-format off
   float const x[] = {
       M[lukbak(0)] + MD,
       D[lukbak(0)] + DD,
   };
   // clang-format on
-  if (t) update_trellis(t, src, array_size(x), x, imm_span(0, 0));
+  if (t)
+  {
+    assert((int)imm_trellis_state_idx(t) == DIDX(k + 1));
+    update_trellis0(t, src, array_size(x), x);
+  }
   return reduce_fmax(array_size(x), x);
 }
 
-DCP_INLINE float fmax_idx(float max, int *src, int *maxk, float x, int new_src,
+DCP_INLINE float fmax_idx(float max, int *src, int *maxk, float v, int new_src,
                           int new_maxk)
 {
-  if (x > max)
+  if (v > max)
   {
-    max = x;
+    max = v;
     *src = new_src;
     *maxk = new_maxk;
   }
@@ -275,7 +308,7 @@ static inline float onto_E(struct imm_trellis *t, float const dp[restrict],
   float const *DPM = dp_match_init((float *)dp);
   float const *DPD = dp_delete_init((float *)dp);
   float x = DPM[lukbak(1)] + ME;
-  int src = MIDX;
+  int src = MIDX(0);
   int maxk = 0;
   for (int k = 1; k < core_size; ++k)
   {
@@ -283,8 +316,8 @@ static inline float onto_E(struct imm_trellis *t, float const dp[restrict],
     DPD = dp_next((float *)DPD);
     if (t)
     {
-      x = fmax_idx(x, &src, &maxk, DPM[lukbak(1)] + ME, MIDX, k);
-      x = fmax_idx(x, &src, &maxk, DPD[lukbak(1)] + DE, DIDX, k);
+      x = fmax_idx(x, &src, &maxk, DPM[lukbak(1)] + ME, MIDX(k), k);
+      x = fmax_idx(x, &src, &maxk, DPD[lukbak(1)] + DE, DIDX(k), k);
     }
     else
     {
@@ -294,17 +327,21 @@ static inline float onto_E(struct imm_trellis *t, float const dp[restrict],
   }
   if (t)
   {
-    imm_trellis_push(t, x, 3 * maxk + src, 0);
+    assert((int)imm_trellis_state_idx(t) == EIDX(core_size));
+    imm_trellis_push(t, x, src, 0);
   }
   return x;
 }
 
 static inline float onto_J(struct imm_trellis *t, float const E[restrict],
                            float const J[restrict], float const EJ,
-                           float const JJ, float const emis[restrict])
+                           float const JJ, float const emis[restrict],
+                           int core_size)
 {
-  static int const src[] = {EIDX, EIDX, EIDX, EIDX, EIDX,
-                            JIDX, JIDX, JIDX, JIDX, JIDX};
+  int const src[] = {EIDX(core_size), EIDX(core_size), EIDX(core_size),
+                     EIDX(core_size), EIDX(core_size), JIDX(core_size),
+                     JIDX(core_size), JIDX(core_size), JIDX(core_size),
+                     JIDX(core_size)};
   // clang-format off
   float const x[] = {
       E[lukbak(1)] + EJ + emis[nchars(1)],
@@ -320,16 +357,23 @@ static inline float onto_J(struct imm_trellis *t, float const E[restrict],
       J[lukbak(5)] + JJ + emis[nchars(5)],
   };
   // clang-format on
-  if (t) update_trellis(t, src, array_size(x), x, imm_span(1, 5));
+  if (t)
+  {
+    assert((int)imm_trellis_state_idx(t) == JIDX(core_size));
+    update_trellis(t, src, array_size(x), x, imm_span(1, 5));
+  }
   return reduce_fmax(array_size(x), x);
 }
 
 static inline float onto_C(struct imm_trellis *t, float const E[restrict],
                            float const C[restrict], float const EC,
-                           float const CC, float const emis[restrict])
+                           float const CC, float const emis[restrict],
+                           int core_size)
 {
-  static int const src[] = {EIDX, EIDX, EIDX, EIDX, EIDX,
-                            CIDX, CIDX, CIDX, CIDX, CIDX};
+  int const src[] = {EIDX(core_size), EIDX(core_size), EIDX(core_size),
+                     EIDX(core_size), EIDX(core_size), CIDX(core_size),
+                     CIDX(core_size), CIDX(core_size), CIDX(core_size),
+                     CIDX(core_size)};
   // clang-format off
   float const x[] = {
       E[lukbak(1)] + EC + emis[nchars(1)],
@@ -345,22 +389,30 @@ static inline float onto_C(struct imm_trellis *t, float const E[restrict],
       C[lukbak(5)] + CC + emis[nchars(5)],
   };
   // clang-format on
-  if (t) update_trellis(t, src, array_size(x), x, imm_span(1, 5));
+  if (t)
+  {
+    assert((int)imm_trellis_state_idx(t) == CIDX(core_size));
+    update_trellis(t, src, array_size(x), x, imm_span(1, 5));
+  }
   return reduce_fmax(array_size(x), x);
 }
 
 static inline float onto_T(struct imm_trellis *t, float const E[restrict],
                            float const C[restrict], float const ET,
-                           float const CT)
+                           float const CT, int core_size)
 {
-  static int const src[] = {EIDX, CIDX};
+  int const src[] = {EIDX(core_size), CIDX(core_size)};
   // clang-format off
   float const x[] = {
     E[lukbak(0)] + ET,
     C[lukbak(0)] + CT,
   };
   // clang-format on
-  if (t) update_trellis(t, src, array_size(x), x, imm_span(0, 0));
+  if (t)
+  {
+    assert((int)imm_trellis_state_idx(t) == TIDX(core_size));
+    update_trellis0(t, src, array_size(x), x);
+  }
   return reduce_fmax(array_size(x), x);
 }
 
@@ -430,7 +482,7 @@ float dcp_vit_null(struct p7 *x, struct imm_eseq const *eseq)
     fetch_indices(ix, eseq, r, 0);
     fetch_emission(null, x->null.emission, ix, 0);
 
-    R[lukbak(0)] = onto_R(NULL, S, R, x->null.RR, null);
+    R[lukbak(0)] = onto_R(S, R, x->null.RR, null);
     make_future(S);
     make_future(R);
     S[lukbak(0)] = IMM_LPROB_ZERO;
@@ -438,13 +490,12 @@ float dcp_vit_null(struct p7 *x, struct imm_eseq const *eseq)
   return R[lukbak(0)];
 }
 
-DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
-                    int row_end, float dp[restrict], float S[restrict],
-                    float N[restrict], float B[restrict], float J[restrict],
-                    float E[restrict], float C[restrict], float T[restrict],
-                    int const safe)
+DCP_INLINE void vit(struct p7 *x, struct imm_trellis *trellis,
+                    struct imm_eseq const *eseq, int row_start, int row_end,
+                    float dp[restrict], float S[restrict], float N[restrict],
+                    float B[restrict], float J[restrict], float E[restrict],
+                    float C[restrict], float T[restrict], int const safe)
 {
-  struct imm_trellis *trellis = NULL;
   int core_size = x->core_size;
 
   struct extra_trans const xt = extra_trans(x->xtrans);
@@ -456,6 +507,7 @@ DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
 
   for (int r = row_start; r < row_end; ++r)
   {
+    imm_trellis_seek(trellis, r, NIDX());
     float const *restrict BM = x->BMk;
     float *restrict match = x->nodes_emission;
     fetch_indices(ix, eseq, r, safe);
@@ -471,6 +523,7 @@ DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
     float *DPM = dp_match_init(dp);
     float *DPI = dp_insert_init(dp);
     float *DPD = dp_delete_init(dp);
+    trellis->head += 1;
     DPM[lukbak(0)] = onto_M1(trellis, B, *BM, M);
     BM += 1;
 
@@ -488,9 +541,9 @@ DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
       match = match_next(match);
       fetch_emission(M, match, ix, safe);
 
-      DPI[lukbak(0)] = onto_I(trellis, DPM, DPI, MI, II, bg);
-      float tmpM = onto_M(trellis, DPM, DPI, DPD, B, MM, IM, DM, *BM, M);
-      float tmpD = onto_D(trellis, DPM, DPD, MD, DD);
+      DPI[lukbak(0)] = onto_I(trellis, DPM, DPI, MI, II, bg, k);
+      float tmpM = onto_M(trellis, DPM, DPI, DPD, B, MM, IM, DM, *BM, M, k);
+      float tmpD = onto_D(trellis, DPM, DPD, MD, DD, k);
       make_future(DPM);
       make_future(DPI);
       make_future(DPD);
@@ -509,12 +562,12 @@ DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
     // It is lukbak(1) in here because I called make_future(DPM)
     // and make_future(DPD) already (for optimisation reasons).
     E[lukbak(0)] = onto_E(trellis, dp, core_size, xt.ME, xt.DE);
-    J[lukbak(0)] = onto_J(trellis, E, J, xt.EJ, xt.JJ, null);
-    adjust_onto_B(trellis, B, E, J, xt.EB, xt.JB);
+    J[lukbak(0)] = onto_J(trellis, E, J, xt.EJ, xt.JJ, null, core_size);
+    adjust_onto_B(trellis, B, E, J, xt.EB, xt.JB, core_size);
     make_future(B);
     make_future(J);
-    C[lukbak(0)] = onto_C(trellis, E, C, xt.EC, xt.CC, null);
-    T[lukbak(0)] = onto_T(trellis, E, C, xt.ET, xt.CT);
+    C[lukbak(0)] = onto_C(trellis, E, C, xt.EC, xt.CC, null, core_size);
+    T[lukbak(0)] = onto_T(trellis, E, C, xt.ET, xt.CT, core_size);
     make_future(E);
     make_future(C);
     make_future(T);
@@ -522,7 +575,10 @@ DCP_INLINE void vit(struct p7 *x, struct imm_eseq const *eseq, int row_start,
   }
 }
 
-float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
+static void unzip_path(struct imm_trellis *x, int core_size, uint16_t *ids,
+                       unsigned seq_size, struct imm_path *path);
+
+float dcp_vit(struct p7 *x, struct imm_eseq const *eseq, struct imm_path *path)
 {
   int core_size = x->core_size;
   int dp_size = 3 * PAST_SIZE * core_size;
@@ -546,12 +602,65 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq)
   int row_mid = seq_size + 1 < 5 ? seq_size + 1 : 5;
   int row_end = seq_size + 1;
 
-  vit(x, eseq, row_start, row_mid, dp, S, N, B, J, E, C, T, 0);
-  vit(x, eseq, row_mid, row_end, dp, S, N, B, J, E, C, T, 1);
+  struct imm_trellis trellis = {0};
+  imm_trellis_init(&trellis);
+  int nstates = 3 + 3 * core_size + 3 + 1;
+  imm_trellis_setup(&trellis, imm_eseq_size(eseq), nstates);
+  imm_trellis_prepare(&trellis);
+
+  vit(x, &trellis, eseq, row_start, row_mid, dp, S, N, B, J, E, C, T, 0);
+  vit(x, &trellis, eseq, row_mid, row_end, dp, S, N, B, J, E, C, T, 1);
+
+  uint16_t *ids = malloc(sizeof(*ids) * (3 + 3 * core_size + 3 + 1));
+  ids[SIDX()] = STATE_S;
+  ids[NIDX()] = STATE_N;
+  ids[BIDX()] = STATE_B;
+  for (int i = 0; i < core_size; ++i)
+  {
+    ids[IIDX(i)] = dcp_state_make_insert_id(i);
+    ids[MIDX(i)] = dcp_state_make_match_id(i);
+    ids[DIDX(i)] = dcp_state_make_delete_id(i);
+  }
+  ids[EIDX(core_size)] = STATE_E;
+  ids[JIDX(core_size)] = STATE_J;
+  ids[CIDX(core_size)] = STATE_C;
+  ids[TIDX(core_size)] = STATE_T;
+  imm_trellis_set_state_name(&trellis, x->state_name);
+  imm_trellis_set_ids(&trellis, ids);
+  // imm_trellis_dump(&trellis, stdout);
+  // fflush(stdout);
+  if (path)
+  {
+    imm_path_reset(path);
+    unzip_path(&trellis, core_size, ids, seq_size, path);
+  }
+  imm_trellis_cleanup(&trellis);
 
   float score = T[lukbak(1)];
   free(dp);
+  free(ids);
   return score;
+}
+
+static void unzip_path(struct imm_trellis *x, int core_size, uint16_t *ids,
+                       unsigned seq_size, struct imm_path *path)
+{
+  unsigned start_state = SIDX();
+  unsigned end_state = TIDX(core_size);
+  imm_trellis_seek(x, seq_size, end_state);
+  if (imm_lprob_is_nan(imm_trellis_head(x)->score)) return;
+
+  while (imm_trellis_state_idx(x) != start_state || imm_trellis_stage_idx(x))
+  {
+    unsigned size = imm_trellis_head(x)->emission_size;
+    unsigned id = ids[imm_trellis_state_idx(x)];
+    float score = imm_trellis_head(x)->score;
+    imm_path_add(path, imm_step(id, size, score));
+    imm_trellis_back(x);
+  }
+  unsigned id = ids[imm_trellis_state_idx(x)];
+  imm_path_add(path, imm_step(id, 0, 0));
+  imm_path_reverse(path);
 }
 
 void dcp_vit_dump(struct p7 *x, FILE *restrict fp)

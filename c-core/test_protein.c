@@ -89,7 +89,7 @@ static void test_protein_uniform(void)
   eq(imm_dp_viterbi(dp, task, &prod), 0);
 
   close(prod.loglik, -55.59428153448);
-  close(dcp_vit(&p7, &eseq), prod.loglik);
+  close(dcp_vit(&p7, &eseq, NULL), prod.loglik);
 
   eq(imm_path_nsteps(&prod.path), 14U);
 
