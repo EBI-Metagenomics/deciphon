@@ -148,6 +148,7 @@ static void test_protein_db_reader(void)
   imm_eseq_cleanup(&eseq);
   imm_prod_cleanup(&prod);
   dcp_protein_cleanup(&protein);
+  p7_cleanup(&p7);
   dcp_db_reader_close(&db);
   fclose(fp);
   remove("db.dcp");

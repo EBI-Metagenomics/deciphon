@@ -129,6 +129,7 @@ static void test_protein_uniform(void)
 
   imm_eseq_cleanup(&eseq);
   dcp_protein_cleanup(&protein);
+  p7_cleanup(&p7);
   imm_prod_cleanup(&prod);
   imm_task_del(task);
 }
