@@ -139,6 +139,6 @@ int dcp_db_reader_unpack_prot_sizes(struct dcp_db_reader *x)
 struct dcp_model_params dcp_db_reader_params(struct dcp_db_reader const *x,
                                              struct imm_gencode const *gencode)
 {
-  return dcp_model_params(gencode, &x->amino, &x->code, x->entry_dist,
-                          x->epsilon);
+  return (struct dcp_model_params){gencode, &x->amino, &x->code, x->entry_dist,
+                                   x->epsilon};
 }

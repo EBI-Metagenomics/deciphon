@@ -403,3 +403,30 @@ int p7_unpack(struct p7 *x, struct lip_file *file)
 
   return 0;
 }
+
+int p7_decode(struct p7 const *x, struct imm_seq const *seq, unsigned state_id,
+              struct imm_codon *codon)
+{
+  assert(!dcp_state_is_mute(state_id));
+
+  struct dcp_nuclt_dist const *nucltd = NULL;
+  if (dcp_state_is_insert(state_id))
+  {
+    nucltd = &x->bg.nuclt_dist;
+  }
+  else if (dcp_state_is_match(state_id))
+  {
+    unsigned idx = dcp_state_idx(state_id);
+    nucltd = &x->nodes[idx].nuclt_dist;
+  }
+  else
+    nucltd = &x->null.nuclt_dist;
+
+  struct imm_frame_cond cond = {x->epsilon_frame, &nucltd->nucltp,
+                                &nucltd->codonm};
+
+  if (imm_lprob_is_nan(imm_frame_cond_decode(&cond, seq, codon)))
+    return DCP_EDECODON;
+
+  return 0;
+}

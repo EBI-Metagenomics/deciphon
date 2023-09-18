@@ -1,5 +1,5 @@
 #include "deciphon/model.h"
-#include "deciphon/protein.h"
+#include "deciphon/p7.h"
 #include "imm/imm.h"
 #include "vendor/minctest.h"
 
@@ -51,13 +51,13 @@ int main(void)
   eq(dcp_model_add_trans(&model, t[2]), 0);
   eq(dcp_model_add_trans(&model, t[3]), 0);
 
-  struct dcp_protein protein = {};
-  dcp_protein_init(&protein, params);
-  eq(dcp_protein_set_accession(&protein, "accession"), 0);
+  struct p7 protein = {};
+  p7_init(&protein, params);
+  eq(p7_set_accession(&protein, "accession"), 0);
 
-  eq(dcp_protein_absorb(&protein, &model), 0);
+  eq(p7_absorb(&protein, &model), 0);
 
-  dcp_protein_cleanup(&protein);
+  p7_cleanup(&protein);
   dcp_model_cleanup(&model);
 
   return lfails;

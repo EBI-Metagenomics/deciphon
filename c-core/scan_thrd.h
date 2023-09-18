@@ -5,7 +5,6 @@
 #include "hmmer.h"
 #include "p7.h"
 #include "protein_iter.h"
-#include "scan_task.h"
 #include "vit.h"
 #include <stdio.h>
 
@@ -15,7 +14,6 @@ struct dcp_prod_writer_thrd;
 struct dcp_scan_thrd
 {
   struct p7 p7;
-  struct dcp_protein protein;
   struct dcp_protein_iter iter;
 
   double lrt_threshold;
@@ -23,6 +21,7 @@ struct dcp_scan_thrd
   bool hmmer3_compat;
   bool disable_hmmer;
 
+  struct dcp_viterbi_task task;
   struct dcp_prod_writer_thrd *prod_thrd;
   struct dcp_chararray amino;
   struct dcp_hmmer hmmer;

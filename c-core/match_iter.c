@@ -1,6 +1,5 @@
 #include "match_iter.h"
 #include "match.h"
-#include "protein.h"
 
 void dcp_match_iter_init(struct dcp_match_iter *x, struct imm_seq const *seq,
                          struct imm_path const *path)

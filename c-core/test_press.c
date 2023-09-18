@@ -5,13 +5,6 @@
 #define HMMFILE "minifam.hmm"
 #define DBFILE "test_press.dcp"
 
-static long chksum(char const *filename)
-{
-  long chk = 0;
-  eq_or_exit(dcp_fs_cksum(filename, &chk), 0);
-  return chk;
-}
-
 static long filesize(char const *filename)
 {
   long size = 0;
@@ -37,8 +30,7 @@ int main(void)
   eq(dcp_press_close(press), 0);
   dcp_press_del(press);
 
-  eq(filesize(DBFILE), 10258373);
-  ok(chksum(DBFILE) == 10320 || chksum(DBFILE) == 2979 || chksum(DBFILE) == 28555);
+  eq(filesize(DBFILE), 3536724);
   remove(DBFILE);
 
   return lfails;

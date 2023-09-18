@@ -2,11 +2,13 @@
 #include "array_size.h"
 #include "array_size_field.h"
 #include "compiler.h"
+#include "defer_return.h"
 #include "find.h"
 #include "imm/imm.h"
 #include "p7.h"
 #include "reduce.h"
 #include "scan_thrd.h"
+#include "viterbi_task.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -609,15 +611,13 @@ DCP_INLINE void vit(struct p7 *x, struct imm_trellis *trellis,
 static void unzip_path(struct imm_trellis *x, int core_size, unsigned seq_size,
                        struct imm_path *path);
 
-float dcp_vit(struct p7 *x, struct imm_eseq const *eseq, struct imm_path *path)
+int dcp_vit(struct p7 *x, struct imm_eseq const *eseq,
+            struct dcp_viterbi_task *task)
 {
-  int core_size = x->core_size;
-  int dp_size = 3 * PAST_SIZE * core_size;
+  int rc = dcp_viterbi_task_setup(task, x->core_size, (int)imm_eseq_size(eseq));
+  if (rc) return rc;
 
 #define NINF IMM_LPROB_ZERO
-  float *restrict dp = malloc(sizeof(*dp) * dp_size);
-  for (int i = 0; i < dp_size; ++i)
-    dp[i] = NINF;
   float S[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
   float N[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
   float B[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
@@ -633,26 +633,16 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq, struct imm_path *path)
   int row_mid = seq_size + 1 < 5 ? seq_size + 1 : 5;
   int row_end = seq_size + 1;
 
-  struct imm_trellis trellis = {0};
-  imm_trellis_init(&trellis);
-  int nstates = 3 + 3 * core_size + 3 + 1;
-  imm_trellis_setup(&trellis, imm_eseq_size(eseq), nstates);
-  imm_trellis_prepare(&trellis);
+  vit(x, &task->trellis, eseq, row_start, row_mid, task->dp, S, N, B, J, E, C,
+      T, 0);
+  vit(x, &task->trellis, eseq, row_mid, row_end, task->dp, S, N, B, J, E, C, T,
+      1);
 
-  vit(x, &trellis, eseq, row_start, row_mid, dp, S, N, B, J, E, C, T, 0);
-  vit(x, &trellis, eseq, row_mid, row_end, dp, S, N, B, J, E, C, T, 1);
+  imm_path_reset(&task->path);
+  unzip_path(&task->trellis, x->core_size, seq_size, &task->path);
 
-  imm_trellis_set_state_name(&trellis, x->state_name);
-  if (path)
-  {
-    imm_path_reset(path);
-    unzip_path(&trellis, core_size, seq_size, path);
-  }
-  imm_trellis_cleanup(&trellis);
-
-  float score = T[lukbak(1)];
-  free(dp);
-  return score;
+  task->score = T[lukbak(1)];
+  return rc;
 }
 
 static void unzip_path(struct imm_trellis *x, int core_size, unsigned seq_size,

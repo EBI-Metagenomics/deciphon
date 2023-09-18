@@ -42,4 +42,7 @@ void p7_dump(struct p7 const *, FILE *restrict);
 int p7_pack(struct p7 const *, struct lip_file *);
 int p7_unpack(struct p7 *, struct lip_file *);
 
+int p7_decode(struct p7 const *, struct imm_seq const *, unsigned state_id,
+              struct imm_codon *);
+
 #endif

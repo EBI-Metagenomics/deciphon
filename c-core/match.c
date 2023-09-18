@@ -1,9 +1,9 @@
 #include "match.h"
-#include "protein.h"
+#include "p7.h"
 #include "state.h"
 #include <string.h>
 
-void dcp_match_init(struct dcp_match *x, struct dcp_protein const *protein)
+void dcp_match_init(struct dcp_match *x, struct p7 const *protein)
 {
   x->protein = protein;
 }
@@ -17,7 +17,7 @@ int dcp_match_setup(struct dcp_match *x, struct imm_step step,
   if (!dcp_state_is_mute(step.state_id))
   {
     x->codon = imm_codon_any(x->protein->params.code->nuclt);
-    return dcp_protein_decode(x->protein, &seq, step.state_id, &x->codon);
+    return p7_decode(x->protein, &seq, step.state_id, &x->codon);
   }
   return 0;
 }

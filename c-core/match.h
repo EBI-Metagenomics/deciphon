@@ -4,17 +4,17 @@
 #include "imm/imm.h"
 #include <stdbool.h>
 
-struct dcp_protein;
+struct p7;
 
 struct dcp_match
 {
-  struct dcp_protein const *protein;
+  struct p7 const *protein;
   struct imm_step step;
   struct imm_seq seq;
   struct imm_codon codon;
 };
 
-void dcp_match_init(struct dcp_match *, struct dcp_protein const *);
+void dcp_match_init(struct dcp_match *, struct p7 const *);
 int dcp_match_setup(struct dcp_match *, struct imm_step, struct imm_seq);
 void dcp_match_state_name(struct dcp_match const *, char *dst);
 bool dcp_match_state_is_mute(struct dcp_match const *);

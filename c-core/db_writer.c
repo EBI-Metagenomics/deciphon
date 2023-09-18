@@ -4,7 +4,6 @@
 #include "lip/1darray/1darray.h"
 #include "magic_number.h"
 #include "p7.h"
-#include "protein.h"
 #include "rc.h"
 
 static int pack_entry_dist(struct lip_file *file,
@@ -187,15 +186,13 @@ defer:
   return rc;
 }
 
-int dcp_db_writer_pack(struct dcp_db_writer *x,
-                       struct dcp_protein const *protein, struct p7 const *p7)
+int dcp_db_writer_pack(struct dcp_db_writer *x, struct p7 const *p7)
 {
   int rc = 0;
 
   long start = 0;
   if ((rc = dcp_fs_tell(lip_file_ptr(&x->tmp.proteins), &start))) return rc;
 
-  if ((rc = dcp_protein_pack(protein, &x->tmp.proteins))) return rc;
   if ((rc = p7_pack(p7, &x->tmp.proteins))) return rc;
 
   long end = 0;
