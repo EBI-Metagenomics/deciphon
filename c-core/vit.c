@@ -31,6 +31,27 @@ IMM_CONST int JIDX(int n) { return 4 + n * 3; }
 IMM_CONST int CIDX(int n) { return 5 + n * 3; }
 IMM_CONST int TIDX(int n) { return 6 + n * 3; }
 
+IMM_CONST int CID(int i, int n)
+{
+  if (i == SIDX()) return STATE_S;
+  if (i == NIDX()) return STATE_N;
+  if (i == BIDX()) return STATE_B;
+  if (i < EIDX(n))
+  {
+    int core_idx = (i - 3) / 3;
+    if (i % 3 == 0) return dcp_state_make_match_id(core_idx);
+    if (i % 3 == 1) return dcp_state_make_delete_id(core_idx);
+    if (i % 3 == 2) return dcp_state_make_insert_id(core_idx);
+    assert(0);
+  }
+  if (i == EIDX(n)) return STATE_E;
+  if (i == JIDX(n)) return STATE_J;
+  if (i == CIDX(n)) return STATE_C;
+  if (i == TIDX(n)) return STATE_T;
+  assert(0);
+  return 0;
+}
+
 #define lukbak(i) ((i))
 #define nchars(n) ((n)-1)
 
@@ -585,8 +606,8 @@ DCP_INLINE void vit(struct p7 *x, struct imm_trellis *trellis,
   }
 }
 
-static void unzip_path(struct imm_trellis *x, int core_size, uint16_t *ids,
-                       unsigned seq_size, struct imm_path *path);
+static void unzip_path(struct imm_trellis *x, int core_size, unsigned seq_size,
+                       struct imm_path *path);
 
 float dcp_vit(struct p7 *x, struct imm_eseq const *eseq, struct imm_path *path)
 {
@@ -621,39 +642,21 @@ float dcp_vit(struct p7 *x, struct imm_eseq const *eseq, struct imm_path *path)
   vit(x, &trellis, eseq, row_start, row_mid, dp, S, N, B, J, E, C, T, 0);
   vit(x, &trellis, eseq, row_mid, row_end, dp, S, N, B, J, E, C, T, 1);
 
-  uint16_t *ids = malloc(sizeof(*ids) * (3 + 3 * core_size + 3 + 1));
-  ids[SIDX()] = STATE_S;
-  ids[NIDX()] = STATE_N;
-  ids[BIDX()] = STATE_B;
-  for (int i = 0; i < core_size; ++i)
-  {
-    ids[IIDX(i)] = dcp_state_make_insert_id(i);
-    ids[MIDX(i)] = dcp_state_make_match_id(i);
-    ids[DIDX(i)] = dcp_state_make_delete_id(i);
-  }
-  ids[EIDX(core_size)] = STATE_E;
-  ids[JIDX(core_size)] = STATE_J;
-  ids[CIDX(core_size)] = STATE_C;
-  ids[TIDX(core_size)] = STATE_T;
   imm_trellis_set_state_name(&trellis, x->state_name);
-  imm_trellis_set_ids(&trellis, ids);
-  // imm_trellis_dump(&trellis, stdout);
-  // fflush(stdout);
   if (path)
   {
     imm_path_reset(path);
-    unzip_path(&trellis, core_size, ids, seq_size, path);
+    unzip_path(&trellis, core_size, seq_size, path);
   }
   imm_trellis_cleanup(&trellis);
 
   float score = T[lukbak(1)];
   free(dp);
-  free(ids);
   return score;
 }
 
-static void unzip_path(struct imm_trellis *x, int core_size, uint16_t *ids,
-                       unsigned seq_size, struct imm_path *path)
+static void unzip_path(struct imm_trellis *x, int core_size, unsigned seq_size,
+                       struct imm_path *path)
 {
   unsigned start_state = SIDX();
   unsigned end_state = TIDX(core_size);
@@ -663,12 +666,12 @@ static void unzip_path(struct imm_trellis *x, int core_size, uint16_t *ids,
   while (imm_trellis_state_idx(x) != start_state || imm_trellis_stage_idx(x))
   {
     unsigned size = imm_trellis_head(x)->emission_size;
-    unsigned id = ids[imm_trellis_state_idx(x)];
+    unsigned id = CID(imm_trellis_state_idx(x), core_size);
     float score = imm_trellis_head(x)->score;
     imm_path_add(path, imm_step(id, size, score));
     imm_trellis_back(x);
   }
-  unsigned id = ids[imm_trellis_state_idx(x)];
+  unsigned id = CID(imm_trellis_state_idx(x), core_size);
   imm_path_add(path, imm_step(id, 0, 0));
   imm_path_reverse(path);
 }
