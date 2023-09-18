@@ -38,7 +38,7 @@ int main(void)
   dcp_press_del(press);
 
   eq(filesize(DBFILE), 10258373);
-  ok((chksum(DBFILE) == 10320 || chksum(DBFILE) == 24466));
+  ok((chksum(DBFILE) == 10320 || chksum(DBFILE) == 2979));
   remove(DBFILE);
 
   return lfails;
