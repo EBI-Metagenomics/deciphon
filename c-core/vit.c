@@ -12,20 +12,20 @@
 
 #if __AVX__
 #define ALIGNED __attribute__((aligned(32)))
-#endif 
+#endif
 
 #if __ARM_NEON
 #define ALIGNED __attribute__((aligned(16)))
-#endif 
+#endif
 
 #define PAST_SIZE 6
 
 IMM_CONST int SIDX(void) { return 0; }
 IMM_CONST int NIDX(void) { return 1; }
 IMM_CONST int BIDX(void) { return 2; }
-IMM_CONST int IIDX(int i) { return 3 + i * 3 + 0; }
-IMM_CONST int MIDX(int i) { return 3 + i * 3 + 1; }
-IMM_CONST int DIDX(int i) { return 3 + i * 3 + 2; }
+IMM_CONST int MIDX(int i) { return 3 + i * 3 + 0; }
+IMM_CONST int DIDX(int i) { return 3 + i * 3 + 1; }
+IMM_CONST int IIDX(int i) { return 3 + i * 3 + 2; }
 IMM_CONST int EIDX(int n) { return 3 + n * 3; }
 IMM_CONST int JIDX(int n) { return 4 + n * 3; }
 IMM_CONST int CIDX(int n) { return 5 + n * 3; }
@@ -200,7 +200,6 @@ static inline float onto_M1(struct imm_trellis *t, float const B[restrict],
   {
     assert((int)imm_trellis_state_idx(t) == MIDX(0));
     update_trellis(t, src, array_size(x), x, imm_span(1, 5));
-    t->head += 1;
   }
   return reduce_fmax(array_size(x), x);
 }
@@ -273,7 +272,7 @@ DCP_PURE float onto_I(struct imm_trellis *t, float const M[restrict],
   // clang-format on
   if (t)
   {
-    assert((int)imm_trellis_state_idx(t) == IIDX(k + 1));
+    assert((int)imm_trellis_state_idx(t) == IIDX(k));
     update_trellis(t, src, array_size(x), x, imm_span(1, 5));
   }
   return reduce_fmax(array_size(x), x);
@@ -531,9 +530,10 @@ DCP_INLINE void vit(struct p7 *x, struct imm_trellis *trellis,
     float *DPM = dp_match_init(dp);
     float *DPI = dp_insert_init(dp);
     float *DPD = dp_delete_init(dp);
-    trellis->head += 1;
     DPM[lukbak(0)] = onto_M1(trellis, B, *BM, M);
     BM += 1;
+    // Skip first D state
+    trellis->head += 1;
 
     struct p7_node const *node = x->nodes;
     for (int k = 0; k + 1 < core_size; ++k)
@@ -563,6 +563,8 @@ DCP_INLINE void vit(struct p7 *x, struct imm_trellis *trellis,
       BM += 1;
       node += 1;
     }
+    // Skip last I state
+    trellis->head += 1;
     make_future(DPM);
     make_future(DPI);
     make_future(DPD);
