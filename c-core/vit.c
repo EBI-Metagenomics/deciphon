@@ -10,6 +10,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if __AVX__
+#define ALIGNED __attribute__((aligned(32)))
+#endif 
+
+#if __ARM_NEON
+#define ALIGNED __attribute__((aligned(16)))
+#endif 
+
 #define PAST_SIZE 6
 
 IMM_CONST int SIDX(void) { return 0; }
@@ -86,7 +94,7 @@ static inline float onto_R(float const S[restrict], float const R[restrict],
                            float const RR, float const emis[restrict])
 {
   // clang-format off
-  float const x[] = {
+  float const x[] ALIGNED = {
       S[lukbak(1)] + 0 + emis[nchars(1)],
       S[lukbak(2)] + 0 + emis[nchars(2)],
       S[lukbak(3)] + 0 + emis[nchars(3)],
@@ -110,7 +118,7 @@ static inline float onto_N(struct imm_trellis *t, float const S[restrict],
   int const src[] = {SIDX(), SIDX(), SIDX(), SIDX(), SIDX(),
                      NIDX(), NIDX(), NIDX(), NIDX(), NIDX()};
   // clang-format off
-  float const x[] = {
+  float const x[] ALIGNED = {
       S[lukbak(1)] + SN + emis[nchars(1)],
       S[lukbak(2)] + SN + emis[nchars(2)],
       S[lukbak(3)] + SN + emis[nchars(3)],
@@ -138,7 +146,7 @@ static inline float onto_B(struct imm_trellis *t, float const S[restrict],
 {
   int const src[] = {SIDX(), NIDX()};
   // clang-format off
-  float const x[] = {
+  float const x[] ALIGNED = {
       S[lukbak(0)] + SB,
       N[lukbak(0)] + NB,
   };
@@ -158,7 +166,7 @@ static inline void adjust_onto_B(struct imm_trellis *t, float B[restrict],
 {
   int const src[] = {EIDX(core_size), JIDX(core_size)};
   // clang-format off
-  float const x[] = {
+  float const x[] ALIGNED = {
       E[lukbak(0)] + EB,
       J[lukbak(0)] + JB,
   };
@@ -180,7 +188,7 @@ static inline float onto_M1(struct imm_trellis *t, float const B[restrict],
 {
   int const src[] = {BIDX(), BIDX(), BIDX(), BIDX(), BIDX()};
   // clang-format off
-  float const x[] = {
+  float const x[] ALIGNED = {
       B[lukbak(1)] + BM + emis[nchars(1)],
       B[lukbak(2)] + BM + emis[nchars(2)],
       B[lukbak(3)] + BM + emis[nchars(3)],
@@ -208,7 +216,7 @@ DCP_INLINE float onto_M(struct imm_trellis *t, float const M[restrict],
                      IIDX(k), IIDX(k), IIDX(k), IIDX(k), IIDX(k),
                      DIDX(k), DIDX(k), DIDX(k), DIDX(k), DIDX(k)};
   // clang-format off
-  float const x[] = {
+  float const x[] ALIGNED = {
       B[lukbak(1)] + BM + emis[nchars(1)],
       B[lukbak(2)] + BM + emis[nchars(2)],
       B[lukbak(3)] + BM + emis[nchars(3)],
@@ -249,7 +257,7 @@ DCP_PURE float onto_I(struct imm_trellis *t, float const M[restrict],
   int const src[] = {MIDX(k), MIDX(k), MIDX(k), MIDX(k), MIDX(k),
                      IIDX(k), IIDX(k), IIDX(k), IIDX(k), IIDX(k)};
   // clang-format off
-  float const x[] = {
+  float const x[] ALIGNED = {
       M[lukbak(1)] + MI + emis[nchars(1)],
       M[lukbak(2)] + MI + emis[nchars(2)],
       M[lukbak(3)] + MI + emis[nchars(3)],
@@ -277,7 +285,7 @@ DCP_PURE float onto_D(struct imm_trellis *t, float const M[restrict],
 {
   int const src[] = {MIDX(k), DIDX(k)};
   // clang-format off
-  float const x[] = {
+  float const x[] ALIGNED = {
       M[lukbak(0)] + MD,
       D[lukbak(0)] + DD,
   };
@@ -343,7 +351,7 @@ static inline float onto_J(struct imm_trellis *t, float const E[restrict],
                      JIDX(core_size), JIDX(core_size), JIDX(core_size),
                      JIDX(core_size)};
   // clang-format off
-  float const x[] = {
+  float const x[] ALIGNED = {
       E[lukbak(1)] + EJ + emis[nchars(1)],
       E[lukbak(2)] + EJ + emis[nchars(2)],
       E[lukbak(3)] + EJ + emis[nchars(3)],
@@ -375,7 +383,7 @@ static inline float onto_C(struct imm_trellis *t, float const E[restrict],
                      CIDX(core_size), CIDX(core_size), CIDX(core_size),
                      CIDX(core_size)};
   // clang-format off
-  float const x[] = {
+  float const x[] ALIGNED = {
       E[lukbak(1)] + EC + emis[nchars(1)],
       E[lukbak(2)] + EC + emis[nchars(2)],
       E[lukbak(3)] + EC + emis[nchars(3)],
@@ -403,7 +411,7 @@ static inline float onto_T(struct imm_trellis *t, float const E[restrict],
 {
   int const src[] = {EIDX(core_size), CIDX(core_size)};
   // clang-format off
-  float const x[] = {
+  float const x[] ALIGNED = {
     E[lukbak(0)] + ET,
     C[lukbak(0)] + CT,
   };
