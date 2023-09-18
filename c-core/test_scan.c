@@ -1,3 +1,4 @@
+#include "deciphon/array_size.h"
 #include "deciphon/fs.h"
 #include "deciphon/press.h"
 #include "deciphon/scan.h"
@@ -6,40 +7,32 @@
 #include "imm/imm.h"
 #include "vendor/minctest.h"
 
-#include <sys/stat.h>
-
 #define HMMFILE "minifam.hmm"
 #define DBFILE "minifam.dcp"
 
-static void test_scan1(void);
-static void test_scan2(void);
-static void test_scan3(void);
-static void test_scan4(void);
-
+static void test_scan(struct dcp_scan_params, long desired_chksum);
 static void setup_minifam(void);
 static void cleanup_minifam(void);
 
-static void combi_seq_init(void);
-static bool combi_seq_next(struct dcp_seq *, void *);
+static struct dcp_scan_params params_list[] = {
+    {1, 10., true, false, false}, {2, 10., true, false, false},
+    {2, 2., true, false, false},  {1, 0., false, false, false},
+    {1, 0., false, false, true},  {1, 0., false, true, false},
+    {1, 0., false, true, true},   {1, 0., true, false, false},
+    {1, 0., true, false, true},   {1, 0., true, true, false},
+    {1, 0., true, true, true}};
+static long chksum_list[] = {62623, 13471, 13471, 37743, 17544, 13316,
+                             47645, 62623, 178,   62623, 178};
 
 int main(void)
 {
   imm_fmt_set_f32("%.5g");
   setup_minifam();
-  test_scan1();
-  test_scan2();
-  test_scan3();
-  test_scan4();
+  for (size_t i = 0; i < array_size(params_list); ++i)
+    test_scan(params_list[i], chksum_list[i]);
   cleanup_minifam();
   return lfails;
 }
-
-struct test_seq
-{
-  long id;
-  char const *name;
-  char const *data;
-};
 
 static bool next_seq(struct dcp_seq *, void *);
 
@@ -50,152 +43,105 @@ static long chksum(char const *filename)
   return chk;
 }
 
-static void test_scan1(void)
+static void test_scan(struct dcp_scan_params params, long desired_chksum)
 {
   struct dcp_scan *scan = dcp_scan_new();
   ok_or_exit(scan);
 
   eq(dcp_scan_dial(scan, 51371), 0);
-  struct dcp_scan_params params = {1, 10., true, false, false};
   eq(dcp_scan_setup(scan, params), 0);
 
-  int idx = 0;
-  eq(dcp_scan_run(scan, DBFILE, next_seq, &idx, "prod1"), 0);
-  eq_or_exit(chksum("prod1/products.tsv"), 28157);
-  eq(dcp_fs_rmtree("prod1"), 0);
+  size_t idx = 0;
+  eq(dcp_scan_run(scan, DBFILE, next_seq, &idx, "prod_scan"), 0);
+  eq_or_exit(chksum("prod_scan/products.tsv"), desired_chksum);
+  eq(dcp_fs_rmtree("prod_scan"), 0);
 
   dcp_scan_del(scan);
 }
 
-static void test_scan2(void)
+static struct seq
 {
-  struct dcp_scan *scan = dcp_scan_new();
-  ok_or_exit(scan);
-
-  eq(dcp_scan_dial(scan, 51371), 0);
-  struct dcp_scan_params params = {2, 10., true, false, false};
-  eq(dcp_scan_setup(scan, params), 0);
-
-  int idx = 0;
-  eq(dcp_scan_run(scan, DBFILE, next_seq, &idx, "prod2"), 0);
-  eq_or_exit(chksum("prod2/products.tsv"), 28157);
-  eq(dcp_fs_rmtree("prod2"), 0);
-
-  dcp_scan_del(scan);
-}
-
-static void test_scan3(void)
-{
-  struct dcp_scan *scan = dcp_scan_new();
-
-  eq(dcp_scan_dial(scan, 51371), 0);
-  struct dcp_scan_params params = {2, 2., true, false, false};
-  eq(dcp_scan_setup(scan, params), 0);
-
-  int idx = 0;
-  eq(dcp_scan_run(scan, DBFILE, next_seq, &idx, "prod3"), 0);
-  eq_or_exit(chksum("prod3/products.tsv"), 28157);
-  eq(dcp_fs_rmtree("prod3"), 0);
-
-  dcp_scan_del(scan);
-}
-
-static void test_scan4(void)
-{
-  struct dcp_scan *scan = dcp_scan_new();
-
-  eq(dcp_scan_dial(scan, 51371), 0);
-  struct dcp_scan_params params = {1, 0., true, false, false};
-  eq(dcp_scan_setup(scan, params), 0);
-
-  combi_seq_init();
-  eq(dcp_scan_run(scan, DBFILE, combi_seq_next, NULL, "prod4"), 0);
-  eq_or_exit(chksum("prod4/products.tsv"), 57189);
-  eq(dcp_fs_rmtree("prod4"), 0);
-
-  dcp_scan_del(scan);
-}
+  long id;
+  char const *name;
+  char const *data;
+} seqs[] = {
+    {1, "Homoserine_dh-consensus",
+     "CCTATCATTTCGACGCTCAAGGAGTCGCTGACAGGTGACCGTATTACTCGAATCGAAGGGATATTAAACG"
+     "GCACCCTGAATTACATTCTCACTGAGATGGAGGAAGAGGGGGCTTCATTCTCTGAGGCGCTGAAGGAGGC"
+     "ACAGGAATTGGGCTACGCGGAAGCGGATCCTACGGACGATGTGGAAGGGCTAGATGCTGCTAGAAAGCTG"
+     "GCAATTCTAGCCAGATTGGCATTTGGGTTAGAGGTCGAGTTGGAGGACGTAGAGGTGGAAGGAATTGAAA"
+     "AGCTGACTGCCGAAGATATTGAAGAAGCGAAGGAAGAGGGTAAAGTTTTAAAACTAGTGGCAAGCGCCGT"
+     "CGAAGCCAGGGTCAAGCCTGAGCTGGTACCTAAGTCACATCCATTAGCCTCGGTAAAAGGCTCTGACAAC"
+     "GCCGTGGCTGTAGAAACGGAACGGGTAGGCGAACTCGTAGTGCAGGGACCAGGGGCTGGCGCAGAGCCAA"
+     "CCGCATCCGCTGTACTCGCTGACCTTCTC"},
+    {2, "AA_kinase-consensus",
+     "AAACGTGTAGTTGTAAAGCTTGGGGGTAGTTCTCTGACAGATAAGGAAGAGGCATCACTCAGGCGTTTAG"
+     "CTGAGCAGATTGCAGCATTAAAAGAGAGTGGCAATAAACTAGTGGTCGTGCATGGAGGCGGCAGCTTCAC"
+     "TGATGGTCTGCTGGCATTGAAAAGTGGCCTGAGCTCGGGCGAATTAGCTGCGGGGTTGAGGAGCACGTTA"
+     "GAAGAGGCCGGAGAAGTAGCGACGAGGGACGCCCTAGCTAGCTTAGGGGAACGGCTTGTTGCAGCGCTGC"
+     "TGGCGGCGGGTCTCCCTGCTGTAGGACTCAGCGCCGCTGCGTTAGATGCGACGGAGGCGGGCCGGGATGA"
+     "AGGCAGCGACGGGAACGTCGAGTCCGTGGACGCAGAAGCAATTGAGGAGTTGCTTGAGGCCGGGGTGGTC"
+     "CCCGTCCTAACAGGATTTATCGGCTTAGACGAAGAAGGGGAACTGGGAAGGGGATCTTCTGACACCATCG"
+     "CTGCGTTACTCGCTGAAGCTTTAGGCGCGGACAAACTCATAATACTGACCGACGTAGACGGCGTTTACGA"
+     "TGCCGACCCTAAAAAGGTCCCAGACGCGAGGCTCTTGCCAGAGATAAGTGTGGACGAGGCCGAGGAAAGC"
+     "GCCTCCGAATTAGCGACCGGTGGGATGAAGGTCAAACATCCAGCGGCTCTTGCTGCAGCTAGACGGGGGG"
+     "GTATTCCGGTCGTGATAACGAAT"},
+    {3, "23ISL-consensus",
+     "CAGGGTCTGGATAACGCTAATCGTTCGCTAGTTCGCGCTACAAAAGCAGAAAGTTCAGATATACGGAAAG"
+     "AGGTGACTAACGGCATCGCTAAAGGGCTGAAGCTAGACAGTCTGGAAACAGCTGCAGAGTCGAAGAACTG"
+     "CTCAAGCGCACAGAAAGGCGGATCGCTAGCTTGGGCAACCAACTCCCAACCACAGCCTCTCCGTGAAAGT"
+     "AAGCTTGAGCCATTGGAAGACTCCCCACGTAAGGCTTTAAAAACACCTGTGTTGCAAAAGACATCCAGTA"
+     "CCATAACTTTACAAGCAGTCAAGGTTCAACCTGAACCCCGCGCTCCCGTCTCCGGGGCGCTGTCCCCGAG"
+     "CGGGGAGGAACGCAAGCGCCCAGCTGCGTCTGCTCCCGCTACCTTACCGACACGACAGAGTGGTCTAGGT"
+     "TCTCAGGAAGTCGTTTCGAAGGTGGCGACTCGCAAAATTCCAATGGAGTCACAACGCGAGTCGACT"},
+    {4, "Homoserine_dh-multi-consensus",
+     "GG"
+     "CCTATCATTTCGACGCTCAAGGAGTCGCTGACAGGTGACCGTATTACTCGAATCGAAGGGATATTAAACG"
+     "GCACCCTGAATTACATTCTCACTGAGATGGAGGAAGAGGGGGCTTCATTCTCTGAGGCGCTGAAGGAGGC"
+     "ACAGGAATTGGGCTACGCGGAAGCGGATCCTACGGACGATGTGGAAGGGCTAGATGCTGCTAGAAAGCTG"
+     "GCAATTCTAGCCAGATTGGCATTTGGGTTAGAGGTCGAGTTGGAGGACGTAGAGGTGGAAGGAATTGAAA"
+     "AGCTGACTGCCGAAGATATTGAAGAAGCGAAGGAAGAGGGTAAAGTTTTAAAACTAGTGGCAAGCGCCGT"
+     "CGAAGCCAGGGTCAAGCCTGAGCTGGTACCTAAGTCACATCCATTAGCCTCGGTAAAAGGCTCTGACAAC"
+     "GCCGTGGCTGTAGAAACGGAACGGGTAGGCGAACTCGTAGTGCAGGGACCAGGGGCTGGCGCAGAGCCAA"
+     "CCGCATCCGCTGTACTCGCTGACCTTCTC"
+     "CATAGGG"
+     "CCTATCATTTCGACGCTCAAGGAGTCGCTGACAGGTGACCGTATTACTCGAATCGAAGGGATATTAAACG"
+     "GCACCCTGAATTACATTCTCACTGAGATGGAGGAAGAGGGGGCTTCATTCTCTGAGGCGCTGAAGGAGGC"
+     "ACAGGAATTGGGCTACGCGGAAGCGGATCCTACGGACGATGTGGAAGGGCTAGATGCTGCTAGAAAGCTG"
+     "GCAATTCTAGCCAGATTGGCATTTGGGTTAGAGGTCGAGTTGGAGGACGTAGAGGTGGAAGGAATTGAAA"
+     "AGCTGACTGCCGAAGATATTGAAGAAGCGAAGGAAGAGGGTAAAGTTTTAAAACTAGTGGCAAGCGCCGT"
+     "CGAAGCCAGGGTCAAGCCTGAGCTGGTACCTAAGTCACATCCATTAGCCTCGGTAAAAGGCTCTGACAAC"
+     "GCCGTGGCTGTAGAAACGGAACGGGTAGGCGAACTCGTAGTGCAGGGACCAGGGGCTGGCGCAGAGCCAA"
+     "CCGCATCCGCTGTACTCGCTGACCTTCTC"
+     "TT"},
+    {5, "Homoserine_dh-multi-consensus",
+     "CCTATCATTTCGACGCTCAAGGAGTCGCTGACAGGTGACCGTATTACTCGAATCGAAGGGATATTAAACG"
+     "GCACCCTGAATTACATTCTCACTGAGATGGAGGAAGAGGGGGCTTCATTCTCTGAGGCGCTGAAGGAGGC"
+     "ACAGGAATTGGGCTACGCGGAAGCGGATCCTACGGACGATGTGGAAGGGCTAGATGCTGCTAGAAAGCTG"
+     "GCAATTCTAGCCAGATTGGCATTTGGGTTAGAGGTCGAGTTGGAGGACGTAGAGGTGGAAGGAATTGAAA"
+     "AGCTGACTGCCGAAGATATTGAAGAAGCGAAGGAAGAGGGTAAAGTTTTAAAACTAGTGGCAAGCGCCGT"
+     "CGAAGCCAGGGTCAAGCCTGAGCTGGTACCTAAGTCACATCCATTAGCCTCGGTAAAAGGCTCTGACAAC"
+     "GCCGTGGCTGTAGAAACGGAACGGGTAGGCGAACTCGTAGTGCAGGGACCAGGGGCTGGCGCAGAGCCAA"
+     "CCGCATCCGCTGTACTCGCTGACCTTCTC"
+     "CCTATCATTTCGACGCTCAAGGAGTCGCTGACAGGTGACCGTATTACTCGAATCGAAGGGATATTAAACG"
+     "GCACCCTGAATTACATTCTCACTGAGATGGAGGAAGAGGGGGCTTCATTCTCTGAGGCGCTGAAGGAGGC"
+     "ACAGGAATTGGGCTACGCGGAAGCGGATCCTACGGACGATGTGGAAGGGCTAGATGCTGCTAGAAAGCTG"
+     "GCAATTCTAGCCAGATTGGCATTTGGGTTAGAGGTCGAGTTGGAGGACGTAGAGGTGGAAGGAATTGAAA"
+     "AGCTGACTGCCGAAGATATTGAAGAAGCGAAGGAAGAGGGTAAAGTTTTAAAACTAGTGGCAAGCGCCGT"
+     "CGAAGCCAGGGTCAAGCCTGAGCTGGTACCTAAGTCACATCCATTAGCCTCGGTAAAAGGCTCTGACAAC"
+     "GCCGTGGCTGTAGAAACGGAACGGGTAGGCGAACTCGTAGTGCAGGGACCAGGGGCTGGCGCAGAGCCAA"
+     "CCGCATCCGCTGTACTCGCTGACCTTCTC"}};
 
 static bool next_seq(struct dcp_seq *x, void *arg)
 {
-  static struct test_seq seqs[] = {
-      {1, "Homoserine_dh-consensus",
-       "CCTATCATTTCGACGCTCAAGGAGTCGCTGACAGGTGACCGTATTACTCGAATCGAAGGGATATTAAACG"
-       "GCACCCTGAATTACATTCTCACTGAGATGGAGGAAGAGGGGGCTTCATTCTCTGAGGCGCTGAAGGAGGC"
-       "ACAGGAATTGGGCTACGCGGAAGCGGATCCTACGGACGATGTGGAAGGGCTAGATGCTGCTAGAAAGCTG"
-       "GCAATTCTAGCCAGATTGGCATTTGGGTTAGAGGTCGAGTTGGAGGACGTAGAGGTGGAAGGAATTGAAA"
-       "AGCTGACTGCCGAAGATATTGAAGAAGCGAAGGAAGAGGGTAAAGTTTTAAAACTAGTGGCAAGCGCCGT"
-       "CGAAGCCAGGGTCAAGCCTGAGCTGGTACCTAAGTCACATCCATTAGCCTCGGTAAAAGGCTCTGACAAC"
-       "GCCGTGGCTGTAGAAACGGAACGGGTAGGCGAACTCGTAGTGCAGGGACCAGGGGCTGGCGCAGAGCCAA"
-       "CCGCATCCGCTGTACTCGCTGACCTTCTC"},
-      {2, "AA_kinase-consensus",
-       "AAACGTGTAGTTGTAAAGCTTGGGGGTAGTTCTCTGACAGATAAGGAAGAGGCATCACTCAGGCGTTTAG"
-       "CTGAGCAGATTGCAGCATTAAAAGAGAGTGGCAATAAACTAGTGGTCGTGCATGGAGGCGGCAGCTTCAC"
-       "TGATGGTCTGCTGGCATTGAAAAGTGGCCTGAGCTCGGGCGAATTAGCTGCGGGGTTGAGGAGCACGTTA"
-       "GAAGAGGCCGGAGAAGTAGCGACGAGGGACGCCCTAGCTAGCTTAGGGGAACGGCTTGTTGCAGCGCTGC"
-       "TGGCGGCGGGTCTCCCTGCTGTAGGACTCAGCGCCGCTGCGTTAGATGCGACGGAGGCGGGCCGGGATGA"
-       "AGGCAGCGACGGGAACGTCGAGTCCGTGGACGCAGAAGCAATTGAGGAGTTGCTTGAGGCCGGGGTGGTC"
-       "CCCGTCCTAACAGGATTTATCGGCTTAGACGAAGAAGGGGAACTGGGAAGGGGATCTTCTGACACCATCG"
-       "CTGCGTTACTCGCTGAAGCTTTAGGCGCGGACAAACTCATAATACTGACCGACGTAGACGGCGTTTACGA"
-       "TGCCGACCCTAAAAAGGTCCCAGACGCGAGGCTCTTGCCAGAGATAAGTGTGGACGAGGCCGAGGAAAGC"
-       "GCCTCCGAATTAGCGACCGGTGGGATGAAGGTCAAACATCCAGCGGCTCTTGCTGCAGCTAGACGGGGGG"
-       "GTATTCCGGTCGTGATAACGAAT"},
-      {3, "23ISL-consensus",
-       "CAGGGTCTGGATAACGCTAATCGTTCGCTAGTTCGCGCTACAAAAGCAGAAAGTTCAGATATACGGAAAG"
-       "AGGTGACTAACGGCATCGCTAAAGGGCTGAAGCTAGACAGTCTGGAAACAGCTGCAGAGTCGAAGAACTG"
-       "CTCAAGCGCACAGAAAGGCGGATCGCTAGCTTGGGCAACCAACTCCCAACCACAGCCTCTCCGTGAAAGT"
-       "AAGCTTGAGCCATTGGAAGACTCCCCACGTAAGGCTTTAAAAACACCTGTGTTGCAAAAGACATCCAGTA"
-       "CCATAACTTTACAAGCAGTCAAGGTTCAACCTGAACCCCGCGCTCCCGTCTCCGGGGCGCTGTCCCCGAG"
-       "CGGGGAGGAACGCAAGCGCCCAGCTGCGTCTGCTCCCGCTACCTTACCGACACGACAGAGTGGTCTAGGT"
-       "TCTCAGGAAGTCGTTTCGAAGGTGGCGACTCGCAAAATTCCAATGGAGTCACAACGCGAGTCGACT"}};
-
-  int *i = (int *)arg;
-  if (*i > 2) return false;
-  eq_or_exit(dcp_seq_setup(x, seqs[*i].id, seqs[*i].name, seqs[*i].data), 0);
-  *i += 1;
-  return true;
-}
-
-static struct combi_seq
-{
-  unsigned nsymbols;
-  char const *symbols;
-  struct test_seq seq;
-
-  unsigned seqlen;
-
-  struct imm_cartes iter;
-} combi = {0};
-
-static void combi_seq_init(void)
-{
-  combi.nsymbols = imm_abc_size(&imm_dna_iupac.super.super);
-  combi.symbols = imm_abc_symbols(&imm_dna_iupac.super.super);
-  combi.seq.id = 0;
-  combi.seq.name = "name";
-  combi.seqlen = 1;
-  imm_cartes_init(&combi.iter, combi.symbols, combi.nsymbols, combi.seqlen);
-  imm_cartes_setup(&combi.iter, combi.seqlen);
-}
-
-static bool combi_seq_next(struct dcp_seq *x, void *arg)
-{
-  (void)arg;
-  if ((combi.seq.data = imm_cartes_next(&combi.iter)))
+  size_t *i = arg;
+  if (*i < array_size(seqs))
   {
-    eq_or_exit(dcp_seq_setup(x, combi.seq.id, combi.seq.name, combi.seq.data),
-               0);
+    eq_or_exit(dcp_seq_setup(x, seqs[*i].id, seqs[*i].name, seqs[*i].data), 0);
+    *i += 1;
     return true;
   }
-
-  imm_cartes_cleanup(&combi.iter);
-  if (combi.seqlen >= 5) return false;
-
-  combi.seqlen += 1;
-  imm_cartes_init(&combi.iter, combi.symbols, combi.nsymbols, combi.seqlen);
-  imm_cartes_setup(&combi.iter, combi.seqlen);
-
-  return true;
+  return false;
 }
 
 static void setup_minifam(void)
