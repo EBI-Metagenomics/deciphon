@@ -21,8 +21,8 @@ static struct dcp_scan_params params_list[] = {
     {1, 0., false, true, true},   {1, 0., true, false, false},
     {1, 0., true, false, true},   {1, 0., true, true, false},
     {1, 0., true, true, true}};
-static long chksum_list[] = {45626, 28730, 28730, 29547, 43506, 61686,
-                             63102, 45626, 39915, 45626, 39915};
+static long chksum_list[] = {49784, 33656, 33656, 29547, 43506, 61686,
+                             63102, 49784, 31477, 49784, 31477};
 
 int main(void)
 {
