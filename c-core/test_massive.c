@@ -1,10 +1,10 @@
 #include "fs.h"
+#include "imm/imm.h"
 #include "press.h"
 #include "scan.h"
 #include "scan_params.h"
 #include "test_seqit.h"
 #include "vendor/minctest.h"
-#include "imm/imm.h"
 
 #define NUM_SEQS 10000
 
@@ -52,6 +52,8 @@ static void setup_database(void)
   dcp_press_del(press);
 }
 
+static void cleanup_database(void) { dcp_fs_rmfile(DBFILE); }
+
 static void random_sequence_init(void);
 static char const *random_sequence_next(void);
 
@@ -73,6 +75,7 @@ int main(void)
   eq(dcp_fs_rmtree(PRODDIR), 0);
 
   dcp_scan_del(scan);
+  cleanup_database();
   return lfails;
 }
 
