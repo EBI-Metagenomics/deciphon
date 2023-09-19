@@ -1,12 +1,8 @@
-#ifndef DECIPHON_NODE_H
-#define DECIPHON_NODE_H
+#ifndef DECIPHON_MODEL_NODE_H
+#define DECIPHON_MODEL_NODE_H
 
 #include "imm/imm.h"
 #include "nuclt_dist.h"
-
-#ifdef I
-#undef I
-#endif
 
 struct dcp_model_node
 {

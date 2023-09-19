@@ -3,14 +3,14 @@
 
 #include "entry_dist.h"
 #include "imm/imm.h"
+#include "model_node.h"
 #include "model_params.h"
 #include "model_summary.h"
-#include "node.h"
+#include "model_xnode.h"
 #include "nuclt_dist.h"
 #include "rc.h"
 #include "state.h"
 #include "trans.h"
-#include "xnode.h"
 #include "xtrans.h"
 
 enum
@@ -22,7 +22,7 @@ struct dcp_model
 {
   struct dcp_model_params params;
   unsigned core_size;
-  struct dcp_xnode xnode;
+  struct dcp_model_xnode xnode;
   struct dcp_xtrans xtrans;
   char consensus[DCP_MODEL_MAX + 1];
 

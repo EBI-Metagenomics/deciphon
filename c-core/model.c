@@ -34,8 +34,8 @@ void init_insert(struct imm_frame_state *, float epsilon,
 void init_match(struct imm_frame_state *, struct dcp_model *,
                 struct dcp_nuclt_dist *);
 
-int init_null_xtrans(struct imm_hmm *, struct dcp_xnode_null *);
-int init_alt_xtrans(struct imm_hmm *, struct dcp_xnode_alt *);
+int init_null_xtrans(struct imm_hmm *, struct dcp_model_xnode_null *);
+int init_alt_xtrans(struct imm_hmm *, struct dcp_model_xnode_alt *);
 
 struct imm_nuclt_lprob nuclt_lprob(struct imm_gencode const *,
                                    struct imm_codon_lprob const *);
@@ -246,7 +246,7 @@ struct dcp_model_summary dcp_model_summary(struct dcp_model *x)
 
 int add_xnodes(struct dcp_model *x)
 {
-  struct dcp_xnode *n = &x->xnode;
+  struct dcp_model_xnode *n = &x->xnode;
 
   if (imm_hmm_add_state(&x->null.hmm, &n->null.F.super)) return DCP_EADDSTATE;
   if (imm_hmm_add_state(&x->null.hmm, &n->null.R.super)) return DCP_EADDSTATE;
@@ -272,7 +272,7 @@ void init_xnodes(struct dcp_model *x)
   float e = x->params.epsilon;
   struct imm_nuclt_lprob const *nucltp = &x->null.nuclt_dist.nucltp;
   struct imm_codon_marg const *codonm = &x->null.nuclt_dist.codonm;
-  struct dcp_xnode *n = &x->xnode;
+  struct dcp_model_xnode *n = &x->xnode;
   struct imm_nuclt const *nuclt = x->params.code->nuclt;
 
   imm_mute_state_init(&n->null.F, STATE_F, &nucltp->nuclt->super);
@@ -352,7 +352,7 @@ void init_match(struct imm_frame_state *state, struct dcp_model *x,
   imm_frame_state_init(state, id, &d->nucltp, &d->codonm, e, imm_span(1, 5));
 }
 
-int init_null_xtrans(struct imm_hmm *hmm, struct dcp_xnode_null *n)
+int init_null_xtrans(struct imm_hmm *hmm, struct dcp_model_xnode_null *n)
 {
   if (imm_hmm_set_trans(hmm, &n->F.super, &n->R.super, LOG1))
     return DCP_ESETTRANS;
@@ -363,7 +363,7 @@ int init_null_xtrans(struct imm_hmm *hmm, struct dcp_xnode_null *n)
   return 0;
 }
 
-int init_alt_xtrans(struct imm_hmm *hmm, struct dcp_xnode_alt *n)
+int init_alt_xtrans(struct imm_hmm *hmm, struct dcp_model_xnode_alt *n)
 {
   if (imm_hmm_set_trans(hmm, &n->S.super, &n->B.super, LOG1))
     return DCP_ESETTRANS;
