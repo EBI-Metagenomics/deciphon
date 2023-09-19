@@ -11,7 +11,7 @@ void dcp_viterbi_task_init(struct dcp_viterbi_task *x)
 }
 
 int dcp_viterbi_task_setup(struct dcp_viterbi_task *x, int core_size,
-                           int seq_size)
+                           int seq_size, bool nopath)
 {
   int rc = 0;
   int dp_size = 3 * DCP_VITERBI_PAST_SIZE * core_size;
@@ -22,12 +22,26 @@ int dcp_viterbi_task_setup(struct dcp_viterbi_task *x, int core_size,
   for (int i = 0; i < dp_size; ++i)
     x->dp[i] = IMM_LPROB_ZERO;
 
-  int nstates = 3 + 3 * core_size + 3 + 1;
-  if (imm_trellis_setup(&x->trellis, seq_size, nstates))
-    defer_return(DCP_ENOMEM);
-  imm_trellis_prepare(&x->trellis);
+  for (int i = 0; i < DCP_VITERBI_PAST_SIZE; ++i)
+  {
+    x->S[i] = IMM_LPROB_ZERO;
+    x->N[i] = IMM_LPROB_ZERO;
+    x->B[i] = IMM_LPROB_ZERO;
+    x->J[i] = IMM_LPROB_ZERO;
+    x->E[i] = IMM_LPROB_ZERO;
+    x->C[i] = IMM_LPROB_ZERO;
+    x->T[i] = IMM_LPROB_ZERO;
+  }
 
-  imm_path_reset(&x->path);
+  if (!nopath)
+  {
+    int nstates = 3 + 3 * core_size + 3 + 1;
+    if (imm_trellis_setup(&x->trellis, seq_size, nstates))
+      defer_return(DCP_ENOMEM);
+    imm_trellis_prepare(&x->trellis);
+
+    imm_path_reset(&x->path);
+  }
 
   return rc;
 

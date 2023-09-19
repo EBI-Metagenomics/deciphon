@@ -12,7 +12,8 @@ struct imm_prod;
 struct dcp_protein;
 
 float dcp_vit_null(struct dcp_protein *, struct imm_eseq const *);
-int dcp_vit(struct dcp_protein *, struct imm_eseq const *, struct dcp_viterbi_task *);
+int dcp_vit(struct dcp_protein *, struct imm_eseq const *,
+            struct dcp_viterbi_task *, bool const nopath);
 void dcp_vit_dump(struct dcp_protein *, FILE *restrict);
 void dcp_vit_dump_dot(struct dcp_protein *, FILE *restrict);
 

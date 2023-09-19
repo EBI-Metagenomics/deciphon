@@ -83,7 +83,8 @@ int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct dcp_seq const *seq)
                   x->hmmer3_compat);
 
     float fast_null = dcp_vit_null(&x->protein, &seq->imm_eseq);
-    if ((rc = dcp_vit(&x->protein, &seq->imm_eseq, &x->task))) goto cleanup;
+    if ((rc = dcp_vit(&x->protein, &seq->imm_eseq, &x->task, false)))
+      goto cleanup;
 
     x->prod_thrd->match.null = fast_null;
     x->prod_thrd->match.alt = x->task.score;
