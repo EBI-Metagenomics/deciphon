@@ -1,31 +1,37 @@
 #ifndef DECIPHON_COMPILER_H
 #define DECIPHON_COMPILER_H
 
-#ifndef __has_builtin
-#define __has_builtin(x) (0)
+#ifdef __has_builtin
+#define DCP_HAS_BUILTIN(x) __has_builtin(x)
+#else
+#define DCP_HAS_BUILTIN(x) (0)
 #endif
 
-#if !__has_builtin(__builtin_unreachable)
-#define __builtin_unreachable() (void)(0)
+#if DCP_HAS_BUILTIN(__builtin_unreachable)
+#define DCP_UNREACHABLE() __builtin_unreachable()
+#else
+#define DCP_UNREACHABLE() (void)(0)
 #endif
 
-#ifndef __has_attribute
-#define __has_attribute(x) (0)
+#ifdef __has_attribute
+#define DCP_HAS_ATTRIBUTE(x) __has_attribute(x)
+#else
+#define DCP_HAS_ATTRIBUTE(x) (0)
 #endif
 
-#if __has_attribute(always_inline)
+#if DCP_HAS_ATTRIBUTE(always_inline)
 #define DCP_INLINE static inline __attribute__((always_inline))
 #else
 #define DCP_INLINE static inline
 #endif
 
-#if __has_attribute(const)
+#if DCP_HAS_ATTRIBUTE(const)
 #define DCP_CONST __attribute__((const)) DCP_INLINE
 #else
 #define DCP_CONST DCP_INLINE
 #endif
 
-#if __has_attribute(pure)
+#if DCP_HAS_ATTRIBUTE(pure)
 #define DCP_PURE __attribute__((pure))
 #else
 #define DCP_PURE DCP_INLINE
