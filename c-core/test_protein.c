@@ -53,7 +53,7 @@ static void test_protein_uniform(void)
 
   struct dcp_viterbi_task task = {};
   dcp_viterbi_task_init(&task);
-  close(dcp_vit(&protein, &eseq, &task), 0);
+  close(dcp_vit(&protein, &eseq, &task, false), 0);
   close(task.score, -55.59428153448);
 
   eq(imm_path_nsteps(&task.path), 14U);
@@ -135,7 +135,7 @@ static void test_protein_occupancy(void)
 
   struct dcp_viterbi_task task = {};
   dcp_viterbi_task_init(&task);
-  close(dcp_vit(&protein, &eseq, &task), 0);
+  close(dcp_vit(&protein, &eseq, &task, false), 0);
   close(task.score, -54.35543421312);
 
   eq(imm_path_nsteps(&task.path), 14U);

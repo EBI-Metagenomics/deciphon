@@ -20,7 +20,7 @@
 #define ALIGNED __attribute__((aligned(16)))
 #endif
 
-#define PAST_SIZE 6
+#define PAST_SIZE DCP_VITERBI_PAST_SIZE
 
 IMM_CONST int SIDX(void) { return 0; }
 IMM_CONST int NIDX(void) { return 1; }
@@ -63,18 +63,23 @@ IMM_CONST float *dp_delete_init(float *x) { return x + PAST_SIZE + PAST_SIZE; }
 IMM_CONST float *dp_next(float *x) { return x + 3 * PAST_SIZE; }
 
 DCP_PURE int emission_index(struct imm_eseq const *x, int pos, int size,
-                            int safe)
+                            bool const safe)
 {
   return ((!safe && (pos) < 0) ? -1 : (int)imm_eseq_get(x, pos, size, 1));
 }
 
-DCP_PURE float safe_get(float const x[restrict], int i, int safe)
+DCP_PURE float safe_get(float const x[restrict], int i, bool const safe)
 {
   return (safe ? (x)[(i)] : (i) >= 0 ? (x)[(i)] : IMM_LPROB_ZERO);
 }
 
+DCP_PURE float const *unsafe_get(float const x[restrict], int i)
+{
+  return x + i;
+}
+
 DCP_INLINE void fetch_indices(int x[restrict], struct imm_eseq const *eseq,
-                              int row, int safe)
+                              int row, bool const safe)
 {
   x[0] = emission_index(eseq, row - 1, 1, safe);
   x[1] = emission_index(eseq, row - 2, 2, safe);
@@ -84,13 +89,23 @@ DCP_INLINE void fetch_indices(int x[restrict], struct imm_eseq const *eseq,
 }
 
 DCP_INLINE void fetch_emission(float x[restrict], float emission[restrict],
-                               int const ix[restrict], int safe)
+                               int const ix[restrict], bool const safe)
 {
   x[0] = safe_get(emission, ix[nchars(1)], safe);
   x[1] = safe_get(emission, ix[nchars(2)], safe);
   x[2] = safe_get(emission, ix[nchars(3)], safe);
   x[3] = safe_get(emission, ix[nchars(4)], safe);
   x[4] = safe_get(emission, ix[nchars(5)], safe);
+}
+
+DCP_INLINE void prefetch_emission(float emission[restrict],
+                                  int const ix[restrict])
+{
+  DCP_PREFETCH(unsafe_get(emission, ix[nchars(1)]), 0, 1);
+  DCP_PREFETCH(unsafe_get(emission, ix[nchars(2)]), 0, 1);
+  DCP_PREFETCH(unsafe_get(emission, ix[nchars(3)]), 0, 1);
+  DCP_PREFETCH(unsafe_get(emission, ix[nchars(4)]), 0, 1);
+  DCP_PREFETCH(unsafe_get(emission, ix[nchars(5)]), 0, 1);
 }
 
 DCP_CONST float *match_next(float *restrict match)
@@ -170,7 +185,7 @@ DCP_INLINE float onto_B(struct imm_trellis *t, float const S[restrict],
   };
   // clang-format on
   if (t) update_trellis0(t, src, array_size(x), x);
-  return reduce_fmax(array_size(x), x);
+  return dcp_fmax(x[0], x[1]);
 }
 
 DCP_INLINE void adjust_onto_B(struct imm_trellis *t, float B[restrict],
@@ -193,7 +208,7 @@ DCP_INLINE void adjust_onto_B(struct imm_trellis *t, float B[restrict],
     if (x[idx] > B[lukbak(0)]) imm_trellis_push(t, x[idx], src[idx], 0);
     imm_trellis_seek(t, stage, CIDX(core_size));
   }
-  B[lukbak(0)] = fmax(B[lukbak(0)], reduce_fmax(array_size(x), x));
+  B[lukbak(0)] = dcp_fmax(B[lukbak(0)], reduce_fmax(array_size(x), x));
 }
 
 DCP_INLINE float onto_M1(struct imm_trellis *t, float const B[restrict],
@@ -291,7 +306,7 @@ DCP_INLINE float onto_D(struct imm_trellis *t, float const M[restrict],
   };
   // clang-format on
   if (t) update_trellis0(t, src, array_size(x), x);
-  return reduce_fmax(array_size(x), x);
+  return dcp_fmax(x[0], x[1]);
 }
 
 DCP_INLINE float fmax_idx(float max, int *src, int *maxk, float v, int new_src,
@@ -399,7 +414,7 @@ IMM_INLINE float onto_T(struct imm_trellis *t, float const E[restrict],
   };
   // clang-format on
   if (t) update_trellis0(t, src, array_size(x), x);
-  return reduce_fmax(array_size(x), x);
+  return dcp_fmax(x[0], x[1]);
 }
 
 struct extra_trans
@@ -465,8 +480,8 @@ float dcp_vit_null(struct dcp_protein *x, struct imm_eseq const *eseq)
   float null[PAST_SIZE - 1] = {0};
   for (int r = 0; r < seq_size + 1; ++r)
   {
-    fetch_indices(ix, eseq, r, 0);
-    fetch_emission(null, x->null.emission, ix, 0);
+    fetch_indices(ix, eseq, r, false);
+    fetch_emission(null, x->null.emission, ix, false);
 
     R[lukbak(0)] = onto_R(S, R, x->null.RR, null);
     make_future(S);
@@ -516,6 +531,7 @@ DCP_INLINE void vit(struct dcp_protein *x, struct dcp_viterbi_task *task,
     float *DPI = dp_insert_init(dp);
     float *DPD = dp_delete_init(dp);
     DPM[lukbak(0)] = onto_M1(trellis, B, *BM, M);
+    float tmpE = DPM[lukbak(0)] + xt.ME;
     BM += 1;
     // Skip first D state
     if (trellis) trellis->head += 1;
@@ -536,15 +552,18 @@ DCP_INLINE void vit(struct dcp_protein *x, struct dcp_viterbi_task *task,
 
       DPI[lukbak(0)] = onto_I(trellis, DPM, DPI, MI, II, bg, k);
       float tmpM = onto_M(trellis, DPM, DPI, DPD, B, MM, IM, DM, *BM, M, k);
+      prefetch_emission(match_next(match), ix);
       float tmpD = onto_D(trellis, DPM, DPD, MD, DD, k);
       make_future(DPM);
       make_future(DPI);
       make_future(DPD);
       DPM = dp_next(DPM);
       DPM[lukbak(0)] = tmpM;
+      tmpE = dcp_fmax(tmpE, tmpM + xt.ME);
       DPI = dp_next(DPI);
       DPD = dp_next(DPD);
       DPD[lukbak(0)] = tmpD;
+      tmpE = dcp_fmax(tmpE, tmpD + xt.DE);
       BM += 1;
       node += 1;
     }
@@ -556,7 +575,10 @@ DCP_INLINE void vit(struct dcp_protein *x, struct dcp_viterbi_task *task,
 
     // It is lukbak(1) in here because I called make_future(DPM)
     // and make_future(DPD) already (for optimisation reasons).
-    E[lukbak(0)] = onto_E(trellis, dp, core_size, xt.ME, xt.DE);
+    if (trellis)
+      E[lukbak(0)] = onto_E(trellis, dp, core_size, xt.ME, xt.DE);
+    else
+      E[lukbak(0)] = tmpE;
     J[lukbak(0)] = onto_J(trellis, E, J, xt.EJ, xt.JJ, null, core_size);
     adjust_onto_B(trellis, B, E, J, xt.EB, xt.JB, core_size);
     make_future(B);
