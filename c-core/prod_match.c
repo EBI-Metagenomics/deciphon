@@ -1,6 +1,8 @@
 #include "prod_match.h"
+#include "array_size_field.h"
 #include "lrt.h"
 #include "sizeof_field.h"
+#include "strkcpy.h"
 #include <string.h>
 
 void dcp_prod_match_init(struct dcp_prod_match *x)
@@ -18,12 +20,14 @@ void dcp_prod_match_init(struct dcp_prod_match *x)
 
 void dcp_prod_match_set_protein(struct dcp_prod_match *x, char const *protein)
 {
-  strcpy(x->protein, protein);
+  size_t size = array_size_field(struct dcp_prod_match, protein);
+  strkcpy(x->protein, protein, size);
 }
 
 void dcp_prod_match_set_abc(struct dcp_prod_match *x, char const *abc)
 {
-  strcpy(x->abc, abc);
+  size_t size = array_size_field(struct dcp_prod_match, abc);
+  strkcpy(x->abc, abc, size);
 }
 
 double dcp_prod_match_get_lrt(struct dcp_prod_match const *x)

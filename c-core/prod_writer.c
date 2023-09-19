@@ -15,15 +15,14 @@ void dcp_prod_writer_init(struct dcp_prod_writer *x) { x->nthreads = 0; }
 int dcp_prod_writer_open(struct dcp_prod_writer *x, int nthreads,
                          char const *dir)
 {
-  if (nthreads > (int)array_size_field(struct dcp_prod_writer, threads))
-    return DCP_EMANYTHREADS;
+  int rc = 0;
+
+  size_t size = array_size_field(struct dcp_prod_writer, threads);
+  if (nthreads > (int)size) defer_return(DCP_EMANYTHREADS);
   x->nthreads = nthreads;
 
-  if (!strkcpy(x->dirname, dir,
-               array_size_field(struct dcp_prod_writer, dirname)))
-    return DCP_ELONGPATH;
-
-  int rc = 0;
+  size = array_size_field(struct dcp_prod_writer, dirname);
+  if (!strkcpy(x->dirname, dir, size)) defer_return(DCP_ELONGPATH);
 
   char hmmer_dir[DCP_PATH_MAX] = {0};
   if ((rc = FMT(hmmer_dir, "%s/hmmer", x->dirname))) return rc;
