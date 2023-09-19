@@ -1,7 +1,6 @@
 #ifndef DECIPHON_CODEC_H
 #define DECIPHON_CODEC_H
 
-#include "rc.h"
 #include <stdbool.h>
 
 struct imm_codon;

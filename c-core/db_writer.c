@@ -1,5 +1,6 @@
 #include "db_writer.h"
 #include "defer_return.h"
+#include "entry_dist.h"
 #include "fs.h"
 #include "lip/1darray/1darray.h"
 #include "magic_number.h"
@@ -158,10 +159,12 @@ defer:
 
 void dcp_db_writer_init(struct dcp_db_writer *x, struct dcp_model_params params)
 {
+  x->nproteins = 0;
+  x->header_size = 0;
   x->params = params;
 }
 
-int dcp_db_writer_open(struct dcp_db_writer *x, FILE *fp)
+int dcp_db_writer_open(struct dcp_db_writer *x, FILE *restrict fp)
 {
   int rc = 0;
 
