@@ -50,4 +50,9 @@ static inline int read_f32array(struct lip_file *stream, unsigned size,
   return lip_read_1darray_f32_data(stream, size, array) ? 0 : DCP_EFREAD;
 }
 
+static inline int read_str(struct lip_file *file, unsigned size, char str[])
+{
+  return lip_read_cstr(file, size, str) ? 0 : DCP_EFREAD;
+}
+
 #endif

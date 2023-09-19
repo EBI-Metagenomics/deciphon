@@ -33,7 +33,7 @@ struct dcp_protein
 void protein_init(struct dcp_protein *, struct dcp_model_params params);
 int protein_set_accession(struct dcp_protein *, char const *accession);
 void protein_setup(struct dcp_protein *, unsigned seq_size, bool multi_hits,
-              bool hmmer3_compat);
+                   bool hmmer3_compat);
 int protein_absorb(struct dcp_protein *, struct dcp_model *);
 int protein_sample(struct dcp_protein *, unsigned seed, unsigned core_size);
 void protein_cleanup(struct dcp_protein *);
@@ -42,7 +42,7 @@ void protein_dump(struct dcp_protein const *, FILE *restrict);
 int protein_pack(struct dcp_protein const *, struct lip_file *);
 int protein_unpack(struct dcp_protein *, struct lip_file *);
 
-int protein_decode(struct dcp_protein const *, struct imm_seq const *, unsigned state_id,
-              struct imm_codon *);
+int protein_decode(struct dcp_protein const *, struct imm_seq const *,
+                   unsigned state_id, struct imm_codon *);
 
 #endif

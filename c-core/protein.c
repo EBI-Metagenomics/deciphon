@@ -7,6 +7,7 @@
 #include "lip/lip.h"
 #include "model.h"
 #include "protein_background.h"
+#include "read.h"
 #include "state.h"
 #include "strlcpy.h"
 #include <stdlib.h>
@@ -17,7 +18,7 @@ void protein_init(struct dcp_protein *x, struct dcp_model_params params)
   x->params = params;
 
   memset(x->accession, 0, array_size_field(struct dcp_protein, accession));
-  x->state_name = dcp_state_name;
+  x->state_name = &dcp_state_name;
 
   x->epsilon_frame = imm_frame_epsilon(params.epsilon);
 
@@ -321,47 +322,38 @@ int protein_unpack(struct dcp_protein *x, struct lip_file *file)
       array_size_field(struct dcp_protein, consensus);
 
   int rc = 0;
-  unsigned size = 0;
-  enum lip_1darray_type type = 0;
 
-  if ((rc = dcp_expect_map_size(file, 10))) return rc;
+  if ((rc = read_mapsize(file, 10))) return rc;
 
-  if ((rc = dcp_expect_map_key(file, "accession"))) return rc;
-  if (!lip_read_cstr(file, accession_size, x->accession)) return DCP_EFREAD;
+  if ((rc = read_key(file, "accession"))) return rc;
+  if ((rc = read_str(file, accession_size, x->accession))) return rc;
 
   unsigned gencode_id = 0;
-  if ((rc = dcp_expect_map_key(file, "gencode"))) return rc;
-  if (!lip_read_int(file, &gencode_id)) return DCP_EFREAD;
+  if ((rc = read_key(file, "gencode"))) return rc;
+  if ((rc = read_int(file, &gencode_id))) return rc;
   if (!(x->params.gencode = imm_gencode_get(gencode_id))) return DCP_EFREAD;
 
-  if ((rc = dcp_expect_map_key(file, "consensus"))) return rc;
-  if (!lip_read_cstr(file, consensus_size, x->consensus)) return DCP_EFREAD;
+  if ((rc = read_key(file, "consensus"))) return rc;
+  if ((rc = read_str(file, consensus_size, x->consensus))) return rc;
 
-  if ((rc = dcp_expect_map_key(file, "core_size"))) return rc;
-  if (!lip_read_int(file, &x->core_size)) return DCP_EFREAD;
+  if ((rc = read_key(file, "core_size"))) return rc;
+  if ((rc = read_int(file, &x->core_size))) return rc;
 
-  if ((rc = dcp_expect_map_key(file, "null_nuclt_dist"))) return rc;
+  if ((rc = read_key(file, "null_nuclt_dist"))) return rc;
   if ((rc = dcp_nuclt_dist_unpack(&x->null.nuclt_dist, file))) return rc;
 
-  if ((rc = dcp_expect_map_key(file, "null_emission"))) return rc;
-  lip_read_1darray_size_type(file, &size, &type);
-  if (type != LIP_1DARRAY_F32) return rc;
-  if (size != PROTEIN_NODE_SIZE) return DCP_EFREAD;
-  if (!lip_read_1darray_float_data(file, PROTEIN_NODE_SIZE, x->null.emission))
-    return DCP_EFWRITE;
+  if ((rc = read_key(file, "null_emission"))) return rc;
+  if ((rc = read_f32array(file, PROTEIN_NODE_SIZE, x->null.emission)))
+    return rc;
 
-  if ((rc = dcp_expect_map_key(file, "bg_nuclt_dist"))) return rc;
+  if ((rc = read_key(file, "bg_nuclt_dist"))) return rc;
   if ((rc = dcp_nuclt_dist_unpack(&x->bg.nuclt_dist, file))) return rc;
 
-  if ((rc = dcp_expect_map_key(file, "bg_emission"))) return rc;
-  lip_read_1darray_size_type(file, &size, &type);
-  if (type != LIP_1DARRAY_F32) return rc;
-  if (size != PROTEIN_NODE_SIZE) return DCP_EFREAD;
-  if (!lip_read_1darray_float_data(file, PROTEIN_NODE_SIZE, x->bg.emission))
-    return DCP_EFWRITE;
+  if ((rc = read_key(file, "bg_emission"))) return rc;
+  if ((rc = read_f32array(file, PROTEIN_NODE_SIZE, x->bg.emission))) return rc;
 
   void *ptr = realloc(x->nodes, (x->core_size + 1) * sizeof(*x->nodes));
-  if (!ptr) return DCP_EFWRITE;
+  if (!ptr) return DCP_ENOMEM;
   x->nodes = ptr;
 
   ptr = realloc(x->nodes_emission, (x->core_size + 1) *
@@ -370,41 +362,30 @@ int protein_unpack(struct dcp_protein *x, struct lip_file *file)
   if (!ptr) return DCP_EFWRITE;
   x->nodes_emission = ptr;
 
-  if ((rc = dcp_expect_map_key(file, "nodes"))) return rc;
-  if ((rc = dcp_expect_map_size(file, (x->core_size + 1) * 3))) return rc;
+  if ((rc = read_key(file, "nodes"))) return rc;
+  if ((rc = read_mapsize(file, (x->core_size + 1) * 3))) return rc;
   for (unsigned i = 0; i < x->core_size + 1; ++i)
   {
-    if ((rc = dcp_expect_map_key(file, "nuclt_dist"))) return rc;
+    if ((rc = read_key(file, "nuclt_dist"))) return rc;
     if ((rc = dcp_nuclt_dist_unpack(&x->nodes[i].nuclt_dist, file))) return rc;
 
-    if ((rc = dcp_expect_map_key(file, "trans"))) return rc;
-    lip_read_1darray_size_type(file, &size, &type);
-    if (type != LIP_1DARRAY_F32) return rc;
-    if (size != TRANS_SIZE) return DCP_EFREAD;
-    if (!lip_read_1darray_float_data(file, TRANS_SIZE, x->nodes[i].trans.data))
-      return DCP_EFWRITE;
+    if ((rc = read_key(file, "trans"))) return rc;
+    if ((rc = read_f32array(file, TRANS_SIZE, x->nodes[i].trans.data)))
+      return rc;
 
     float *emission = x->nodes_emission + i * PROTEIN_NODE_SIZE;
     x->nodes[i].emission = emission;
-    if ((rc = dcp_expect_map_key(file, "emission"))) return rc;
-    lip_read_1darray_size_type(file, &size, &type);
-    if (type != LIP_1DARRAY_F32) return rc;
-    if (size != PROTEIN_NODE_SIZE) return DCP_EFREAD;
-    if (!lip_read_1darray_float_data(file, PROTEIN_NODE_SIZE,
-                                     x->nodes[i].emission))
-      return DCP_EFWRITE;
+    if ((rc = read_key(file, "emission"))) return rc;
+    if ((rc = read_f32array(file, PROTEIN_NODE_SIZE, x->nodes[i].emission)))
+      return rc;
   }
-
-  if ((rc = dcp_expect_map_key(file, "BMk"))) return rc;
-  lip_read_1darray_size_type(file, &size, &type);
-  if (type != LIP_1DARRAY_F32) return rc;
-  if (size != x->core_size) return DCP_EFREAD;
 
   ptr = realloc(x->BMk, x->core_size * sizeof(*x->BMk));
   if (!ptr && x->core_size > 0) return DCP_EFWRITE;
   x->BMk = ptr;
-  if (!lip_read_1darray_float_data(file, x->core_size, x->BMk))
-    return DCP_EFWRITE;
+
+  if ((rc = read_key(file, "BMk"))) return rc;
+  if ((rc = read_f32array(file, x->core_size, x->BMk))) return rc;
 
   return 0;
 }
