@@ -43,7 +43,7 @@ struct dcp_model
   struct
   {
     unsigned node_idx;
-    struct node *nodes;
+    struct dcp_model_node *nodes;
     float *locc;
     unsigned trans_idx;
     struct dcp_trans *trans;

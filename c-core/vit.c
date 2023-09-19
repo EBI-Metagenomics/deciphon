@@ -495,7 +495,7 @@ DCP_INLINE void make_future(float x[])
   memmove(&x[lukbak(1)], &x[lukbak(0)], sizeof(float) * (PAST_SIZE - 1));
 }
 
-float dcp_vit_null(struct p7 *x, struct imm_eseq const *eseq)
+float dcp_vit_null(struct dcp_protein *x, struct imm_eseq const *eseq)
 {
   int seq_size = (int)imm_eseq_size(eseq);
 
@@ -520,7 +520,7 @@ float dcp_vit_null(struct p7 *x, struct imm_eseq const *eseq)
   return R[lukbak(0)];
 }
 
-DCP_INLINE void vit(struct p7 *x, struct imm_trellis *trellis,
+DCP_INLINE void vit(struct dcp_protein *x, struct imm_trellis *trellis,
                     struct imm_eseq const *eseq, int row_start, int row_end,
                     float dp[restrict], float S[restrict], float N[restrict],
                     float B[restrict], float J[restrict], float E[restrict],
@@ -558,7 +558,7 @@ DCP_INLINE void vit(struct p7 *x, struct imm_trellis *trellis,
     // Skip first D state
     trellis->head += 1;
 
-    struct p7_node const *node = x->nodes;
+    struct dcp_protein_node const *node = x->nodes;
     for (int k = 0; k + 1 < core_size; ++k)
     {
       float const MM = node->trans.MM;
@@ -611,7 +611,7 @@ DCP_INLINE void vit(struct p7 *x, struct imm_trellis *trellis,
 static void unzip_path(struct imm_trellis *x, int core_size, unsigned seq_size,
                        struct imm_path *path);
 
-int dcp_vit(struct p7 *x, struct imm_eseq const *eseq,
+int dcp_vit(struct dcp_protein *x, struct imm_eseq const *eseq,
             struct dcp_viterbi_task *task)
 {
   int rc = dcp_viterbi_task_setup(task, x->core_size, (int)imm_eseq_size(eseq));
@@ -666,7 +666,7 @@ static void unzip_path(struct imm_trellis *x, int core_size, unsigned seq_size,
   imm_path_reverse(path);
 }
 
-void dcp_vit_dump(struct p7 *x, FILE *restrict fp)
+void dcp_vit_dump(struct dcp_protein *x, FILE *restrict fp)
 {
   int core_size = x->core_size;
 
@@ -729,7 +729,7 @@ void dcp_vit_dump(struct p7 *x, FILE *restrict fp)
   }
 }
 
-void dcp_vit_dump_dot(struct p7 *x, FILE *restrict fp)
+void dcp_vit_dump_dot(struct dcp_protein *x, FILE *restrict fp)
 {
   char const *f32f = imm_fmt_get_f32();
 

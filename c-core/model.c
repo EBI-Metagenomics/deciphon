@@ -65,7 +65,7 @@ int dcp_model_add_node(struct dcp_model *x, float const lprobs[IMM_AMINO_SIZE],
   for (unsigned i = 0; i < IMM_AMINO_SIZE; ++i)
     lodds[i] = lprobs[i] - x->null.lprobs[i];
 
-  struct node *n = x->alt.nodes + x->alt.node_idx;
+  struct dcp_model_node *n = x->alt.nodes + x->alt.node_idx;
 
   setup_nuclt_dist(x->params.gencode, &n->match.nucltd, x->params.amino,
                    x->params.code->nuclt, lodds);
@@ -477,7 +477,7 @@ int setup_entry_trans(struct dcp_model *x)
     struct imm_state *B = &x->xnode.alt.B.super;
     for (unsigned i = 0; i < x->core_size; ++i)
     {
-      struct node *node = x->alt.nodes + i;
+      struct dcp_model_node *node = x->alt.nodes + i;
       x->BMk[i] = cost;
       if (imm_hmm_set_trans(&x->alt.hmm, B, &node->M.super, cost))
         return DCP_ESETTRANS;
@@ -490,7 +490,7 @@ int setup_entry_trans(struct dcp_model *x)
     struct imm_state *B = &x->xnode.alt.B.super;
     for (unsigned i = 0; i < x->core_size; ++i)
     {
-      struct node *node = x->alt.nodes + i;
+      struct dcp_model_node *node = x->alt.nodes + i;
       x->BMk[i] = x->alt.locc[i];
       if (imm_hmm_set_trans(&x->alt.hmm, B, &node->M.super, x->alt.locc[i]))
         return DCP_ESETTRANS;
@@ -505,13 +505,13 @@ int setup_exit_trans(struct dcp_model *x)
 
   for (unsigned i = 0; i < x->core_size; ++i)
   {
-    struct node *node = x->alt.nodes + i;
+    struct dcp_model_node *node = x->alt.nodes + i;
     if (imm_hmm_set_trans(&x->alt.hmm, &node->M.super, E, log(1)))
       return DCP_ESETTRANS;
   }
   for (unsigned i = 1; i < x->core_size; ++i)
   {
-    struct node *node = x->alt.nodes + i;
+    struct dcp_model_node *node = x->alt.nodes + i;
     if (imm_hmm_set_trans(&x->alt.hmm, &node->D.super, E, log(1)))
       return DCP_ESETTRANS;
   }
@@ -529,8 +529,8 @@ int setup_transitions(struct dcp_model *x)
 
   for (unsigned i = 0; i + 1 < x->core_size; ++i)
   {
-    struct node *p = x->alt.nodes + i;
-    struct node *n = x->alt.nodes + i + 1;
+    struct dcp_model_node *p = x->alt.nodes + i;
+    struct dcp_model_node *n = x->alt.nodes + i + 1;
     unsigned j = i + 1;
     struct dcp_trans t = trans[j];
     if (imm_hmm_set_trans(h, &p->M.super, &p->I.super, t.MI))

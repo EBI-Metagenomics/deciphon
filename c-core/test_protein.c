@@ -33,7 +33,7 @@ static void test_protein_uniform(void)
       .epsilon = 0.1,
   };
 
-  struct p7 p7 = {0};
+  struct dcp_protein p7 = {0};
   p7_init(&p7, params);
   p7_set_accession(&p7, "accession");
   eq(p7_sample(&p7, 1, 2), 0);
@@ -115,7 +115,7 @@ static void test_protein_occupancy(void)
       .epsilon = 0.1,
   };
 
-  struct p7 p7 = {0};
+  struct dcp_protein p7 = {0};
   p7_init(&p7, params);
   p7_set_accession(&p7, "accession");
   eq(p7_sample(&p7, 1, 2), 0);

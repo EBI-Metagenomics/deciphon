@@ -186,7 +186,7 @@ defer:
   return rc;
 }
 
-int dcp_db_writer_pack(struct dcp_db_writer *x, struct p7 const *p7)
+int dcp_db_writer_pack(struct dcp_db_writer *x, struct dcp_protein const *p7)
 {
   int rc = 0;
 

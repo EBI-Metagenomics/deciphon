@@ -23,7 +23,7 @@ int dcp_protein_iter_rewind(struct dcp_protein_iter *x)
   return dcp_fs_seek(x->fp, x->offset, SEEK_SET);
 }
 
-int dcp_protein_iter_next(struct dcp_protein_iter *x, struct p7 *p7)
+int dcp_protein_iter_next(struct dcp_protein_iter *x, struct dcp_protein *p7)
 {
   x->curr_idx += 1;
   if (dcp_protein_iter_end(x)) return 0;

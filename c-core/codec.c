@@ -3,7 +3,7 @@
 #include "p7.h"
 #include "state.h"
 
-struct dcp_codec dcp_codec_init(struct p7 const *protein,
+struct dcp_codec dcp_codec_init(struct dcp_protein const *protein,
                                 struct imm_path const *path)
 {
   return (struct dcp_codec){0, 0, protein, path};

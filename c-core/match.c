@@ -3,7 +3,7 @@
 #include "state.h"
 #include <string.h>
 
-void dcp_match_init(struct dcp_match *x, struct p7 const *protein)
+void dcp_match_init(struct dcp_match *x, struct dcp_protein const *protein)
 {
   x->protein = protein;
 }

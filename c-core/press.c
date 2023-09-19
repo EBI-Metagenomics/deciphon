@@ -26,7 +26,7 @@ struct dcp_press
   } reader;
 
   unsigned count;
-  struct p7 p7;
+  struct dcp_protein p7;
   struct imm_nuclt_code code;
   struct dcp_model_params params;
   char buffer[4 * 1024];
@@ -159,7 +159,7 @@ static int protein_write(struct dcp_press *x)
   int rc = p7_absorb(&x->p7, &x->reader.h3.model);
   if (rc) return rc;
 
-  size_t n = array_size_field(struct p7, accession);
+  size_t n = array_size_field(struct dcp_protein, accession);
   if (!strkcpy(x->p7.accession, x->reader.h3.protein.meta.acc, n))
     return DCP_EFORMAT;
 

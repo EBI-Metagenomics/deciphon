@@ -9,11 +9,11 @@
 struct dcp_scan_thrd;
 struct imm_eseq;
 struct imm_prod;
-struct p7;
+struct dcp_protein;
 
-float dcp_vit_null(struct p7 *, struct imm_eseq const *);
-int dcp_vit(struct p7 *, struct imm_eseq const *, struct dcp_viterbi_task *);
-void dcp_vit_dump(struct p7 *, FILE *restrict);
-void dcp_vit_dump_dot(struct p7 *, FILE *restrict);
+float dcp_vit_null(struct dcp_protein *, struct imm_eseq const *);
+int dcp_vit(struct dcp_protein *, struct imm_eseq const *, struct dcp_viterbi_task *);
+void dcp_vit_dump(struct dcp_protein *, FILE *restrict);
+void dcp_vit_dump_dot(struct dcp_protein *, FILE *restrict);
 
 #endif

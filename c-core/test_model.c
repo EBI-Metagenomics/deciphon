@@ -51,7 +51,7 @@ int main(void)
   eq(dcp_model_add_trans(&model, t[2]), 0);
   eq(dcp_model_add_trans(&model, t[3]), 0);
 
-  struct p7 protein = {};
+  struct dcp_protein protein = {};
   p7_init(&protein, params);
   eq(p7_set_accession(&protein, "accession"), 0);
 

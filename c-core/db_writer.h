@@ -29,11 +29,11 @@ struct dcp_db_writer
 };
 
 struct dcp_protein;
-struct p7;
+struct dcp_protein;
 
 void dcp_db_writer_init(struct dcp_db_writer *, struct dcp_model_params);
 int dcp_db_writer_open(struct dcp_db_writer *, FILE *);
-int dcp_db_writer_pack(struct dcp_db_writer *, struct p7 const *);
+int dcp_db_writer_pack(struct dcp_db_writer *, struct dcp_protein const *);
 int dcp_db_writer_close(struct dcp_db_writer *);
 
 #endif

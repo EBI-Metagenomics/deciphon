@@ -8,7 +8,7 @@
 #undef I
 #endif
 
-struct node
+struct dcp_model_node
 {
   union
   {
