@@ -71,7 +71,7 @@ static int pack_header(struct dcp_db_writer *db)
   struct lip_file *stream = &db->file;
 
   if ((rc = write_key(stream, "header"))) return rc;
-  if ((rc = write_mapsize(stream, db->header_size))) return rc;
+  if ((rc = write_mapsize(stream, 6))) return rc;
 
   FILE *src = lip_file_ptr(&db->tmp.header);
   FILE *dst = lip_file_ptr(stream);
@@ -110,7 +110,6 @@ defer:
 void dcp_db_writer_init(struct dcp_db_writer *x, struct dcp_model_params params)
 {
   x->nproteins = 0;
-  x->header_size = 0;
   x->params = params;
 }
 
@@ -122,10 +121,9 @@ int dcp_db_writer_open(struct dcp_db_writer *x, FILE *restrict fp)
   lip_file_init(&x->file, fp);
   if ((rc = create_tempfiles(x))) return rc;
 
+  // the last header field is protein_sizes written when the file is closed
   struct dcp_model_params *p = &x->params;
   struct lip_file *stream = &x->tmp.header;
-  // the last header field is protein_sizes written when the file is closed
-  x->header_size = 6;
 
   if ((rc = write_key(stream, "magic_number"))) defer_return(rc);
   if ((rc = write_int(stream, MAGIC_NUMBER))) defer_return(rc);
