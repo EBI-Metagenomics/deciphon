@@ -4,7 +4,7 @@
 #include "defer_return.h"
 #include "fs.h"
 #include "hmm_reader.h"
-#include "p7.h"
+#include "protein.h"
 #include "rc.h"
 #include "sizeof_field.h"
 #include "strkcpy.h"
@@ -26,7 +26,7 @@ struct dcp_press
   } reader;
 
   unsigned count;
-  struct dcp_protein p7;
+  struct dcp_protein protein;
   struct imm_nuclt_code code;
   struct dcp_model_params params;
   char buffer[4 * 1024];
@@ -75,10 +75,10 @@ int dcp_press_open(struct dcp_press *x, char const *hmm, char const *db)
 
   dcp_hmm_reader_init(&x->reader.h3, x->params, x->reader.fp);
 
-  p7_init(&x->p7, x->params);
+  protein_init(&x->protein, x->params);
 
   char const *acc = x->reader.h3.protein.meta.acc;
-  if ((rc = p7_set_accession(&x->p7, acc))) defer_return(rc);
+  if ((rc = protein_set_accession(&x->protein, acc))) defer_return(rc);
 
   return rc;
 
@@ -133,7 +133,7 @@ int dcp_press_close(struct dcp_press *press)
   int rc_w = finish_writer(press);
   press->writer.fp = NULL;
   press->reader.fp = NULL;
-  p7_cleanup(&press->p7);
+  protein_cleanup(&press->protein);
   dcp_hmm_reader_cleanup(&press->reader.h3);
   return rc_r ? rc_r : (rc_w ? rc_w : 0);
 }
@@ -156,12 +156,12 @@ defer:
 
 static int protein_write(struct dcp_press *x)
 {
-  int rc = p7_absorb(&x->p7, &x->reader.h3.model);
+  int rc = protein_absorb(&x->protein, &x->reader.h3.model);
   if (rc) return rc;
 
   size_t n = array_size_field(struct dcp_protein, accession);
-  if (!strkcpy(x->p7.accession, x->reader.h3.protein.meta.acc, n))
+  if (!strkcpy(x->protein.accession, x->reader.h3.protein.meta.acc, n))
     return DCP_EFORMAT;
 
-  return dcp_db_writer_pack(&x->writer.db, &x->p7);
+  return dcp_db_writer_pack(&x->writer.db, &x->protein);
 }

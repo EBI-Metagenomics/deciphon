@@ -1,7 +1,7 @@
 #include "protein_iter.h"
 #include "db_reader.h"
 #include "fs.h"
-#include "p7.h"
+#include "protein.h"
 #include "protein_reader.h"
 
 void dcp_protein_iter_init(struct dcp_protein_iter *x,
@@ -23,12 +23,12 @@ int dcp_protein_iter_rewind(struct dcp_protein_iter *x)
   return dcp_fs_seek(x->fp, x->offset, SEEK_SET);
 }
 
-int dcp_protein_iter_next(struct dcp_protein_iter *x, struct dcp_protein *p7)
+int dcp_protein_iter_next(struct dcp_protein_iter *x, struct dcp_protein *protein)
 {
   x->curr_idx += 1;
   if (dcp_protein_iter_end(x)) return 0;
 
-  int rc = p7_unpack(p7, &x->file);
+  int rc = protein_unpack(protein, &x->file);
   if (rc) return rc;
 
   long offset = 0;

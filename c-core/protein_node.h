@@ -1,5 +1,5 @@
-#ifndef DECIPHON_P7_NODE_H
-#define DECIPHON_P7_NODE_H
+#ifndef DECIPHON_PROTEIN_NODE_H
+#define DECIPHON_PROTEIN_NODE_H
 
 #include "imm/imm.h"
 #include "nuclt_dist.h"
@@ -12,11 +12,11 @@ struct dcp_protein_node
   float *emission;
 };
 
-void p7_node_absorb_emission(struct dcp_protein_node *, float *emission,
+void protein_node_absorb_emission(struct dcp_protein_node *, float *emission,
                              struct dcp_nuclt_dist const *,
                              struct imm_score_table *,
                              struct imm_state const *);
-void p7_node_absorb_transition(struct dcp_protein_node *,
+void protein_node_absorb_transition(struct dcp_protein_node *,
                                struct dcp_trans const *);
 
 #endif

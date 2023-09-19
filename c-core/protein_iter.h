@@ -2,7 +2,7 @@
 #define DECIPHON_PROTEIN_ITER_H
 
 #include "lip/lip.h"
-#include "p7.h"
+#include "protein.h"
 #include <stdbool.h>
 
 struct dcp_protein_reader;

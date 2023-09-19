@@ -5,7 +5,7 @@
 #include "defer_return.h"
 #include "find.h"
 #include "imm/imm.h"
-#include "p7.h"
+#include "protein.h"
 #include "reduce.h"
 #include "scan_thrd.h"
 #include "viterbi_task.h"
@@ -95,7 +95,7 @@ DCP_INLINE void fetch_emission(float x[restrict], float emission[restrict],
 
 DCP_CONST float *match_next(float *restrict match)
 {
-  return match + P7_NODE_SIZE;
+  return match + PROTEIN_NODE_SIZE;
 }
 
 DCP_INLINE void update_trellis(struct imm_trellis *t, int const src[restrict],
@@ -700,7 +700,7 @@ void dcp_vit_dump(struct dcp_protein *x, FILE *restrict fp)
   float const *restrict emis_N = null_emission;
   float const *restrict emis_J = null_emission;
   float const *restrict emis_C = null_emission;
-  size_t bg_size = array_size_field(struct p7_background, emission);
+  size_t bg_size = array_size_field(struct protein_background, emission);
 
   fprintf(fp, "I*: ");
   imm_dump_array_f32(bg_size, emis_I, fp);
@@ -723,7 +723,7 @@ void dcp_vit_dump(struct dcp_protein *x, FILE *restrict fp)
     float const *match_emission = x->nodes[k].emission;
 
     fprintf(fp, "M%d: ", k + 1);
-    size_t n = P7_NODE_SIZE;
+    size_t n = PROTEIN_NODE_SIZE;
     imm_dump_array_f32(n, match_emission, fp);
     fputc('\n', fp);
   }

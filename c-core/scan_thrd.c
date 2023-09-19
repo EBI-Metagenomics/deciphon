@@ -24,7 +24,7 @@ int dcp_scan_thrd_setup(struct dcp_scan_thrd *x,
                         struct dcp_scan_thrd_params params)
 {
   struct dcp_db_reader const *db = params.reader->db;
-  p7_init(&x->p7, dcp_db_reader_params(db, NULL));
+  protein_init(&x->protein, dcp_db_reader_params(db, NULL));
   int rc = 0;
 
   if ((rc = dcp_protein_reader_iter(params.reader, params.partition, &x->iter)))
@@ -51,7 +51,7 @@ int dcp_scan_thrd_setup(struct dcp_scan_thrd *x,
   return rc;
 
 defer:
-  p7_cleanup(&x->p7);
+  protein_cleanup(&x->protein);
   dcp_chararray_cleanup(&x->amino);
   return rc;
 }
@@ -75,14 +75,15 @@ int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct dcp_seq const *seq)
 
   if ((rc = dcp_protein_iter_rewind(it))) goto cleanup;
 
-  while (!(rc = dcp_protein_iter_next(it, &x->p7)))
+  while (!(rc = dcp_protein_iter_next(it, &x->protein)))
   {
     if (dcp_protein_iter_end(it)) break;
 
-    p7_setup(&x->p7, dcp_seq_size(seq), x->multi_hits, x->hmmer3_compat);
+    protein_setup(&x->protein, dcp_seq_size(seq), x->multi_hits,
+                  x->hmmer3_compat);
 
-    float fast_null = dcp_vit_null(&x->p7, &seq->imm_eseq);
-    if ((rc = dcp_vit(&x->p7, &seq->imm_eseq, &x->task))) goto cleanup;
+    float fast_null = dcp_vit_null(&x->protein, &seq->imm_eseq);
+    if ((rc = dcp_vit(&x->protein, &seq->imm_eseq, &x->task))) goto cleanup;
 
     x->prod_thrd->match.null = fast_null;
     x->prod_thrd->match.alt = x->task.score;
@@ -90,10 +91,10 @@ int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct dcp_seq const *seq)
     float lrt = dcp_prod_match_get_lrt(&x->prod_thrd->match);
     if (!imm_lprob_is_finite(lrt) || lrt < x->lrt_threshold) continue;
 
-    dcp_prod_match_set_protein(&x->prod_thrd->match, x->p7.accession);
+    dcp_prod_match_set_protein(&x->prod_thrd->match, x->protein.accession);
 
     struct dcp_match match = {0};
-    dcp_match_init(&match, &x->p7);
+    dcp_match_init(&match, &x->protein);
 
     struct dcp_match_iter mit = {0};
 
@@ -116,7 +117,7 @@ int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct dcp_seq const *seq)
   }
 
 cleanup:
-  p7_cleanup(&x->p7);
+  protein_cleanup(&x->protein);
   return rc;
 }
 

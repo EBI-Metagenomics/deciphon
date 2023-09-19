@@ -1,5 +1,5 @@
 #include "deciphon/codec.h"
-#include "deciphon/p7.h"
+#include "deciphon/protein.h"
 #include "deciphon/vit.h"
 #include "imm/imm.h"
 #include "vendor/minctest.h"
@@ -33,19 +33,19 @@ static void test_protein_uniform(void)
       .epsilon = 0.1,
   };
 
-  struct dcp_protein p7 = {0};
-  p7_init(&p7, params);
-  p7_set_accession(&p7, "accession");
-  eq(p7_sample(&p7, 1, 2), 0);
+  struct dcp_protein protein = {0};
+  protein_init(&protein, params);
+  protein_set_accession(&protein, "accession");
+  eq(protein_sample(&protein, 1, 2), 0);
 
   char const str[] = "ATGAAACGCATTAGCACCACCATTACCACCAC";
   struct imm_seq seq = imm_seq(IMM_STR(str), &nuclt->super);
 
-  p7_setup(&p7, imm_seq_size(&seq), true, false);
+  protein_setup(&protein, imm_seq_size(&seq), true, false);
 
   eq(imm_eseq_setup(&eseq, &seq), 0);
 
-  close(dcp_vit_null(&p7, &eseq), -48.9272687711);
+  close(dcp_vit_null(&protein, &eseq), -48.9272687711);
 
   char name[IMM_STATE_NAME_SIZE];
 
@@ -53,7 +53,7 @@ static void test_protein_uniform(void)
 
   struct dcp_viterbi_task task = {};
   dcp_viterbi_task_init(&task);
-  close(dcp_vit(&p7, &eseq, &task), 0);
+  close(dcp_vit(&protein, &eseq, &task), 0);
   close(task.score, -55.59428153448);
 
   eq(imm_path_nsteps(&task.path), 14U);
@@ -68,7 +68,7 @@ static void test_protein_uniform(void)
   dcp_state_name(imm_path_step(&task.path, 13)->state_id, name);
   cmp(name, "T");
 
-  struct dcp_codec codec = dcp_codec_init(&p7, &task.path);
+  struct dcp_codec codec = dcp_codec_init(&protein, &task.path);
   int rc = 0;
 
   struct imm_codon codons[10] = {
@@ -94,7 +94,7 @@ static void test_protein_uniform(void)
 
   imm_eseq_cleanup(&eseq);
   dcp_viterbi_task_cleanup(&task);
-  p7_cleanup(&p7);
+  protein_cleanup(&protein);
 }
 
 static void test_protein_occupancy(void)
@@ -115,19 +115,19 @@ static void test_protein_occupancy(void)
       .epsilon = 0.1,
   };
 
-  struct dcp_protein p7 = {0};
-  p7_init(&p7, params);
-  p7_set_accession(&p7, "accession");
-  eq(p7_sample(&p7, 1, 2), 0);
+  struct dcp_protein protein = {0};
+  protein_init(&protein, params);
+  protein_set_accession(&protein, "accession");
+  eq(protein_sample(&protein, 1, 2), 0);
 
   char const str[] = "ATGAAACGCATTAGCACCACCATTACCACCAC";
   struct imm_seq seq = imm_seq(imm_str(str), &nuclt->super);
 
-  p7_setup(&p7, imm_seq_size(&seq), true, false);
+  protein_setup(&protein, imm_seq_size(&seq), true, false);
 
   eq(imm_eseq_setup(&eseq, &seq), 0);
 
-  close(dcp_vit_null(&p7, &eseq), -48.9272687711);
+  close(dcp_vit_null(&protein, &eseq), -48.9272687711);
 
   char name[IMM_STATE_NAME_SIZE];
 
@@ -135,7 +135,7 @@ static void test_protein_occupancy(void)
 
   struct dcp_viterbi_task task = {};
   dcp_viterbi_task_init(&task);
-  close(dcp_vit(&p7, &eseq, &task), 0);
+  close(dcp_vit(&protein, &eseq, &task), 0);
   close(task.score, -54.35543421312);
 
   eq(imm_path_nsteps(&task.path), 14U);
@@ -150,7 +150,7 @@ static void test_protein_occupancy(void)
   dcp_state_name(imm_path_step(&task.path, 13)->state_id, name);
   cmp(name, "T");
 
-  struct dcp_codec codec = dcp_codec_init(&p7, &task.path);
+  struct dcp_codec codec = dcp_codec_init(&protein, &task.path);
   int rc = 0;
 
   struct imm_codon codons[10] = {
@@ -176,5 +176,5 @@ static void test_protein_occupancy(void)
 
   imm_eseq_cleanup(&eseq);
   dcp_viterbi_task_cleanup(&task);
-  p7_cleanup(&p7);
+  protein_cleanup(&protein);
 }

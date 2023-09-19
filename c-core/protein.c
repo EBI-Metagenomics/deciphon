@@ -1,4 +1,4 @@
-#include "p7.h"
+#include "protein.h"
 #include "array_size_field.h"
 #include "defer_return.h"
 #include "expect.h"
@@ -6,13 +6,13 @@
 #include "lip/file/file.h"
 #include "lip/lip.h"
 #include "model.h"
-#include "p7_background.h"
+#include "protein_background.h"
 #include "state.h"
 #include "strlcpy.h"
 #include <stdlib.h>
 #include <string.h>
 
-void p7_init(struct dcp_protein *x, struct dcp_model_params params)
+void protein_init(struct dcp_protein *x, struct dcp_model_params params)
 {
   x->params = params;
 
@@ -26,22 +26,22 @@ void p7_init(struct dcp_protein *x, struct dcp_model_params params)
 
   x->start_lprob = IMM_LPROB_ONE;
   x->core_size = 0;
-  p7_null_init(&x->null);
-  p7_background_init(&x->bg);
+  protein_null_init(&x->null);
+  protein_background_init(&x->bg);
   x->nodes = NULL;
   x->nodes_emission = NULL;
   dcp_xtrans_init(&x->xtrans);
   x->BMk = NULL;
 }
 
-int p7_set_accession(struct dcp_protein *x, char const *acc)
+int protein_set_accession(struct dcp_protein *x, char const *acc)
 {
   size_t n = array_size_field(struct dcp_protein, accession);
   return dcp_strlcpy(x->accession, acc, n) < n ? 0 : DCP_ELONGACC;
 }
 
-void p7_setup(struct dcp_protein *x, unsigned seq_size, bool multi_hits,
-              bool hmmer3_compat)
+void protein_setup(struct dcp_protein *x, unsigned seq_size, bool multi_hits,
+                   bool hmmer3_compat)
 {
   assert(seq_size > 0);
 
@@ -73,13 +73,13 @@ void p7_setup(struct dcp_protein *x, unsigned seq_size, bool multi_hits,
     t.NN = t.CC = t.JJ = log(1);
   }
 
-  p7_null_setup(&x->null, &t);
+  protein_null_setup(&x->null, &t);
   x->xtrans = t;
 }
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-int p7_absorb(struct dcp_protein *x, struct dcp_model *m)
+int protein_absorb(struct dcp_protein *x, struct dcp_model *m)
 {
   int rc = 0;
 
@@ -94,22 +94,23 @@ int p7_absorb(struct dcp_protein *x, struct dcp_model *m)
 
   x->start_lprob = IMM_LPROB_ONE;
   unsigned core_size = x->core_size = m->core_size;
-  p7_null_absorb(&x->null, &x->score_table, &m->null.nuclt_dist,
-                 &m->null.state.super);
-  p7_background_absorb(&x->bg, m, &x->score_table);
+  protein_null_absorb(&x->null, &x->score_table, &m->null.nuclt_dist,
+                      &m->null.state.super);
+  protein_background_absorb(&x->bg, m, &x->score_table);
 
   void *ptr = realloc(x->nodes, (core_size + 1) * sizeof(*x->nodes));
   if (!ptr) defer_return(DCP_ENOMEM);
   x->nodes = ptr;
 
-  ptr = realloc(x->nodes_emission,
-                (core_size + 1) * sizeof(*x->nodes_emission) * P7_NODE_SIZE);
+  ptr =
+      realloc(x->nodes_emission,
+              (core_size + 1) * sizeof(*x->nodes_emission) * PROTEIN_NODE_SIZE);
   if (!ptr) defer_return(DCP_ENOMEM);
   x->nodes_emission = ptr;
 
   for (unsigned i = 0; i <= core_size; ++i)
   {
-    float *e = x->nodes_emission + i * P7_NODE_SIZE;
+    float *e = x->nodes_emission + i * PROTEIN_NODE_SIZE;
     struct dcp_model_node const *n = &m->alt.nodes[MIN(i, core_size - 1)];
     imm_score_table_scores(&x->score_table, &n->match.state.super, e);
     x->nodes[i].nuclt_dist = n->match.nucltd;
@@ -134,7 +135,7 @@ defer:
   return rc;
 }
 
-int p7_sample(struct dcp_protein *x, unsigned seed, unsigned core_size)
+int protein_sample(struct dcp_protein *x, unsigned seed, unsigned core_size)
 {
   assert(core_size >= 2);
   if (!x->params.gencode) return DCP_ESETGENCODE;
@@ -175,14 +176,14 @@ int p7_sample(struct dcp_protein *x, unsigned seed, unsigned core_size)
     if ((rc = dcp_model_add_trans(&model, t))) goto cleanup;
   }
 
-  rc = p7_absorb(x, &model);
+  rc = protein_absorb(x, &model);
 
 cleanup:
   dcp_model_cleanup(&model);
   return rc;
 }
 
-void p7_cleanup(struct dcp_protein *x)
+void protein_cleanup(struct dcp_protein *x)
 {
   if (x)
   {
@@ -196,9 +197,9 @@ void p7_cleanup(struct dcp_protein *x)
   }
 }
 
-void p7_dump(struct dcp_protein const *x, FILE *restrict fp)
+void protein_dump(struct dcp_protein const *x, FILE *restrict fp)
 {
-  fprintf(fp, "# p7\n");
+  fprintf(fp, "# protein\n");
   fprintf(fp, "entry_dist: %d\n", x->params.entry_dist);
   fprintf(fp, "epsilon: %f\n", x->params.epsilon);
   fprintf(fp, "core_size: %d\n", x->core_size);
@@ -208,12 +209,12 @@ void p7_dump(struct dcp_protein const *x, FILE *restrict fp)
   fprintf(fp, "RR: %f\n", x->null.RR);
   fprintf(fp, "RG: %f\n", 0.);
   fprintf(fp, "emis: ");
-  imm_dump_array_f32(P7_NODE_SIZE, x->null.emission, fp);
+  imm_dump_array_f32(PROTEIN_NODE_SIZE, x->null.emission, fp);
   fprintf(fp, "\n\n");
 
   fprintf(fp, "## bg\n");
   fprintf(fp, "emis: ");
-  imm_dump_array_f32(P7_NODE_SIZE, x->bg.emission, fp);
+  imm_dump_array_f32(PROTEIN_NODE_SIZE, x->bg.emission, fp);
   fprintf(fp, "\n\n");
 
   fprintf(fp, "## nodes\n");
@@ -231,7 +232,7 @@ void p7_dump(struct dcp_protein const *x, FILE *restrict fp)
     fputc('\n', fp);
 
     fprintf(fp, "emis: ");
-    imm_dump_array_f32(P7_NODE_SIZE, x->nodes[i].emission, fp);
+    imm_dump_array_f32(PROTEIN_NODE_SIZE, x->nodes[i].emission, fp);
     fputc('\n', fp);
   }
 
@@ -246,7 +247,7 @@ void p7_dump(struct dcp_protein const *x, FILE *restrict fp)
   fputc('\n', fp);
 }
 
-int p7_pack(struct dcp_protein const *x, struct lip_file *file)
+int protein_pack(struct dcp_protein const *x, struct lip_file *file)
 {
   int rc = 0;
 
@@ -268,18 +269,18 @@ int p7_pack(struct dcp_protein const *x, struct lip_file *file)
   if ((rc = dcp_nuclt_dist_pack(&x->null.nuclt_dist, file))) return rc;
 
   if (!lip_write_cstr(file, "null_emission")) return DCP_EFWRITE;
-  if (!lip_write_1darray_size_type(file, P7_NODE_SIZE, LIP_1DARRAY_F32))
+  if (!lip_write_1darray_size_type(file, PROTEIN_NODE_SIZE, LIP_1DARRAY_F32))
     return DCP_EFWRITE;
-  if (!lip_write_1darray_float_data(file, P7_NODE_SIZE, x->null.emission))
+  if (!lip_write_1darray_float_data(file, PROTEIN_NODE_SIZE, x->null.emission))
     return DCP_EFWRITE;
 
   if (!lip_write_cstr(file, "bg_nuclt_dist")) return DCP_EFWRITE;
   if ((rc = dcp_nuclt_dist_pack(&x->bg.nuclt_dist, file))) return rc;
 
   if (!lip_write_cstr(file, "bg_emission")) return DCP_EFWRITE;
-  if (!lip_write_1darray_size_type(file, P7_NODE_SIZE, LIP_1DARRAY_F32))
+  if (!lip_write_1darray_size_type(file, PROTEIN_NODE_SIZE, LIP_1DARRAY_F32))
     return DCP_EFWRITE;
-  if (!lip_write_1darray_float_data(file, P7_NODE_SIZE, x->bg.emission))
+  if (!lip_write_1darray_float_data(file, PROTEIN_NODE_SIZE, x->bg.emission))
     return DCP_EFWRITE;
 
   if (!lip_write_cstr(file, "nodes")) return DCP_EFWRITE;
@@ -296,9 +297,10 @@ int p7_pack(struct dcp_protein const *x, struct lip_file *file)
       return DCP_EFWRITE;
 
     if (!lip_write_cstr(file, "emission")) return DCP_EFWRITE;
-    if (!lip_write_1darray_size_type(file, P7_NODE_SIZE, LIP_1DARRAY_F32))
+    if (!lip_write_1darray_size_type(file, PROTEIN_NODE_SIZE, LIP_1DARRAY_F32))
       return DCP_EFWRITE;
-    if (!lip_write_1darray_float_data(file, P7_NODE_SIZE, x->nodes[i].emission))
+    if (!lip_write_1darray_float_data(file, PROTEIN_NODE_SIZE,
+                                      x->nodes[i].emission))
       return DCP_EFWRITE;
   }
 
@@ -311,7 +313,7 @@ int p7_pack(struct dcp_protein const *x, struct lip_file *file)
   return 0;
 }
 
-int p7_unpack(struct dcp_protein *x, struct lip_file *file)
+int protein_unpack(struct dcp_protein *x, struct lip_file *file)
 {
   unsigned const accession_size =
       array_size_field(struct dcp_protein, accession);
@@ -344,8 +346,8 @@ int p7_unpack(struct dcp_protein *x, struct lip_file *file)
   if ((rc = dcp_expect_map_key(file, "null_emission"))) return rc;
   lip_read_1darray_size_type(file, &size, &type);
   if (type != LIP_1DARRAY_F32) return rc;
-  if (size != P7_NODE_SIZE) return DCP_EFREAD;
-  if (!lip_read_1darray_float_data(file, P7_NODE_SIZE, x->null.emission))
+  if (size != PROTEIN_NODE_SIZE) return DCP_EFREAD;
+  if (!lip_read_1darray_float_data(file, PROTEIN_NODE_SIZE, x->null.emission))
     return DCP_EFWRITE;
 
   if ((rc = dcp_expect_map_key(file, "bg_nuclt_dist"))) return rc;
@@ -354,16 +356,17 @@ int p7_unpack(struct dcp_protein *x, struct lip_file *file)
   if ((rc = dcp_expect_map_key(file, "bg_emission"))) return rc;
   lip_read_1darray_size_type(file, &size, &type);
   if (type != LIP_1DARRAY_F32) return rc;
-  if (size != P7_NODE_SIZE) return DCP_EFREAD;
-  if (!lip_read_1darray_float_data(file, P7_NODE_SIZE, x->bg.emission))
+  if (size != PROTEIN_NODE_SIZE) return DCP_EFREAD;
+  if (!lip_read_1darray_float_data(file, PROTEIN_NODE_SIZE, x->bg.emission))
     return DCP_EFWRITE;
 
   void *ptr = realloc(x->nodes, (x->core_size + 1) * sizeof(*x->nodes));
   if (!ptr) return DCP_EFWRITE;
   x->nodes = ptr;
 
-  ptr = realloc(x->nodes_emission,
-                (x->core_size + 1) * sizeof(*x->nodes_emission) * P7_NODE_SIZE);
+  ptr = realloc(x->nodes_emission, (x->core_size + 1) *
+                                       sizeof(*x->nodes_emission) *
+                                       PROTEIN_NODE_SIZE);
   if (!ptr) return DCP_EFWRITE;
   x->nodes_emission = ptr;
 
@@ -381,13 +384,14 @@ int p7_unpack(struct dcp_protein *x, struct lip_file *file)
     if (!lip_read_1darray_float_data(file, TRANS_SIZE, x->nodes[i].trans.data))
       return DCP_EFWRITE;
 
-    float *emission = x->nodes_emission + i * P7_NODE_SIZE;
+    float *emission = x->nodes_emission + i * PROTEIN_NODE_SIZE;
     x->nodes[i].emission = emission;
     if ((rc = dcp_expect_map_key(file, "emission"))) return rc;
     lip_read_1darray_size_type(file, &size, &type);
     if (type != LIP_1DARRAY_F32) return rc;
-    if (size != P7_NODE_SIZE) return DCP_EFREAD;
-    if (!lip_read_1darray_float_data(file, P7_NODE_SIZE, x->nodes[i].emission))
+    if (size != PROTEIN_NODE_SIZE) return DCP_EFREAD;
+    if (!lip_read_1darray_float_data(file, PROTEIN_NODE_SIZE,
+                                     x->nodes[i].emission))
       return DCP_EFWRITE;
   }
 
@@ -405,8 +409,8 @@ int p7_unpack(struct dcp_protein *x, struct lip_file *file)
   return 0;
 }
 
-int p7_decode(struct dcp_protein const *x, struct imm_seq const *seq,
-              unsigned state_id, struct imm_codon *codon)
+int protein_decode(struct dcp_protein const *x, struct imm_seq const *seq,
+                   unsigned state_id, struct imm_codon *codon)
 {
   assert(!dcp_state_is_mute(state_id));
 
