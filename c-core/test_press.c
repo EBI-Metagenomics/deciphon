@@ -30,7 +30,7 @@ int main(void)
   eq(dcp_press_close(press), 0);
   dcp_press_del(press);
 
-  eq(filesize(DBFILE), 3536724);
+  eq(filesize(DBFILE), 3536712);
   remove(DBFILE);
 
   return lfails;

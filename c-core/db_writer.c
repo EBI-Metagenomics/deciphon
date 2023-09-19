@@ -75,24 +75,11 @@ defer:
   return rc;
 }
 
-static int db_writer_pack_magic_number(struct dcp_db_writer *db)
+static int pack_magic_number(struct dcp_db_writer *db)
 {
   if (!lip_write_cstr(&db->tmp.header, "magic_number")) return DCP_EFWRITE;
 
   if (!lip_write_int(&db->tmp.header, MAGIC_NUMBER)) return DCP_EFWRITE;
-
-  db->header_size++;
-  return 0;
-}
-
-static int db_writer_pack_float_size(struct dcp_db_writer *db)
-{
-  if (!lip_write_cstr(&db->tmp.header, "float_size")) return DCP_EFWRITE;
-
-  // unsigned size = IMM_FLOAT_BYTES;
-  unsigned size = 4;
-  assert(size == 4 || size == 8);
-  if (!lip_write_int(&db->tmp.header, size)) return DCP_EFWRITE;
 
   db->header_size++;
   return 0;
@@ -174,8 +161,7 @@ int dcp_db_writer_open(struct dcp_db_writer *x, FILE *restrict fp)
   if ((rc = create_tempfiles(x))) return rc;
 
   struct dcp_model_params *p = &x->params;
-  if ((rc = db_writer_pack_magic_number(x))) defer_return(rc);
-  if ((rc = db_writer_pack_float_size(x))) defer_return(rc);
+  if ((rc = pack_magic_number(x))) defer_return(rc);
   if ((rc = pack_entry_dist(&x->tmp.header, &p->entry_dist))) defer_return(rc);
   if ((rc = pack_epsilon(&x->tmp.header, &p->epsilon))) defer_return(rc);
   if ((rc = pack_nuclt(&x->tmp.header, p->code->nuclt))) defer_return(rc);
