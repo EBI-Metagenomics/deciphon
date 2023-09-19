@@ -222,28 +222,6 @@ struct imm_nuclt const *dcp_model_nuclt(struct dcp_model const *x)
   return x->params.code->nuclt;
 }
 
-struct dcp_model_summary dcp_model_summary(struct dcp_model *x)
-{
-  assert(have_finished_add(x));
-  return (struct dcp_model_summary){.null =
-                                        {
-                                            .hmm = &x->null.hmm,
-                                            .F = &x->xnode.null.F,
-                                            .R = &x->xnode.null.R,
-                                            .G = &x->xnode.null.G,
-                                        },
-                                    .alt = {
-                                        .hmm = &x->alt.hmm,
-                                        .S = &x->xnode.alt.S,
-                                        .N = &x->xnode.alt.N,
-                                        .B = &x->xnode.alt.B,
-                                        .E = &x->xnode.alt.E,
-                                        .J = &x->xnode.alt.J,
-                                        .C = &x->xnode.alt.C,
-                                        .T = &x->xnode.alt.T,
-                                    }};
-}
-
 int add_xnodes(struct dcp_model *x)
 {
   struct dcp_model_xnode *n = &x->xnode;

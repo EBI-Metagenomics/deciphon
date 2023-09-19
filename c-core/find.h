@@ -2,7 +2,6 @@
 #define DECIPHON_FIND_H
 
 #include "compiler.h"
-#include <math.h>
 
 DCP_CONST int find_fmax(int const size, float const x[restrict])
 {

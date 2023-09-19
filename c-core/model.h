@@ -5,7 +5,6 @@
 #include "imm/imm.h"
 #include "model_node.h"
 #include "model_params.h"
-#include "model_summary.h"
 #include "model_xnode.h"
 #include "nuclt_dist.h"
 #include "rc.h"
@@ -71,7 +70,5 @@ void dcp_model_init(struct dcp_model *, struct dcp_model_params params,
 int dcp_model_setup(struct dcp_model *, unsigned core_size);
 
 void dcp_model_write_dot(struct dcp_model const *, FILE *);
-
-struct dcp_model_summary dcp_model_summary(struct dcp_model *);
 
 #endif
