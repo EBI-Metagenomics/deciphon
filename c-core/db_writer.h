@@ -10,7 +10,6 @@
 struct dcp_db_writer
 {
   unsigned nproteins;
-  unsigned header_size;
   struct lip_file file;
   struct
   {
