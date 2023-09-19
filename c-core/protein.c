@@ -28,7 +28,7 @@ void protein_init(struct dcp_protein *x, struct dcp_model_params params)
   x->start_lprob = IMM_LPROB_ONE;
   x->core_size = 0;
   protein_null_init(&x->null);
-  protein_background_init(&x->bg);
+  dcp_protein_background_init(&x->bg);
   x->nodes = NULL;
   x->nodes_emission = NULL;
   dcp_xtrans_init(&x->xtrans);
@@ -97,7 +97,7 @@ int protein_absorb(struct dcp_protein *x, struct dcp_model *m)
   unsigned core_size = x->core_size = m->core_size;
   protein_null_absorb(&x->null, &x->score_table, &m->null.nuclt_dist,
                       &m->null.state.super);
-  protein_background_absorb(&x->bg, m, &x->score_table);
+  dcp_protein_background_absorb(&x->bg, m, &x->score_table);
 
   void *ptr = realloc(x->nodes, (core_size + 1) * sizeof(*x->nodes));
   if (!ptr) defer_return(DCP_ENOMEM);

@@ -23,7 +23,7 @@ struct dcp_protein
   float start_lprob;
   unsigned core_size;
   struct protein_null null;
-  struct protein_background bg;
+  struct dcp_protein_background bg;
   struct dcp_protein_node *nodes;
   float *nodes_emission;
   struct dcp_xtrans xtrans;

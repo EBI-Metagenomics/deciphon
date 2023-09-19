@@ -700,7 +700,7 @@ void dcp_vit_dump(struct dcp_protein *x, FILE *restrict fp)
   float const *restrict emis_N = null_emission;
   float const *restrict emis_J = null_emission;
   float const *restrict emis_C = null_emission;
-  size_t bg_size = array_size_field(struct protein_background, emission);
+  size_t bg_size = array_size_field(struct dcp_protein_background, emission);
 
   fprintf(fp, "I*: ");
   imm_dump_array_f32(bg_size, emis_I, fp);
