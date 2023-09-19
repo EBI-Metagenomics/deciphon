@@ -19,6 +19,12 @@
 #define DCP_HAS_ATTRIBUTE(x) (0)
 #endif
 
+#if DCP_HAS_BUILTIN(__builtin_prefetch)
+#define DCP_PREFETCH(addr, rw, locality) __builtin_prefetch(addr, rw, locality)
+#else
+#define DCP_PREFETCH(addr, rw, locality) (void)(0)
+#endif
+
 #if DCP_HAS_ATTRIBUTE(always_inline)
 #define DCP_INLINE static inline __attribute__((always_inline))
 #else
@@ -26,13 +32,13 @@
 #endif
 
 #if DCP_HAS_ATTRIBUTE(const)
-#define DCP_CONST __attribute__((const)) DCP_INLINE
+#define DCP_CONST DCP_INLINE __attribute__((const))
 #else
 #define DCP_CONST DCP_INLINE
 #endif
 
 #if DCP_HAS_ATTRIBUTE(pure)
-#define DCP_PURE __attribute__((pure))
+#define DCP_PURE DCP_INLINE __attribute__((pure))
 #else
 #define DCP_PURE DCP_INLINE
 #endif
