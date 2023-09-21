@@ -8,10 +8,11 @@ void dcp_viterbi_task_init(struct dcp_viterbi_task *x)
   x->dp = NULL;
   imm_trellis_init(&x->trellis);
   x->path = imm_path();
+  x->score = IMM_LPROB_NAN;
 }
 
 int dcp_viterbi_task_setup(struct dcp_viterbi_task *x, int core_size,
-                           int seq_size, bool nopath)
+                           int seq_size, bool const nopath)
 {
   int rc = 0;
   int dp_size = 3 * DCP_VITERBI_PAST_SIZE * core_size;

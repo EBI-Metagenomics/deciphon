@@ -1,14 +1,11 @@
 #ifndef DECIPHON_VITERNI_H
 #define DECIPHON_VITERNI_H
 
-#include "imm/imm.h"
 #include "viterbi_task.h"
 #include <stdbool.h>
 #include <stdio.h>
 
-struct dcp_scan_thrd;
 struct imm_eseq;
-struct imm_prod;
 struct dcp_protein;
 
 float dcp_viterbi_null(struct dcp_protein *, struct imm_eseq const *);

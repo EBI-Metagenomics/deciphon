@@ -4,7 +4,10 @@
 #include "imm/imm.h"
 #include <stdbool.h>
 
-#define DCP_VITERBI_PAST_SIZE 6
+enum
+{
+  DCP_VITERBI_PAST_SIZE = 6
+};
 
 struct dcp_viterbi_task
 {
@@ -23,7 +26,7 @@ struct dcp_viterbi_task
 
 void dcp_viterbi_task_init(struct dcp_viterbi_task *);
 int dcp_viterbi_task_setup(struct dcp_viterbi_task *, int core_size,
-                           int seq_size, bool nopath);
+                           int seq_size, bool const nopath);
 void dcp_viterbi_task_cleanup(struct dcp_viterbi_task *);
 
 #endif
