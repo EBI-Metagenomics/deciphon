@@ -5,7 +5,7 @@
 #include "hmmer.h"
 #include "protein.h"
 #include "protein_iter.h"
-#include "vit.h"
+#include "viterbi.h"
 #include <stdio.h>
 
 struct dcp_chararray;

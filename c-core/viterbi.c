@@ -1,4 +1,4 @@
-#include "vit.h"
+#include "viterbi.h"
 #include "array_size.h"
 #include "array_size_field.h"
 #include "compiler.h"
@@ -466,7 +466,7 @@ DCP_INLINE void make_future(float x[])
   memmove(&x[lukbak(1)], &x[lukbak(0)], sizeof(float) * (PAST_SIZE - 1));
 }
 
-float dcp_vit_null(struct dcp_protein *x, struct imm_eseq const *eseq)
+float dcp_viterbi_null(struct dcp_protein *x, struct imm_eseq const *eseq)
 {
   int seq_size = (int)imm_eseq_size(eseq);
 
@@ -595,8 +595,8 @@ DCP_INLINE void vit(struct dcp_protein *x, struct dcp_viterbi_task *task,
 static void unzip_path(struct imm_trellis *x, int core_size, unsigned seq_size,
                        struct imm_path *path);
 
-int dcp_vit(struct dcp_protein *x, struct imm_eseq const *eseq,
-            struct dcp_viterbi_task *task, bool const nopath)
+int dcp_viterbi(struct dcp_protein *x, struct imm_eseq const *eseq,
+                struct dcp_viterbi_task *task, bool const nopath)
 {
   int seq_size = (int)imm_eseq_size(eseq);
   int rc = dcp_viterbi_task_setup(task, x->core_size, seq_size, nopath);
@@ -646,7 +646,7 @@ static void unzip_path(struct imm_trellis *x, int core_size, unsigned seq_size,
   imm_path_reverse(path);
 }
 
-void dcp_vit_dump(struct dcp_protein *x, FILE *restrict fp)
+void dcp_viterbi_dump(struct dcp_protein *x, FILE *restrict fp)
 {
   int core_size = x->core_size;
 
@@ -709,7 +709,7 @@ void dcp_vit_dump(struct dcp_protein *x, FILE *restrict fp)
   }
 }
 
-void dcp_vit_dump_dot(struct dcp_protein *x, FILE *restrict fp)
+void dcp_viterbi_dump_dot(struct dcp_protein *x, FILE *restrict fp)
 {
   char const *f32f = imm_fmt_get_f32();
 

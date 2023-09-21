@@ -1,9 +1,8 @@
 #include "deciphon/codec.h"
 #include "deciphon/protein.h"
-#include "deciphon/vit.h"
+#include "deciphon/viterbi.h"
 #include "imm/imm.h"
 #include "vendor/minctest.h"
-#include "vit.h"
 
 static void test_protein_uniform(void);
 static void test_protein_occupancy(void);
@@ -45,7 +44,7 @@ static void test_protein_uniform(void)
 
   eq(imm_eseq_setup(&eseq, &seq), 0);
 
-  close(dcp_vit_null(&protein, &eseq), -48.9272687711);
+  close(dcp_viterbi_null(&protein, &eseq), -48.9272687711);
 
   char name[IMM_STATE_NAME_SIZE];
 
@@ -53,7 +52,7 @@ static void test_protein_uniform(void)
 
   struct dcp_viterbi_task task = {};
   dcp_viterbi_task_init(&task);
-  close(dcp_vit(&protein, &eseq, &task, false), 0);
+  close(dcp_viterbi(&protein, &eseq, &task, false), 0);
   close(task.score, -55.59428153448);
 
   eq(imm_path_nsteps(&task.path), 14U);
@@ -127,7 +126,7 @@ static void test_protein_occupancy(void)
 
   eq(imm_eseq_setup(&eseq, &seq), 0);
 
-  close(dcp_vit_null(&protein, &eseq), -48.9272687711);
+  close(dcp_viterbi_null(&protein, &eseq), -48.9272687711);
 
   char name[IMM_STATE_NAME_SIZE];
 
@@ -135,7 +134,7 @@ static void test_protein_occupancy(void)
 
   struct dcp_viterbi_task task = {};
   dcp_viterbi_task_init(&task);
-  close(dcp_vit(&protein, &eseq, &task, false), 0);
+  close(dcp_viterbi(&protein, &eseq, &task, false), 0);
   close(task.score, -54.35543421312);
 
   eq(imm_path_nsteps(&task.path), 14U);

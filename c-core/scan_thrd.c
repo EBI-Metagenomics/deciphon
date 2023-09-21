@@ -14,7 +14,7 @@
 #include "protein_reader.h"
 #include "seq.h"
 #include "seq_struct.h"
-#include "vit.h"
+#include "viterbi.h"
 
 void dcp_scan_thrd_init(struct dcp_scan_thrd *x)
 {
@@ -85,16 +85,16 @@ int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct dcp_seq const *seq)
     protein_setup(&x->protein, dcp_seq_size(seq), x->multi_hits,
                   x->hmmer3_compat);
 
-    x->prod_thrd->match.null = dcp_vit_null(&x->protein, &seq->imm_eseq);
+    x->prod_thrd->match.null = dcp_viterbi_null(&x->protein, &seq->imm_eseq);
 
-    if ((rc = dcp_vit(&x->protein, &seq->imm_eseq, &x->task, true)))
+    if ((rc = dcp_viterbi(&x->protein, &seq->imm_eseq, &x->task, true)))
       goto cleanup;
     x->prod_thrd->match.alt = x->task.score;
 
     float lrt = dcp_prod_match_get_lrt(&x->prod_thrd->match);
     if (!imm_lprob_is_finite(lrt) || lrt < x->lrt_threshold) continue;
 
-    if ((rc = dcp_vit(&x->protein, &seq->imm_eseq, &x->task, false)))
+    if ((rc = dcp_viterbi(&x->protein, &seq->imm_eseq, &x->task, false)))
       goto cleanup;
     assert(fabs(x->prod_thrd->match.alt - x->task.score) < 1e-7);
 
