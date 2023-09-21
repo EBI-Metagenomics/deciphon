@@ -29,12 +29,12 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
-# A modern CPU having SSE2 will likely have AVX.
+# A modern CPU having SSE2 will likely have AVX2.
 # Until Cmake team implements a check for AVX I
 # will leave it like that.
 cmake_host_system_information(RESULT HAS_AVX QUERY HAS_SSE2)
 if(HAS_AVX)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mavx")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mavx2")
 endif()
 
 file(GLOB DECIPHON_SOURCES "*.c")
