@@ -1,8 +1,9 @@
 #include "scan.h"
+#include "db_reader.h"
 #include "defer_return.h"
 #include "hmmer_dialer.h"
 #include "prod_writer.h"
-#include "scan_db.h"
+#include "protein_reader.h"
 #include "scan_thrd.h"
 #include "seq.h"
 #include "seq_iter.h"
@@ -15,7 +16,13 @@ struct dcp_scan
 
   struct dcp_scan_params params;
 
-  struct dcp_scan_db db;
+  struct
+  {
+    FILE *fp;
+    struct dcp_db_reader reader;
+    struct dcp_protein_reader protein;
+  } db;
+
   struct dcp_seq_iter seqit;
   struct dcp_hmmer_dialer dialer;
 };
@@ -25,7 +32,9 @@ struct dcp_scan *dcp_scan_new(void)
   struct dcp_scan *x = malloc(sizeof(*x));
   if (!x) return NULL;
   x->params = (struct dcp_scan_params){1, 0., true, false, false};
-  dcp_scan_db_init(&x->db);
+  x->db.fp = NULL;
+  dcp_db_reader_init(&x->db.reader);
+  dcp_protein_reader_init(&x->db.protein);
   dcp_prod_writer_init(&x->prod_writer);
   return x;
 }
@@ -61,15 +70,19 @@ int dcp_scan_run(struct dcp_scan *x, char const *dbfile, dcp_seq_next_fn *callb,
   for (int i = 0; i < nthreads(x); ++i)
     dcp_scan_thrd_init(x->threads + i);
 
-  if ((rc = dcp_scan_db_open(&x->db, dbfile, nthreads(x)))) defer_return(rc);
+  if (!(x->db.fp = fopen(dbfile, "rb"))) defer_return(DCP_EOPENDB);
+  if ((rc = dcp_db_reader_open(&x->db.reader, x->db.fp))) defer_return(rc);
+  if ((rc = dcp_protein_reader_setup(&x->db.protein, &x->db.reader,
+                                     nthreads(x))))
+    defer_return(rc);
 
-  dcp_seq_iter_init(&x->seqit, dcp_scan_code(&x->db), callb, userdata);
+  dcp_seq_iter_init(&x->seqit, &x->db.reader.code.super, callb, userdata);
 
   if ((rc = dcp_prod_writer_open(&x->prod_writer, nthreads(x), product_dir)))
     defer_return(rc);
 
   struct dcp_scan_thrd_params params = {
-      .reader = dcp_scan_db_reader(&x->db),
+      .reader = &x->db.protein,
       .partition = 0,
       .prod_thrd = NULL,
       .dialer = &x->dialer,
@@ -100,7 +113,12 @@ int dcp_scan_run(struct dcp_scan *x, char const *dbfile, dcp_seq_next_fn *callb,
 
 defer:
   dcp_seq_iter_cleanup((struct dcp_seq_iter *)&x->seqit);
-  dcp_scan_db_close(&x->db);
+  dcp_db_reader_close(&x->db.reader);
+  if (x->db.fp)
+  {
+    fclose(x->db.fp);
+    x->db.fp = NULL;
+  }
   for (int i = 0; i < nthreads(x); ++i)
     dcp_scan_thrd_cleanup(x->threads + i);
 

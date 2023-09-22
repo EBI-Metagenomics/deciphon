@@ -82,7 +82,7 @@ static int unpack_header_protein_sizes(struct dcp_db_reader *x)
   if (!lip_read_1darray_u32_data(&x->file, x->nproteins, x->protein_sizes))
   {
     free(x->protein_sizes);
-    x->protein_sizes = 0;
+    x->protein_sizes = NULL;
     return DCP_EFREAD;
   }
 

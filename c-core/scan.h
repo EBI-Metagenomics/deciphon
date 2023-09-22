@@ -4,7 +4,6 @@
 #include "api.h"
 #include "scan_params.h"
 #include "seq.h"
-#include <stdbool.h>
 
 struct dcp_scan;
 
