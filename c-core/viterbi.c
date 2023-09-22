@@ -9,27 +9,10 @@
 #include "reduce.h"
 #include "scan_thrd.h"
 #include "viterbi_index.h"
+#include "viterbi_onto.h"
 #include "viterbi_task.h"
 #include <stdlib.h>
 #include <string.h>
-
-#if __AVX__
-#define ALIGNED __attribute__((aligned(32)))
-#endif
-
-#if __ARM_NEON
-#define ALIGNED __attribute__((aligned(16)))
-#endif
-
-#define PAST_SIZE DCP_VITERBI_PAST_SIZE
-
-#define lukbak(i) ((i))
-#define nchars(n) ((n)-1)
-
-DCP_CONST float *dp_match_init(float *x) { return x; }
-DCP_CONST float *dp_insert_init(float *x) { return x + PAST_SIZE; }
-DCP_CONST float *dp_delete_init(float *x) { return x + PAST_SIZE + PAST_SIZE; }
-DCP_CONST float *dp_next(float *x) { return x + 3 * PAST_SIZE; }
 
 DCP_PURE int emission_index(struct imm_eseq const *x, int pos, int size,
                             bool const safe)
@@ -77,312 +60,25 @@ DCP_INLINE void prefetch_emission(float emission[restrict],
   DCP_PREFETCH(unsafe_get(emission, ix[nchars(5)]), 0, 1);
 }
 
-DCP_CONST float *match_next(float *restrict match)
-{
-  return match + PROTEIN_NODE_SIZE;
-}
-
-DCP_INLINE void update_trellis(struct imm_trellis *t, int const src[restrict],
-                               int size, float const x[restrict],
-                               struct imm_span span)
-{
-  int idx = find_fmax(size, x);
-  imm_trellis_push(t, x[idx], src[idx], idx % span.max + span.min);
-}
-
-DCP_INLINE void update_trellis0(struct imm_trellis *t, int const src[restrict],
-                                int size, float const x[restrict])
-{
-  int idx = find_fmax(size, x);
-  imm_trellis_push(t, x[idx], src[idx], 0);
-}
-
 DCP_PURE float onto_R(float const S[restrict], float const R[restrict],
-                      float const RR, float const emis[restrict])
+                      float const RR, float const emission[restrict])
 {
   // clang-format off
   float const x[] ALIGNED = {
-      S[lukbak(1)] + 0 + emis[nchars(1)],
-      S[lukbak(2)] + 0 + emis[nchars(2)],
-      S[lukbak(3)] + 0 + emis[nchars(3)],
-      S[lukbak(4)] + 0 + emis[nchars(4)],
-      S[lukbak(5)] + 0 + emis[nchars(5)],
+      S[lukbak(1)] + 0 + emission[nchars(1)],
+      S[lukbak(2)] + 0 + emission[nchars(2)],
+      S[lukbak(3)] + 0 + emission[nchars(3)],
+      S[lukbak(4)] + 0 + emission[nchars(4)],
+      S[lukbak(5)] + 0 + emission[nchars(5)],
 
-      R[lukbak(1)] + RR + emis[nchars(1)],
-      R[lukbak(2)] + RR + emis[nchars(2)],
-      R[lukbak(3)] + RR + emis[nchars(3)],
-      R[lukbak(4)] + RR + emis[nchars(4)],
-      R[lukbak(5)] + RR + emis[nchars(5)],
+      R[lukbak(1)] + RR + emission[nchars(1)],
+      R[lukbak(2)] + RR + emission[nchars(2)],
+      R[lukbak(3)] + RR + emission[nchars(3)],
+      R[lukbak(4)] + RR + emission[nchars(4)],
+      R[lukbak(5)] + RR + emission[nchars(5)],
   };
   // clang-format on
   return reduce_fmax(array_size(x), x);
-}
-
-DCP_INLINE float onto_N(struct imm_trellis *t, float const S[restrict],
-                        float const N[restrict], float const SN, float const NN,
-                        float const emis[restrict])
-{
-  int const src[] = {SIX(), SIX(), SIX(), SIX(), SIX(),
-                     NIX(), NIX(), NIX(), NIX(), NIX()};
-  // clang-format off
-  float const x[] ALIGNED = {
-      S[lukbak(1)] + SN + emis[nchars(1)],
-      S[lukbak(2)] + SN + emis[nchars(2)],
-      S[lukbak(3)] + SN + emis[nchars(3)],
-      S[lukbak(4)] + SN + emis[nchars(4)],
-      S[lukbak(5)] + SN + emis[nchars(5)],
-
-      N[lukbak(1)] + NN + emis[nchars(1)],
-      N[lukbak(2)] + NN + emis[nchars(2)],
-      N[lukbak(3)] + NN + emis[nchars(3)],
-      N[lukbak(4)] + NN + emis[nchars(4)],
-      N[lukbak(5)] + NN + emis[nchars(5)],
-  };
-  // clang-format on
-  if (t) update_trellis(t, src, array_size(x), x, imm_span(1, 5));
-  return reduce_fmax(array_size(x), x);
-}
-
-DCP_INLINE float onto_B(struct imm_trellis *t, float const S[restrict],
-                        float const N[restrict], float const SB, float const NB)
-{
-  int const src[] = {SIX(), NIX()};
-  // clang-format off
-  float const x[] ALIGNED = {
-      S[lukbak(0)] + SB,
-      N[lukbak(0)] + NB,
-  };
-  // clang-format on
-  if (t) update_trellis0(t, src, array_size(x), x);
-  return dcp_fmax(x[0], x[1]);
-}
-
-DCP_INLINE void adjust_onto_B(struct imm_trellis *t, float B[restrict],
-                              float const E[restrict], float const J[restrict],
-                              float const EB, float const JB, int core_size)
-{
-  int const src[] = {EIX(core_size), JIX(core_size)};
-  // clang-format off
-  float const x[] ALIGNED = {
-      E[lukbak(0)] + EB,
-      J[lukbak(0)] + JB,
-  };
-  // clang-format on
-  if (t)
-  {
-    int stage = imm_trellis_stage_idx(t);
-    imm_trellis_seek(t, stage, BIX());
-    assert((int)imm_trellis_state_idx(t) == BIX());
-    int idx = find_fmax(array_size(x), x);
-    if (x[idx] > B[lukbak(0)]) imm_trellis_push(t, x[idx], src[idx], 0);
-    imm_trellis_seek(t, stage, CIX(core_size));
-  }
-  B[lukbak(0)] = dcp_fmax(B[lukbak(0)], reduce_fmax(array_size(x), x));
-}
-
-DCP_INLINE float onto_M1(struct imm_trellis *t, float const B[restrict],
-                         float const BM, float const emis[restrict])
-{
-  int const src[] = {BIX(), BIX(), BIX(), BIX(), BIX()};
-  // clang-format off
-  float const x[] ALIGNED = {
-      B[lukbak(1)] + BM + emis[nchars(1)],
-      B[lukbak(2)] + BM + emis[nchars(2)],
-      B[lukbak(3)] + BM + emis[nchars(3)],
-      B[lukbak(4)] + BM + emis[nchars(4)],
-      B[lukbak(5)] + BM + emis[nchars(5)],
-  };
-  // clang-format on
-  if (t) update_trellis(t, src, array_size(x), x, imm_span(1, 5));
-  return reduce_fmax(array_size(x), x);
-}
-
-DCP_INLINE float onto_M(struct imm_trellis *t, float const M[restrict],
-                        float const I[restrict], float const D[restrict],
-                        float const B[restrict], float const MM, float const IM,
-                        float const DM, float const BM,
-                        float const emis[restrict], int k)
-{
-  int const src[] = {BIX(),  BIX(),  BIX(),  BIX(),  BIX(),  MIX(k), MIX(k),
-                     MIX(k), MIX(k), MIX(k), IIX(k), IIX(k), IIX(k), IIX(k),
-                     IIX(k), DIX(k), DIX(k), DIX(k), DIX(k), DIX(k)};
-  // clang-format off
-  float const x[] ALIGNED = {
-      B[lukbak(1)] + BM + emis[nchars(1)],
-      B[lukbak(2)] + BM + emis[nchars(2)],
-      B[lukbak(3)] + BM + emis[nchars(3)],
-      B[lukbak(4)] + BM + emis[nchars(4)],
-      B[lukbak(5)] + BM + emis[nchars(5)],
-
-      M[lukbak(1)] + MM + emis[nchars(1)],
-      M[lukbak(2)] + MM + emis[nchars(2)],
-      M[lukbak(3)] + MM + emis[nchars(3)],
-      M[lukbak(4)] + MM + emis[nchars(4)],
-      M[lukbak(5)] + MM + emis[nchars(5)],
-
-      I[lukbak(1)] + IM + emis[nchars(1)],
-      I[lukbak(2)] + IM + emis[nchars(2)],
-      I[lukbak(3)] + IM + emis[nchars(3)],
-      I[lukbak(4)] + IM + emis[nchars(4)],
-      I[lukbak(5)] + IM + emis[nchars(5)],
-
-      D[lukbak(1)] + DM + emis[nchars(1)],
-      D[lukbak(2)] + DM + emis[nchars(2)],
-      D[lukbak(3)] + DM + emis[nchars(3)],
-      D[lukbak(4)] + DM + emis[nchars(4)],
-      D[lukbak(5)] + DM + emis[nchars(5)],
-  };
-  // clang-format on
-  if (t) update_trellis(t, src, array_size(x), x, imm_span(1, 5));
-  return reduce_fmax(array_size(x), x);
-}
-
-DCP_INLINE float onto_I(struct imm_trellis *t, float const M[restrict],
-                        float const I[restrict], float const MI, float const II,
-                        float const emis[restrict], int k)
-{
-  int const src[] = {MIX(k), MIX(k), MIX(k), MIX(k), MIX(k),
-                     IIX(k), IIX(k), IIX(k), IIX(k), IIX(k)};
-  // clang-format off
-  float const x[] ALIGNED = {
-      M[lukbak(1)] + MI + emis[nchars(1)],
-      M[lukbak(2)] + MI + emis[nchars(2)],
-      M[lukbak(3)] + MI + emis[nchars(3)],
-      M[lukbak(4)] + MI + emis[nchars(4)],
-      M[lukbak(5)] + MI + emis[nchars(5)],
-
-      I[lukbak(1)] + II + emis[nchars(1)],
-      I[lukbak(2)] + II + emis[nchars(2)],
-      I[lukbak(3)] + II + emis[nchars(3)],
-      I[lukbak(4)] + II + emis[nchars(4)],
-      I[lukbak(5)] + II + emis[nchars(5)],
-  };
-  // clang-format on
-  if (t) update_trellis(t, src, array_size(x), x, imm_span(1, 5));
-  return reduce_fmax(array_size(x), x);
-}
-
-DCP_INLINE float onto_D(struct imm_trellis *t, float const M[restrict],
-                        float const D[restrict], float const MD, float const DD,
-                        int k)
-{
-  int const src[] = {MIX(k), DIX(k)};
-  // clang-format off
-  float const x[] ALIGNED = {
-      M[lukbak(0)] + MD,
-      D[lukbak(0)] + DD,
-  };
-  // clang-format on
-  if (t) update_trellis0(t, src, array_size(x), x);
-  return dcp_fmax(x[0], x[1]);
-}
-
-DCP_INLINE float fmax_idx(float max, int *src, int *maxk, float v, int new_src,
-                          int new_maxk)
-{
-  if (v > max)
-  {
-    max = v;
-    *src = new_src;
-    *maxk = new_maxk;
-  }
-  return max;
-}
-
-DCP_INLINE float onto_E(struct imm_trellis *t, float const dp[restrict],
-                        int const core_size, float const ME, float const DE)
-{
-  float const *DPM = dp_match_init((float *)dp);
-  float const *DPD = dp_delete_init((float *)dp);
-  float x = DPM[lukbak(1)] + ME;
-  int src = MIX(0);
-  int maxk = 0;
-  for (int k = 1; k < core_size; ++k)
-  {
-    DPM = dp_next((float *)DPM);
-    DPD = dp_next((float *)DPD);
-    if (t)
-    {
-      x = fmax_idx(x, &src, &maxk, DPM[lukbak(1)] + ME, MIX(k), k);
-      x = fmax_idx(x, &src, &maxk, DPD[lukbak(1)] + DE, DIX(k), k);
-    }
-    else
-    {
-      x = dcp_fmax(x, DPM[lukbak(1)] + ME);
-      x = dcp_fmax(x, DPD[lukbak(1)] + DE);
-    }
-  }
-  if (t) imm_trellis_push(t, x, src, 0);
-  return x;
-}
-
-DCP_INLINE float onto_J(struct imm_trellis *t, float const E[restrict],
-                        float const J[restrict], float const EJ, float const JJ,
-                        float const emis[restrict], int core_size)
-{
-  int const src[] = {EIX(core_size), EIX(core_size), EIX(core_size),
-                     EIX(core_size), EIX(core_size), JIX(core_size),
-                     JIX(core_size), JIX(core_size), JIX(core_size),
-                     JIX(core_size)};
-  // clang-format off
-  float const x[] ALIGNED = {
-      E[lukbak(1)] + EJ + emis[nchars(1)],
-      E[lukbak(2)] + EJ + emis[nchars(2)],
-      E[lukbak(3)] + EJ + emis[nchars(3)],
-      E[lukbak(4)] + EJ + emis[nchars(4)],
-      E[lukbak(5)] + EJ + emis[nchars(5)],
-
-      J[lukbak(1)] + JJ + emis[nchars(1)],
-      J[lukbak(2)] + JJ + emis[nchars(2)],
-      J[lukbak(3)] + JJ + emis[nchars(3)],
-      J[lukbak(4)] + JJ + emis[nchars(4)],
-      J[lukbak(5)] + JJ + emis[nchars(5)],
-  };
-  // clang-format on
-  if (t) update_trellis(t, src, array_size(x), x, imm_span(1, 5));
-  return reduce_fmax(array_size(x), x);
-}
-
-DCP_INLINE float onto_C(struct imm_trellis *t, float const E[restrict],
-                        float const C[restrict], float const EC, float const CC,
-                        float const emis[restrict], int core_size)
-{
-  int const src[] = {EIX(core_size), EIX(core_size), EIX(core_size),
-                     EIX(core_size), EIX(core_size), CIX(core_size),
-                     CIX(core_size), CIX(core_size), CIX(core_size),
-                     CIX(core_size)};
-  // clang-format off
-  float const x[] ALIGNED = {
-      E[lukbak(1)] + EC + emis[nchars(1)],
-      E[lukbak(2)] + EC + emis[nchars(2)],
-      E[lukbak(3)] + EC + emis[nchars(3)],
-      E[lukbak(4)] + EC + emis[nchars(4)],
-      E[lukbak(5)] + EC + emis[nchars(5)],
-
-      C[lukbak(1)] + CC + emis[nchars(1)],
-      C[lukbak(2)] + CC + emis[nchars(2)],
-      C[lukbak(3)] + CC + emis[nchars(3)],
-      C[lukbak(4)] + CC + emis[nchars(4)],
-      C[lukbak(5)] + CC + emis[nchars(5)],
-  };
-  // clang-format on
-  if (t) update_trellis(t, src, array_size(x), x, imm_span(1, 5));
-  return reduce_fmax(array_size(x), x);
-}
-
-DCP_INLINE float onto_T(struct imm_trellis *t, float const E[restrict],
-                        float const C[restrict], float const ET, float const CT,
-                        int core_size)
-{
-  int const src[] = {EIX(core_size), CIX(core_size)};
-  // clang-format off
-  float const x[] ALIGNED = {
-    E[lukbak(0)] + ET,
-    C[lukbak(0)] + CT,
-  };
-  // clang-format on
-  if (t) update_trellis0(t, src, array_size(x), x);
-  return dcp_fmax(x[0], x[1]);
 }
 
 struct extra_trans
@@ -431,7 +127,8 @@ static struct extra_trans extra_trans(struct dcp_xtrans xt)
 
 DCP_INLINE void make_future(float x[])
 {
-  memmove(&x[lukbak(1)], &x[lukbak(0)], sizeof(float) * (PAST_SIZE - 1));
+  memmove(&x[lukbak(1)], &x[lukbak(0)],
+          sizeof(float) * (DCP_VITERBI_PAST_SIZE - 1));
 }
 
 float dcp_viterbi_null(struct dcp_protein *x, struct imm_eseq const *eseq)
@@ -439,13 +136,13 @@ float dcp_viterbi_null(struct dcp_protein *x, struct imm_eseq const *eseq)
   int seq_size = (int)imm_eseq_size(eseq);
 
 #define NINF IMM_LPROB_ZERO
-  float S[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
-  float R[PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
+  float S[DCP_VITERBI_PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
+  float R[DCP_VITERBI_PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
 #undef NINF
   S[lukbak(0)] = 0;
 
-  int ix[PAST_SIZE - 1] = {0};
-  float null[PAST_SIZE - 1] = {0};
+  int ix[DCP_VITERBI_PAST_SIZE - 1] = {0};
+  float null[DCP_VITERBI_PAST_SIZE - 1] = {0};
   for (int r = 0; r < seq_size + 1; ++r)
   {
     fetch_indices(ix, eseq, r, false);
@@ -456,17 +153,16 @@ float dcp_viterbi_null(struct dcp_protein *x, struct imm_eseq const *eseq)
     make_future(R);
     S[lukbak(0)] = IMM_LPROB_ZERO;
   }
-  return R[lukbak(0)];
+  return R[lukbak(1)];
 }
 
-DCP_INLINE void vit(struct dcp_protein *x, struct dcp_viterbi_task *task,
-                    struct imm_eseq const *eseq, int row_start, int row_end,
-                    bool const safe, struct imm_trellis *trellis)
+DCP_INLINE void viterbi(struct dcp_protein *x, struct dcp_viterbi_task *task,
+                        struct imm_eseq const *eseq, int row_start, int row_end,
+                        bool const safe, struct imm_trellis *trellis)
 {
   int core_size = x->core_size;
 
   struct extra_trans const xt = extra_trans(x->xtrans);
-  float *dp = task->dp;
   float *restrict S = task->S;
   float *restrict N = task->N;
   float *restrict B = task->B;
@@ -475,93 +171,106 @@ DCP_INLINE void vit(struct dcp_protein *x, struct dcp_viterbi_task *task,
   float *restrict C = task->C;
   float *restrict T = task->T;
 
-  int ix[PAST_SIZE - 1] = {0};
-  float null[PAST_SIZE - 1] = {0};
-  float bg[PAST_SIZE - 1] = {0};
-  float M[PAST_SIZE - 1] = {0};
+  int ix[DCP_VITERBI_PAST_SIZE - 1] = {0};
+  float null[DCP_VITERBI_PAST_SIZE - 1] = {0};
+  float bg[DCP_VITERBI_PAST_SIZE - 1] = {0};
+  float match[DCP_VITERBI_PAST_SIZE - 1] = {0};
 
   for (int r = row_start; r < row_end; ++r)
   {
     if (trellis) imm_trellis_seek(trellis, r, NIX());
-    float const *restrict BM = x->BMk;
-    float *restrict match = x->nodes_emission;
     fetch_indices(ix, eseq, r, safe);
     fetch_emission(null, x->null.emission, ix, safe);
     fetch_emission(bg, x->bg.emission, ix, safe);
 
     N[lukbak(0)] = onto_N(trellis, S, N, xt.SN, xt.NN, null);
     B[lukbak(0)] = onto_B(trellis, S, N, xt.SB, xt.NB);
+
     make_future(S);
     make_future(N);
 
-    fetch_emission(M, match, ix, safe);
-    float *DPM = dp_match_init(dp);
-    float *DPI = dp_insert_init(dp);
-    float *DPD = dp_delete_init(dp);
-    DPM[lukbak(0)] = onto_M1(trellis, B, *BM, M);
-    float tmpE = DPM[lukbak(0)] + xt.ME;
-    BM += 1;
-    // Skip first D state
-    if (trellis) trellis->head += 1;
+    float *Mk = dp_rewind(task->dp, STATE_MATCH);
+    float *Ik = dp_rewind(task->dp, STATE_INSERT);
+    float *Dk = dp_rewind(task->dp, STATE_DELETE);
+    fetch_emission(match, x->nodes[0].emission, ix, safe);
 
-    struct dcp_protein_node const *node = x->nodes;
+    // BM(0) -> M(0)
+    Mk[lukbak(0)] = onto_M0(trellis, B, x->BMk[0], match);
+    // M(0) -> E
+    float Emax = Mk[lukbak(0)] + xt.ME + 0;
+    // Skip transition into D0 state (does not exist)
+    if (trellis) imm_trellis_next(trellis);
+
     for (int k = 0; k + 1 < core_size; ++k)
     {
-      float const MM = node->trans.MM;
-      float const MI = node->trans.MI;
-      float const MD = node->trans.MD;
-      float const IM = node->trans.IM;
-      float const II = node->trans.II;
-      float const DM = node->trans.DM;
-      float const DD = node->trans.DD;
+      int k1 = k + 1;
+      float const MM = x->nodes[k].trans.MM;
+      float const MI = x->nodes[k].trans.MI;
+      float const MD = x->nodes[k].trans.MD;
+      float const IM = x->nodes[k].trans.IM;
+      float const II = x->nodes[k].trans.II;
+      float const DM = x->nodes[k].trans.DM;
+      float const DD = x->nodes[k].trans.DD;
+      float const BM = x->BMk[k1];
+      fetch_emission(match, x->nodes[k1].emission, ix, safe);
 
-      match = match_next(match);
-      fetch_emission(M, match, ix, safe);
+      // [M(k), I(k)] -> I(k)
+      Ik[lukbak(0)] = onto_I(trellis, Mk, Ik, MI, II, bg, k);
 
-      DPI[lukbak(0)] = onto_I(trellis, DPM, DPI, MI, II, bg, k);
-      float tmpM = onto_M(trellis, DPM, DPI, DPD, B, MM, IM, DM, *BM, M, k);
-      prefetch_emission(match_next(match), ix);
-      float tmpD = onto_D(trellis, DPM, DPD, MD, DD, k);
-      make_future(DPM);
-      make_future(DPI);
-      make_future(DPD);
-      DPM = dp_next(DPM);
-      DPM[lukbak(0)] = tmpM;
-      tmpE = dcp_fmax(tmpE, tmpM + xt.ME);
-      DPI = dp_next(DPI);
-      DPD = dp_next(DPD);
-      DPD[lukbak(0)] = tmpD;
-      tmpE = dcp_fmax(tmpE, tmpD + xt.DE);
-      BM += 1;
-      node += 1;
+      // [BM(k1), M(k), I(k), D(k)] -> M(k1)
+      float Mk1 = onto_M(trellis, B, Mk, Ik, Dk, BM, MM, IM, DM, match, k);
+      prefetch_emission(x->nodes[k + 2].emission, ix);
+
+      // [M(k), D(k)] -> D(k1)
+      float Dk1 = onto_D(trellis, Mk, Dk, MD, DD, k);
+
+      make_future(Mk);
+      make_future(Ik);
+      make_future(Dk);
+
+      Mk = dp_next(Mk);
+      Mk[lukbak(0)] = Mk1;
+
+      Ik = dp_next(Ik);
+      Dk = dp_next(Dk);
+      Dk[lukbak(0)] = Dk1;
+
+      Emax = dcp_fmax(Emax, Mk1 + xt.ME + 0);
+      Emax = dcp_fmax(Emax, Dk1 + xt.DE + 0);
     }
-    // Skip last I state
-    if (trellis) trellis->head += 1;
-    make_future(DPM);
-    make_future(DPI);
-    make_future(DPD);
+    // Skip transition into Ik1 state (does not exist)
+    if (trellis) imm_trellis_next(trellis);
+    make_future(Mk);
+    make_future(Ik);
+    make_future(Dk);
 
-    // It is lukbak(1) in here because I called make_future(DPM)
-    // and make_future(DPD) already (for optimisation reasons).
     if (trellis)
-      E[lukbak(0)] = onto_E(trellis, dp, core_size, xt.ME, xt.DE);
+      E[lukbak(0)] = onto_E(trellis, task->dp, xt.ME, xt.DE, core_size);
     else
-      E[lukbak(0)] = tmpE;
+      E[lukbak(0)] = Emax;
+
     J[lukbak(0)] = onto_J(trellis, E, J, xt.EJ, xt.JJ, null, core_size);
-    adjust_onto_B(trellis, B, E, J, xt.EB, xt.JB, core_size);
+
+    if (trellis) imm_trellis_seek(trellis, r, BIX());
+    B[lukbak(0)] = adjust_onto_B(trellis, B, E, J, xt.EB, xt.JB, core_size);
+    if (trellis) imm_trellis_seek(trellis, r, CIX(core_size));
+
     make_future(B);
     make_future(J);
+
     C[lukbak(0)] = onto_C(trellis, E, C, xt.EC, xt.CC, null, core_size);
     T[lukbak(0)] = onto_T(trellis, E, C, xt.ET, xt.CT, core_size);
+
     make_future(E);
     make_future(C);
     make_future(T);
+
     S[lukbak(0)] = IMM_LPROB_ZERO;
   }
 }
 
-static void unzip_path(struct imm_trellis *x, int core_size, unsigned seq_size,
-                       struct imm_path *path);
+static int unzip_path(struct imm_trellis *x, int core_size, unsigned seq_size,
+                      struct imm_path *path);
 
 int dcp_viterbi(struct dcp_protein *x, struct imm_eseq const *eseq,
                 struct dcp_viterbi_task *task, bool const nopath)
@@ -578,40 +287,41 @@ int dcp_viterbi(struct dcp_protein *x, struct imm_eseq const *eseq,
 
   if (nopath)
   {
-    vit(x, task, eseq, row_start, row_mid, false, NULL);
-    vit(x, task, eseq, row_mid, row_end, true, NULL);
+    viterbi(x, task, eseq, row_start, row_mid, false, NULL);
+    viterbi(x, task, eseq, row_mid, row_end, true, NULL);
   }
   else
   {
-    vit(x, task, eseq, row_start, row_mid, false, &task->trellis);
-    vit(x, task, eseq, row_mid, row_end, true, &task->trellis);
+    viterbi(x, task, eseq, row_start, row_mid, false, &task->trellis);
+    viterbi(x, task, eseq, row_mid, row_end, true, &task->trellis);
     imm_path_reset(&task->path);
-    unzip_path(&task->trellis, x->core_size, seq_size, &task->path);
+    rc = unzip_path(&task->trellis, x->core_size, seq_size, &task->path);
   }
 
   task->score = task->T[lukbak(1)];
   return rc;
 }
 
-static void unzip_path(struct imm_trellis *x, int core_size, unsigned seq_size,
-                       struct imm_path *path)
+static int unzip_path(struct imm_trellis *x, int core_size, unsigned seq_size,
+                      struct imm_path *path)
 {
   unsigned start_state = SIX();
   unsigned end_state = TIX(core_size);
   imm_trellis_seek(x, seq_size, end_state);
-  if (imm_lprob_is_nan(imm_trellis_head(x)->score)) return;
+  if (imm_lprob_is_nan(imm_trellis_head(x)->score)) return 0;
 
   while (imm_trellis_state_idx(x) != start_state || imm_trellis_stage_idx(x))
   {
-    unsigned size = imm_trellis_head(x)->emission_size;
     unsigned id = ID(imm_trellis_state_idx(x), core_size);
+    unsigned size = imm_trellis_head(x)->emission_size;
     float score = imm_trellis_head(x)->score;
-    imm_path_add(path, imm_step(id, size, score));
+    if (imm_path_add(path, imm_step(id, size, score))) return DCP_ENOMEM;
     imm_trellis_back(x);
   }
   unsigned id = ID(imm_trellis_state_idx(x), core_size);
-  imm_path_add(path, imm_step(id, 0, 0));
+  if (imm_path_add(path, imm_step(id, 0, 0))) return DCP_ENOMEM;
   imm_path_reverse(path);
+  return 0;
 }
 
 void dcp_viterbi_dump(struct dcp_protein *x, FILE *restrict fp)

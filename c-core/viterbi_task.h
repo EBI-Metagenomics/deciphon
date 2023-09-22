@@ -1,13 +1,10 @@
 #ifndef DECIPHON_VITERBI_TASK_H
 #define DECIPHON_VITERBI_TASK_H
 
+#include "compiler.h"
 #include "imm/imm.h"
+#include "viterbi_dp.h"
 #include <stdbool.h>
-
-enum
-{
-  DCP_VITERBI_PAST_SIZE = 6
-};
 
 struct dcp_viterbi_task
 {
@@ -28,5 +25,16 @@ void dcp_viterbi_task_init(struct dcp_viterbi_task *);
 int dcp_viterbi_task_setup(struct dcp_viterbi_task *, int core_size,
                            int seq_size, bool const nopath);
 void dcp_viterbi_task_cleanup(struct dcp_viterbi_task *);
+
+#if __AVX__
+#define ALIGNED __attribute__((aligned(32)))
+#endif
+
+#if __ARM_NEON
+#define ALIGNED __attribute__((aligned(16)))
+#endif
+
+DCP_CONST int lukbak(int i) { return i; }
+DCP_CONST int nchars(int n) { return n - 1; }
 
 #endif
