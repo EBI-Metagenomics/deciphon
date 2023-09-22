@@ -9,13 +9,12 @@ struct dcp_protein_iter;
 struct dcp_protein_reader
 {
   int npartitions;
-  long partition_csum[DCP_NPARTITIONS_MAX + 1];
+  int partition_csum[DCP_NPARTITIONS_MAX + 1];
   long partition_offset[DCP_NPARTITIONS_MAX + 1];
   struct dcp_db_reader *db;
 };
 
 struct imm_gencode;
-struct dcp_model_params;
 
 void dcp_protein_reader_init(struct dcp_protein_reader *);
 int dcp_protein_reader_setup(struct dcp_protein_reader *,

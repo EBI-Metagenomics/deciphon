@@ -2,11 +2,11 @@
 #include "array_size_field.h"
 #include "db_reader.h"
 #include "defer_return.h"
-#include "expect.h"
 #include "fs.h"
 #include "partition_size.h"
 #include "protein_iter.h"
 #include "rc.h"
+#include "read.h"
 #include <string.h>
 
 void dcp_protein_reader_init(struct dcp_protein_reader *x)
@@ -20,7 +20,7 @@ void dcp_protein_reader_init(struct dcp_protein_reader *x)
 }
 
 static void partition_it(struct dcp_protein_reader *);
-static inline long min(long a, long b) { return a < b ? a : b; }
+static inline int min(int a, int b) { return a < b ? a : b; }
 
 int dcp_protein_reader_setup(struct dcp_protein_reader *x,
                              struct dcp_db_reader *db, int npartitions)
@@ -32,7 +32,7 @@ int dcp_protein_reader_setup(struct dcp_protein_reader *x,
   if (npartitions > DCP_NPARTITIONS_MAX) return DCP_EMANYPARTS;
   x->npartitions = min(npartitions, db->nproteins);
 
-  if ((rc = dcp_expect_map_key(&db->file, "proteins"))) return rc;
+  if ((rc = read_key(&db->file, "proteins"))) return rc;
 
   unsigned n = 0;
   if (!lip_read_array_size(&db->file, &n)) return DCP_EFREAD;
@@ -53,8 +53,8 @@ int dcp_protein_reader_npartitions(struct dcp_protein_reader const *x)
 int dcp_protein_reader_partition_size(struct dcp_protein_reader const *x,
                                       int partition)
 {
-  long const *csum = x->partition_csum;
-  return (int)(csum[partition + 1] - csum[partition]);
+  int const *csum = x->partition_csum;
+  return csum[partition + 1] - csum[partition];
 }
 
 int dcp_protein_reader_size(struct dcp_protein_reader const *x)
@@ -75,7 +75,7 @@ int dcp_protein_reader_iter(struct dcp_protein_reader *x, int partition,
   if ((rc = dcp_fs_refopen(fp, "rb", &newfp))) defer_return(rc);
   if ((rc = dcp_fs_seek(newfp, offset, SEEK_SET))) defer_return(rc);
 
-  long start_idx = x->partition_csum[partition];
+  int start_idx = x->partition_csum[partition];
   dcp_protein_iter_init(it, x, partition, start_idx, offset, newfp);
 
   return rc;
@@ -92,11 +92,11 @@ static void partition_it(struct dcp_protein_reader *x)
   int part = 0;
   for (int i = 0; i < k; ++i)
   {
-    long size = dcp_partition_size(n, k, i);
+    int size = (int)dcp_partition_size(n, k, i);
 
     x->partition_csum[i + 1] = x->partition_csum[i] + size;
 
-    for (int j = 0; j < (int)size; ++j)
+    for (int j = 0; j < size; ++j)
       x->partition_offset[i + 1] += x->db->protein_sizes[part++];
 
     x->partition_offset[i + 1] += x->partition_offset[i];

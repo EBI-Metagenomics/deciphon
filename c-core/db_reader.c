@@ -1,6 +1,5 @@
 #include "db_reader.h"
 #include "defer_return.h"
-#include "expect.h"
 #include "imm/imm.h"
 #include "lip/1darray/1darray.h"
 #include "magic_number.h"

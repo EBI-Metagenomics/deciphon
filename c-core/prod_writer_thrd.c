@@ -12,9 +12,6 @@
 #include <stdarg.h>
 #include <string.h>
 
-/* Reference: https://stackoverflow.com/a/21162120 */
-#define DBL_FMT "%.17g"
-
 #define fmt(B, N, F, ...) dcp_format((B), (N), (F), __VA_ARGS__)
 #define FMT(buf, format, ...) fmt((buf), array_size(buf), (format), __VA_ARGS__)
 

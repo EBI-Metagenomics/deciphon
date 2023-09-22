@@ -1,5 +1,4 @@
 #include "protein_null.h"
-#include "expect.h"
 #include "imm/imm.h"
 #include "xtrans.h"
 #include <stdlib.h>

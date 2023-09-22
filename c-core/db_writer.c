@@ -47,7 +47,7 @@ defer:
   return rc;
 }
 
-static int pack_header_prot_sizes(struct dcp_db_writer *db)
+static int pack_header_protein_sizes(struct dcp_db_writer *db)
 {
   enum lip_1darray_type type = LIP_1DARRAY_UINT32;
 
@@ -79,7 +79,7 @@ static int pack_header(struct dcp_db_writer *db)
   if ((rc = dcp_fs_copy(dst, src))) return rc;
 
   if ((rc = write_key(stream, "protein_sizes"))) return rc;
-  return pack_header_prot_sizes(db);
+  return pack_header_protein_sizes(db);
 }
 
 static int pack_proteins(struct dcp_db_writer *db)

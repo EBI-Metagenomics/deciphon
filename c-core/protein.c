@@ -1,7 +1,6 @@
 #include "protein.h"
 #include "array_size_field.h"
 #include "defer_return.h"
-#include "expect.h"
 #include "lip/1darray/1darray.h"
 #include "lip/file/file.h"
 #include "lip/lip.h"
@@ -9,7 +8,7 @@
 #include "protein_background.h"
 #include "read.h"
 #include "state.h"
-#include "strlcpy.h"
+#include "strkcpy.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -38,7 +37,7 @@ void protein_init(struct dcp_protein *x, struct dcp_model_params params)
 int protein_set_accession(struct dcp_protein *x, char const *acc)
 {
   size_t n = array_size_field(struct dcp_protein, accession);
-  return dcp_strlcpy(x->accession, acc, n) < n ? 0 : DCP_ELONGACC;
+  return strkcpy(x->accession, acc, n) ? 0 : DCP_ELONGACC;
 }
 
 void protein_setup(struct dcp_protein *x, unsigned seq_size, bool multi_hits,
