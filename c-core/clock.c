@@ -7,7 +7,7 @@ long dcp_clock(void)
   if (clock_gettime(CLOCK_MONOTONIC, &time) == -1)
   {
     perror("clock_gettime");
-    assert(false);
+    assert(0);
   }
   return time.tv_sec * 1e3 + time.tv_nsec / 1e6;
 }
