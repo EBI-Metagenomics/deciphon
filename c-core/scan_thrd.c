@@ -1,6 +1,5 @@
 #include "scan_thrd.h"
 #include "chararray.h"
-#include "clock.h"
 #include "db_reader.h"
 #include "defer_return.h"
 #include "hmmer_dialer.h"
@@ -71,7 +70,6 @@ static int infer_amino(struct dcp_chararray *x, struct dcp_match *match,
 int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct dcp_seq const *seq)
 {
   int rc = 0;
-  long start_time = dcp_clock();
 
   struct dcp_protein_iter *it = &x->iter;
   x->prod_thrd->match.seq_id = dcp_seq_id(seq);
@@ -122,8 +120,6 @@ int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct dcp_seq const *seq)
     dcp_match_iter_init(&mit, dcp_seq_immseq(seq), &x->task.path);
     if ((rc = dcp_prod_writer_thrd_put(x->prod_thrd, &match, &mit))) break;
   }
-  long end_time = dcp_clock();
-  printf("Elapsed time: %ld\n", end_time - start_time);
 
 cleanup:
   protein_cleanup(&x->protein);
