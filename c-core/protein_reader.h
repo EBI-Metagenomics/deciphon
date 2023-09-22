@@ -9,7 +9,7 @@ struct dcp_protein_iter;
 struct dcp_protein_reader
 {
   int npartitions;
-  int partition_csum[DCP_NPARTITIONS_MAX + 1];
+  long partition_csum[DCP_NPARTITIONS_MAX + 1];
   long partition_offset[DCP_NPARTITIONS_MAX + 1];
   struct dcp_db_reader *db;
 };
