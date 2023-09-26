@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional, Iterator
+from typing import Iterator, Optional
 
 from deciphon_core.cffi import ffi, lib
+from deciphon_core.error import DeciphonError
 from deciphon_core.seq import Seq
 
 __all__ = ["CSeq", "CSeqIter"]
@@ -58,7 +59,8 @@ def next_seq_callb(cseq, cself):
     iter: CSeqIter = ffi.from_handle(cself)
     try:
         seq: CSeq = next(iter)
-        lib.dcp_seq_setup(cseq, seq.id, seq.name, seq.data)
+        if rc := lib.dcp_seq_setup(cseq, seq.id, seq.name, seq.data):
+            raise DeciphonError(rc)
     except Exception:
         return False
     return True
