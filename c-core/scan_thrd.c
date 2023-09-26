@@ -67,58 +67,71 @@ void dcp_scan_thrd_cleanup(struct dcp_scan_thrd *x)
 static int infer_amino(struct dcp_chararray *x, struct dcp_match *match,
                        struct dcp_match_iter *it);
 
-int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct dcp_seq const *seq)
+static int run(struct dcp_scan_thrd *x, int protein_idx,
+               struct dcp_seq const *seq)
+{
+  int rc = 0;
+  x->prod_thrd->match.seq_id = dcp_seq_id(seq);
+
+  protein_setup(&x->protein, dcp_seq_size(seq), x->multi_hits,
+                x->hmmer3_compat);
+
+  x->prod_thrd->match.null = dcp_viterbi_null(&x->protein, &seq->imm_eseq);
+
+  if ((rc = dcp_viterbi(&x->protein, &seq->imm_eseq, &x->task, true)))
+    return rc;
+  x->prod_thrd->match.alt = x->task.score;
+
+  float lrt = dcp_prod_match_get_lrt(&x->prod_thrd->match);
+  if (!imm_lprob_is_finite(lrt) || lrt < x->lrt_threshold) return rc;
+
+  if ((rc = dcp_viterbi(&x->protein, &seq->imm_eseq, &x->task, false)))
+    return rc;
+  assert(fabs(x->prod_thrd->match.alt - x->task.score) < 1e-7);
+
+  dcp_prod_match_set_protein(&x->prod_thrd->match, x->protein.accession);
+
+  struct dcp_match match = {0};
+  dcp_match_init(&match, &x->protein);
+
+  struct dcp_match_iter mit = {0};
+
+  dcp_match_iter_init(&mit, dcp_seq_immseq(seq), &x->task.path);
+  if ((rc = infer_amino(&x->amino, &match, &mit))) return rc;
+
+  if (!x->disable_hmmer)
+  {
+    if ((rc = dcp_hmmer_get(&x->hmmer, protein_idx, seq->name, x->amino.data)))
+      return rc;
+    if (dcp_hmmer_result_nhits(&x->hmmer.result) == 0) return rc;
+    x->prod_thrd->match.evalue = dcp_hmmer_result_evalue_ln(&x->hmmer.result);
+    if ((rc = dcp_prod_writer_thrd_put_hmmer(x->prod_thrd, &x->hmmer.result)))
+      return rc;
+  }
+
+  dcp_match_iter_init(&mit, dcp_seq_immseq(seq), &x->task.path);
+  if ((rc = dcp_prod_writer_thrd_put(x->prod_thrd, &match, &mit))) return rc;
+  return rc;
+}
+
+int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct queue const *seqs)
 {
   int rc = 0;
 
-  struct dcp_protein_iter *it = &x->iter;
-  x->prod_thrd->match.seq_id = dcp_seq_id(seq);
+  struct dcp_protein_iter *protein_iter = &x->iter;
 
-  if ((rc = dcp_protein_iter_rewind(it))) goto cleanup;
+  if ((rc = dcp_protein_iter_rewind(protein_iter))) goto cleanup;
 
-  while (!(rc = dcp_protein_iter_next(it, &x->protein)))
+  while (!(rc = dcp_protein_iter_next(protein_iter, &x->protein)))
   {
-    if (dcp_protein_iter_end(it)) break;
+    if (dcp_protein_iter_end(protein_iter)) break;
 
-    protein_setup(&x->protein, dcp_seq_size(seq), x->multi_hits,
-                  x->hmmer3_compat);
-
-    x->prod_thrd->match.null = dcp_viterbi_null(&x->protein, &seq->imm_eseq);
-
-    if ((rc = dcp_viterbi(&x->protein, &seq->imm_eseq, &x->task, true)))
-      goto cleanup;
-    x->prod_thrd->match.alt = x->task.score;
-
-    float lrt = dcp_prod_match_get_lrt(&x->prod_thrd->match);
-    if (!imm_lprob_is_finite(lrt) || lrt < x->lrt_threshold) continue;
-
-    if ((rc = dcp_viterbi(&x->protein, &seq->imm_eseq, &x->task, false)))
-      goto cleanup;
-    assert(fabs(x->prod_thrd->match.alt - x->task.score) < 1e-7);
-
-    dcp_prod_match_set_protein(&x->prod_thrd->match, x->protein.accession);
-
-    struct dcp_match match = {0};
-    dcp_match_init(&match, &x->protein);
-
-    struct dcp_match_iter mit = {0};
-
-    dcp_match_iter_init(&mit, dcp_seq_immseq(seq), &x->task.path);
-    if ((rc = infer_amino(&x->amino, &match, &mit))) break;
-
-    if (!x->disable_hmmer)
+    struct dcp_seq *seq = NULL;
+    struct iter seq_iter = queue_iter(seqs);
+    iter_for_each_entry(seq, &seq_iter, node)
     {
-      if ((rc = dcp_hmmer_get(&x->hmmer, dcp_protein_iter_idx(it), seq->name,
-                              x->amino.data)))
-        break;
-      if (dcp_hmmer_result_nhits(&x->hmmer.result) == 0) continue;
-      x->prod_thrd->match.evalue = dcp_hmmer_result_evalue_ln(&x->hmmer.result);
-      if ((rc = dcp_prod_writer_thrd_put_hmmer(x->prod_thrd, &x->hmmer.result)))
-        break;
+      if ((rc = run(x, dcp_protein_iter_idx(protein_iter), seq))) break;
     }
-
-    dcp_match_iter_init(&mit, dcp_seq_immseq(seq), &x->task.path);
-    if ((rc = dcp_prod_writer_thrd_put(x->prod_thrd, &match, &mit))) break;
   }
 
 cleanup:

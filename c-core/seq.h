@@ -21,5 +21,6 @@ struct imm_eseq const *dcp_seq_immeseq(struct dcp_seq const *);
 long dcp_seq_id(struct dcp_seq const *);
 unsigned dcp_seq_size(struct dcp_seq const *);
 char const *dcp_seq_data(struct dcp_seq const *);
+struct dcp_seq *dcp_seq_clone(struct dcp_seq *);
 
 #endif

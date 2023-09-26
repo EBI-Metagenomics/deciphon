@@ -21,8 +21,8 @@ static struct dcp_scan_params params_list[] = {
     {1, 0., false, true, true},   {1, 0., true, false, false},
     {1, 0., true, false, true},   {1, 0., true, true, false},
     {1, 0., true, true, true}};
-static long chksum_list[] = {49784, 33656, 33656, 29547, 43506, 61686,
-                             63102, 49784, 31477, 49784, 31477};
+static long chksum_list[] = {43384, 43384, 43384, 11627, 5874, 246,
+                             11902, 43384, 4341,  43384, 4341};
 
 int main(void)
 {
@@ -53,7 +53,7 @@ static void test_scan(struct dcp_scan_params params, long desired_chksum)
 
   size_t idx = 0;
   eq(dcp_scan_run(scan, DBFILE, next_seq, &idx, "prod_scan"), 0);
-  eq_or_exit(chksum("prod_scan/products.tsv"), desired_chksum);
+  eq(chksum("prod_scan/products.tsv"), desired_chksum);
   eq(dcp_fs_rmtree("prod_scan"), 0);
 
   dcp_scan_del(scan);

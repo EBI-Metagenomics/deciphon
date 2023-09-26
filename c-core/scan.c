@@ -4,6 +4,7 @@
 #include "hmmer_dialer.h"
 #include "prod_writer.h"
 #include "protein_reader.h"
+#include "queue.h"
 #include "scan_thrd.h"
 #include "seq.h"
 #include "seq_iter.h"
@@ -37,6 +38,14 @@ struct dcp_scan *dcp_scan_new(void)
   dcp_protein_reader_init(&x->db.protein);
   dcp_prod_writer_init(&x->prod_writer);
   return x;
+}
+
+static void seqs_cleanup(struct queue *seqs)
+{
+  struct iter iter = queue_iter(seqs);
+  struct dcp_seq *tmp = NULL;
+  struct dcp_seq *seq = NULL;
+  iter_for_each_entry_safe(seq, tmp, &iter, node) { free(seq); }
 }
 
 int dcp_scan_dial(struct dcp_scan *x, int port)
@@ -77,6 +86,13 @@ int dcp_scan_run(struct dcp_scan *x, char const *dbfile, dcp_seq_next_fn *callb,
     defer_return(rc);
 
   dcp_seq_iter_init(&x->seqit, &x->db.reader.code.super, callb, userdata);
+  struct queue seqs = QUEUE_INIT(seqs);
+  while (dcp_seq_iter_next(&x->seqit))
+  {
+    struct dcp_seq *seq = dcp_seq_clone(dcp_seq_iter_get(&x->seqit));
+    if (!seq) defer_return(DCP_ENOMEM);
+    queue_put(&seqs, &seq->node);
+  }
 
   if ((rc = dcp_prod_writer_open(&x->prod_writer, nthreads(x), product_dir)))
     defer_return(rc);
@@ -98,20 +114,16 @@ int dcp_scan_run(struct dcp_scan *x, char const *dbfile, dcp_seq_next_fn *callb,
     if ((rc = dcp_scan_thrd_setup(x->threads + i, params))) defer_return(rc);
   }
 
-  while (dcp_seq_iter_next(&x->seqit) && !rc)
+#pragma omp parallel for default(none) shared(x, seqs, rc)
+  for (int i = 0; i < nthreads(x); ++i)
   {
-    struct dcp_seq *seq = dcp_seq_iter_get(&x->seqit);
-
-#pragma omp parallel for default(none) shared(x, seq, rc)
-    for (int i = 0; i < nthreads(x); ++i)
-    {
-      int r = dcp_scan_thrd_run(x->threads + i, seq);
+    int r = dcp_scan_thrd_run(x->threads + i, &seqs);
 #pragma omp critical
-      if (r && !rc) rc = r;
-    }
+    if (r && !rc) rc = r;
   }
 
 defer:
+  seqs_cleanup(&seqs);
   dcp_seq_iter_cleanup((struct dcp_seq_iter *)&x->seqit);
   dcp_db_reader_close(&x->db.reader);
   if (x->db.fp)

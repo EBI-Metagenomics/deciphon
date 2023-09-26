@@ -2,6 +2,7 @@
 #define DECIPHON_SEQ_STRUCT_H
 
 #include "imm/imm.h"
+#include "node.h"
 
 struct dcp_seq
 {
@@ -10,6 +11,7 @@ struct dcp_seq
   char const *data;
   struct imm_seq imm_seq;
   struct imm_eseq imm_eseq;
+  struct node node;
 };
 
 #endif

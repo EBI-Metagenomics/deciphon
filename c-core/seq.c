@@ -2,6 +2,7 @@
 #include "imm/imm.h"
 #include "rc.h"
 #include "seq_struct.h"
+#include "strdup.h"
 #include <stddef.h>
 #include <stdlib.h>
 
@@ -12,6 +13,7 @@ int dcp_seq_setup(struct dcp_seq *x, long id, char const *name,
   x->name = name;
   x->data = data;
   x->imm_seq = imm_seq(imm_str(x->data), imm_eseq_abc(&x->imm_eseq));
+  node_init(&x->node);
   return imm_eseq_setup(&x->imm_eseq, &x->imm_seq) ? DCP_ESEQABC : 0;
 }
 
@@ -45,4 +47,27 @@ unsigned dcp_seq_size(struct dcp_seq const *x)
 char const *dcp_seq_data(struct dcp_seq const *x)
 {
   return imm_seq_str(&x->imm_seq);
+}
+
+struct dcp_seq *dcp_seq_clone(struct dcp_seq *x)
+{
+  struct dcp_seq *seq = NULL;
+  char const *name = NULL;
+  char const *data = NULL;
+
+  if (!(seq = malloc(sizeof(*seq)))) goto cleanup;
+  if (!(name = dcp_strdup(x->name))) goto cleanup;
+  if (!(data = dcp_strdup(x->data))) goto cleanup;
+  dcp_seq_init(seq, x->imm_eseq.code);
+  int rc = dcp_seq_setup(seq, x->id, name, data);
+  (void)rc;
+  assert(!rc && "original sequence should be proper");
+
+  return seq;
+
+cleanup:
+  if (seq) free(seq);
+  if (name) free((void *)name);
+  if (data) free((void *)data);
+  return NULL;
 }

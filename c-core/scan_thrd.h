@@ -5,6 +5,7 @@
 #include "hmmer.h"
 #include "protein.h"
 #include "protein_iter.h"
+#include "queue.h"
 #include "viterbi.h"
 #include <stdio.h>
 
@@ -46,6 +47,6 @@ struct dcp_scan_thrd_params
 void dcp_scan_thrd_init(struct dcp_scan_thrd *);
 int dcp_scan_thrd_setup(struct dcp_scan_thrd *, struct dcp_scan_thrd_params);
 void dcp_scan_thrd_cleanup(struct dcp_scan_thrd *);
-int dcp_scan_thrd_run(struct dcp_scan_thrd *, struct dcp_seq const *);
+int dcp_scan_thrd_run(struct dcp_scan_thrd *, struct queue const *seqs);
 
 #endif
