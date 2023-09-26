@@ -45,7 +45,13 @@ static void seqs_cleanup(struct queue *seqs)
   struct iter iter = queue_iter(seqs);
   struct dcp_seq *tmp = NULL;
   struct dcp_seq *seq = NULL;
-  iter_for_each_entry_safe(seq, tmp, &iter, node) { free(seq); }
+  iter_for_each_entry_safe(seq, tmp, &iter, node)
+  {
+    free((void *)seq->name);
+    free((void *)seq->data);
+    dcp_seq_cleanup(seq);
+    free(seq);
+  }
 }
 
 int dcp_scan_dial(struct dcp_scan *x, int port)
