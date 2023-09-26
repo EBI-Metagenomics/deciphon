@@ -89,7 +89,9 @@ int dcp_scan_run(struct dcp_scan *x, char const *dbfile, dcp_seq_next_fn *callb,
   struct queue seqs = QUEUE_INIT(seqs);
   while (dcp_seq_iter_next(&x->seqit))
   {
-    struct dcp_seq *seq = dcp_seq_clone(dcp_seq_iter_get(&x->seqit));
+    struct dcp_seq *tmp = dcp_seq_iter_get(&x->seqit);
+    struct dcp_seq *seq = dcp_seq_clone(tmp);
+    dcp_seq_cleanup(tmp);
     if (!seq) defer_return(DCP_ENOMEM);
     queue_put(&seqs, &seq->node);
   }
