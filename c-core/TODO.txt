@@ -3,3 +3,5 @@
 because they might have different transitions regarding
 different implementations despite the corresponding
 models being identical.
+- Provide dcp_seq_queue_add for the user instead of a call
+callback.
