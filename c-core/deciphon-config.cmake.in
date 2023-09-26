@@ -2,7 +2,6 @@
 
 include(CMakeFindDependencyMacro)
 
-find_dependency(elapsed)
 find_dependency(hmmer_reader)
 find_dependency(lip)
 find_dependency(imm)
@@ -17,4 +16,3 @@ check_required_components(h3client)
 check_required_components(imm)
 check_required_components(lip)
 check_required_components(hmmer_reader)
-check_required_components(elapsed)

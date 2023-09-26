@@ -5,21 +5,20 @@ include(cmake/warnings.cmake)
 include(cmake/sanitizers.cmake)
 include(cmake/CPM.cmake)
 
-cpmaddpackage("gh:horta/elapsed@3.1.2")
 cpmaddpackage(
   NAME hmmer_reader
   GITHUB_REPOSITORY EBI-Metagenomics/hmmer3
-  GIT_TAG hmmer-reader-v0.7.0
-  VERSION 0.7.0
+  GIT_TAG hmmer-reader-v0.7.2
+  VERSION 0.7.2
   SOURCE_SUBDIR hmmer-reader)
 cpmaddpackage(
   NAME h3client
   GITHUB_REPOSITORY EBI-Metagenomics/hmmer3
-  GIT_TAG h3client-v0.12.3
-  VERSION 0.12.3
+  GIT_TAG h3client-v0.12.5
+  VERSION 0.12.5
   SOURCE_SUBDIR h3client)
-cpmaddpackage("gh:EBI-Metagenomics/imm@5.0.4")
-cpmaddpackage("gh:EBI-Metagenomics/lip@0.5.2")
+cpmaddpackage("gh:EBI-Metagenomics/imm@5.0.5")
+cpmaddpackage("gh:EBI-Metagenomics/lip@0.5.3")
 find_package(OpenMP)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -46,7 +45,6 @@ add_library(deciphon ${DECIPHON_SOURCES})
 add_library(DECIPHON::deciphon ALIAS deciphon)
 target_link_libraries(deciphon PRIVATE IMM::imm)
 target_link_libraries(deciphon PRIVATE LIP::lip)
-target_link_libraries(deciphon PRIVATE ELAPSED::elapsed)
 target_link_libraries(deciphon PRIVATE H3CLIENT::h3client)
 target_link_libraries(deciphon INTERFACE $<$<BOOL:${UNIX}>:m>)
 target_link_libraries(deciphon PRIVATE HMMER_READER::hmmer_reader)
