@@ -19,6 +19,12 @@
 #define DCP_HAS_ATTRIBUTE(x) (0)
 #endif
 
+#if DCP_HAS_ATTRIBUTE(unused)
+#define DCP_UNUSED __attribute__((unused))
+#else
+#define DCP_UNUSED
+#endif
+
 #if DCP_HAS_BUILTIN(__builtin_prefetch)
 #define DCP_PREFETCH(addr, rw, locality) __builtin_prefetch(addr, rw, locality)
 #else

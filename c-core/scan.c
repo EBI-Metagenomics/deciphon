@@ -48,7 +48,6 @@ static void seqs_cleanup(struct queue *seqs)
   iter_for_each_entry_safe(seq, tmp, &iter, node)
   {
     free((void *)seq->name);
-    free((void *)seq->data);
     dcp_seq_cleanup(seq);
     free(seq);
   }
