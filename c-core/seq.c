@@ -80,13 +80,11 @@ struct dcp_seq *dcp_seq_clone(struct dcp_seq *x)
 {
   struct dcp_seq *seq = NULL;
   char const *name = NULL;
-  char const *data = NULL;
 
   if (!(seq = malloc(sizeof(*seq)))) goto cleanup;
   if (!(name = dcp_strdup(x->name))) goto cleanup;
-  if (!(data = dcp_strdup(x->data))) goto cleanup;
   dcp_seq_init(seq, x->imm_eseq.code);
-  int rc = dcp_seq_setup(seq, x->id, name, data);
+  int rc = dcp_seq_setup(seq, x->id, name, x->data);
   (void)rc;
   assert(!rc && "original sequence should be proper");
 
@@ -95,6 +93,5 @@ struct dcp_seq *dcp_seq_clone(struct dcp_seq *x)
 cleanup:
   if (seq) free(seq);
   if (name) free((void *)name);
-  if (data) free((void *)data);
   return NULL;
 }
