@@ -36,8 +36,11 @@ def sequence_iterator(seqs: list[Seq], job_id: int, desc: str, qout: JoinableQue
 
 
 class Scanner(Consumer):
-    def __init__(self, sched: Sched, qin: JoinableQueue, qout: JoinableQueue):
+    def __init__(
+        self, sched: Sched, qin: JoinableQueue, qout: JoinableQueue, num_threads: int
+    ):
         super().__init__(qin)
+        self._num_threads = num_threads
         self._sched = sched
         remove_temporary_files()
         self._qout = qout
@@ -59,7 +62,6 @@ class Scanner(Consumer):
         with unique_temporary_file(".dcs") as t:
             snap = NewSnapFile(path=t)
 
-            num_threads = 1
             lrt_threshold = 0.0
 
             db = DBFile(path=FilePath(dbfile))
@@ -70,7 +72,7 @@ class Scanner(Consumer):
             logger.info("starting h3daemon")
             with H3Daemon(HMMFile(path=FilePath(hmmfile)), stdout=DEVNULL) as daemon:
                 params = ScanParams(
-                    num_threads=num_threads,
+                    num_threads=self._num_threads,
                     lrt_threshold=lrt_threshold,
                     multi_hits=x.multi_hits,
                     hmmer3_compat=x.hmmer3_compat,
@@ -87,11 +89,11 @@ class Scanner(Consumer):
             self._sched.snap_post(x.id, snap.path)
 
 
-def scanner_entry(settings: Settings, sched: Sched, num_workers: int):
+def scanner_entry(settings: Settings, sched: Sched, num_workers: int, num_threads: int):
     qin = JoinableQueue()
     qout = JoinableQueue()
     informer = ProgressInformer(sched, qout)
-    pressers = [Scanner(sched, qin, qout) for _ in range(num_workers)]
+    pressers = [Scanner(sched, qin, qout, num_threads) for _ in range(num_workers)]
     consumers = [Process(target=x.run, daemon=True) for x in pressers]
     consumers += [Process(target=informer.run, daemon=True)]
     worker_loop(settings, f"/{settings.mqtt_topic}/scan", qin, consumers)

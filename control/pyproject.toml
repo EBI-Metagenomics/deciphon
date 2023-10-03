@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deciphonctl"
-version = "0.3.0"
+version = "0.3.1"
 description = "Control Deciphon server."
 authors = ["Danilo Horta <horta@ebi.ac.uk>"]
 license = "MIT"

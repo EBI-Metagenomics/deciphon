@@ -196,13 +196,15 @@ def presser_run(num_workers: int = 1, log_level: LOG_LEVEL = LogLevel.info):
 
 
 @scanner.command("run")
-def scanner_run(num_workers: int = 1, log_level: LOG_LEVEL = LogLevel.info):
+def scanner_run(
+    num_workers: int = 1, num_threads: int = 1, log_level: LOG_LEVEL = LogLevel.info
+):
     settings = Settings()
     raise_sigint_on_sigterm()
     logger.remove()
     logger.add(sys.stderr, level=log_level.value.upper())
     sched = Sched(settings.sched_url)
-    scanner_entry(settings, sched, num_workers)
+    scanner_entry(settings, sched, num_workers, num_threads)
 
 
 app = typer.Typer()
