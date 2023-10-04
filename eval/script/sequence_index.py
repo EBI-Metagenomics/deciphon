@@ -11,9 +11,9 @@ class SequenceIndex(Index):
         sequences = [
             x.strip().decode() for x in check_output(cmd, shell=True).strip().split()
         ]
-        self._index = {}
-        for i, x in enumerate(sorted(set(sequences))):
-            self._index[x.replace("_cds_", "_any_")] = i
+        self._index = {
+            x.replace("_cds_", "_any_"): i for i, x in enumerate(sorted(set(sequences)))
+        }
 
     @property
     def count(self):

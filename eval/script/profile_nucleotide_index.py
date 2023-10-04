@@ -1,9 +1,9 @@
 from profile_index import ProfileIndex
 
-__all__ = ["WholeGenomeIndex"]
+__all__ = ["ProfileNucleotideIndex"]
 
 
-class WholeGenomeIndex:
+class ProfileNucleotideIndex:
     def __init__(self, prof_idx: ProfileIndex, genome_size: int):
         self._prof_idx = prof_idx
         self._genome_size = genome_size

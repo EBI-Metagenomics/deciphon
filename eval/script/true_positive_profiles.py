@@ -6,9 +6,9 @@ import fire
 import polars as pl
 from hmmer_results import read_hmmer_results
 from profile_index import ProfileIndex
-from qual_index import QualIndex
 from read_nucltdb import read_nucltdb
 from sequence_index import SequenceIndex
+from sequence_profile_index import SequenceProfileIndex
 
 
 def get_aligns(output, seqid: str):
@@ -31,26 +31,46 @@ def get_aligns(output, seqid: str):
     return aligns
 
 
-def positives_qualitatively(genome_dir: str, dbfile: str):
-    hmmer = read_hmmer_results(Path(genome_dir))
+def positive_profiles(genome_dir: str, pfam_file: str):
     fasta = Path(genome_dir) / "cds_from_genomic.fna"
-    nucltdb = read_nucltdb(fasta)
-    index = QualIndex(SequenceIndex(str(fasta)), ProfileIndex(dbfile))
 
+    print("Reading hmmer results...", end=" ", flush=True)
+    hmmer = read_hmmer_results(Path(genome_dir))
+    print("done.")
+
+    print("Reading nucleotides file...", end=" ", flush=True)
+    nucltdb = read_nucltdb(fasta)
+    print("done.")
+
+    print("Generating sequence indices...", end=" ", flush=True)
+    sequence_index = SequenceIndex(str(fasta))
+    print("done.")
+
+    print("Generating profile indices...", end=" ", flush=True)
+    profile_index = ProfileIndex(pfam_file)
+    print("done.")
+
+    pair = SequenceProfileIndex(sequence_index, profile_index)
+
+    print("Generating solution indices...", end=" ", flush=True)
     positives = []
     for seqrow in nucltdb.rows(named=True):
-        seqid = seqrow["seqid"]
+        seqid = str(seqrow["seqid"])
         aligns_dict = get_aligns(hmmer.output, seqid)
-        for profname, aligns in aligns_dict.items():
+        for profname, _ in aligns_dict.items():
             col = pl.col("profile_name")
             t = hmmer.domtbl.filter(col == profname).rows(named=True)[0]
-            profid = t["profid"]
-            j = index.index(seqid, profid)
+            profid = str(t["profid"])
+            j = pair.index(seqid, profid)
             positives.append(j)
+    print("done.")
 
-    with open(Path(genome_dir) / "positives_qual.pkl", "wb") as f:
+    output = Path(genome_dir) / "true_positive_profiles.pkl"
+    print(f"Writting {output}...", end=" ", flush=True)
+    with open(output, "wb") as f:
         pkl.dump(set(positives), f)
+    print("done.")
 
 
 if __name__ == "__main__":
-    fire.Fire(positives_qualitatively)
+    fire.Fire(positive_profiles)

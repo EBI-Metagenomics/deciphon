@@ -6,7 +6,7 @@ class Index:
     def count(self) -> int:
         ...
 
-    def index(self, x: str) -> int:
+    def index(self, _: str) -> int:
         ...
 
     def keys(self) -> int:

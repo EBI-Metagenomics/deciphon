@@ -8,9 +8,8 @@ import polars as pl
 import portion
 from hmmer_results import read_hmmer_results
 from profile_index import ProfileIndex
+from profile_nucleotide_index import ProfileNucleotideIndex
 from read_nucltdb import compute_genome_size, read_nucltdb
-from tqdm import tqdm
-from whole_genome_index import WholeGenomeIndex
 
 from deciphon_eval.location import Location
 from deciphon_eval.portion_utils import discretize
@@ -36,13 +35,26 @@ def get_aligns(output, seqid: str):
     return aligns
 
 
-def positives_whole_genome(genome_dir: str, dbfile: str, silent: bool = False):
-    hmmer = read_hmmer_results(genome_dir)
-    nucltdb = read_nucltdb(genome_dir / "cds_from_genomic.fna")
-    index = WholeGenomeIndex(ProfileIndex(dbfile), compute_genome_size(nucltdb))
+def positive_nuclts(genome_dir: str, pfam_file: str):
+    fasta = Path(genome_dir) / "cds_from_genomic.fna"
 
+    print("Reading hmmer results...", end=" ", flush=True)
+    hmmer = read_hmmer_results(Path(genome_dir))
+    print("done.")
+
+    print("Generating profile indices...", end=" ", flush=True)
+    profile_index = ProfileIndex(pfam_file)
+    print("done.")
+
+    print("Reading nucleotides file...", end=" ", flush=True)
+    nucltdb = read_nucltdb(fasta)
+    print("done.")
+
+    pair = ProfileNucleotideIndex(profile_index, compute_genome_size(nucltdb))
+
+    print("Generating solution indices...", end=" ", flush=True)
     ps = []
-    for seqrow in tqdm(nucltdb.rows(named=True), disable=silent):
+    for seqrow in nucltdb.rows(named=True):
         seqid = seqrow["seqid"]
         loc = Location.from_string(seqrow["nuclt_location"])
         aligns_dict = get_aligns(hmmer.output, seqid)
@@ -63,16 +75,20 @@ def positives_whole_genome(genome_dir: str, dbfile: str, silent: bool = False):
                     if cs != "." and q != "-":
                         # MATCH
                         base_idx = loc.project(offset) - 1
-                        j = index.index(profid, base_idx)
+                        j = pair.index(profid, base_idx)
                         p |= portion.closed(j, j + 2)
                         offset += 3
             ps.append(discretize(p))
     positives = reduce(portion.Interval.union, ps, portion.empty())
     positives = discretize(positives)
+    print("done.")
 
-    with open(Path(genome_dir) / "positives.pkl", "wb") as f:
+    output = Path(genome_dir) / "true_positive_nucleotides.pkl"
+    print(f"Writting {output}...", end=" ", flush=True)
+    with open(output, "wb") as f:
         pkl.dump(positives, f)
+    print("done.")
 
 
 if __name__ == "__main__":
-    fire.Fire(positives_whole_genome)
+    fire.Fire(positive_nuclts)

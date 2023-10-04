@@ -15,9 +15,7 @@ class ProfileIndex(Index):
             .strip()
             .split()
         ]
-        self._index = {}
-        for i, x in enumerate(sorted(set(profiles))):
-            self._index[x] = i
+        self._index = {x: i for i, x in enumerate(sorted(set(profiles)))}
 
     @property
     def count(self):

@@ -5,11 +5,11 @@ import plotly.express as px
 import polars as pl
 
 
-def view_quantitatively_whole_genome(parquetfile: str, title: str = "notitle"):
-    df = pl.read_parquet(Path(parquetfile))
+def view_quantitatively(file: str, title: str = "quantitatively"):
+    df = pl.read_parquet(Path(file))
 
     df = (
-        df.groupby(["organism"])
+        df.group_by(["organism"])
         .agg(
             [
                 pl.col("precision").mean(),
@@ -36,10 +36,15 @@ def view_quantitatively_whole_genome(parquetfile: str, title: str = "notitle"):
         marginal_y="histogram",
     )
     fig.update_layout(title=title)
-    fig.update_xaxes(range=[-0.05, 1.05], row=1, col=1)
-    fig.update_yaxes(range=[-0.05, 1.05], row=1, col=1)
-    fig.show()
+    # fig.update_xaxes(range=[-0.05, 1.05], row=1, col=1)
+    # fig.update_yaxes(range=[-0.05, 1.05], row=1, col=1)
+    fig.update_layout(font=dict(size=32))
+    fig.update_traces(
+        marker=dict(size=12, line=dict(width=2, color="DarkSlateGrey")),
+        selector=dict(mode="markers"),
+    )
+    fig.write_html("quantitatively.html")
 
 
 if __name__ == "__main__":
-    fire.Fire(view_quantitatively_whole_genome)
+    fire.Fire(view_quantitatively)

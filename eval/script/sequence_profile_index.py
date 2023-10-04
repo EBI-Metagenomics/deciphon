@@ -1,10 +1,10 @@
-from sequence_index import SequenceIndex
 from profile_index import ProfileIndex
+from sequence_index import SequenceIndex
 
-__all__ = ["QualIndex"]
+__all__ = ["SequenceProfileIndex"]
 
 
-class QualIndex:
+class SequenceProfileIndex:
     def __init__(self, seq_idx: SequenceIndex, prof_idx: ProfileIndex):
         self._seq_idx = seq_idx
         self._prof_idx = prof_idx
