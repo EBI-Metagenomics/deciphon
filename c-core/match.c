@@ -32,6 +32,13 @@ bool dcp_match_state_is_mute(struct dcp_match const *x)
   return dcp_state_is_mute(x->step.state_id);
 }
 
+bool dcp_match_state_is_core(struct dcp_match const *x)
+{
+  return dcp_state_is_match(x->step.state_id) ||
+         dcp_state_is_insert(x->step.state_id) ||
+         dcp_state_is_delete(x->step.state_id);
+}
+
 char dcp_match_amino(struct dcp_match const *x)
 {
   return imm_gencode_decode(x->protein->params.gencode, x->codon);

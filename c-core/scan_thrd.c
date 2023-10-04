@@ -148,6 +148,7 @@ static int infer_amino(struct dcp_chararray *x, struct dcp_match *match,
   while (!(rc = dcp_match_iter_next(it, match)))
   {
     if (dcp_match_iter_end(it)) break;
+    if (!dcp_match_state_is_core(match)) continue;
     if (dcp_match_state_is_mute(match)) continue;
     if ((rc = dcp_chararray_append(x, dcp_match_amino(match)))) return rc;
   }
