@@ -4,6 +4,18 @@
 
 static unsigned id_msb(unsigned id) { return id & (3U << (STATE_ID_BITS - 2)); }
 
+unsigned dcp_state_make_end(void) { return STATE_T; }
+
+bool dcp_state_is_start(unsigned id) { return id == STATE_S; }
+
+bool dcp_state_is_end(unsigned id) { return id == STATE_T; }
+
+bool dcp_state_is_core(unsigned id)
+{
+  return dcp_state_is_match(id) || dcp_state_is_delete(id) ||
+         dcp_state_is_insert(id);
+}
+
 bool dcp_state_is_match(unsigned id) { return id_msb(id) == STATE_MATCH; }
 
 bool dcp_state_is_insert(unsigned id) { return id_msb(id) == STATE_INSERT; }

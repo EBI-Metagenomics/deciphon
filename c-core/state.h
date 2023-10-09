@@ -26,6 +26,10 @@ enum dcp_state_id
   STATE_T = (STATE_EXT | 9),
 };
 
+unsigned dcp_state_make_end(void);
+bool dcp_state_is_start(unsigned id);
+bool dcp_state_is_end(unsigned id);
+bool dcp_state_is_core(unsigned id);
 bool dcp_state_is_match(unsigned id);
 bool dcp_state_is_insert(unsigned id);
 bool dcp_state_is_delete(unsigned id);
