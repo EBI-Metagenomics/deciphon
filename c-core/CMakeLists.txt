@@ -8,8 +8,8 @@ include(cmake/CPM.cmake)
 cpmaddpackage(
   NAME hmmer_reader
   GITHUB_REPOSITORY EBI-Metagenomics/hmmer3
-  GIT_TAG hmmer-reader-v0.7.2
-  VERSION 0.7.2
+  GIT_TAG hmmer-reader-v0.7.3
+  VERSION 0.7.3
   SOURCE_SUBDIR hmmer-reader)
 cpmaddpackage(
   NAME h3client
