@@ -6,7 +6,7 @@
 void dcp_viterbi_task_init(struct dcp_viterbi_task *x)
 {
   x->dp = NULL;
-  imm_trellis_init(&x->trellis);
+  trellis_init(&x->trellis);
   x->path = imm_path();
   x->score = IMM_LPROB_NAN;
 }
@@ -30,10 +30,8 @@ int dcp_viterbi_task_setup(struct dcp_viterbi_task *x, int core_size,
 
   if (!nopath)
   {
-    int nstates = 3 + 3 * core_size + 3 + 1;
-    if (imm_trellis_setup(&x->trellis, seq_size, nstates))
+    if (trellis_setup(&x->trellis, core_size, seq_size))
       defer_return(DCP_ENOMEM);
-    imm_trellis_prepare(&x->trellis);
 
     imm_path_reset(&x->path);
   }
@@ -47,7 +45,7 @@ defer:
 
 void dcp_viterbi_task_cleanup(struct dcp_viterbi_task *x)
 {
-  imm_trellis_cleanup(&x->trellis);
+  trellis_cleanup(&x->trellis);
   dp_del(&x->dp);
   imm_path_cleanup(&x->path);
 }

@@ -3,6 +3,7 @@
 
 #include "compiler.h"
 #include "imm/imm.h"
+#include "trellis.h"
 #include "viterbi_dp.h"
 #include <stdbool.h>
 
@@ -16,7 +17,7 @@ struct dcp_viterbi_task
   float E[DCP_VITERBI_PAST_SIZE];
   float C[DCP_VITERBI_PAST_SIZE];
   float T[DCP_VITERBI_PAST_SIZE];
-  struct imm_trellis trellis;
+  struct trellis trellis;
   struct imm_path path;
   float score;
 };

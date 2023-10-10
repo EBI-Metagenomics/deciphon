@@ -6,10 +6,11 @@
 #include "find.h"
 #include "imm/imm.h"
 #include "reduce.h"
+#include "trellis.h"
 #include "viterbi_index.h"
 #include "viterbi_task.h"
 
-DCP_INLINE float onto_N(struct imm_trellis *t, float const S[restrict],
+DCP_INLINE float onto_N(struct trellis *t, float const S[restrict],
                         float const N[restrict], float const SN, float const NN,
                         float const emission[restrict])
 {
@@ -28,28 +29,14 @@ DCP_INLINE float onto_N(struct imm_trellis *t, float const S[restrict],
       N[lukbak(5)] + NN + emission[nchars(5)],
   };
   if (!t) return reduce_fmax(array_size(x), x);
-
-  int const src[] = {
-    SIX(),
-    SIX(),
-    SIX(),
-    SIX(),
-    SIX(),
-
-    NIX(),
-    NIX(),
-    NIX(),
-    NIX(),
-    NIX(),
-  };
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
-  imm_trellis_push(t, x[i], src[i], i % 5 + 1);
+  trellis_set(t, STATE_N, i);
   return x[i];
 }
 
-DCP_INLINE float onto_B(struct imm_trellis *t, float const S[restrict],
+DCP_INLINE float onto_B(struct trellis *t, float const S[restrict],
                         float const N[restrict], float const SB, float const NB)
 {
   // clang-format off
@@ -58,22 +45,16 @@ DCP_INLINE float onto_B(struct imm_trellis *t, float const S[restrict],
       N[lukbak(0)] + NB + 0,
   };
   if (!t) return dcp_fmax(x[0], x[1]);
-
-  int const src[] = {
-    SIX(),
-    NIX(),
-  };
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
-  imm_trellis_push(t, x[i], src[i], 0);
+  trellis_set(t, STATE_B, i);
   return x[i];
 }
 
-DCP_INLINE float adjust_onto_B(struct imm_trellis *t, float const B[restrict],
+DCP_INLINE float adjust_onto_B(struct trellis *t, float const B[restrict],
                                float const E[restrict], float const J[restrict],
-                               float const EB, float const JB,
-                               int const core_size)
+                               float const EB, float const JB)
 {
   // clang-format off
   float const x[] ALIGNED = {
@@ -84,18 +65,18 @@ DCP_INLINE float adjust_onto_B(struct imm_trellis *t, float const B[restrict],
   if (!t) return reduce_fmax(array_size(x), x);
 
   int const src[] = {
-    imm_trellis_head(t)->state_source,
-    EIX(core_size),
-    JIX(core_size),
+    -1,
+    2,
+    3,
   };
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
-  imm_trellis_push(t, x[i], src[i], 0);
+  if (i > 0) trellis_replace(t, STATE_B, src[i]);
   return x[i];
 }
 
-DCP_INLINE float onto_M0(struct imm_trellis *t, float const B[restrict],
+DCP_INLINE float onto_M0(struct trellis *t, float const B[restrict],
                          float const BM, float const emission[restrict])
 {
   // clang-format off
@@ -107,24 +88,16 @@ DCP_INLINE float onto_M0(struct imm_trellis *t, float const B[restrict],
       B[lukbak(5)] + BM + emission[nchars(5)],
   };
   if (!t) return reduce_fmax(array_size(x), x);
-
-  int const src[] = {
-    BIX(),
-    BIX(),
-    BIX(),
-    BIX(),
-    BIX(),
-  };
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
-  imm_trellis_push(t, x[i], src[i], i % 5 + 1);
+  trellis_set(t, STATE_MATCH, i);
   return x[i];
 }
 
-DCP_INLINE float onto_I(struct imm_trellis *t, float const M[restrict],
+DCP_INLINE float onto_I(struct trellis *t, float const M[restrict],
                         float const I[restrict], float const MI, float const II,
-                        float const emission[restrict], int k)
+                        float const emission[restrict])
 {
   // clang-format off
   float const x[] ALIGNED = {
@@ -141,32 +114,18 @@ DCP_INLINE float onto_I(struct imm_trellis *t, float const M[restrict],
       I[lukbak(5)] + II + emission[nchars(5)],
   };
   if (!t) return reduce_fmax(array_size(x), x);
-
-  int const src[] = {
-    MIX(k),
-    MIX(k),
-    MIX(k),
-    MIX(k),
-    MIX(k),
-
-    IIX(k),
-    IIX(k),
-    IIX(k),
-    IIX(k),
-    IIX(k),
-  };
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
-  imm_trellis_push(t, x[i], src[i], i % 5 + 1);
+  trellis_set(t, STATE_INSERT, i);
   return x[i];
 }
 
-DCP_INLINE float onto_M(struct imm_trellis *t, float const B[restrict],
+DCP_INLINE float onto_M(struct trellis *t, float const B[restrict],
                         float const M[restrict], float const I[restrict],
                         float const D[restrict], float const BM, float const MM,
                         float const IM, float const DM,
-                        float const emission[restrict], int k)
+                        float const emission[restrict])
 {
   // clang-format off
   float const x[] ALIGNED = {
@@ -195,42 +154,15 @@ DCP_INLINE float onto_M(struct imm_trellis *t, float const B[restrict],
       D[lukbak(5)] + DM + emission[nchars(5)],
   };
   if (!t) return reduce_fmax(array_size(x), x);
-
-  int const src[] = {
-    BIX(),
-    BIX(),
-    BIX(),
-    BIX(),
-    BIX(),
-
-    MIX(k),
-    MIX(k),
-    MIX(k),
-    MIX(k),
-    MIX(k),
-
-    IIX(k),
-    IIX(k),
-    IIX(k),
-    IIX(k),
-    IIX(k),
-
-    DIX(k),
-    DIX(k),
-    DIX(k),
-    DIX(k),
-    DIX(k),
-  };
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
-  imm_trellis_push(t, x[i], src[i], i % 5 + 1);
+  trellis_set(t, STATE_MATCH, i);
   return x[i];
 }
 
-DCP_INLINE float onto_D(struct imm_trellis *t, float const M[restrict],
-                        float const D[restrict], float const MD, float const DD,
-                        int k)
+DCP_INLINE float onto_D(struct trellis *t, float const M[restrict],
+                        float const D[restrict], float const MD, float const DD)
 {
   // clang-format off
   float const x[] ALIGNED = {
@@ -238,15 +170,10 @@ DCP_INLINE float onto_D(struct imm_trellis *t, float const M[restrict],
       D[lukbak(0)] + DD + 0,
   };
   if (!t) return dcp_fmax(x[0], x[1]);
-
-  int const src[] = {
-    MIX(k),
-    DIX(k),
-  };
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
-  imm_trellis_push(t, x[i], src[i], 0);
+  trellis_set(t, STATE_DELETE, i);
   return x[i];
 }
 
@@ -259,29 +186,30 @@ DCP_INLINE void fmax_idx(float *value, int *src, float new_value, int new_src)
   }
 }
 
-DCP_INLINE float onto_E(struct imm_trellis *t, float *restrict dp,
-                        float const ME, float const DE, int const core_size)
+DCP_INLINE float onto_E(struct trellis *t, float *restrict dp, float const ME,
+                        float const DE, int const core_size)
 {
   float *Mk = dp_rewind(dp, STATE_MATCH);
   float *Dk = dp_rewind(dp, STATE_DELETE);
   float x = Mk[lukbak(1)] + ME;
-  int src = MIX(0);
-  for (int k = 1; k < core_size; ++k)
+  // int src = MIX(0);
+  int src = 0;
+  for (int i = 2; i < 2 * core_size; i += 2)
   {
     Mk = dp_next(Mk);
     Dk = dp_next(Dk);
     // It is lukbak(1) instead of lukbak(0) because I already called
     // make_future(DPM) and make_future(DPD), for performance reasons.
-    fmax_idx(&x, &src, Mk[lukbak(1)] + ME + 0, MIX(k));
-    fmax_idx(&x, &src, Dk[lukbak(1)] + DE + 0, DIX(k));
+    fmax_idx(&x, &src, Mk[lukbak(1)] + ME + 0, i + 0);
+    fmax_idx(&x, &src, Dk[lukbak(1)] + DE + 0, i + 1);
   }
-  imm_trellis_push(t, x, src, 0);
+  trellis_set(t, STATE_E, src);
   return x;
 }
 
-DCP_INLINE float onto_J(struct imm_trellis *t, float const E[restrict],
+DCP_INLINE float onto_J(struct trellis *t, float const E[restrict],
                         float const J[restrict], float const EJ, float const JJ,
-                        float const emission[restrict], int const core_size)
+                        float const emission[restrict])
 {
   // clang-format off
   float const x[] ALIGNED = {
@@ -298,30 +226,16 @@ DCP_INLINE float onto_J(struct imm_trellis *t, float const E[restrict],
       J[lukbak(5)] + JJ + emission[nchars(5)],
   };
   if (!t) return reduce_fmax(array_size(x), x);
-
-  int const src[] = {
-    EIX(core_size),
-    EIX(core_size),
-    EIX(core_size),
-    EIX(core_size),
-    EIX(core_size),
-
-    JIX(core_size),
-    JIX(core_size),
-    JIX(core_size),
-    JIX(core_size),
-    JIX(core_size),
-  };
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
-  imm_trellis_push(t, x[i], src[i], i % 5 + 1);
+  trellis_set(t, STATE_J, i);
   return x[i];
 }
 
-DCP_INLINE float onto_C(struct imm_trellis *t, float const E[restrict],
+DCP_INLINE float onto_C(struct trellis *t, float const E[restrict],
                         float const C[restrict], float const EC, float const CC,
-                        float const emission[restrict], int const core_size)
+                        float const emission[restrict])
 {
   // clang-format off
   float const x[] ALIGNED = {
@@ -338,30 +252,15 @@ DCP_INLINE float onto_C(struct imm_trellis *t, float const E[restrict],
       C[lukbak(5)] + CC + emission[nchars(5)],
   };
   if (!t) return reduce_fmax(array_size(x), x);
-
-  int const src[] = {
-    EIX(core_size),
-    EIX(core_size),
-    EIX(core_size),
-    EIX(core_size),
-    EIX(core_size),
-
-    CIX(core_size),
-    CIX(core_size),
-    CIX(core_size),
-    CIX(core_size),
-    CIX(core_size),
-  };
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
-  imm_trellis_push(t, x[i], src[i], i % 5 + 1);
+  trellis_set(t, STATE_C, i);
   return x[i];
 }
 
-DCP_INLINE float onto_T(struct imm_trellis *t, float const E[restrict],
-                        float const C[restrict], float const ET, float const CT,
-                        int const core_size)
+DCP_INLINE float onto_T(struct trellis *t, float const E[restrict],
+                        float const C[restrict], float const ET, float const CT)
 {
   // clang-format off
   float const x[] ALIGNED = {
@@ -369,15 +268,10 @@ DCP_INLINE float onto_T(struct imm_trellis *t, float const E[restrict],
     C[lukbak(0)] + CT + 0,
   };
   if (!t) return dcp_fmax(x[0], x[1]);
-
-  int const src[] = {
-    EIX(core_size),
-    CIX(core_size),
-  };
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
-  imm_trellis_push(t, x[i], src[i], 0);
+  trellis_set(t, STATE_T, i);
   return x[i];
 }
 

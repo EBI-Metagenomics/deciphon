@@ -8,11 +8,34 @@
 #include "protein.h"
 #include "reduce.h"
 #include "scan_thrd.h"
+#include "trellis.h"
 #include "viterbi_index.h"
 #include "viterbi_onto.h"
 #include "viterbi_task.h"
 #include <stdlib.h>
 #include <string.h>
+
+// Let m be the core size.
+// We evaluate the HMM in the following order:
+//
+//          -> S
+//   (S, N) -> N
+//   (S, N) -> B' (it will be adjusted later on)
+//
+//   B0 -> M0
+//   M0 -> E'     (it will be adjusted later on)
+//   For each k in 0, 1, m-1:
+//     Let n = k + 1.
+//     (Mk, Ik)             -> Ik
+//     (B', Mk, Ik, Dk)     -> Mn
+//     (Mk, Dk)             -> Dn
+//     (E', Mn, Dn)         -> E'
+//
+//   E'         -> E
+//   (E , J)    -> J
+//   (B', E, J) -> B
+//   (E , C)    -> C
+//   (E , C)    -> T
 
 DCP_PURE int emission_index(struct imm_eseq const *x, int pos, int size,
                             bool const safe)
@@ -158,7 +181,7 @@ float dcp_viterbi_null(struct dcp_protein *x, struct imm_eseq const *eseq)
 
 DCP_INLINE void viterbi(struct dcp_protein *x, struct dcp_viterbi_task *task,
                         struct imm_eseq const *eseq, int row_start, int row_end,
-                        bool const safe, struct imm_trellis *trellis)
+                        bool const safe, struct trellis *tr)
 {
   int core_size = x->core_size;
 
@@ -176,15 +199,18 @@ DCP_INLINE void viterbi(struct dcp_protein *x, struct dcp_viterbi_task *task,
   float bg[DCP_VITERBI_PAST_SIZE - 1] = {0};
   float match[DCP_VITERBI_PAST_SIZE - 1] = {0};
 
+  if (tr) trellis_seek_xnode(tr, row_start);
+  if (tr) trellis_seek_node(tr, row_start, 0);
+  if (tr) trellis_clear_node(tr);
   for (int r = row_start; r < row_end; ++r)
   {
-    if (trellis) imm_trellis_seek(trellis, r, NIX());
+    if (tr) trellis_clear_xnode(tr);
     fetch_indices(ix, eseq, r, safe);
     fetch_emission(null, x->null.emission, ix, safe);
     fetch_emission(bg, x->bg.emission, ix, safe);
 
-    N[lukbak(0)] = onto_N(trellis, S, N, xt.SN, xt.NN, null);
-    B[lukbak(0)] = onto_B(trellis, S, N, xt.SB, xt.NB);
+    N[lukbak(0)] = onto_N(tr, S, N, xt.SN, xt.NN, null);
+    B[lukbak(0)] = onto_B(tr, S, N, xt.SB, xt.NB);
 
     make_future(S);
     make_future(N);
@@ -194,16 +220,16 @@ DCP_INLINE void viterbi(struct dcp_protein *x, struct dcp_viterbi_task *task,
     float *Dk = dp_rewind(task->dp, STATE_DELETE);
     fetch_emission(match, x->nodes[0].emission, ix, safe);
 
+    if (tr) trellis_clear_node(tr);
     // BM(0) -> M(0)
-    Mk[lukbak(0)] = onto_M0(trellis, B, x->BMk[0], match);
+    Mk[lukbak(0)] = onto_M0(tr, B, x->BMk[0], match);
     // M(0) -> E
     float Emax = Mk[lukbak(0)] + xt.ME + 0;
     // Skip transition into D0 state (does not exist)
-    if (trellis) imm_trellis_next(trellis);
 
     for (int k = 0; k + 1 < core_size; ++k)
     {
-      int k1 = k + 1;
+      int n = k + 1;
       float const MM = x->nodes[k].trans.MM;
       float const MI = x->nodes[k].trans.MI;
       float const MD = x->nodes[k].trans.MD;
@@ -211,70 +237,72 @@ DCP_INLINE void viterbi(struct dcp_protein *x, struct dcp_viterbi_task *task,
       float const II = x->nodes[k].trans.II;
       float const DM = x->nodes[k].trans.DM;
       float const DD = x->nodes[k].trans.DD;
-      float const BM = x->BMk[k1];
-      fetch_emission(match, x->nodes[k1].emission, ix, safe);
+      float const BM = x->BMk[n];
+      fetch_emission(match, x->nodes[n].emission, ix, safe);
 
       // [M(k), I(k)] -> I(k)
-      Ik[lukbak(0)] = onto_I(trellis, Mk, Ik, MI, II, bg, k);
+      Ik[lukbak(0)] = onto_I(tr, Mk, Ik, MI, II, bg);
+      if (tr) trellis_next_node(tr);
+      if (tr) trellis_clear_node(tr);
 
-      // [BM(k1), M(k), I(k), D(k)] -> M(k1)
-      float Mk1 = onto_M(trellis, B, Mk, Ik, Dk, BM, MM, IM, DM, match, k);
+      // [BM(n), M(k), I(k), D(k)] -> M(n)
+      float Mn = onto_M(tr, B, Mk, Ik, Dk, BM, MM, IM, DM, match);
       prefetch_emission(x->nodes[k + 2].emission, ix);
 
-      // [M(k), D(k)] -> D(k1)
-      float Dk1 = onto_D(trellis, Mk, Dk, MD, DD, k);
+      // [M(k), D(k)] -> D(n)
+      float Dn = onto_D(tr, Mk, Dk, MD, DD);
 
       make_future(Mk);
       make_future(Ik);
       make_future(Dk);
 
       Mk = dp_next(Mk);
-      Mk[lukbak(0)] = Mk1;
+      Mk[lukbak(0)] = Mn;
 
       Ik = dp_next(Ik);
       Dk = dp_next(Dk);
-      Dk[lukbak(0)] = Dk1;
+      Dk[lukbak(0)] = Dn;
 
-      Emax = dcp_fmax(Emax, Mk1 + xt.ME + 0);
-      Emax = dcp_fmax(Emax, Dk1 + xt.DE + 0);
+      Emax = dcp_fmax(Emax, Mn + xt.ME + 0);
+      Emax = dcp_fmax(Emax, Dn + xt.DE + 0);
     }
     // Skip transition into Ik1 state (does not exist)
-    if (trellis) imm_trellis_next(trellis);
+    if (tr) trellis_next_node(tr);
     make_future(Mk);
     make_future(Ik);
     make_future(Dk);
 
-    if (trellis)
-      E[lukbak(0)] = onto_E(trellis, task->dp, xt.ME, xt.DE, core_size);
+    if (tr)
+      E[lukbak(0)] = onto_E(tr, task->dp, xt.ME, xt.DE, core_size);
     else
       E[lukbak(0)] = Emax;
 
-    J[lukbak(0)] = onto_J(trellis, E, J, xt.EJ, xt.JJ, null, core_size);
+    J[lukbak(0)] = onto_J(tr, E, J, xt.EJ, xt.JJ, null);
 
-    if (trellis) imm_trellis_seek(trellis, r, BIX());
-    B[lukbak(0)] = adjust_onto_B(trellis, B, E, J, xt.EB, xt.JB, core_size);
-    if (trellis) imm_trellis_seek(trellis, r, CIX(core_size));
+    B[lukbak(0)] = adjust_onto_B(tr, B, E, J, xt.EB, xt.JB);
 
     make_future(B);
     make_future(J);
 
-    C[lukbak(0)] = onto_C(trellis, E, C, xt.EC, xt.CC, null, core_size);
-    T[lukbak(0)] = onto_T(trellis, E, C, xt.ET, xt.CT, core_size);
+    C[lukbak(0)] = onto_C(tr, E, C, xt.EC, xt.CC, null);
+    T[lukbak(0)] = onto_T(tr, E, C, xt.ET, xt.CT);
 
     make_future(E);
     make_future(C);
     make_future(T);
 
     S[lukbak(0)] = IMM_LPROB_ZERO;
+    if (tr) trellis_next_xnode(tr);
   }
 }
 
-static int unzip_path(struct imm_trellis *x, int core_size, unsigned seq_size,
+static int unzip_path(struct trellis *x, unsigned seq_size,
                       struct imm_path *path);
 
 int dcp_viterbi(struct dcp_protein *x, struct imm_eseq const *eseq,
                 struct dcp_viterbi_task *task, bool const nopath)
 {
+  assert(imm_eseq_size(eseq) <= INT_MAX);
   int seq_size = (int)imm_eseq_size(eseq);
   int rc = dcp_viterbi_task_setup(task, x->core_size, seq_size, nopath);
   if (rc) return rc;
@@ -289,37 +317,41 @@ int dcp_viterbi(struct dcp_protein *x, struct imm_eseq const *eseq,
   {
     viterbi(x, task, eseq, row_start, row_mid, false, NULL);
     viterbi(x, task, eseq, row_mid, row_end, true, NULL);
+    task->score = task->T[lukbak(1)];
   }
   else
   {
     viterbi(x, task, eseq, row_start, row_mid, false, &task->trellis);
     viterbi(x, task, eseq, row_mid, row_end, true, &task->trellis);
+    task->score = task->T[lukbak(1)];
     imm_path_reset(&task->path);
-    rc = unzip_path(&task->trellis, x->core_size, seq_size, &task->path);
+    if (!imm_lprob_is_nan(task->score))
+      rc = unzip_path(&task->trellis, seq_size, &task->path);
   }
 
-  task->score = task->T[lukbak(1)];
   return rc;
 }
 
-static int unzip_path(struct imm_trellis *x, int core_size, unsigned seq_size,
+static int unzip_path(struct trellis *x, unsigned seq_size,
                       struct imm_path *path)
 {
-  unsigned start_state = SIX();
-  unsigned end_state = TIX(core_size);
-  imm_trellis_seek(x, seq_size, end_state);
-  if (imm_lprob_is_nan(imm_trellis_head(x)->score)) return 0;
+  unsigned state = dcp_state_make_end();
+  assert(seq_size <= INT_MAX);
+  int stage = (int)seq_size;
+  trellis_seek_xnode(x, stage);
 
-  while (imm_trellis_state_idx(x) != start_state || imm_trellis_stage_idx(x))
+  while (!dcp_state_is_start(state) || stage)
   {
-    unsigned id = ID(imm_trellis_state_idx(x), core_size);
-    unsigned size = imm_trellis_head(x)->emission_size;
-    float score = imm_trellis_head(x)->score;
-    if (imm_path_add(path, imm_step(id, size, score))) return DCP_ENOMEM;
-    imm_trellis_back(x);
+    unsigned size = trellis_get_emission_size(x, state);
+    if (imm_path_add(path, imm_step(state, size, 0))) return DCP_ENOMEM;
+    state = trellis_get_previous_state(x, state);
+    stage -= size;
+    if (dcp_state_is_core(state))
+      trellis_seek_node(x, stage, dcp_state_idx(state));
+    else
+      trellis_seek_xnode(x, stage);
   }
-  unsigned id = ID(imm_trellis_state_idx(x), core_size);
-  if (imm_path_add(path, imm_step(id, 0, 0))) return DCP_ENOMEM;
+  if (imm_path_add(path, imm_step(state, 0, 0))) return DCP_ENOMEM;
   imm_path_reverse(path);
   return 0;
 }
