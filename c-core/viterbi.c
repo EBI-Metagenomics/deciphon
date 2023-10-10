@@ -201,7 +201,6 @@ DCP_INLINE void viterbi(struct dcp_protein *x, struct dcp_viterbi_task *task,
 
   if (tr) trellis_seek_xnode(tr, row_start);
   if (tr) trellis_seek_node(tr, row_start, 0);
-  if (tr) trellis_clear_node(tr);
   for (int r = row_start; r < row_end; ++r)
   {
     if (tr) trellis_clear_xnode(tr);

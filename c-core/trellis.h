@@ -107,7 +107,7 @@ DCP_INLINE void trellis_set(struct trellis *x, unsigned id, int value)
 
 DCP_INLINE void trellis_replace(struct trellis *x, unsigned id, int value)
 {
-  assert(state == STATE_B);
+  assert(id == STATE_B);
   *x->xnode &= ~bit_rangeset(SBITS + NBITS, BBITS);
   trellis_set(x, id, value);
 }
