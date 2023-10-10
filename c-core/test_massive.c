@@ -70,6 +70,7 @@ int main(void)
   eq_or_exit(dcp_scan_setup(scan, params), 0);
 
   struct seqit it = seqit_init(NUM_SEQS, &random_sequence_next);
+  dcp_fs_rmtree(PRODDIR);
   eq(dcp_scan_run(scan, DBFILE, next_seq, &it, PRODDIR), 0);
   ok(chksum(PRODDIR "/products.tsv") == 55120 ||
      chksum(PRODDIR "/products.tsv") == 41793);

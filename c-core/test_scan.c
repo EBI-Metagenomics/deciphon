@@ -52,6 +52,7 @@ static void test_scan(struct dcp_scan_params params, long desired_chksum)
   eq(dcp_scan_setup(scan, params), 0);
 
   size_t idx = 0;
+  dcp_fs_rmtree("prod_scan");
   eq(dcp_scan_run(scan, DBFILE, next_seq, &idx, "prod_scan"), 0);
   eq(chksum("prod_scan/products.tsv"), desired_chksum);
   eq(dcp_fs_rmtree("prod_scan"), 0);
