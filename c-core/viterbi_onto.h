@@ -14,19 +14,20 @@ DCP_INLINE float onto_N(struct trellis *t, float const S[restrict],
                         float const N[restrict], float const SN, float const NN,
                         float const emission[restrict])
 {
+  float const *e = ASSUME_ALIGNED(emission);
   // clang-format off
   float const x[] ALIGNED = {
-      S[lukbak(1)] + SN + emission[nchars(1)],
-      S[lukbak(2)] + SN + emission[nchars(2)],
-      S[lukbak(3)] + SN + emission[nchars(3)],
-      S[lukbak(4)] + SN + emission[nchars(4)],
-      S[lukbak(5)] + SN + emission[nchars(5)],
+      S[lukbak(1)] + SN + e[nchars(1)],
+      S[lukbak(2)] + SN + e[nchars(2)],
+      S[lukbak(3)] + SN + e[nchars(3)],
+      S[lukbak(4)] + SN + e[nchars(4)],
+      S[lukbak(5)] + SN + e[nchars(5)],
 
-      N[lukbak(1)] + NN + emission[nchars(1)],
-      N[lukbak(2)] + NN + emission[nchars(2)],
-      N[lukbak(3)] + NN + emission[nchars(3)],
-      N[lukbak(4)] + NN + emission[nchars(4)],
-      N[lukbak(5)] + NN + emission[nchars(5)],
+      N[lukbak(1)] + NN + e[nchars(1)],
+      N[lukbak(2)] + NN + e[nchars(2)],
+      N[lukbak(3)] + NN + e[nchars(3)],
+      N[lukbak(4)] + NN + e[nchars(4)],
+      N[lukbak(5)] + NN + e[nchars(5)],
   };
   if (!t) return reduce_fmax(array_size(x), x);
   // clang-format on
@@ -79,13 +80,14 @@ DCP_INLINE float adjust_onto_B(struct trellis *t, float const B[restrict],
 DCP_INLINE float onto_M0(struct trellis *t, float const B[restrict],
                          float const BM, float const emission[restrict])
 {
+  float const *e = ASSUME_ALIGNED(emission);
   // clang-format off
   float const x[] ALIGNED = {
-      B[lukbak(1)] + BM + emission[nchars(1)],
-      B[lukbak(2)] + BM + emission[nchars(2)],
-      B[lukbak(3)] + BM + emission[nchars(3)],
-      B[lukbak(4)] + BM + emission[nchars(4)],
-      B[lukbak(5)] + BM + emission[nchars(5)],
+      B[lukbak(1)] + BM + e[nchars(1)],
+      B[lukbak(2)] + BM + e[nchars(2)],
+      B[lukbak(3)] + BM + e[nchars(3)],
+      B[lukbak(4)] + BM + e[nchars(4)],
+      B[lukbak(5)] + BM + e[nchars(5)],
   };
   if (!t) return reduce_fmax(array_size(x), x);
   // clang-format on
@@ -99,19 +101,20 @@ DCP_INLINE float onto_I(struct trellis *t, float const M[restrict],
                         float const I[restrict], float const MI, float const II,
                         float const emission[restrict])
 {
+  float const *e = ASSUME_ALIGNED(emission);
   // clang-format off
   float const x[] ALIGNED = {
-      M[lukbak(1)] + MI + emission[nchars(1)],
-      M[lukbak(2)] + MI + emission[nchars(2)],
-      M[lukbak(3)] + MI + emission[nchars(3)],
-      M[lukbak(4)] + MI + emission[nchars(4)],
-      M[lukbak(5)] + MI + emission[nchars(5)],
+      M[lukbak(1)] + MI + e[nchars(1)],
+      M[lukbak(2)] + MI + e[nchars(2)],
+      M[lukbak(3)] + MI + e[nchars(3)],
+      M[lukbak(4)] + MI + e[nchars(4)],
+      M[lukbak(5)] + MI + e[nchars(5)],
 
-      I[lukbak(1)] + II + emission[nchars(1)],
-      I[lukbak(2)] + II + emission[nchars(2)],
-      I[lukbak(3)] + II + emission[nchars(3)],
-      I[lukbak(4)] + II + emission[nchars(4)],
-      I[lukbak(5)] + II + emission[nchars(5)],
+      I[lukbak(1)] + II + e[nchars(1)],
+      I[lukbak(2)] + II + e[nchars(2)],
+      I[lukbak(3)] + II + e[nchars(3)],
+      I[lukbak(4)] + II + e[nchars(4)],
+      I[lukbak(5)] + II + e[nchars(5)],
   };
   if (!t) return reduce_fmax(array_size(x), x);
   // clang-format on
@@ -127,31 +130,32 @@ DCP_INLINE float onto_M(struct trellis *t, float const B[restrict],
                         float const IM, float const DM,
                         float const emission[restrict])
 {
+  float const *e = ASSUME_ALIGNED(emission);
   // clang-format off
   float const x[] ALIGNED = {
-      B[lukbak(1)] + BM + emission[nchars(1)],
-      B[lukbak(2)] + BM + emission[nchars(2)],
-      B[lukbak(3)] + BM + emission[nchars(3)],
-      B[lukbak(4)] + BM + emission[nchars(4)],
-      B[lukbak(5)] + BM + emission[nchars(5)],
+      B[lukbak(1)] + BM + e[nchars(1)],
+      B[lukbak(2)] + BM + e[nchars(2)],
+      B[lukbak(3)] + BM + e[nchars(3)],
+      B[lukbak(4)] + BM + e[nchars(4)],
+      B[lukbak(5)] + BM + e[nchars(5)],
 
-      M[lukbak(1)] + MM + emission[nchars(1)],
-      M[lukbak(2)] + MM + emission[nchars(2)],
-      M[lukbak(3)] + MM + emission[nchars(3)],
-      M[lukbak(4)] + MM + emission[nchars(4)],
-      M[lukbak(5)] + MM + emission[nchars(5)],
+      M[lukbak(1)] + MM + e[nchars(1)],
+      M[lukbak(2)] + MM + e[nchars(2)],
+      M[lukbak(3)] + MM + e[nchars(3)],
+      M[lukbak(4)] + MM + e[nchars(4)],
+      M[lukbak(5)] + MM + e[nchars(5)],
 
-      I[lukbak(1)] + IM + emission[nchars(1)],
-      I[lukbak(2)] + IM + emission[nchars(2)],
-      I[lukbak(3)] + IM + emission[nchars(3)],
-      I[lukbak(4)] + IM + emission[nchars(4)],
-      I[lukbak(5)] + IM + emission[nchars(5)],
+      I[lukbak(1)] + IM + e[nchars(1)],
+      I[lukbak(2)] + IM + e[nchars(2)],
+      I[lukbak(3)] + IM + e[nchars(3)],
+      I[lukbak(4)] + IM + e[nchars(4)],
+      I[lukbak(5)] + IM + e[nchars(5)],
 
-      D[lukbak(1)] + DM + emission[nchars(1)],
-      D[lukbak(2)] + DM + emission[nchars(2)],
-      D[lukbak(3)] + DM + emission[nchars(3)],
-      D[lukbak(4)] + DM + emission[nchars(4)],
-      D[lukbak(5)] + DM + emission[nchars(5)],
+      D[lukbak(1)] + DM + e[nchars(1)],
+      D[lukbak(2)] + DM + e[nchars(2)],
+      D[lukbak(3)] + DM + e[nchars(3)],
+      D[lukbak(4)] + DM + e[nchars(4)],
+      D[lukbak(5)] + DM + e[nchars(5)],
   };
   if (!t) return reduce_fmax(array_size(x), x);
   // clang-format on
@@ -211,19 +215,20 @@ DCP_INLINE float onto_J(struct trellis *t, float const E[restrict],
                         float const J[restrict], float const EJ, float const JJ,
                         float const emission[restrict])
 {
+  float const *e = ASSUME_ALIGNED(emission);
   // clang-format off
   float const x[] ALIGNED = {
-      E[lukbak(1)] + EJ + emission[nchars(1)],
-      E[lukbak(2)] + EJ + emission[nchars(2)],
-      E[lukbak(3)] + EJ + emission[nchars(3)],
-      E[lukbak(4)] + EJ + emission[nchars(4)],
-      E[lukbak(5)] + EJ + emission[nchars(5)],
+      E[lukbak(1)] + EJ + e[nchars(1)],
+      E[lukbak(2)] + EJ + e[nchars(2)],
+      E[lukbak(3)] + EJ + e[nchars(3)],
+      E[lukbak(4)] + EJ + e[nchars(4)],
+      E[lukbak(5)] + EJ + e[nchars(5)],
 
-      J[lukbak(1)] + JJ + emission[nchars(1)],
-      J[lukbak(2)] + JJ + emission[nchars(2)],
-      J[lukbak(3)] + JJ + emission[nchars(3)],
-      J[lukbak(4)] + JJ + emission[nchars(4)],
-      J[lukbak(5)] + JJ + emission[nchars(5)],
+      J[lukbak(1)] + JJ + e[nchars(1)],
+      J[lukbak(2)] + JJ + e[nchars(2)],
+      J[lukbak(3)] + JJ + e[nchars(3)],
+      J[lukbak(4)] + JJ + e[nchars(4)],
+      J[lukbak(5)] + JJ + e[nchars(5)],
   };
   if (!t) return reduce_fmax(array_size(x), x);
   // clang-format on
@@ -237,19 +242,20 @@ DCP_INLINE float onto_C(struct trellis *t, float const E[restrict],
                         float const C[restrict], float const EC, float const CC,
                         float const emission[restrict])
 {
+  float const *e = ASSUME_ALIGNED(emission);
   // clang-format off
   float const x[] ALIGNED = {
-      E[lukbak(1)] + EC + emission[nchars(1)],
-      E[lukbak(2)] + EC + emission[nchars(2)],
-      E[lukbak(3)] + EC + emission[nchars(3)],
-      E[lukbak(4)] + EC + emission[nchars(4)],
-      E[lukbak(5)] + EC + emission[nchars(5)],
+      E[lukbak(1)] + EC + e[nchars(1)],
+      E[lukbak(2)] + EC + e[nchars(2)],
+      E[lukbak(3)] + EC + e[nchars(3)],
+      E[lukbak(4)] + EC + e[nchars(4)],
+      E[lukbak(5)] + EC + e[nchars(5)],
 
-      C[lukbak(1)] + CC + emission[nchars(1)],
-      C[lukbak(2)] + CC + emission[nchars(2)],
-      C[lukbak(3)] + CC + emission[nchars(3)],
-      C[lukbak(4)] + CC + emission[nchars(4)],
-      C[lukbak(5)] + CC + emission[nchars(5)],
+      C[lukbak(1)] + CC + e[nchars(1)],
+      C[lukbak(2)] + CC + e[nchars(2)],
+      C[lukbak(3)] + CC + e[nchars(3)],
+      C[lukbak(4)] + CC + e[nchars(4)],
+      C[lukbak(5)] + CC + e[nchars(5)],
   };
   if (!t) return reduce_fmax(array_size(x), x);
   // clang-format on

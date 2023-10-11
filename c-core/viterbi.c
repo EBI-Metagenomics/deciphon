@@ -164,8 +164,8 @@ float dcp_viterbi_null(struct dcp_protein *x, struct imm_eseq const *eseq)
 #undef NINF
   S[lukbak(0)] = 0;
 
-  int ix[DCP_VITERBI_PAST_SIZE - 1] = {0};
-  float null[DCP_VITERBI_PAST_SIZE - 1] = {0};
+  int ix[DCP_VITERBI_PAST_SIZE - 1] ALIGNED = {0};
+  float null[DCP_VITERBI_PAST_SIZE - 1] ALIGNED = {0};
   for (int r = 0; r < seq_size + 1; ++r)
   {
     fetch_indices(ix, eseq, r, false);
@@ -194,10 +194,10 @@ DCP_INLINE void viterbi(struct dcp_protein *x, struct dcp_viterbi_task *task,
   float *restrict C = task->C;
   float *restrict T = task->T;
 
-  int ix[DCP_VITERBI_PAST_SIZE - 1] = {0};
-  float null[DCP_VITERBI_PAST_SIZE - 1] = {0};
-  float bg[DCP_VITERBI_PAST_SIZE - 1] = {0};
-  float match[DCP_VITERBI_PAST_SIZE - 1] = {0};
+  int ix[DCP_VITERBI_PAST_SIZE - 1] ALIGNED = {0};
+  float null[DCP_VITERBI_PAST_SIZE - 1] ALIGNED = {0};
+  float bg[DCP_VITERBI_PAST_SIZE - 1] ALIGNED = {0};
+  float match[DCP_VITERBI_PAST_SIZE - 1] ALIGNED = {0};
 
   if (tr) trellis_seek_xnode(tr, row_start);
   if (tr) trellis_seek_node(tr, row_start, 0);
