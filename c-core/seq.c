@@ -21,17 +21,12 @@ int dcp_seq_setup(struct dcp_seq *x, long id, char const *name,
   if (abc->typeid == IMM_DNA) dcp_disambiguate_dna(strlen(new_data), new_data);
   if (abc->typeid == IMM_RNA) dcp_disambiguate_rna(strlen(new_data), new_data);
 
-  for (size_t i = 0; i < strlen(new_data); ++i)
-  {
-    if (!imm_abc_has_symbol(abc, new_data[i]))
-    {
-      free((void *)new_data);
-      return DCP_ESEQABC;
-    }
-  }
-
   x->data = new_data;
-  x->imm_seq = imm_seq(imm_str(x->data), imm_eseq_abc(&x->imm_eseq));
+  if (imm_seq_init(&x->imm_seq, imm_str(x->data), imm_eseq_abc(&x->imm_eseq)))
+  {
+    free((void *)new_data);
+    return DCP_ESEQABC;
+  }
   node_init(&x->node);
   return imm_eseq_setup(&x->imm_eseq, &x->imm_seq) ? DCP_ESEQABC : 0;
 }
