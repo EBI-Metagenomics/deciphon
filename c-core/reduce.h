@@ -3,6 +3,7 @@
 
 #include "compiler.h"
 #include "fmax.h"
+#include <float.h>
 #include <math.h>
 
 #if __ARM_NEON
@@ -13,10 +14,11 @@
 #include <immintrin.h>
 #endif
 
-DCP_CONST float reduce_fmax(int const size, float const x[restrict])
+DCP_CONST float reduce_fmax(int const size, float const array[restrict])
 {
   float max = -INFINITY;
   int i = 0;
+  float *x = (float *)ASSUME_ALIGNED(array);
 
 #if __ARM_NEON
   float32x4_t r = vdupq_n_f32(-INFINITY);
@@ -34,13 +36,16 @@ DCP_CONST float reduce_fmax(int const size, float const x[restrict])
     max = dcp_fmax(max, x[i]);
 
 #if __ARM_NEON
-  max = dcp_fmax(max, vmaxvq_f32(r));
+  if (size > 3) max = dcp_fmax(max, vmaxvq_f32(r));
 #endif
 #if __AVX__
-  r = _mm256_max_ps(r, _mm256_permute_ps(r, _MM_SHUFFLE(2, 3, 0, 1)));
-  r = _mm256_max_ps(r, _mm256_permute_ps(r, _MM_SHUFFLE(1, 0, 3, 2)));
-  r = _mm256_max_ps(r, _mm256_permute2f128_ps(r, r, _MM_SHUFFLE(0, 0, 0, 1)));
-  max = dcp_fmax(max, _mm_cvtss_f32(_mm256_castps256_ps128(r)));
+  if (size > 7)
+  {
+    r = _mm256_max_ps(r, _mm256_permute_ps(r, _MM_SHUFFLE(2, 3, 0, 1)));
+    r = _mm256_max_ps(r, _mm256_permute_ps(r, _MM_SHUFFLE(1, 0, 3, 2)));
+    r = _mm256_max_ps(r, _mm256_permute2f128_ps(r, r, _MM_SHUFFLE(0, 0, 0, 1)));
+    max = dcp_fmax(max, _mm_cvtss_f32(_mm256_castps256_ps128(r)));
+  }
 #endif
 
   return max;

@@ -27,18 +27,6 @@ int dcp_viterbi_task_setup(struct dcp_viterbi_task *, int core_size,
                            int seq_size, bool const nopath);
 void dcp_viterbi_task_cleanup(struct dcp_viterbi_task *);
 
-#if !__AVX__ && !__ARM_NEON
-#error "Needs either AVX or NEON CPU extension"
-#endif
-
-#if __AVX__
-#define ALIGNED __attribute__((aligned(32)))
-#endif
-
-#if __ARM_NEON
-#define ALIGNED __attribute__((aligned(16)))
-#endif
-
 DCP_CONST int lukbak(int i) { return i; }
 DCP_CONST int nchars(int n) { return n - 1; }
 

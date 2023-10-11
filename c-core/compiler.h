@@ -49,4 +49,18 @@
 #define DCP_PURE DCP_INLINE
 #endif
 
+#if !__AVX__ && !__ARM_NEON
+#error "Needs either AVX or NEON CPU extension"
+#endif
+
+#if __AVX__
+#define ALIGNED __attribute__((aligned(32)))
+#define ASSUME_ALIGNED(x) __builtin_assume_aligned(x, 32)
+#endif
+
+#if __ARM_NEON
+#define ALIGNED __attribute__((aligned(16)))
+#define ASSUME_ALIGNED(x) __builtin_assume_aligned(x, 16)
+#endif
+
 #endif
