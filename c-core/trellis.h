@@ -47,11 +47,11 @@ struct trellis
 void trellis_init(struct trellis *);
 int trellis_setup(struct trellis *, int core_size, int seq_size);
 void trellis_cleanup(struct trellis *);
-unsigned trellis_get_previous_state(struct trellis const *, unsigned id);
-unsigned trellis_get_emission_size(struct trellis const *, unsigned id);
+int trellis_get_previous_state(struct trellis const *, int id);
+int trellis_get_emission_size(struct trellis const *, int id);
 
 // clang-format off
-DCP_CONST unsigned trellis_xnode_get_field(uint32_t x, int state)
+DCP_CONST int trellis_xnode_get_field(uint32_t x, int state)
 {
   if (state == STATE_S) return bit_extract(x, 0                                                , SBITS);
   if (state == STATE_N) return bit_extract(x, 0 + SBITS                                        , NBITS);
@@ -91,7 +91,7 @@ DCP_INLINE void trellis_clear_xnode(struct trellis *x) { *x->xnode = 0; }
 DCP_INLINE void trellis_clear_node(struct trellis *x) { *x->node = 0; }
 
 // clang-format off
-DCP_INLINE void trellis_set(struct trellis *x, unsigned id, int value)
+DCP_INLINE void trellis_set(struct trellis *x, int id, int value)
 {
   if (id == STATE_S) *x->xnode |= value << (0);
   if (id == STATE_N) *x->xnode |= value << (0 + SBITS);
@@ -105,7 +105,7 @@ DCP_INLINE void trellis_set(struct trellis *x, unsigned id, int value)
   if (dcp_state_is_insert(id)) *x->node |= value << (0 + MBITS + DBITS);
 }
 
-DCP_INLINE void trellis_replace(struct trellis *x, unsigned id, int value)
+DCP_INLINE void trellis_replace(struct trellis *x, int id, int value)
 {
   assert(id == STATE_B);
   *x->xnode &= ~bit_rangeset(SBITS + NBITS, BBITS);

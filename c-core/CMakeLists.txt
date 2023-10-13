@@ -14,11 +14,11 @@ cpmaddpackage(
 cpmaddpackage(
   NAME h3client
   GITHUB_REPOSITORY EBI-Metagenomics/hmmer3
-  GIT_TAG h3client-v0.12.5
-  VERSION 0.12.5
+  GIT_TAG h3client-v0.12.6
+  VERSION 0.12.6
   SOURCE_SUBDIR h3client)
-cpmaddpackage("gh:EBI-Metagenomics/imm@5.1.0")
-cpmaddpackage("gh:EBI-Metagenomics/lip@0.5.3")
+cpmaddpackage("gh:EBI-Metagenomics/imm@5.3.0")
+cpmaddpackage("gh:EBI-Metagenomics/lip@0.5.4")
 find_package(OpenMP)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

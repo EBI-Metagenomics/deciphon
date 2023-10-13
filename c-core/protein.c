@@ -40,7 +40,7 @@ int protein_set_accession(struct dcp_protein *x, char const *acc)
   return strkcpy(x->accession, acc, n) ? 0 : DCP_ELONGACC;
 }
 
-void protein_setup(struct dcp_protein *x, unsigned seq_size, bool multi_hits,
+void protein_setup(struct dcp_protein *x, int seq_size, bool multi_hits,
                    bool hmmer3_compat)
 {
   assert(seq_size > 0);
@@ -93,7 +93,7 @@ int protein_absorb(struct dcp_protein *x, struct dcp_model *m)
   dcp_strlcpy(x->consensus, m->consensus, n);
 
   x->start_lprob = IMM_LPROB_ONE;
-  unsigned core_size = x->core_size = m->core_size;
+  int core_size = x->core_size = m->core_size;
   protein_null_absorb(&x->null, &x->score_table, &m->null.nuclt_dist,
                       &m->null.state.super);
   dcp_protein_background_absorb(&x->bg, m, &x->score_table);
@@ -108,7 +108,7 @@ int protein_absorb(struct dcp_protein *x, struct dcp_model *m)
   if (!ptr) defer_return(DCP_ENOMEM);
   x->nodes_emission = ptr;
 
-  for (unsigned i = 0; i <= core_size; ++i)
+  for (int i = 0; i <= core_size; ++i)
   {
     float *e = x->nodes_emission + i * PROTEIN_NODE_SIZE;
     struct dcp_model_node const *n = &m->alt.nodes[MIN(i, core_size - 1)];
@@ -135,7 +135,7 @@ defer:
   return rc;
 }
 
-int protein_sample(struct dcp_protein *x, unsigned seed, unsigned core_size)
+int protein_sample(struct dcp_protein *x, int seed, int core_size)
 {
   assert(core_size >= 2);
   if (!x->params.gencode) return DCP_ESETGENCODE;
@@ -155,14 +155,14 @@ int protein_sample(struct dcp_protein *x, unsigned seed, unsigned core_size)
 
   if ((rc = dcp_model_setup(&model, core_size))) goto cleanup;
 
-  for (unsigned i = 0; i < core_size; ++i)
+  for (int i = 0; i < core_size; ++i)
   {
     imm_lprob_sample(&rnd, IMM_AMINO_SIZE, lprobs);
     imm_lprob_normalize(IMM_AMINO_SIZE, lprobs);
     if ((rc = dcp_model_add_node(&model, lprobs, '-'))) goto cleanup;
   }
 
-  for (unsigned i = 0; i < core_size + 1; ++i)
+  for (int i = 0; i < core_size + 1; ++i)
   {
     struct dcp_trans t = {0};
     imm_lprob_sample(&rnd, TRANS_SIZE, t.data);
@@ -218,7 +218,7 @@ void protein_dump(struct dcp_protein const *x, FILE *restrict fp)
   fprintf(fp, "\n\n");
 
   fprintf(fp, "## nodes\n");
-  for (unsigned i = 0; i < x->core_size + 1; ++i)
+  for (int i = 0; i < x->core_size + 1; ++i)
   {
     fprintf(fp, "\n");
     fprintf(fp, "### nodes[%d]\n", i);
@@ -285,7 +285,7 @@ int protein_pack(struct dcp_protein const *x, struct lip_file *file)
 
   if (!lip_write_cstr(file, "nodes")) return DCP_EFWRITE;
   if (!lip_write_map_size(file, (x->core_size + 1) * 3)) return DCP_EFWRITE;
-  for (unsigned i = 0; i < x->core_size + 1; ++i)
+  for (int i = 0; i < x->core_size + 1; ++i)
   {
     if (!lip_write_cstr(file, "nuclt_dist")) return DCP_EFWRITE;
     if ((rc = dcp_nuclt_dist_pack(&x->nodes[i].nuclt_dist, file))) return rc;
@@ -315,10 +315,8 @@ int protein_pack(struct dcp_protein const *x, struct lip_file *file)
 
 int protein_unpack(struct dcp_protein *x, struct lip_file *file)
 {
-  unsigned const accession_size =
-      array_size_field(struct dcp_protein, accession);
-  unsigned const consensus_size =
-      array_size_field(struct dcp_protein, consensus);
+  int const accession_size = array_size_field(struct dcp_protein, accession);
+  int const consensus_size = array_size_field(struct dcp_protein, consensus);
 
   int rc = 0;
 
@@ -327,7 +325,7 @@ int protein_unpack(struct dcp_protein *x, struct lip_file *file)
   if ((rc = read_key(file, "accession"))) return rc;
   if ((rc = read_str(file, accession_size, x->accession))) return rc;
 
-  unsigned gencode_id = 0;
+  int gencode_id = 0;
   if ((rc = read_key(file, "gencode"))) return rc;
   if ((rc = read_int(file, &gencode_id))) return rc;
   if (!(x->params.gencode = imm_gencode_get(gencode_id))) return DCP_EFREAD;
@@ -363,7 +361,7 @@ int protein_unpack(struct dcp_protein *x, struct lip_file *file)
 
   if ((rc = read_key(file, "nodes"))) return rc;
   if ((rc = read_mapsize(file, (x->core_size + 1) * 3))) return rc;
-  for (unsigned i = 0; i < x->core_size + 1; ++i)
+  for (int i = 0; i < x->core_size + 1; ++i)
   {
     if ((rc = read_key(file, "nuclt_dist"))) return rc;
     if ((rc = dcp_nuclt_dist_unpack(&x->nodes[i].nuclt_dist, file))) return rc;
@@ -390,7 +388,7 @@ int protein_unpack(struct dcp_protein *x, struct lip_file *file)
 }
 
 int protein_decode(struct dcp_protein const *x, struct imm_seq const *seq,
-                   unsigned state_id, struct imm_codon *codon)
+                   int state_id, struct imm_codon *codon)
 {
   assert(!dcp_state_is_mute(state_id));
 
@@ -401,7 +399,7 @@ int protein_decode(struct dcp_protein const *x, struct imm_seq const *seq,
   }
   else if (dcp_state_is_match(state_id))
   {
-    unsigned idx = dcp_state_idx(state_id);
+    int idx = dcp_state_idx(state_id);
     nucltd = &x->nodes[idx].nuclt_dist;
   }
   else

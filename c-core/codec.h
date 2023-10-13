@@ -10,8 +10,8 @@ struct dcp_protein;
 
 struct dcp_codec
 {
-  unsigned idx;
-  unsigned start;
+  int idx;
+  int start;
   struct dcp_protein const *protein;
   struct imm_path const *path;
 };

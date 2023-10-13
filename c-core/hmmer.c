@@ -40,7 +40,8 @@ int dcp_hmmer_get(struct dcp_hmmer *x, int hmmidx, char const *name,
                   char const *seq)
 {
   char cmd[128] = {0};
-  sprintf(cmd, "--hmmdb 1 --hmmdb_range %d..%d --acc --cut_ga", hmmidx, hmmidx);
+  snprintf(cmd, sizeof(cmd), "--hmmdb 1 --hmmdb_range %d..%d --acc --cut_ga",
+           hmmidx, hmmidx);
 
   for (int i = 0; i < NUM_RETRIES; ++i)
   {

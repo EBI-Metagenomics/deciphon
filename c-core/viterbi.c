@@ -295,8 +295,7 @@ DCP_INLINE void viterbi(struct dcp_protein *x, struct dcp_viterbi_task *task,
   }
 }
 
-static int unzip_path(struct trellis *x, unsigned seq_size,
-                      struct imm_path *path);
+static int unzip_path(struct trellis *x, int seq_size, struct imm_path *path);
 
 int dcp_viterbi(struct dcp_protein *x, struct imm_eseq const *eseq,
                 struct dcp_viterbi_task *task, bool const nopath)
@@ -331,17 +330,16 @@ int dcp_viterbi(struct dcp_protein *x, struct imm_eseq const *eseq,
   return rc;
 }
 
-static int unzip_path(struct trellis *x, unsigned seq_size,
-                      struct imm_path *path)
+static int unzip_path(struct trellis *x, int seq_size, struct imm_path *path)
 {
-  unsigned state = dcp_state_make_end();
+  int state = dcp_state_make_end();
   assert(seq_size <= INT_MAX);
   int stage = (int)seq_size;
   trellis_seek_xnode(x, stage);
 
   while (!dcp_state_is_start(state) || stage)
   {
-    unsigned size = trellis_get_emission_size(x, state);
+    int size = trellis_get_emission_size(x, state);
     if (imm_path_add(path, imm_step(state, size, 0))) return DCP_ENOMEM;
     state = trellis_get_previous_state(x, state);
     stage -= size;

@@ -5,7 +5,7 @@
 
 int main(void)
 {
-  unsigned core_size = 3;
+  int core_size = 3;
   struct imm_amino const *amino = &imm_amino_iupac;
   struct imm_nuclt const *nuclt = &imm_dna_iupac.super;
   struct imm_nuclt_code code = {};
@@ -24,7 +24,7 @@ int main(void)
   imm_lprob_sample(&rnd, IMM_AMINO_SIZE, match_lprobs2);
   imm_lprob_sample(&rnd, IMM_AMINO_SIZE, match_lprobs3);
 
-  for (unsigned i = 0; i < 4; ++i)
+  for (int i = 0; i < 4; ++i)
   {
     imm_lprob_sample(&rnd, TRANS_SIZE, t[i].data);
     imm_lprob_normalize(TRANS_SIZE, t[i].data);

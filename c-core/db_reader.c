@@ -28,7 +28,7 @@ int dcp_db_reader_open(struct dcp_db_reader *x, FILE *fp)
   if ((rc = read_key(&x->file, "header"))) defer_return(rc);
   if ((rc = read_mapsize(&x->file, 6))) defer_return(rc);
 
-  unsigned magic_number = 0;
+  int magic_number = 0;
   if ((rc = read_key(&x->file, "magic_number"))) defer_return(rc);
   if ((rc = read_int(&x->file, &magic_number))) defer_return(rc);
   if (magic_number != MAGIC_NUMBER) defer_return(DCP_EFDATA);

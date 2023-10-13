@@ -43,11 +43,11 @@ void trellis_cleanup(struct trellis *x)
   x->node = x->nodes = NULL;
 }
 
-unsigned trellis_get_previous_state(struct trellis const *x, unsigned id)
+int trellis_get_previous_state(struct trellis const *x, int id)
 {
   if (!dcp_state_is_core(id))
   {
-    unsigned v = trellis_xnode_get_field(*x->xnode, id);
+    int v = trellis_xnode_get_field(*x->xnode, id);
     if (id == STATE_S) return (int[]){STATE_S}[v];
     if (id == STATE_N) return (int[]){STATE_S, STATE_N}[v / 5];
     if (id == STATE_B) return (int[]){STATE_S, STATE_N, STATE_E, STATE_J}[v];
@@ -59,7 +59,7 @@ unsigned trellis_get_previous_state(struct trellis const *x, unsigned id)
   }
 
   int idx = (x->node - x->nodes) % x->core_size;
-  unsigned v = trellis_node_get_field(*x->node, id);
+  int v = trellis_node_get_field(*x->node, id);
 
   if (dcp_state_is_match(id))
   {
@@ -93,7 +93,7 @@ unsigned trellis_get_previous_state(struct trellis const *x, unsigned id)
   return 0;
 }
 
-unsigned trellis_get_emission_size(struct trellis const *x, unsigned id)
+int trellis_get_emission_size(struct trellis const *x, int id)
 {
   if (id == STATE_S) return 0;
   if (id == STATE_N) return trellis_xnode_get_field(*x->xnode, STATE_N) % 5 + 1;

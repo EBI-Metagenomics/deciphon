@@ -18,9 +18,10 @@ int dcp_match_iter_next(struct dcp_match_iter *x, struct dcp_match *match)
   struct imm_path const *path = x->path;
 
   struct imm_step const *step = imm_path_step(path, x->idx);
-  struct imm_seq seq = imm_subseq(x->seq, x->offset, step->seqlen);
+  struct imm_range range = imm_range(x->offset, x->offset + step->seqsize);
+  struct imm_seq seq = imm_seq_slice(x->seq, range);
 
-  x->offset += step->seqlen;
+  x->offset += step->seqsize;
 
   return dcp_match_setup(match, *step, seq);
 }

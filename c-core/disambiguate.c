@@ -47,11 +47,11 @@ static inline int max_idx(int size, int const indices[], size_t const count[])
   return max_index;
 }
 
-void dcp_disambiguate_dna(unsigned size, char *seq)
+void dcp_disambiguate_dna(int size, char *seq)
 {
   size_t count[] = {[ix('A')] = 0, [ix('C')] = 0, [ix('G')] = 0, [ix('T')] = 0};
 
-  for (unsigned i = 0; i < size; ++i)
+  for (int i = 0; i < size; ++i)
   {
     if (seq[i] == 'A') count[ix('A')] += 1;
     if (seq[i] == 'C') count[ix('C')] += 1;
@@ -59,7 +59,7 @@ void dcp_disambiguate_dna(unsigned size, char *seq)
     if (seq[i] == 'T') count[ix('T')] += 1;
   }
 
-  for (unsigned i = 0; i < size; ++i)
+  for (int i = 0; i < size; ++i)
   {
     if (seq[i] == 'R') seq[i] = ch(max_idx(array_size(R), R, count));
     if (seq[i] == 'Y') seq[i] = ch(max_idx(array_size(Y), Y, count));
@@ -76,16 +76,16 @@ void dcp_disambiguate_dna(unsigned size, char *seq)
   }
 }
 
-void dcp_disambiguate_rna(unsigned size, char *seq)
+void dcp_disambiguate_rna(int size, char *seq)
 {
-  for (unsigned i = 0; i < size; ++i)
+  for (int i = 0; i < size; ++i)
   {
     if (seq[i] == 'U') seq[i] = 'T';
   }
 
   dcp_disambiguate_dna(size, seq);
 
-  for (unsigned i = 0; i < size; ++i)
+  for (int i = 0; i < size; ++i)
   {
     if (seq[i] == 'T') seq[i] = 'U';
   }

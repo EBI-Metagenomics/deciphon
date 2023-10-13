@@ -30,7 +30,7 @@ static struct seq const *seqit_next(struct seqit *x)
   {
     x->size -= 1;
     x->seq.id += 1;
-    sprintf(x->seq.name, "name%d", x->seq.id);
+    snprintf(x->seq.name, 256, "name%d", x->seq.id);
     x->seq.data = (*x->callb)();
     return &x->seq;
   }

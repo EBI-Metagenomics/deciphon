@@ -84,32 +84,32 @@ static size_t lfails = 0;
     if (!(test))                                                               \
     {                                                                          \
       ++lfails;                                                                \
-      char _buftest[128] = {0};                                                 \
-      _minctest_sprintf(_buftest, _minctest_xstr(test));                       \
+      char _buftest[128] = {0};                                                \
+      _minctest_snprintf(_buftest, sizeof(_buftest), _minctest_xstr(test));    \
       printf("%s:%d !(%s) \n", __FILE__, __LINE__, _buftest);                  \
     }                                                                          \
   } while (0)
 
-#define _minctest_sprintf(buf, val)                                            \
-  sprintf(buf,                                                                 \
-          _Generic((val) + 0,                                                  \
-          char *: "%s",                                                        \
-          char const *: "%s",                                                  \
-          signed char: "%d",                                                   \
-          unsigned char: "%u",                                                 \
-          short: "%d",                                                         \
-          unsigned short: "%u",                                                \
-          int: "%d",                                                           \
-          long: "%ld",                                                         \
-          long long: "%lld",                                                   \
-          unsigned: "%u",                                                      \
-          unsigned long: "%lu",                                                \
-          unsigned long long: "%llu",                                          \
-          float: "%.9g",                                                       \
-          double: "%.17g",                                                     \
-          long double: "%Lf",                                                  \
-          default: _Generic((val - val), ptrdiff_t: "%p", default: "undef")),  \
-          (val))
+#define _minctest_snprintf(buf, n, val)                                        \
+  snprintf(buf, n,                                                             \
+           _Generic((val) + 0,                                                 \
+           char *: "%s",                                                       \
+           char const *: "%s",                                                 \
+           signed char: "%d",                                                  \
+           unsigned char: "%u",                                                \
+           short: "%d",                                                        \
+           unsigned short: "%u",                                               \
+           int: "%d",                                                          \
+           long: "%ld",                                                        \
+           long long: "%lld",                                                  \
+           unsigned: "%u",                                                     \
+           unsigned long: "%lu",                                               \
+           unsigned long long: "%llu",                                         \
+           float: "%.9g",                                                      \
+           double: "%.17g",                                                    \
+           long double: "%Lf",                                                 \
+           default: _Generic((val - val), ptrdiff_t: "%p", default: "undef")), \
+           (val))
 
 /* Prototype to assert equal. */
 #define _minctest_eq_base(equality, a, b)                                      \
@@ -119,10 +119,10 @@ static size_t lfails = 0;
     if (!(equality))                                                           \
     {                                                                          \
       ++lfails;                                                                \
-      char _bufa_mt[128] = {0};                                                 \
-      char _bufb_mt[128] = {0};                                                 \
-      _minctest_sprintf(_bufa_mt, a);                                          \
-      _minctest_sprintf(_bufb_mt, b);                                          \
+      char _bufa_mt[128] = {0};                                                \
+      char _bufb_mt[128] = {0};                                                \
+      _minctest_snprintf(_bufa_mt, sizeof(_bufa_mt), a);                       \
+      _minctest_snprintf(_bufb_mt, sizeof(_bufb_mt), b);                       \
       printf("%s:%d (%s != %s)\n", __FILE__, __LINE__, _bufa_mt, _bufb_mt);    \
     }                                                                          \
   } while (0);

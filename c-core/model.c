@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define LOGN2 (float)(-1.3862943611198906) /* log(1./4.) */
+#define LOGN2 -1.3862943611198906f /* log(1./4.) */
 #define LOG1 IMM_LPROB_ONE
 
 static float const uniform_lprobs[IMM_NUCLT_SIZE] = {LOGN2, LOGN2, LOGN2,
@@ -30,7 +30,7 @@ bool have_finished_add(struct dcp_model const *);
 
 void init_delete(struct imm_mute_state *, struct dcp_model *);
 void init_insert(struct imm_frame_state *, float epsilon,
-                 struct dcp_nuclt_dist const *, unsigned node_idx);
+                 struct dcp_nuclt_dist const *, int node_idx);
 void init_match(struct imm_frame_state *, struct dcp_model *,
                 struct dcp_nuclt_dist *);
 
@@ -62,7 +62,7 @@ int dcp_model_add_node(struct dcp_model *x, float const lprobs[IMM_AMINO_SIZE],
   x->consensus[x->alt.node_idx] = consensus;
 
   float lodds[IMM_AMINO_SIZE];
-  for (unsigned i = 0; i < IMM_AMINO_SIZE; ++i)
+  for (int i = 0; i < IMM_AMINO_SIZE; ++i)
     lodds[i] = lprobs[i] - x->null.lprobs[i];
 
   struct dcp_model_node *n = x->alt.nodes + x->alt.node_idx;
@@ -163,7 +163,7 @@ static void model_reset(struct dcp_model *x)
   imm_state_detach(&x->xnode.alt.T.super);
 }
 
-int dcp_model_setup(struct dcp_model *x, unsigned core_size)
+int dcp_model_setup(struct dcp_model *x, int core_size)
 {
   int rc = 0;
   if (core_size == 0) return DCP_EZEROMODEL;
@@ -172,7 +172,7 @@ int dcp_model_setup(struct dcp_model *x, unsigned core_size)
 
   x->core_size = core_size;
   x->consensus[core_size] = '\0';
-  unsigned n = x->core_size;
+  int n = x->core_size;
   x->alt.node_idx = 0;
 
   void *ptr = realloc(x->BMk, n * sizeof(*x->BMk));
@@ -274,7 +274,7 @@ void calculate_occupancy(struct dcp_model *x)
 {
   struct dcp_trans *trans = x->alt.trans;
   x->alt.locc[0] = imm_lprob_add(trans->MI, trans->MM);
-  for (unsigned i = 1; i < x->core_size; ++i)
+  for (int i = 1; i < x->core_size; ++i)
   {
     ++trans;
     float v0 = x->alt.locc[i - 1] + imm_lprob_add(trans->MM, trans->MI);
@@ -283,13 +283,13 @@ void calculate_occupancy(struct dcp_model *x)
   }
 
   float logZ = imm_lprob_zero();
-  unsigned n = x->core_size;
-  for (unsigned i = 0; i < x->core_size; ++i)
+  int n = x->core_size;
+  for (int i = 0; i < x->core_size; ++i)
   {
     logZ = imm_lprob_add(logZ, x->alt.locc[i] + log(n - i));
   }
 
-  for (unsigned i = 0; i < x->core_size; ++i)
+  for (int i = 0; i < x->core_size; ++i)
   {
     x->alt.locc[i] -= logZ;
   }
@@ -301,21 +301,21 @@ bool have_called_setup(struct dcp_model *x) { return x->core_size > 0; }
 
 bool have_finished_add(struct dcp_model const *x)
 {
-  unsigned core_size = x->core_size;
+  int core_size = x->core_size;
   return x->alt.node_idx == core_size && x->alt.trans_idx == (core_size + 1);
 }
 
 void init_delete(struct imm_mute_state *state, struct dcp_model *x)
 {
-  unsigned id = dcp_state_make_delete_id(x->alt.node_idx);
+  int id = dcp_state_make_delete_id(x->alt.node_idx);
   imm_mute_state_init(state, id, &x->params.code->nuclt->super);
 }
 
 void init_insert(struct imm_frame_state *state, float epsilon,
-                 struct dcp_nuclt_dist const *nucltd, unsigned node_idx)
+                 struct dcp_nuclt_dist const *nucltd, int node_idx)
 {
   float e = epsilon;
-  unsigned id = dcp_state_make_insert_id(node_idx);
+  int id = dcp_state_make_insert_id(node_idx);
   struct imm_nuclt_lprob const *nucltp = &nucltd->nucltp;
   struct imm_codon_marg const *codonm = &nucltd->codonm;
 
@@ -326,7 +326,7 @@ void init_match(struct imm_frame_state *state, struct dcp_model *x,
                 struct dcp_nuclt_dist *d)
 {
   float e = x->params.epsilon;
-  unsigned id = dcp_state_make_match_id(x->alt.node_idx);
+  int id = dcp_state_make_match_id(x->alt.node_idx);
   imm_frame_state_init(state, id, &d->nucltp, &d->codonm, e, imm_span(1, 5));
 }
 
@@ -379,7 +379,7 @@ struct imm_nuclt_lprob nuclt_lprob(struct imm_gencode const *gc,
   float lprobs[] = {[0 ... IMM_NUCLT_SIZE - 1] = IMM_LPROB_ZERO};
 
   float const norm = log((float)3);
-  for (unsigned i = 0; i < imm_gencode_size(gc); ++i)
+  for (int i = 0; i < imm_gencode_size(gc); ++i)
   {
     struct imm_codon codon = imm_gencode_codon(gc, i);
     /* Check for FIXME-1 for an explanation of this
@@ -399,19 +399,19 @@ struct imm_codon_lprob codon_lprob(struct imm_gencode const *gc,
                                    struct imm_nuclt const *nuclt)
 {
   /* FIXME: We don't need 255 positions*/
-  unsigned count[] = {[0 ... 254] = 0};
+  int count[] = {[0 ... 254] = 0};
 
-  for (unsigned i = 0; i < imm_gencode_size(gc); ++i)
-    count[(unsigned)imm_gencode_amino(gc, i)] += 1;
+  for (int i = 0; i < imm_gencode_size(gc); ++i)
+    count[(int)imm_gencode_amino(gc, i)] += 1;
 
   struct imm_abc const *abc = &amino->super;
   /* TODO: We don't need 255 positions*/
   float lprobs[] = {[0 ... 254] = IMM_LPROB_ZERO};
-  for (unsigned i = 0; i < imm_abc_size(abc); ++i)
+  for (int i = 0; i < imm_abc_size(abc); ++i)
   {
     char aa = imm_abc_symbols(abc)[i];
-    float norm = log((float)count[(unsigned)aa]);
-    lprobs[(unsigned)aa] = imm_amino_lprob_get(aminop, aa) - norm;
+    float norm = logf((float)count[(int)aa]);
+    lprobs[(int)aa] = imm_amino_lprob_get(aminop, aa) - norm;
   }
 
   /* FIXME-1: imm_gc module assumes imm_dna_iupac as alphabet, we have to make
@@ -420,11 +420,10 @@ struct imm_codon_lprob codon_lprob(struct imm_gencode const *gc,
    */
   /* struct imm_codon_lprob codonp = imm_codon_lprob(nuclt); */
   struct imm_codon_lprob codonp = imm_codon_lprob(&imm_gencode_dna->super);
-  for (unsigned i = 0; i < imm_gencode_size(gc); ++i)
+  for (int i = 0; i < imm_gencode_size(gc); ++i)
   {
     char aa = imm_gencode_amino(gc, i);
-    imm_codon_lprob_set(&codonp, imm_gencode_codon(gc, i),
-                        lprobs[(unsigned)aa]);
+    imm_codon_lprob_set(&codonp, imm_gencode_codon(gc, i), lprobs[(int)aa]);
   }
   codonp.nuclt = nuclt;
   return codonp;
@@ -453,7 +452,7 @@ int setup_entry_trans(struct dcp_model *x)
     float cost = log(2.0 / (M * (M + 1))) * M;
 
     struct imm_state *B = &x->xnode.alt.B.super;
-    for (unsigned i = 0; i < x->core_size; ++i)
+    for (int i = 0; i < x->core_size; ++i)
     {
       struct dcp_model_node *node = x->alt.nodes + i;
       x->BMk[i] = cost;
@@ -466,7 +465,7 @@ int setup_entry_trans(struct dcp_model *x)
     assert(x->params.entry_dist == DCP_ENTRY_DIST_OCCUPANCY);
     calculate_occupancy(x);
     struct imm_state *B = &x->xnode.alt.B.super;
-    for (unsigned i = 0; i < x->core_size; ++i)
+    for (int i = 0; i < x->core_size; ++i)
     {
       struct dcp_model_node *node = x->alt.nodes + i;
       x->BMk[i] = x->alt.locc[i];
@@ -481,13 +480,13 @@ int setup_exit_trans(struct dcp_model *x)
 {
   struct imm_state *E = &x->xnode.alt.E.super;
 
-  for (unsigned i = 0; i < x->core_size; ++i)
+  for (int i = 0; i < x->core_size; ++i)
   {
     struct dcp_model_node *node = x->alt.nodes + i;
     if (imm_hmm_set_trans(&x->alt.hmm, &node->M.super, E, log(1)))
       return DCP_ESETTRANS;
   }
-  for (unsigned i = 1; i < x->core_size; ++i)
+  for (int i = 1; i < x->core_size; ++i)
   {
     struct dcp_model_node *node = x->alt.nodes + i;
     if (imm_hmm_set_trans(&x->alt.hmm, &node->D.super, E, log(1)))
@@ -505,11 +504,11 @@ int setup_transitions(struct dcp_model *x)
   struct imm_state *M1 = &x->alt.nodes[0].M.super;
   if (imm_hmm_set_trans(h, B, M1, trans[0].MM)) return DCP_ESETTRANS;
 
-  for (unsigned i = 0; i + 1 < x->core_size; ++i)
+  for (int i = 0; i + 1 < x->core_size; ++i)
   {
     struct dcp_model_node *p = x->alt.nodes + i;
     struct dcp_model_node *n = x->alt.nodes + i + 1;
-    unsigned j = i + 1;
+    int j = i + 1;
     struct dcp_trans t = trans[j];
     if (imm_hmm_set_trans(h, &p->M.super, &p->I.super, t.MI))
       return DCP_ESETTRANS;
@@ -527,7 +526,7 @@ int setup_transitions(struct dcp_model *x)
       return DCP_ESETTRANS;
   }
 
-  unsigned n = x->core_size;
+  int n = x->core_size;
   struct imm_state *Mm = &x->alt.nodes[n - 1].M.super;
   struct imm_state *E = &x->xnode.alt.E.super;
   if (imm_hmm_set_trans(h, Mm, E, trans[n].MM)) return DCP_ESETTRANS;

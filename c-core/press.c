@@ -25,7 +25,7 @@ struct dcp_press
     struct dcp_hmm_reader h3;
   } reader;
 
-  unsigned count;
+  int count;
   struct dcp_protein protein;
   struct imm_nuclt_code code;
   struct dcp_model_params params;
@@ -48,7 +48,7 @@ struct dcp_press *dcp_press_new(void)
 
 int dcp_press_setup(struct dcp_press *x, int gencode_id, float epsilon)
 {
-  x->params.gencode = imm_gencode_get((unsigned)gencode_id);
+  x->params.gencode = imm_gencode_get(gencode_id);
   if (!x->params.gencode) return DCP_EGENCODEID;
   x->params.amino = &imm_amino_iupac;
   imm_nuclt_code_init(&x->code, &imm_dna_iupac.super);
@@ -96,7 +96,7 @@ static int count_proteins(struct dcp_press *press)
 {
 #define HMMER3 "HMMER3/f"
 
-  unsigned count = 0;
+  int count = 0;
   int bufsize = sizeof_field(struct dcp_press, buffer);
   while (fgets(press->buffer, bufsize, press->reader.fp) != NULL)
   {

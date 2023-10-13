@@ -26,18 +26,18 @@ enum dcp_state_id
   STATE_T = (STATE_EXT | 9),
 };
 
-unsigned dcp_state_make_end(void);
-bool dcp_state_is_start(unsigned id);
-bool dcp_state_is_end(unsigned id);
-bool dcp_state_is_core(unsigned id);
-bool dcp_state_is_match(unsigned id);
-bool dcp_state_is_insert(unsigned id);
-bool dcp_state_is_delete(unsigned id);
-bool dcp_state_is_mute(unsigned id);
-unsigned dcp_state_idx(unsigned id);
-char *dcp_state_name(unsigned id, char *name);
-unsigned dcp_state_make_match_id(unsigned idx);
-unsigned dcp_state_make_insert_id(unsigned idx);
-unsigned dcp_state_make_delete_id(unsigned idx);
+int dcp_state_make_end(void);
+bool dcp_state_is_start(int id);
+bool dcp_state_is_end(int id);
+bool dcp_state_is_core(int id);
+bool dcp_state_is_match(int id);
+bool dcp_state_is_insert(int id);
+bool dcp_state_is_delete(int id);
+bool dcp_state_is_mute(int id);
+int dcp_state_idx(int id);
+char *dcp_state_name(int id, char *name);
+int dcp_state_make_match_id(int idx);
+int dcp_state_make_insert_id(int idx);
+int dcp_state_make_delete_id(int idx);
 
 #endif

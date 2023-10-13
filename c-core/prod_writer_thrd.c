@@ -129,8 +129,8 @@ static int write_match(FILE *fp, struct dcp_match const *m)
   char buff[IMM_STATE_NAME_SIZE + 20] = {0};
 
   char *ptr = buff;
-  memcpy(ptr, m->seq.str, m->seq.size);
-  ptr += m->seq.size;
+  memcpy(ptr, imm_seq_data(&m->seq), (unsigned)imm_seq_size(&m->seq));
+  ptr += imm_seq_size(&m->seq);
   *ptr++ = ',';
 
   dcp_match_state_name(m, ptr);

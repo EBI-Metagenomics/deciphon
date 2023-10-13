@@ -2,39 +2,39 @@
 #include "model.h"
 #include "u16toa.h"
 
-static unsigned id_msb(unsigned id) { return id & (3U << (STATE_ID_BITS - 2)); }
+static int id_msb(int id) { return id & (3 << (STATE_ID_BITS - 2)); }
 
-unsigned dcp_state_make_end(void) { return STATE_T; }
+int dcp_state_make_end(void) { return STATE_T; }
 
-bool dcp_state_is_start(unsigned id) { return id == STATE_S; }
+bool dcp_state_is_start(int id) { return id == STATE_S; }
 
-bool dcp_state_is_end(unsigned id) { return id == STATE_T; }
+bool dcp_state_is_end(int id) { return id == STATE_T; }
 
-bool dcp_state_is_core(unsigned id)
+bool dcp_state_is_core(int id)
 {
   return dcp_state_is_match(id) || dcp_state_is_delete(id) ||
          dcp_state_is_insert(id);
 }
 
-bool dcp_state_is_match(unsigned id) { return id_msb(id) == STATE_MATCH; }
+bool dcp_state_is_match(int id) { return id_msb(id) == STATE_MATCH; }
 
-bool dcp_state_is_insert(unsigned id) { return id_msb(id) == STATE_INSERT; }
+bool dcp_state_is_insert(int id) { return id_msb(id) == STATE_INSERT; }
 
-bool dcp_state_is_delete(unsigned id) { return id_msb(id) == STATE_DELETE; }
+bool dcp_state_is_delete(int id) { return id_msb(id) == STATE_DELETE; }
 
-bool dcp_state_is_mute(unsigned id)
+bool dcp_state_is_mute(int id)
 {
-  unsigned msb = id_msb(id);
+  int msb = id_msb(id);
   return (msb == STATE_EXT) ? ((id == STATE_S || id == STATE_B ||
                                 id == STATE_E || id == STATE_T))
                             : msb == STATE_DELETE;
 }
 
-unsigned dcp_state_idx(unsigned id) { return (id & (0xFFFF >> 2)) - 1; }
+int dcp_state_idx(int id) { return (id & (0xFFFF >> 2)) - 1; }
 
-char *dcp_state_name(unsigned id, char *name)
+char *dcp_state_name(int id, char *name)
 {
-  unsigned msb = id_msb(id);
+  int msb = id_msb(id);
   if (msb == STATE_EXT)
   {
     if (id == STATE_F)
@@ -73,17 +73,8 @@ char *dcp_state_name(unsigned id, char *name)
   }
 }
 
-unsigned dcp_state_make_match_id(unsigned idx)
-{
-  return STATE_MATCH | (idx + 1);
-}
+int dcp_state_make_match_id(int idx) { return STATE_MATCH | (idx + 1); }
 
-unsigned dcp_state_make_insert_id(unsigned idx)
-{
-  return STATE_INSERT | (idx + 1);
-}
+int dcp_state_make_insert_id(int idx) { return STATE_INSERT | (idx + 1); }
 
-unsigned dcp_state_make_delete_id(unsigned idx)
-{
-  return STATE_DELETE | (idx + 1);
-}
+int dcp_state_make_delete_id(int idx) { return STATE_DELETE | (idx + 1); }

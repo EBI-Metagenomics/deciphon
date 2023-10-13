@@ -38,7 +38,7 @@ static void test_protein_uniform(void)
   eq(protein_sample(&protein, 1, 2), 0);
 
   char const str[] = "ATGAAACGCATTAGCACCACCATTACCACCAC";
-  struct imm_seq seq = imm_seq(IMM_STR(str), &nuclt->super);
+  struct imm_seq seq = imm_seq_unsafe(imm_str(str), &nuclt->super);
 
   protein_setup(&protein, imm_seq_size(&seq), true, false);
 
@@ -57,12 +57,12 @@ static void test_protein_uniform(void)
 
   eq(imm_path_nsteps(&task.path), 14U);
 
-  eq(imm_path_step(&task.path, 0)->seqlen, 0);
+  eq(imm_path_step(&task.path, 0)->seqsize, 0);
   eq(imm_path_step(&task.path, 0)->state_id, STATE_S);
   dcp_state_name(imm_path_step(&task.path, 0)->state_id, name);
   cmp(name, "S");
 
-  eq(imm_path_step(&task.path, 13)->seqlen, 0);
+  eq(imm_path_step(&task.path, 13)->seqsize, 0);
   eq(imm_path_step(&task.path, 13)->state_id, STATE_T);
   dcp_state_name(imm_path_step(&task.path, 13)->state_id, name);
   cmp(name, "T");
@@ -77,7 +77,7 @@ static void test_protein_uniform(void)
       IMM_CODON(nuclt, "CAC"),
   };
 
-  unsigned any = imm_abc_any_symbol_id(&nuclt->super);
+  int any = imm_abc_any_symbol_id(&nuclt->super);
   struct imm_codon codon = imm_codon(nuclt, any, any, any);
   int i = 0;
   while (!(rc = dcp_codec_next(&codec, &seq, &codon)))
@@ -120,7 +120,7 @@ static void test_protein_occupancy(void)
   eq(protein_sample(&protein, 1, 2), 0);
 
   char const str[] = "ATGAAACGCATTAGCACCACCATTACCACCAC";
-  struct imm_seq seq = imm_seq(imm_str(str), &nuclt->super);
+  struct imm_seq seq = imm_seq_unsafe(imm_str(str), &nuclt->super);
 
   protein_setup(&protein, imm_seq_size(&seq), true, false);
 
@@ -139,12 +139,12 @@ static void test_protein_occupancy(void)
 
   eq(imm_path_nsteps(&task.path), 14U);
 
-  eq(imm_path_step(&task.path, 0)->seqlen, 0);
+  eq(imm_path_step(&task.path, 0)->seqsize, 0);
   eq(imm_path_step(&task.path, 0)->state_id, STATE_S);
   dcp_state_name(imm_path_step(&task.path, 0)->state_id, name);
   cmp(name, "S");
 
-  eq(imm_path_step(&task.path, 13)->seqlen, 0);
+  eq(imm_path_step(&task.path, 13)->seqsize, 0);
   eq(imm_path_step(&task.path, 13)->state_id, STATE_T);
   dcp_state_name(imm_path_step(&task.path, 13)->state_id, name);
   cmp(name, "T");
@@ -159,7 +159,7 @@ static void test_protein_occupancy(void)
       IMM_CODON(nuclt, "CAC"),
   };
 
-  unsigned any = imm_abc_any_symbol_id(&nuclt->super);
+  int any = imm_abc_any_symbol_id(&nuclt->super);
   struct imm_codon codon = imm_codon(nuclt, any, any, any);
   int i = 0;
   while (!(rc = dcp_codec_next(&codec, &seq, &codon)))

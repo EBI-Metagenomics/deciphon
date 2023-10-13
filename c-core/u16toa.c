@@ -1,6 +1,6 @@
 #include "u16toa.h"
 
-unsigned dcp_u16toa(char *str, uint16_t num)
+int dcp_u16toa(char *str, uint16_t num)
 {
   char const *const begin = str;
   *str = '0';
@@ -17,5 +17,5 @@ unsigned dcp_u16toa(char *str, uint16_t num)
     denom /= 10;
   }
   *str = 0;
-  return (unsigned)(str - begin);
+  return (int)(str - begin);
 }

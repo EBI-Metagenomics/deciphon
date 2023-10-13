@@ -26,7 +26,7 @@ int dcp_hmm_reader_next(struct dcp_hmm_reader *h3r)
 
   if (hmr_rc) return DCP_EREADHMMER3;
 
-  unsigned core_size = hmr_prof_length(&h3r->protein);
+  int core_size = (int)hmr_prof_length(&h3r->protein);
   int rc = 0;
   if ((rc = dcp_model_setup(&h3r->model, core_size))) return rc;
 
@@ -48,7 +48,7 @@ int dcp_hmm_reader_next(struct dcp_hmm_reader *h3r)
   while (!(hmr_rc = hmr_next_node(&h3r->hmr, &h3r->protein)))
   {
     float match_lprobs[IMM_AMINO_SIZE];
-    for (unsigned i = 0; i < IMM_AMINO_SIZE; ++i)
+    for (int i = 0; i < IMM_AMINO_SIZE; ++i)
       match_lprobs[i] = (float)h3r->protein.node.match[i];
 
     char consensus = h3r->protein.node.excess.cons;

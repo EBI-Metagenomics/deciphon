@@ -9,7 +9,7 @@
 
 struct dcp_db_writer
 {
-  unsigned nproteins;
+  int nproteins;
   struct lip_file file;
   struct
   {

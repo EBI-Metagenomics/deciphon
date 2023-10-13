@@ -22,8 +22,9 @@ int dcp_codec_next(struct dcp_codec *x, struct imm_seq const *seq,
 
   if (dcp_codec_end(x)) return 0;
 
-  unsigned size = step->seqlen;
-  struct imm_seq frag = imm_subseq(seq, x->start, size);
+  int size = step->seqsize;
+  struct imm_range range = imm_range(x->start, x->start + size);
+  struct imm_seq frag = imm_seq_slice(seq, range);
   x->start += size;
   x->idx++;
   return protein_decode(x->protein, &frag, step->state_id, codon);
