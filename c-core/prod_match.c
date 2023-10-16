@@ -30,7 +30,7 @@ void dcp_prod_match_set_abc(struct dcp_prod_match *x, char const *abc)
   strkcpy(x->abc, abc, size);
 }
 
-double dcp_prod_match_get_lrt(struct dcp_prod_match const *x)
+float dcp_prod_match_get_lrt(struct dcp_prod_match const *x)
 {
   return lrt(x->null, x->alt);
 }

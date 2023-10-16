@@ -12,14 +12,14 @@ struct dcp_prod_match
   char protein[DCP_PROFILE_NAME_SIZE];
   char abc[DCP_ABC_NAME_SIZE];
 
-  double alt;
-  double null;
-  double evalue;
+  float alt;
+  float null;
+  float evalue;
 };
 
 void dcp_prod_match_init(struct dcp_prod_match *);
 void dcp_prod_match_set_protein(struct dcp_prod_match *, char const *);
 void dcp_prod_match_set_abc(struct dcp_prod_match *, char const *);
-double dcp_prod_match_get_lrt(struct dcp_prod_match const *);
+float dcp_prod_match_get_lrt(struct dcp_prod_match const *);
 
 #endif

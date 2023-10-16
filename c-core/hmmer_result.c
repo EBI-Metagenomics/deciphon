@@ -23,7 +23,7 @@ int dcp_hmmer_result_nhits(struct dcp_hmmer_result const *x)
   return (int)h3client_result_nhits(x->handle);
 }
 
-double dcp_hmmer_result_evalue_ln(struct dcp_hmmer_result const *x)
+float dcp_hmmer_result_evalue_ln(struct dcp_hmmer_result const *x)
 {
   if (dcp_hmmer_result_nhits(x) == 0) return -INFINITY;
   return h3client_result_hit_evalue_ln(x->handle, 0);
