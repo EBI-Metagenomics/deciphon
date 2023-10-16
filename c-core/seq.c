@@ -61,14 +61,11 @@ struct imm_eseq const *dcp_seq_immeseq(struct dcp_seq const *x)
 
 long dcp_seq_id(struct dcp_seq const *x) { return x->id; }
 
-unsigned dcp_seq_size(struct dcp_seq const *x)
-{
-  return imm_seq_size(&x->imm_seq);
-}
+int dcp_seq_size(struct dcp_seq const *x) { return imm_seq_size(&x->imm_seq); }
 
 char const *dcp_seq_data(struct dcp_seq const *x)
 {
-  return imm_seq_str(&x->imm_seq);
+  return x->imm_seq.str.data;
 }
 
 struct dcp_seq *dcp_seq_clone(struct dcp_seq *x)
@@ -89,4 +86,11 @@ cleanup:
   if (seq) free(seq);
   if (name) free((void *)name);
   return NULL;
+}
+
+struct dcp_seq dcp_seq_slice(struct dcp_seq const *x, struct imm_range r)
+{
+  struct imm_seq seq = imm_seq_slice(&x->imm_seq, r);
+  struct imm_eseq eseq = imm_eseq_slice(&x->imm_eseq, r);
+  return (struct dcp_seq){x->id, x->name, imm_seq_data(&seq), seq, eseq, {}};
 }
