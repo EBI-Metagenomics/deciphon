@@ -31,7 +31,7 @@ int main(void)
   return lfails;
 }
 
-static bool next_seq(struct dcp_seq *, void *);
+static bool next_seq(struct seq *, void *);
 
 static long chksum(char const *filename)
 {
@@ -190,12 +190,12 @@ static struct seq
      "CCGCATCCGCTGTACTCGCTTTTTTTCTC"
      "TT"}};
 
-static bool next_seq(struct dcp_seq *x, void *arg)
+static bool next_seq(struct seq *x, void *arg)
 {
   size_t *i = arg;
   if (*i < array_size(seqs))
   {
-    eq_or_exit(dcp_seq_setup(x, seqs[*i].id, seqs[*i].name, seqs[*i].data), 0);
+    eq_or_exit(seq_setup(x, seqs[*i].id, seqs[*i].name, seqs[*i].data), 0);
     *i += 1;
     return true;
   }

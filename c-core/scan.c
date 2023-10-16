@@ -24,7 +24,7 @@ struct scan
     struct protein_reader protein;
   } db;
 
-  struct dcp_seq_iter seqit;
+  struct seq_iter seqit;
   struct hmmer_dialer dialer;
 };
 
@@ -43,12 +43,12 @@ struct scan *scan_new(void)
 static void seqs_cleanup(struct queue *seqs)
 {
   struct iter iter = queue_iter(seqs);
-  struct dcp_seq *tmp = NULL;
-  struct dcp_seq *seq = NULL;
+  struct seq *tmp = NULL;
+  struct seq *seq = NULL;
   iter_for_each_entry_safe(seq, tmp, &iter, node)
   {
     free((void *)seq->name);
-    dcp_seq_cleanup(seq);
+    seq_cleanup(seq);
     free(seq);
   }
 }
@@ -76,8 +76,8 @@ void scan_del(struct scan const *x)
 
 static inline int nthreads(struct scan *x) { return x->params.num_threads; }
 
-int scan_run(struct scan *x, char const *dbfile, dcp_seq_next_fn *callb,
-                 void *userdata, char const *product_dir)
+int scan_run(struct scan *x, char const *dbfile, seq_next_fn *callb,
+             void *userdata, char const *product_dir)
 {
   int rc = 0;
 
@@ -89,13 +89,13 @@ int scan_run(struct scan *x, char const *dbfile, dcp_seq_next_fn *callb,
   if ((rc = protein_reader_setup(&x->db.protein, &x->db.reader, nthreads(x))))
     defer_return(rc);
 
-  dcp_seq_iter_init(&x->seqit, &x->db.reader.code.super, callb, userdata);
+  seq_iter_init(&x->seqit, &x->db.reader.code.super, callb, userdata);
   struct queue seqs = QUEUE_INIT(seqs);
-  while (dcp_seq_iter_next(&x->seqit))
+  while (seq_iter_next(&x->seqit))
   {
-    struct dcp_seq *tmp = dcp_seq_iter_get(&x->seqit);
-    struct dcp_seq *seq = dcp_seq_clone(tmp);
-    dcp_seq_cleanup(tmp);
+    struct seq *tmp = seq_iter_get(&x->seqit);
+    struct seq *seq = seq_clone(tmp);
+    seq_cleanup(tmp);
     if (!seq) defer_return(DCP_ENOMEM);
     queue_put(&seqs, &seq->node);
   }
@@ -128,7 +128,7 @@ int scan_run(struct scan *x, char const *dbfile, dcp_seq_next_fn *callb,
 
 defer:
   seqs_cleanup(&seqs);
-  dcp_seq_iter_cleanup((struct dcp_seq_iter *)&x->seqit);
+  seq_iter_cleanup((struct seq_iter *)&x->seqit);
   db_reader_close(&x->db.reader);
   if (x->db.fp)
   {

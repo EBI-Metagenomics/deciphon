@@ -4,7 +4,7 @@
 #include "imm/imm.h"
 #include "node.h"
 
-struct dcp_seq
+struct seq
 {
   long id;
   char const *name;

@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int dcp_seq_setup(struct dcp_seq *x, long id, char const *name,
+int seq_setup(struct seq *x, long id, char const *name,
                   char const *data)
 {
   x->id = id;
@@ -31,7 +31,7 @@ int dcp_seq_setup(struct dcp_seq *x, long id, char const *name,
   return imm_eseq_setup(&x->imm_eseq, &x->imm_seq) ? DCP_ESEQABC : 0;
 }
 
-void dcp_seq_cleanup(struct dcp_seq *x)
+void seq_cleanup(struct seq *x)
 {
   imm_eseq_cleanup(&x->imm_eseq);
   if (x->data)
@@ -41,7 +41,7 @@ void dcp_seq_cleanup(struct dcp_seq *x)
   }
 }
 
-void dcp_seq_init(struct dcp_seq *x, struct imm_code const *code)
+void seq_init(struct seq *x, struct imm_code const *code)
 {
   x->id = 0;
   x->name = NULL;
@@ -49,34 +49,34 @@ void dcp_seq_init(struct dcp_seq *x, struct imm_code const *code)
   imm_eseq_init(&x->imm_eseq, code);
 }
 
-struct imm_seq const *dcp_seq_immseq(struct dcp_seq const *x)
+struct imm_seq const *seq_immseq(struct seq const *x)
 {
   return &x->imm_seq;
 }
 
-struct imm_eseq const *dcp_seq_immeseq(struct dcp_seq const *x)
+struct imm_eseq const *seq_immeseq(struct seq const *x)
 {
   return &x->imm_eseq;
 }
 
-long dcp_seq_id(struct dcp_seq const *x) { return x->id; }
+long seq_id(struct seq const *x) { return x->id; }
 
-int dcp_seq_size(struct dcp_seq const *x) { return imm_seq_size(&x->imm_seq); }
+int seq_size(struct seq const *x) { return imm_seq_size(&x->imm_seq); }
 
-char const *dcp_seq_data(struct dcp_seq const *x)
+char const *seq_data(struct seq const *x)
 {
   return x->imm_seq.str.data;
 }
 
-struct dcp_seq *dcp_seq_clone(struct dcp_seq *x)
+struct seq *seq_clone(struct seq *x)
 {
-  struct dcp_seq *seq = NULL;
+  struct seq *seq = NULL;
   char const *name = NULL;
 
   if (!(seq = malloc(sizeof(*seq)))) goto cleanup;
   if (!(name = dcp_strdup(x->name))) goto cleanup;
-  dcp_seq_init(seq, x->imm_eseq.code);
-  int rc = dcp_seq_setup(seq, x->id, name, x->data);
+  seq_init(seq, x->imm_eseq.code);
+  int rc = seq_setup(seq, x->id, name, x->data);
   (void)rc;
   assert(!rc && "original sequence should be proper");
 
@@ -88,9 +88,9 @@ cleanup:
   return NULL;
 }
 
-struct dcp_seq dcp_seq_slice(struct dcp_seq const *x, struct imm_range r)
+struct seq seq_slice(struct seq const *x, struct imm_range r)
 {
   struct imm_seq seq = imm_seq_slice(&x->imm_seq, r);
   struct imm_eseq eseq = imm_eseq_slice(&x->imm_eseq, r);
-  return (struct dcp_seq){x->id, x->name, imm_seq_data(&seq), seq, eseq, {}};
+  return (struct seq){x->id, x->name, imm_seq_data(&seq), seq, eseq, {}};
 }

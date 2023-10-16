@@ -29,7 +29,7 @@ struct scan_thread
 
 struct hmmer_dialer;
 struct protein_reader;
-struct dcp_seq;
+struct seq;
 
 struct scan_thread_params
 {
