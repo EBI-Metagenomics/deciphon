@@ -1,7 +1,5 @@
-#ifndef DECIPHON_RC_H
-#define DECIPHON_RC_H
-
-#include "api.h"
+#ifndef RC_H
+#define RC_H
 
 // clang-format off
 enum dcp_rc

@@ -1,5 +1,5 @@
-#ifndef DECIPHON_FORMAT_H
-#define DECIPHON_FORMAT_H
+#ifndef DCP_FORMAT_H
+#define DCP_FORMAT_H
 
 #include <stddef.h>
 

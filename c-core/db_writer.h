@@ -1,5 +1,5 @@
-#ifndef DECIPHON_DB_WRITER_H
-#define DECIPHON_DB_WRITER_H
+#ifndef DB_WRITER_H
+#define DB_WRITER_H
 
 #include "imm/imm.h"
 #include "lip/lip.h"
@@ -7,7 +7,7 @@
 #include "size.h"
 #include <stdio.h>
 
-struct dcp_db_writer
+struct db_writer
 {
   int nproteins;
   struct lip_file file;
@@ -21,15 +21,15 @@ struct dcp_db_writer
     struct lip_file proteins;
   } tmp;
 
-  struct dcp_model_params params;
+  struct model_params params;
   struct imm_nuclt_code code;
 };
 
-struct dcp_protein;
+struct protein;
 
-void dcp_db_writer_init(struct dcp_db_writer *, struct dcp_model_params);
-int dcp_db_writer_open(struct dcp_db_writer *, FILE *restrict);
-int dcp_db_writer_pack(struct dcp_db_writer *, struct dcp_protein const *);
-int dcp_db_writer_close(struct dcp_db_writer *);
+void db_writer_init(struct db_writer *, struct model_params);
+int db_writer_open(struct db_writer *, FILE *restrict);
+int db_writer_pack(struct db_writer *, struct protein const *);
+int db_writer_close(struct db_writer *);
 
 #endif

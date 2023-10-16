@@ -3,7 +3,7 @@
 #include "rc.h"
 #include <stdlib.h>
 
-void dcp_viterbi_task_init(struct dcp_viterbi_task *x)
+void viterbi_task_init(struct viterbi_task *x)
 {
   x->dp = NULL;
   trellis_init(&x->trellis);
@@ -11,7 +11,7 @@ void dcp_viterbi_task_init(struct dcp_viterbi_task *x)
   x->score = IMM_LPROB_NAN;
 }
 
-int dcp_viterbi_task_setup(struct dcp_viterbi_task *x, int core_size,
+int viterbi_task_setup(struct viterbi_task *x, int core_size,
                            int seq_size, bool const nopath)
 {
   int rc = 0;
@@ -39,11 +39,11 @@ int dcp_viterbi_task_setup(struct dcp_viterbi_task *x, int core_size,
   return rc;
 
 defer:
-  dcp_viterbi_task_cleanup(x);
+  viterbi_task_cleanup(x);
   return rc;
 }
 
-void dcp_viterbi_task_cleanup(struct dcp_viterbi_task *x)
+void viterbi_task_cleanup(struct viterbi_task *x)
 {
   trellis_cleanup(&x->trellis);
   dp_del(&x->dp);

@@ -1,25 +1,25 @@
-#ifndef DECIPHON_MATCH_H
-#define DECIPHON_MATCH_H
+#ifndef MATCH_H
+#define MATCH_H
 
 #include "imm/imm.h"
 #include <stdbool.h>
 
-struct dcp_protein;
+struct protein;
 
-struct dcp_match
+struct match
 {
-  struct dcp_protein const *protein;
+  struct protein const *protein;
   struct imm_step step;
   struct imm_seq seq;
   struct imm_codon codon;
 };
 
-void dcp_match_init(struct dcp_match *, struct dcp_protein const *);
-int dcp_match_setup(struct dcp_match *, struct imm_step, struct imm_seq);
-void dcp_match_state_name(struct dcp_match const *, char *dst);
-bool dcp_match_state_is_mute(struct dcp_match const *);
-bool dcp_match_state_is_core(struct dcp_match const *);
-char dcp_match_amino(struct dcp_match const *);
-struct imm_codon dcp_match_codon(struct dcp_match const *);
+struct match match_init(struct protein const *);
+int match_setup(struct match *, struct imm_step, struct imm_seq);
+void match_state_name(struct match const *, char *dst);
+bool match_state_is_mute(struct match const *);
+bool match_state_is_core(struct match const *);
+char match_amino(struct match const *);
+struct imm_codon match_codon(struct match const *);
 
 #endif

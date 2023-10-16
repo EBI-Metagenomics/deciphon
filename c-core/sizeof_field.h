@@ -1,5 +1,5 @@
-#ifndef DECIPHON_SIZEOF_FIELD_H
-#define DECIPHON_SIZEOF_FIELD_H
+#ifndef SIZEOF_FIELD_H
+#define SIZEOF_FIELD_H
 
 /**
  * sizeof_field() - Report the size of a struct field in bytes

@@ -1,11 +1,11 @@
-#ifndef DECIPHON_DECIPHON_H
-#define DECIPHON_DECIPHON_H
+#ifndef DECIPHON_H
+#define DECIPHON_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "api.h"
+#include "compiler.h"
 #include "press.h"
 #include "rc.h"
 #include "scan.h"

@@ -24,7 +24,7 @@ static void test_protein_uniform(void)
   struct imm_eseq eseq = {0};
   imm_eseq_init(&eseq, &code.super);
 
-  struct dcp_model_params params = {
+  struct model_params params = {
       .gencode = imm_gencode_get(1),
       .amino = amino,
       .code = &code,
@@ -32,7 +32,7 @@ static void test_protein_uniform(void)
       .epsilon = 0.1,
   };
 
-  struct dcp_protein protein = {0};
+  struct protein protein = {0};
   protein_init(&protein, params);
   protein_set_accession(&protein, "accession");
   eq(protein_sample(&protein, 1, 2), 0);
@@ -44,15 +44,15 @@ static void test_protein_uniform(void)
 
   eq(imm_eseq_setup(&eseq, &seq), 0);
 
-  close(dcp_viterbi_null(&protein, &eseq), -48.9272687711);
+  close(viterbi_null(&protein, &eseq), -48.9272687711);
 
   char name[IMM_STATE_NAME_SIZE];
 
   eq(imm_eseq_setup(&eseq, &seq), 0);
 
-  struct dcp_viterbi_task task = {};
-  dcp_viterbi_task_init(&task);
-  close(dcp_viterbi(&protein, &eseq, &task, false), 0);
+  struct viterbi_task task = {};
+  viterbi_task_init(&task);
+  close(viterbi(&protein, &eseq, &task, false), 0);
   close(task.score, -55.59428153448);
 
   eq(imm_path_nsteps(&task.path), 14U);
@@ -67,7 +67,7 @@ static void test_protein_uniform(void)
   dcp_state_name(imm_path_step(&task.path, 13)->state_id, name);
   cmp(name, "T");
 
-  struct dcp_codec codec = dcp_codec_init(&protein, &task.path);
+  struct codec codec = codec_init(&protein, &task.path);
   int rc = 0;
 
   struct imm_codon codons[10] = {
@@ -80,9 +80,9 @@ static void test_protein_uniform(void)
   int any = imm_abc_any_symbol_id(&nuclt->super);
   struct imm_codon codon = imm_codon(nuclt, any, any, any);
   int i = 0;
-  while (!(rc = dcp_codec_next(&codec, &seq, &codon)))
+  while (!(rc = codec_next(&codec, &seq, &codon)))
   {
-    if (dcp_codec_end(&codec)) break;
+    if (codec_end(&codec)) break;
     eq(codons[i].a, codon.a);
     eq(codons[i].b, codon.b);
     eq(codons[i].c, codon.c);
@@ -92,7 +92,7 @@ static void test_protein_uniform(void)
   eq(i, 10);
 
   imm_eseq_cleanup(&eseq);
-  dcp_viterbi_task_cleanup(&task);
+  viterbi_task_cleanup(&task);
   protein_cleanup(&protein);
 }
 
@@ -106,7 +106,7 @@ static void test_protein_occupancy(void)
   struct imm_eseq eseq = {0};
   imm_eseq_init(&eseq, &code.super);
 
-  struct dcp_model_params params = {
+  struct model_params params = {
       .gencode = imm_gencode_get(1),
       .amino = amino,
       .code = &code,
@@ -114,7 +114,7 @@ static void test_protein_occupancy(void)
       .epsilon = 0.1,
   };
 
-  struct dcp_protein protein = {0};
+  struct protein protein = {0};
   protein_init(&protein, params);
   protein_set_accession(&protein, "accession");
   eq(protein_sample(&protein, 1, 2), 0);
@@ -126,15 +126,15 @@ static void test_protein_occupancy(void)
 
   eq(imm_eseq_setup(&eseq, &seq), 0);
 
-  close(dcp_viterbi_null(&protein, &eseq), -48.9272687711);
+  close(viterbi_null(&protein, &eseq), -48.9272687711);
 
   char name[IMM_STATE_NAME_SIZE];
 
   eq(imm_eseq_setup(&eseq, &seq), 0);
 
-  struct dcp_viterbi_task task = {};
-  dcp_viterbi_task_init(&task);
-  close(dcp_viterbi(&protein, &eseq, &task, false), 0);
+  struct viterbi_task task = {};
+  viterbi_task_init(&task);
+  close(viterbi(&protein, &eseq, &task, false), 0);
   close(task.score, -54.35543421312);
 
   eq(imm_path_nsteps(&task.path), 14U);
@@ -149,7 +149,7 @@ static void test_protein_occupancy(void)
   dcp_state_name(imm_path_step(&task.path, 13)->state_id, name);
   cmp(name, "T");
 
-  struct dcp_codec codec = dcp_codec_init(&protein, &task.path);
+  struct codec codec = codec_init(&protein, &task.path);
   int rc = 0;
 
   struct imm_codon codons[10] = {
@@ -162,9 +162,9 @@ static void test_protein_occupancy(void)
   int any = imm_abc_any_symbol_id(&nuclt->super);
   struct imm_codon codon = imm_codon(nuclt, any, any, any);
   int i = 0;
-  while (!(rc = dcp_codec_next(&codec, &seq, &codon)))
+  while (!(rc = codec_next(&codec, &seq, &codon)))
   {
-    if (dcp_codec_end(&codec)) break;
+    if (codec_end(&codec)) break;
     eq(codons[i].a, codon.a);
     eq(codons[i].b, codon.b);
     eq(codons[i].c, codon.c);
@@ -174,6 +174,6 @@ static void test_protein_occupancy(void)
   eq(i, 10);
 
   imm_eseq_cleanup(&eseq);
-  dcp_viterbi_task_cleanup(&task);
+  viterbi_task_cleanup(&task);
   protein_cleanup(&protein);
 }

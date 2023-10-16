@@ -4,12 +4,12 @@
 #include <math.h>
 #include <stddef.h>
 
-int dcp_hmmer_result_init(struct dcp_hmmer_result *x)
+int hmmer_result_init(struct hmmer_result *x)
 {
   return (x->handle = h3client_result_new()) ? 0 : DCP_ENOMEM;
 }
 
-void dcp_hmmer_result_cleanup(struct dcp_hmmer_result *x)
+void hmmer_result_cleanup(struct hmmer_result *x)
 {
   if (x)
   {
@@ -18,18 +18,18 @@ void dcp_hmmer_result_cleanup(struct dcp_hmmer_result *x)
   }
 }
 
-int dcp_hmmer_result_nhits(struct dcp_hmmer_result const *x)
+int hmmer_result_nhits(struct hmmer_result const *x)
 {
   return (int)h3client_result_nhits(x->handle);
 }
 
-float dcp_hmmer_result_evalue_ln(struct dcp_hmmer_result const *x)
+float hmmer_result_evalue(struct hmmer_result const *x)
 {
-  if (dcp_hmmer_result_nhits(x) == 0) return -INFINITY;
-  return h3client_result_hit_evalue_ln(x->handle, 0);
+  if (hmmer_result_nhits(x) == 0) return -INFINITY;
+  return (float)exp(h3client_result_hit_evalue_ln(x->handle, 0));
 }
 
-int dcp_hmmer_result_pack(struct dcp_hmmer_result const *x, FILE *fp)
+int hmmer_result_pack(struct hmmer_result const *x, FILE *fp)
 {
   return h3client_result_pack(x->handle, fp) ? DCP_EH3CPACK : 0;
 }

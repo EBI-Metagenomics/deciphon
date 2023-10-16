@@ -1,20 +1,20 @@
-#ifndef DECIPHON_HMMER_RESULT_H
-#define DECIPHON_HMMER_RESULT_H
+#ifndef HMMER_RESULT_H
+#define HMMER_RESULT_H
 
 #include <stdio.h>
 
 struct h3client_result;
 
-struct dcp_hmmer_result
+struct hmmer_result
 {
   struct h3client_result *handle;
 };
 
-int dcp_hmmer_result_init(struct dcp_hmmer_result *);
-void dcp_hmmer_result_cleanup(struct dcp_hmmer_result *);
+int hmmer_result_init(struct hmmer_result *);
+void hmmer_result_cleanup(struct hmmer_result *);
 
-int dcp_hmmer_result_nhits(struct dcp_hmmer_result const *);
-float dcp_hmmer_result_evalue_ln(struct dcp_hmmer_result const *);
-int dcp_hmmer_result_pack(struct dcp_hmmer_result const *, FILE *);
+int hmmer_result_nhits(struct hmmer_result const *);
+float hmmer_result_evalue(struct hmmer_result const *);
+int hmmer_result_pack(struct hmmer_result const *, FILE *);
 
 #endif

@@ -1,12 +1,12 @@
-#ifndef DECIPHON_TRANS_H
-#define DECIPHON_TRANS_H
+#ifndef TRANS_H
+#define TRANS_H
 
 enum
 {
   TRANS_SIZE = 7
 };
 
-struct dcp_trans
+struct trans
 {
   union
   {

@@ -1,9 +1,9 @@
-#ifndef DECIPHON_XTRANS_H
-#define DECIPHON_XTRANS_H
+#ifndef XTRANS_H
+#define XTRANS_H
 
 #include <stdio.h>
 
-struct dcp_xtrans
+struct xtrans
 {
   float NN;
   float CC;
@@ -16,7 +16,7 @@ struct dcp_xtrans
   float EC;
 };
 
-void dcp_xtrans_init(struct dcp_xtrans *);
-void dcp_xtrans_dump(struct dcp_xtrans const *, FILE *restrict);
+void xtrans_init(struct xtrans *);
+void xtrans_dump(struct xtrans const *, FILE *restrict);
 
 #endif

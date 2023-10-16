@@ -1,7 +1,7 @@
-#ifndef DECIPHON_DISAMBIGUATE_H
-#define DECIPHON_DISAMBIGUATE_H
+#ifndef DISAMBIGUATE_H
+#define DISAMBIGUATE_H
 
-void dcp_disambiguate_dna(int size, char *seq);
-void dcp_disambiguate_rna(int size, char *seq);
+void disambiguate_dna(int size, char *seq);
+void disambiguate_rna(int size, char *seq);
 
 #endif

@@ -1,5 +1,5 @@
-#ifndef DECIPHON_WRITE_H
-#define DECIPHON_WRITE_H
+#ifndef WRITE_H
+#define WRITE_H
 
 #include "imm/imm.h"
 #include "lip/lip.h"

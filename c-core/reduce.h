@@ -1,5 +1,5 @@
-#ifndef DECIPHON_REDUCE_H
-#define DECIPHON_REDUCE_H
+#ifndef REDUCE_H
+#define REDUCE_H
 
 #include "compiler.h"
 #include "fmax.h"

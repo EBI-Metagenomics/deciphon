@@ -1,9 +1,9 @@
-#ifndef DECIPHON_SCAN_PARAMS_H
-#define DECIPHON_SCAN_PARAMS_H
+#ifndef SCAN_PARAMS_H
+#define SCAN_PARAMS_H
 
 #include <stdbool.h>
 
-struct dcp_scan_params
+struct scan_params
 {
   int num_threads;
   bool multi_hits;

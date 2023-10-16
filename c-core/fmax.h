@@ -1,5 +1,5 @@
-#ifndef DECIPHON_FMAX_H
-#define DECIPHON_FMAX_H
+#ifndef DCP_FMAX_H
+#define DCP_FMAX_H
 
 #include "compiler.h"
 #include <math.h>

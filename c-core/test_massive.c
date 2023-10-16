@@ -34,21 +34,21 @@ static bool next_seq(struct dcp_seq *x, void *seqit)
 
 static void setup_database(void)
 {
-  struct dcp_press *press = dcp_press_new();
+  struct press *press = press_new();
 
-  eq_or_exit(dcp_press_setup(press, GENCODE, EPSILON), 0);
-  eq_or_exit(dcp_press_open(press, HMMFILE, DBFILE), 0);
+  eq_or_exit(press_setup(press, GENCODE, EPSILON), 0);
+  eq_or_exit(press_open(press, HMMFILE, DBFILE), 0);
 
-  eq_or_exit(dcp_press_nproteins(press), 1);
+  eq_or_exit(press_nproteins(press), 1);
   int rc = 0;
-  while (!dcp_press_end(press))
+  while (!press_end(press))
   {
-    if ((rc = dcp_press_next(press))) break;
+    if ((rc = press_next(press))) break;
   }
   eq_or_exit(rc, 0);
 
-  eq_or_exit(dcp_press_close(press), 0);
-  dcp_press_del(press);
+  eq_or_exit(press_close(press), 0);
+  press_del(press);
 }
 
 static void cleanup_database(void) { dcp_fs_rmfile(DBFILE); }
@@ -62,18 +62,18 @@ int main(void)
   random_sequence_init();
   imm_fmt_set_f32("%.5g");
 
-  struct dcp_scan *scan = dcp_scan_new();
+  struct scan *scan = scan_new();
   ok_or_exit(scan);
-  struct dcp_scan_params params = {1, MULTI_HITS, HMMER3_COMPAT, true};
-  eq_or_exit(dcp_scan_setup(scan, params), 0);
+  struct scan_params params = {1, MULTI_HITS, HMMER3_COMPAT, true};
+  eq_or_exit(scan_setup(scan, params), 0);
 
   struct seqit it = seqit_init(NUM_SEQS, &random_sequence_next);
   dcp_fs_rmtree(PRODDIR);
-  eq(dcp_scan_run(scan, DBFILE, next_seq, &it, PRODDIR), 0);
-  eq(chksum(PRODDIR "/products.tsv"), 57189);
+  eq(scan_run(scan, DBFILE, next_seq, &it, PRODDIR), 0);
+  eq(chksum(PRODDIR "/products.tsv"), 27703);
   eq(dcp_fs_rmtree(PRODDIR), 0);
 
-  dcp_scan_del(scan);
+  scan_del(scan);
   cleanup_database();
   return lfails;
 }

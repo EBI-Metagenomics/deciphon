@@ -1,5 +1,5 @@
-#ifndef DECIPHON_STATE_H
-#define DECIPHON_STATE_H
+#ifndef STATE_H
+#define STATE_H
 
 #include <stdbool.h>
 

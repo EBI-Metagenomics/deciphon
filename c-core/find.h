@@ -1,5 +1,5 @@
-#ifndef DECIPHON_FIND_H
-#define DECIPHON_FIND_H
+#ifndef FIND_H
+#define FIND_H
 
 #include "compiler.h"
 

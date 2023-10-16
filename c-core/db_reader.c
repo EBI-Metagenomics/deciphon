@@ -7,15 +7,15 @@
 #include "read.h"
 #include <stdlib.h>
 
-void dcp_db_reader_init(struct dcp_db_reader *x)
+void db_reader_init(struct db_reader *x)
 {
   x->nproteins = 0;
   x->protein_sizes = NULL;
 }
 
-static int unpack_header_protein_sizes(struct dcp_db_reader *x);
+static int unpack_header_protein_sizes(struct db_reader *x);
 
-int dcp_db_reader_open(struct dcp_db_reader *x, FILE *fp)
+int db_reader_open(struct db_reader *x, FILE *fp)
 {
   int rc = 0;
 
@@ -54,17 +54,17 @@ int dcp_db_reader_open(struct dcp_db_reader *x, FILE *fp)
   return rc;
 
 defer:
-  dcp_db_reader_close(x);
+  db_reader_close(x);
   return rc;
 }
 
-void dcp_db_reader_close(struct dcp_db_reader *x)
+void db_reader_close(struct db_reader *x)
 {
   if (x->protein_sizes) free(x->protein_sizes);
   x->protein_sizes = NULL;
 }
 
-static int unpack_header_protein_sizes(struct dcp_db_reader *x)
+static int unpack_header_protein_sizes(struct db_reader *x)
 {
   enum lip_1darray_type type = 0;
 
@@ -88,9 +88,9 @@ static int unpack_header_protein_sizes(struct dcp_db_reader *x)
   return 0;
 }
 
-struct dcp_model_params dcp_db_reader_params(struct dcp_db_reader const *x,
+struct model_params db_reader_params(struct db_reader const *x,
                                              struct imm_gencode const *gencode)
 {
-  return (struct dcp_model_params){gencode, &x->amino, &x->code, x->entry_dist,
+  return (struct model_params){gencode, &x->amino, &x->code, x->entry_dist,
                                    x->epsilon};
 }

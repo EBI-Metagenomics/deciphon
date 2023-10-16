@@ -9,21 +9,21 @@
 #include "read.h"
 #include <string.h>
 
-void dcp_protein_reader_init(struct dcp_protein_reader *x)
+void protein_reader_init(struct protein_reader *x)
 {
   x->npartitions = 0;
   memset(x->partition_csum, 0,
-         sizeof_field(struct dcp_protein_reader, partition_csum));
+         sizeof_field(struct protein_reader, partition_csum));
   memset(x->partition_offset, 0,
-         sizeof_field(struct dcp_protein_reader, partition_offset));
+         sizeof_field(struct protein_reader, partition_offset));
   x->db = NULL;
 }
 
-static void partition_it(struct dcp_protein_reader *);
+static void partition_it(struct protein_reader *);
 static inline int min(int a, int b) { return a < b ? a : b; }
 
-int dcp_protein_reader_setup(struct dcp_protein_reader *x,
-                             struct dcp_db_reader *db, int npartitions)
+int protein_reader_setup(struct protein_reader *x,
+                             struct db_reader *db, int npartitions)
 {
   int rc = 0;
   x->db = db;
@@ -45,25 +45,25 @@ int dcp_protein_reader_setup(struct dcp_protein_reader *x,
   return rc;
 }
 
-int dcp_protein_reader_npartitions(struct dcp_protein_reader const *x)
+int protein_reader_npartitions(struct protein_reader const *x)
 {
   return x->npartitions;
 }
 
-int dcp_protein_reader_partition_size(struct dcp_protein_reader const *x,
+int protein_reader_partition_size(struct protein_reader const *x,
                                       int partition)
 {
   int const *csum = x->partition_csum;
   return csum[partition + 1] - csum[partition];
 }
 
-int dcp_protein_reader_size(struct dcp_protein_reader const *x)
+int protein_reader_size(struct protein_reader const *x)
 {
   return x->partition_csum[x->npartitions];
 }
 
-int dcp_protein_reader_iter(struct dcp_protein_reader *x, int partition,
-                            struct dcp_protein_iter *it)
+int protein_reader_iter(struct protein_reader *x, int partition,
+                            struct protein_iter *it)
 {
   if (partition < 0 || x->npartitions < partition) return DCP_EINVALPART;
 
@@ -76,7 +76,7 @@ int dcp_protein_reader_iter(struct dcp_protein_reader *x, int partition,
   if ((rc = dcp_fs_seek(newfp, offset, SEEK_SET))) defer_return(rc);
 
   int start_idx = x->partition_csum[partition];
-  dcp_protein_iter_init(it, x, partition, start_idx, offset, newfp);
+  protein_iter_init(it, x, partition, start_idx, offset, newfp);
 
   return rc;
 
@@ -85,7 +85,7 @@ defer:
   return rc;
 }
 
-static void partition_it(struct dcp_protein_reader *x)
+static void partition_it(struct protein_reader *x)
 {
   int n = x->db->nproteins;
   int k = x->npartitions;
@@ -103,9 +103,9 @@ static void partition_it(struct dcp_protein_reader *x)
   }
 }
 
-struct dcp_model_params
-dcp_protein_reader_params(struct dcp_protein_reader *x,
+struct model_params
+protein_reader_params(struct protein_reader *x,
                           struct imm_gencode const *gencode)
 {
-  return dcp_db_reader_params(x->db, gencode);
+  return db_reader_params(x->db, gencode);
 }

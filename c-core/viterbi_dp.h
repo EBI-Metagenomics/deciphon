@@ -1,5 +1,5 @@
-#ifndef DECIPHON_VITERBI_DP_H
-#define DECIPHON_VITERBI_DP_H
+#ifndef VITERBI_DP_H
+#define VITERBI_DP_H
 
 #include "compiler.h"
 #include "imm/imm.h"

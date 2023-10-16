@@ -1,5 +1,5 @@
-#ifndef DECIPHON_VITERBI_TASK_H
-#define DECIPHON_VITERBI_TASK_H
+#ifndef VITERBI_TASK_H
+#define VITERBI_TASK_H
 
 #include "compiler.h"
 #include "imm/imm.h"
@@ -7,7 +7,7 @@
 #include "viterbi_dp.h"
 #include <stdbool.h>
 
-struct dcp_viterbi_task
+struct viterbi_task
 {
   float *dp;
   float S[DCP_VITERBI_PAST_SIZE];
@@ -22,10 +22,10 @@ struct dcp_viterbi_task
   float score;
 };
 
-void dcp_viterbi_task_init(struct dcp_viterbi_task *);
-int dcp_viterbi_task_setup(struct dcp_viterbi_task *, int core_size,
-                           int seq_size, bool const nopath);
-void dcp_viterbi_task_cleanup(struct dcp_viterbi_task *);
+void viterbi_task_init(struct viterbi_task *);
+int viterbi_task_setup(struct viterbi_task *, int core_size, int seq_size,
+                       bool const nopath);
+void viterbi_task_cleanup(struct viterbi_task *);
 
 DCP_CONST int lukbak(int i) { return i; }
 DCP_CONST int nchars(int n) { return n - 1; }

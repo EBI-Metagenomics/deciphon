@@ -1,5 +1,5 @@
-#ifndef DECIPHON_CONTAINER_H
-#define DECIPHON_CONTAINER_H
+#ifndef CONTAINER_H
+#define CONTAINER_H
 
 /**
  * container_of - cast a member of a structure out to the containing

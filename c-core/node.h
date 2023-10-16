@@ -1,5 +1,5 @@
-#ifndef DECIPHON_NODE_H
-#define DECIPHON_NODE_H
+#ifndef NODE_H
+#define NODE_H
 
 #include <stddef.h>
 

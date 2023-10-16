@@ -1,5 +1,5 @@
-#ifndef DECIPHON_BIT_H
-#define DECIPHON_BIT_H
+#ifndef BIT_H
+#define BIT_H
 
 #include "compiler.h"
 #include <assert.h>

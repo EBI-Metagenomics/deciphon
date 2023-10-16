@@ -1,5 +1,5 @@
-#ifndef DECIPHON_MODEL_H
-#define DECIPHON_MODEL_H
+#ifndef MODEL_H
+#define MODEL_H
 
 #include "entry_dist.h"
 #include "imm/imm.h"
@@ -17,58 +17,58 @@ enum
   DCP_MODEL_MAX = 4096,
 };
 
-struct dcp_model
+struct model
 {
-  struct dcp_model_params params;
+  struct model_params params;
   int core_size;
-  struct dcp_model_xnode xnode;
-  struct dcp_xtrans xtrans;
+  struct model_xnode xnode;
+  struct xtrans xtrans;
   char consensus[DCP_MODEL_MAX + 1];
 
   struct
   {
     float lprobs[IMM_AMINO_SIZE];
-    struct dcp_nuclt_dist nuclt_dist;
+    struct nuclt_dist nuclt_dist;
     struct imm_frame_state state;
     struct imm_hmm hmm;
   } null;
 
   struct
   {
-    struct dcp_nuclt_dist nuclt_dist;
+    struct nuclt_dist nuclt_dist;
     struct imm_frame_state state;
   } background;
 
   struct
   {
     int node_idx;
-    struct dcp_model_node *nodes;
+    struct model_node *nodes;
     float *locc;
     int trans_idx;
-    struct dcp_trans *trans;
+    struct trans *trans;
     struct imm_hmm hmm;
 
     struct
     {
-      struct dcp_nuclt_dist nucltd;
+      struct nuclt_dist nucltd;
     } insert;
   } alt;
 
   float *BMk;
 };
 
-int dcp_model_add_node(struct dcp_model *, float const lp[IMM_AMINO_SIZE],
-                       char consensus);
+int model_add_node(struct model *, float const lp[IMM_AMINO_SIZE],
+                   char consensus);
 
-int dcp_model_add_trans(struct dcp_model *, struct dcp_trans);
+int model_add_trans(struct model *, struct trans);
 
-void dcp_model_cleanup(struct dcp_model const *);
+void model_cleanup(struct model const *);
 
-void dcp_model_init(struct dcp_model *, struct dcp_model_params params,
-                    float const null_lprobs[IMM_AMINO_SIZE]);
+void model_init(struct model *, struct model_params params,
+                float const null_lprobs[IMM_AMINO_SIZE]);
 
-int dcp_model_setup(struct dcp_model *, int core_size);
+int model_setup(struct model *, int core_size);
 
-void dcp_model_write_dot(struct dcp_model const *, FILE *);
+void model_write_dot(struct model const *, FILE *);
 
 #endif

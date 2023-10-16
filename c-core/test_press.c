@@ -14,21 +14,21 @@ static long filesize(char const *filename)
 
 int main(void)
 {
-  struct dcp_press *press = dcp_press_new();
+  struct press *press = press_new();
 
-  eq(dcp_press_setup(press, 1, 0.01), 0);
-  eq_or_exit(dcp_press_open(press, HMMFILE, DBFILE), 0);
+  eq(press_setup(press, 1, 0.01), 0);
+  eq_or_exit(press_open(press, HMMFILE, DBFILE), 0);
 
-  eq(dcp_press_nproteins(press), 3);
+  eq(press_nproteins(press), 3);
   int rc = 0;
-  while (!dcp_press_end(press))
+  while (!press_end(press))
   {
-    if ((rc = dcp_press_next(press))) break;
+    if ((rc = press_next(press))) break;
   }
   eq(rc, 0);
 
-  eq(dcp_press_close(press), 0);
-  dcp_press_del(press);
+  eq(press_close(press), 0);
+  press_del(press);
 
   eq(filesize(DBFILE), 3536712);
   remove(DBFILE);

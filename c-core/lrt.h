@@ -1,5 +1,5 @@
-#ifndef DECIPHON_LRT_H
-#define DECIPHON_LRT_H
+#ifndef LRT_H
+#define LRT_H
 
 #include "compiler.h"
 

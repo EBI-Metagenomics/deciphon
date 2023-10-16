@@ -1,7 +1,7 @@
-#ifndef DECIPHON_SEQ_H
-#define DECIPHON_SEQ_H
+#ifndef SEQ_H
+#define SEQ_H
 
-#include "api.h"
+#include "compiler.h"
 #include "imm/imm.h"
 #include <stdbool.h>
 

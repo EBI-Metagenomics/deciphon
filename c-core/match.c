@@ -3,13 +3,12 @@
 #include "state.h"
 #include <string.h>
 
-void dcp_match_init(struct dcp_match *x, struct dcp_protein const *protein)
+struct match match_init(struct protein const *protein)
 {
-  x->protein = protein;
+  return (struct match){protein, {}, {}, {}};
 }
 
-int dcp_match_setup(struct dcp_match *x, struct imm_step step,
-                    struct imm_seq seq)
+int match_setup(struct match *x, struct imm_step step, struct imm_seq seq)
 {
   x->step = step;
   x->seq = seq;
@@ -22,26 +21,26 @@ int dcp_match_setup(struct dcp_match *x, struct imm_step step,
   return 0;
 }
 
-void dcp_match_state_name(struct dcp_match const *x, char *dst)
+void match_state_name(struct match const *x, char *dst)
 {
   x->protein->state_name(x->step.state_id, dst);
 }
 
-bool dcp_match_state_is_mute(struct dcp_match const *x)
+bool match_state_is_mute(struct match const *x)
 {
   return dcp_state_is_mute(x->step.state_id);
 }
 
-bool dcp_match_state_is_core(struct dcp_match const *x)
+bool match_state_is_core(struct match const *x)
 {
   return dcp_state_is_match(x->step.state_id) ||
          dcp_state_is_insert(x->step.state_id) ||
          dcp_state_is_delete(x->step.state_id);
 }
 
-char dcp_match_amino(struct dcp_match const *x)
+char match_amino(struct match const *x)
 {
   return imm_gencode_decode(x->protein->params.gencode, x->codon);
 }
 
-struct imm_codon dcp_match_codon(struct dcp_match const *x) { return x->codon; }
+struct imm_codon match_codon(struct match const *x) { return x->codon; }

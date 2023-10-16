@@ -1,7 +1,7 @@
-#ifndef DECIPHON_WINDOW_H
-#define DECIPHON_WINDOW_H
+#ifndef WINDOW_H
+#define WINDOW_H
 
-#include "api.h"
+#include "compiler.h"
 #include "imm/imm.h"
 #include "seq_struct.h"
 #include <stdbool.h>

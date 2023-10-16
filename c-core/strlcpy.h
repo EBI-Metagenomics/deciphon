@@ -1,5 +1,5 @@
-#ifndef DECIPHON_STRLCPY_H
-#define DECIPHON_STRLCPY_H
+#ifndef STRLCPY_H
+#define STRLCPY_H
 
 #include <stddef.h>
 

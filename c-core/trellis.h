@@ -1,5 +1,5 @@
-#ifndef DECIPHON_TRELLIS_H
-#define DECIPHON_TRELLIS_H
+#ifndef TRELLIS_H
+#define TRELLIS_H
 
 #include "bit.h"
 #include "compiler.h"

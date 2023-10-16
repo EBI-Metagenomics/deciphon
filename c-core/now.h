@@ -1,8 +1,8 @@
-#ifndef DECIPHON_NOW_H
-#define DECIPHON_NOW_H
+#ifndef NOW_H
+#define NOW_H
 
 struct tm;
 
-void dcp_now(struct tm *);
+void now(struct tm *);
 
 #endif

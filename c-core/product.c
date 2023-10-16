@@ -1,4 +1,4 @@
-#include "prod_writer.h"
+#include "product.h"
 #include "array_size.h"
 #include "array_size_field.h"
 #include "defer_return.h"
@@ -10,18 +10,17 @@
 #define fmt(B, N, F, ...) dcp_format((B), (N), (F), __VA_ARGS__)
 #define FMT(buf, format, ...) fmt((buf), array_size(buf), (format), __VA_ARGS__)
 
-void dcp_prod_writer_init(struct dcp_prod_writer *x) { x->nthreads = 0; }
+void product_init(struct product *x) { x->nthreads = 0; }
 
-int dcp_prod_writer_open(struct dcp_prod_writer *x, int nthreads,
-                         char const *dir)
+int product_open(struct product *x, int nthreads, char const *dir)
 {
   int rc = 0;
 
-  size_t size = array_size_field(struct dcp_prod_writer, threads);
+  size_t size = array_size_field(struct product, threads);
   if (nthreads > (int)size) defer_return(DCP_EMANYTHREADS);
   x->nthreads = nthreads;
 
-  size = array_size_field(struct dcp_prod_writer, dirname);
+  size = array_size_field(struct product, dirname);
   if (!strkcpy(x->dirname, dir, size)) defer_return(DCP_ELONGPATH);
 
   char hmmer_dir[DCP_PATH_MAX] = {0};
@@ -32,7 +31,7 @@ int dcp_prod_writer_open(struct dcp_prod_writer *x, int nthreads,
 
   for (int i = 0; i < nthreads; ++i)
   {
-    if ((rc = dcp_prod_writer_thrd_init(x->threads + i, i, x->dirname)))
+    if ((rc = product_thread_init(x->threads + i, i, x->dirname)))
       defer_return(rc);
   }
 
@@ -44,7 +43,7 @@ defer:
   return rc;
 }
 
-int dcp_prod_writer_close(struct dcp_prod_writer *x)
+int product_close(struct product *x)
 {
   char filename[DCP_PATH_MAX] = {0};
   int rc = 0;
@@ -55,8 +54,8 @@ int dcp_prod_writer_close(struct dcp_prod_writer *x)
   if (!fp) return DCP_EFOPEN;
 
   bool ok = true;
-  ok &= fputs("seq_id\tprofile\tabc\talt\t", fp) >= 0;
-  ok &= fputs("null\tevalue\tmatch\n", fp) >= 0;
+  ok &= fputs("sequence\twindow\twindow_start\twindow_stop\t", fp) >= 0;
+  ok &= fputs("profile\tabc\tlrt\tevalue\tmatch\n", fp) >= 0;
   if (!ok) defer_return(DCP_EWRITEPROD);
 
   for (int i = 0; i < x->nthreads; ++i)
@@ -86,8 +85,7 @@ defer:
   return rc;
 }
 
-struct dcp_prod_writer_thrd *dcp_prod_writer_thrd(struct dcp_prod_writer *x,
-                                                  int idx)
+struct product_thread *product_thread(struct product *x, int idx)
 {
   return x->threads + idx;
 }

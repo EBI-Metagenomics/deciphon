@@ -1,5 +1,5 @@
-#ifndef DECIPHON_SIZE_H
-#define DECIPHON_SIZE_H
+#ifndef SIZE_H
+#define SIZE_H
 
 enum dcp_size
 {

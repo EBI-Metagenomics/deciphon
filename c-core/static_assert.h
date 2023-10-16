@@ -1,5 +1,5 @@
-#ifndef DCP_STATIC_ASSERT_H
-#define DCP_STATIC_ASSERT_H
+#ifndef STATIC_ASSERT_H
+#define STATIC_ASSERT_H
 
 #include <assert.h>
 

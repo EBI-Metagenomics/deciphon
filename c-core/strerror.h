@@ -1,7 +1,7 @@
-#ifndef DECIPHON_STRERROR_H
-#define DECIPHON_STRERROR_H
+#ifndef STRERROR_H
+#define STRERROR_H
 
-#include "api.h"
+#include "compiler.h"
 
 DCP_API char const *dcp_strerror(int err);
 

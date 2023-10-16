@@ -1,5 +1,5 @@
 #include "array_size.h"
-#include "bug.h"
+#include "compiler.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -47,7 +47,7 @@ static inline int max_idx(int size, int const indices[], size_t const count[])
   return max_index;
 }
 
-void dcp_disambiguate_dna(int size, char *seq)
+void disambiguate_dna(int size, char *seq)
 {
   size_t count[] = {[ix('A')] = 0, [ix('C')] = 0, [ix('G')] = 0, [ix('T')] = 0};
 
@@ -76,14 +76,14 @@ void dcp_disambiguate_dna(int size, char *seq)
   }
 }
 
-void dcp_disambiguate_rna(int size, char *seq)
+void disambiguate_rna(int size, char *seq)
 {
   for (int i = 0; i < size; ++i)
   {
     if (seq[i] == 'U') seq[i] = 'T';
   }
 
-  dcp_disambiguate_dna(size, seq);
+  disambiguate_dna(size, seq);
 
   for (int i = 0; i < size; ++i)
   {

@@ -1,5 +1,5 @@
-#ifndef DECIPHON_QUEUE_H
-#define DECIPHON_QUEUE_H
+#ifndef QUEUE_H
+#define QUEUE_H
 
 #include "iter.h"
 #include "node.h"

@@ -1,5 +1,5 @@
-#ifndef DECIPHON_SEQ_ITER_H
-#define DECIPHON_SEQ_ITER_H
+#ifndef SEQ_ITER_H
+#define SEQ_ITER_H
 
 #include "seq.h"
 #include "seq_struct.h"

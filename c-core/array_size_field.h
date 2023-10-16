@@ -1,5 +1,5 @@
-#ifndef DECIPHON_ARRAY_SIZE_FIELD_H
-#define DECIPHON_ARRAY_SIZE_FIELD_H
+#ifndef ARRAY_SIZE_FIELD_H
+#define ARRAY_SIZE_FIELD_H
 
 #include "sizeof_field.h"
 

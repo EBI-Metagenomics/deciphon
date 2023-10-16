@@ -2,7 +2,7 @@
 #include "array_size.h"
 #include "imm/imm.h"
 
-void dcp_xtrans_init(struct dcp_xtrans *t)
+void xtrans_init(struct xtrans *t)
 {
   t->NN = IMM_LPROB_ONE;
   t->NB = IMM_LPROB_ONE;
@@ -15,7 +15,7 @@ void dcp_xtrans_init(struct dcp_xtrans *t)
   t->RR = IMM_LPROB_ONE;
 }
 
-void dcp_xtrans_dump(struct dcp_xtrans const *x, FILE *restrict fp)
+void xtrans_dump(struct xtrans const *x, FILE *restrict fp)
 {
   float const arr[] = {x->NN, x->NB, x->EC, x->CC, x->CT,
                        x->EJ, x->JJ, x->JB, x->RR};

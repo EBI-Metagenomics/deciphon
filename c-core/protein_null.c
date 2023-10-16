@@ -5,13 +5,13 @@
 
 void protein_null_init(struct protein_null *x) { x->RR = 0; }
 
-void protein_null_setup(struct protein_null *x, struct dcp_xtrans const *t)
+void protein_null_setup(struct protein_null *x, struct xtrans const *t)
 {
   x->RR = t->RR;
 }
 
 void protein_null_absorb(struct protein_null *x, struct imm_score_table *st,
-                         struct dcp_nuclt_dist const *nuclt_dist,
+                         struct nuclt_dist const *nuclt_dist,
                          struct imm_state const *state)
 {
   x->nuclt_dist = *nuclt_dist;

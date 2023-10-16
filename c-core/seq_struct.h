@@ -1,5 +1,5 @@
-#ifndef DECIPHON_SEQ_STRUCT_H
-#define DECIPHON_SEQ_STRUCT_H
+#ifndef SEQ_STRUCT_H
+#define SEQ_STRUCT_H
 
 #include "imm/imm.h"
 #include "node.h"

@@ -1,14 +1,14 @@
-#ifndef DECIPHON_MODEL_PARAMS_H
-#define DECIPHON_MODEL_PARAMS_H
+#ifndef MODEL_PARAMS_H
+#define MODEL_PARAMS_H
 
 #include "entry_dist.h"
 
-struct dcp_model_params
+struct model_params
 {
   struct imm_gencode const *gencode;
   struct imm_amino const *amino;
   struct imm_nuclt_code const *code;
-  enum dcp_entry_dist entry_dist;
+  enum entry_dist entry_dist;
   float epsilon;
 };
 

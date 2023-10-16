@@ -1,19 +1,18 @@
-#ifndef DECIPHON_SCAN_H
-#define DECIPHON_SCAN_H
+#ifndef SCAN_H
+#define SCAN_H
 
-#include "api.h"
+#include "compiler.h"
 #include "scan_params.h"
 #include "seq.h"
 
-struct dcp_scan;
+struct scan;
 
-DCP_API struct dcp_scan *dcp_scan_new(void);
-DCP_API int dcp_scan_dial(struct dcp_scan *, int port);
-DCP_API int dcp_scan_setup(struct dcp_scan *, struct dcp_scan_params);
-DCP_API void dcp_scan_del(struct dcp_scan const *);
+DCP_API struct scan *scan_new(void);
+DCP_API int scan_dial(struct scan *, int port);
+DCP_API int scan_setup(struct scan *, struct scan_params);
+DCP_API void scan_del(struct scan const *);
 
-DCP_API int dcp_scan_run(struct dcp_scan *, char const *dbfile,
-                         dcp_seq_next_fn *callb, void *userdata,
-                         char const *product_dir);
+DCP_API int scan_run(struct scan *, char const *dbfile, dcp_seq_next_fn *callb,
+                     void *userdata, char const *product_dir);
 
 #endif

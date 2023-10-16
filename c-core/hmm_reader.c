@@ -5,17 +5,17 @@
 
 static void init_null_lprobs(float[IMM_AMINO_SIZE]);
 
-void dcp_hmm_reader_init(struct dcp_hmm_reader *reader,
-                         struct dcp_model_params params, FILE *fp)
+void hmm_reader_init(struct hmm_reader *reader,
+                         struct model_params params, FILE *fp)
 {
   hmr_init(&reader->hmr, fp);
   hmr_prof_init(&reader->protein, &reader->hmr);
   init_null_lprobs(reader->null_lprobs);
-  dcp_model_init(&reader->model, params, reader->null_lprobs);
+  model_init(&reader->model, params, reader->null_lprobs);
   reader->end = false;
 }
 
-int dcp_hmm_reader_next(struct dcp_hmm_reader *h3r)
+int hmm_reader_next(struct hmm_reader *h3r)
 {
   int hmr_rc = hmr_next_prof(&h3r->hmr, &h3r->protein);
   if (hmr_rc == HMR_EOF)
@@ -28,12 +28,12 @@ int dcp_hmm_reader_next(struct dcp_hmm_reader *h3r)
 
   int core_size = (int)hmr_prof_length(&h3r->protein);
   int rc = 0;
-  if ((rc = dcp_model_setup(&h3r->model, core_size))) return rc;
+  if ((rc = model_setup(&h3r->model, core_size))) return rc;
 
   hmr_rc = hmr_next_node(&h3r->hmr, &h3r->protein);
   assert(hmr_rc != HMR_EOF);
 
-  struct dcp_trans t = {
+  struct trans t = {
       .MM = (float)h3r->protein.node.trans[HMR_TRANS_MM],
       .MI = (float)h3r->protein.node.trans[HMR_TRANS_MI],
       .MD = (float)h3r->protein.node.trans[HMR_TRANS_MD],
@@ -42,7 +42,7 @@ int dcp_hmm_reader_next(struct dcp_hmm_reader *h3r)
       .DM = (float)h3r->protein.node.trans[HMR_TRANS_DM],
       .DD = (float)h3r->protein.node.trans[HMR_TRANS_DD],
   };
-  rc = dcp_model_add_trans(&h3r->model, t);
+  rc = model_add_trans(&h3r->model, t);
   assert(!rc);
 
   while (!(hmr_rc = hmr_next_node(&h3r->hmr, &h3r->protein)))
@@ -52,10 +52,10 @@ int dcp_hmm_reader_next(struct dcp_hmm_reader *h3r)
       match_lprobs[i] = (float)h3r->protein.node.match[i];
 
     char consensus = h3r->protein.node.excess.cons;
-    rc = dcp_model_add_node(&h3r->model, match_lprobs, consensus);
+    rc = model_add_node(&h3r->model, match_lprobs, consensus);
     assert(!rc);
 
-    struct dcp_trans t2 = {
+    struct trans t2 = {
         .MM = (float)h3r->protein.node.trans[HMR_TRANS_MM],
         .MI = (float)h3r->protein.node.trans[HMR_TRANS_MI],
         .MD = (float)h3r->protein.node.trans[HMR_TRANS_MD],
@@ -64,7 +64,7 @@ int dcp_hmm_reader_next(struct dcp_hmm_reader *h3r)
         .DM = (float)h3r->protein.node.trans[HMR_TRANS_DM],
         .DD = (float)h3r->protein.node.trans[HMR_TRANS_DD],
     };
-    rc = dcp_model_add_trans(&h3r->model, t2);
+    rc = model_add_trans(&h3r->model, t2);
     assert(!rc);
   }
   assert(hmr_rc == HMR_END);
@@ -72,14 +72,14 @@ int dcp_hmm_reader_next(struct dcp_hmm_reader *h3r)
   return 0;
 }
 
-bool dcp_hmm_reader_end(struct dcp_hmm_reader const *reader)
+bool hmm_reader_end(struct hmm_reader const *reader)
 {
   return reader->end;
 }
 
-void dcp_hmm_reader_cleanup(struct dcp_hmm_reader const *reader)
+void hmm_reader_cleanup(struct hmm_reader const *reader)
 {
-  dcp_model_cleanup(&reader->model);
+  model_cleanup(&reader->model);
 }
 
 static void init_null_lprobs(float lprobs[IMM_AMINO_SIZE])

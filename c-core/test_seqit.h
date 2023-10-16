@@ -1,5 +1,5 @@
-#ifndef DECIPHON_TEST_SEQIT_H
-#define DECIPHON_TEST_SEQIT_H
+#ifndef TEST_SEQIT_H
+#define TEST_SEQIT_H
 
 #include <stdbool.h>
 #include <stdio.h>

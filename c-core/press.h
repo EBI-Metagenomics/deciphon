@@ -1,18 +1,18 @@
-#ifndef DECIPHON_PRESS_H
-#define DECIPHON_PRESS_H
+#ifndef PRESS_H
+#define PRESS_H
 
-#include "api.h"
+#include "compiler.h"
 #include <stdbool.h>
 
-struct dcp_press;
+struct press;
 
-DCP_API struct dcp_press *dcp_press_new(void);
-DCP_API int dcp_press_setup(struct dcp_press *, int gencode_id, float epsilon);
-DCP_API int dcp_press_open(struct dcp_press *, char const *hmm, char const *db);
-DCP_API long dcp_press_nproteins(struct dcp_press const *);
-DCP_API int dcp_press_next(struct dcp_press *);
-DCP_API bool dcp_press_end(struct dcp_press const *);
-DCP_API int dcp_press_close(struct dcp_press *);
-DCP_API void dcp_press_del(struct dcp_press const *);
+DCP_API struct press *press_new(void);
+DCP_API int press_setup(struct press *, int gencode_id, float epsilon);
+DCP_API int press_open(struct press *, char const *hmm, char const *db);
+DCP_API long press_nproteins(struct press const *);
+DCP_API int press_next(struct press *);
+DCP_API bool press_end(struct press const *);
+DCP_API int press_close(struct press *);
+DCP_API void press_del(struct press const *);
 
 #endif

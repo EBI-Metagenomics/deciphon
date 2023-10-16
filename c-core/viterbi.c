@@ -7,7 +7,7 @@
 #include "imm/imm.h"
 #include "protein.h"
 #include "reduce.h"
-#include "scan_thrd.h"
+#include "scan_thread.h"
 #include "trellis.h"
 #include "viterbi_index.h"
 #include "viterbi_onto.h"
@@ -125,7 +125,7 @@ struct extra_trans
   float const DE;
 };
 
-static struct extra_trans extra_trans(struct dcp_xtrans xt)
+static struct extra_trans extra_trans(struct xtrans xt)
 {
   return (struct extra_trans){
       .SB = xt.NB,
@@ -154,7 +154,7 @@ DCP_INLINE void make_future(float x[])
           sizeof(float) * (DCP_VITERBI_PAST_SIZE - 1));
 }
 
-float dcp_viterbi_null(struct dcp_protein *x, struct imm_eseq const *eseq)
+float viterbi_null(struct protein *x, struct imm_eseq const *eseq)
 {
   int seq_size = (int)imm_eseq_size(eseq);
 
@@ -179,9 +179,10 @@ float dcp_viterbi_null(struct dcp_protein *x, struct imm_eseq const *eseq)
   return R[lukbak(1)];
 }
 
-DCP_INLINE void viterbi(struct dcp_protein *x, struct dcp_viterbi_task *task,
-                        struct imm_eseq const *eseq, int row_start, int row_end,
-                        bool const safe, struct trellis *tr)
+DCP_INLINE void viterbi_on_range(struct protein *x, struct viterbi_task *task,
+                                 struct imm_eseq const *eseq, int row_start,
+                                 int row_end, bool const safe,
+                                 struct trellis *tr)
 {
   int core_size = x->core_size;
 
@@ -297,12 +298,12 @@ DCP_INLINE void viterbi(struct dcp_protein *x, struct dcp_viterbi_task *task,
 
 static int unzip_path(struct trellis *x, int seq_size, struct imm_path *path);
 
-int dcp_viterbi(struct dcp_protein *x, struct imm_eseq const *eseq,
-                struct dcp_viterbi_task *task, bool const nopath)
+int viterbi(struct protein *x, struct imm_eseq const *eseq,
+            struct viterbi_task *task, bool const nopath)
 {
   assert(imm_eseq_size(eseq) <= INT_MAX);
   int seq_size = (int)imm_eseq_size(eseq);
-  int rc = dcp_viterbi_task_setup(task, x->core_size, seq_size, nopath);
+  int rc = viterbi_task_setup(task, x->core_size, seq_size, nopath);
   if (rc) return rc;
 
   task->S[lukbak(0)] = 0;
@@ -313,14 +314,14 @@ int dcp_viterbi(struct dcp_protein *x, struct imm_eseq const *eseq,
 
   if (nopath)
   {
-    viterbi(x, task, eseq, row_start, row_mid, false, NULL);
-    viterbi(x, task, eseq, row_mid, row_end, true, NULL);
+    viterbi_on_range(x, task, eseq, row_start, row_mid, false, NULL);
+    viterbi_on_range(x, task, eseq, row_mid, row_end, true, NULL);
     task->score = task->T[lukbak(1)];
   }
   else
   {
-    viterbi(x, task, eseq, row_start, row_mid, false, &task->trellis);
-    viterbi(x, task, eseq, row_mid, row_end, true, &task->trellis);
+    viterbi_on_range(x, task, eseq, row_start, row_mid, false, &task->trellis);
+    viterbi_on_range(x, task, eseq, row_mid, row_end, true, &task->trellis);
     task->score = task->T[lukbak(1)];
     imm_path_reset(&task->path);
     if (!imm_lprob_is_nan(task->score))
@@ -353,7 +354,7 @@ static int unzip_path(struct trellis *x, int seq_size, struct imm_path *path)
   return 0;
 }
 
-void dcp_viterbi_dump(struct dcp_protein *x, FILE *restrict fp)
+void viterbi_dump(struct protein *x, FILE *restrict fp)
 {
   int core_size = x->core_size;
 
@@ -387,7 +388,7 @@ void dcp_viterbi_dump(struct dcp_protein *x, FILE *restrict fp)
   float const *restrict emis_N = null_emission;
   float const *restrict emis_J = null_emission;
   float const *restrict emis_C = null_emission;
-  size_t bg_size = array_size_field(struct dcp_protein_background, emission);
+  size_t bg_size = array_size_field(struct protein_background, emission);
 
   fprintf(fp, "I*: ");
   imm_dump_array_f32(bg_size, emis_I, fp);
@@ -416,7 +417,7 @@ void dcp_viterbi_dump(struct dcp_protein *x, FILE *restrict fp)
   }
 }
 
-void dcp_viterbi_dump_dot(struct dcp_protein *x, FILE *restrict fp)
+void viterbi_dump_dot(struct protein *x, FILE *restrict fp)
 {
   char const *f32f = imm_fmt_get_f32();
 
@@ -473,7 +474,7 @@ void dcp_viterbi_dump_dot(struct dcp_protein *x, FILE *restrict fp)
   int core_size = x->core_size;
   for (int k = 0; k + 1 < core_size; ++k)
   {
-    struct dcp_trans const *restrict trans = &x->nodes[k].trans;
+    struct trans const *restrict trans = &x->nodes[k].trans;
     int i0 = k + 1;
     int i1 = k + 2;
     fprintf(fp, "D%d -> D%d [label=", i0, i1);

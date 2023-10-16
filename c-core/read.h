@@ -1,5 +1,5 @@
-#ifndef DECIPHON_READ_H
-#define DECIPHON_READ_H
+#ifndef READ_H
+#define READ_H
 
 #include "array_size.h"
 #include "imm/imm.h"

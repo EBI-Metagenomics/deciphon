@@ -4,8 +4,8 @@
 #include "protein.h"
 #include "protein_reader.h"
 
-void dcp_protein_iter_init(struct dcp_protein_iter *x,
-                           struct dcp_protein_reader *reader, int partition,
+void protein_iter_init(struct protein_iter *x,
+                           struct protein_reader *reader, int partition,
                            int start_idx, long offset, FILE *fp)
 {
   x->partition = partition;
@@ -17,16 +17,16 @@ void dcp_protein_iter_init(struct dcp_protein_iter *x,
   x->reader = reader;
 }
 
-int dcp_protein_iter_rewind(struct dcp_protein_iter *x)
+int protein_iter_rewind(struct protein_iter *x)
 {
   x->curr_idx = x->start_idx - 1;
   return dcp_fs_seek(x->fp, x->offset, SEEK_SET);
 }
 
-int dcp_protein_iter_next(struct dcp_protein_iter *x, struct dcp_protein *protein)
+int protein_iter_next(struct protein_iter *x, struct protein *protein)
 {
   x->curr_idx += 1;
-  if (dcp_protein_iter_end(x)) return 0;
+  if (protein_iter_end(x)) return 0;
 
   int rc = protein_unpack(protein, &x->file);
   if (rc) return rc;
@@ -36,13 +36,13 @@ int dcp_protein_iter_next(struct dcp_protein_iter *x, struct dcp_protein *protei
   return rc;
 }
 
-bool dcp_protein_iter_end(struct dcp_protein_iter const *x)
+bool protein_iter_end(struct protein_iter const *x)
 {
-  int size = dcp_protein_reader_partition_size(x->reader, x->partition);
+  int size = protein_reader_partition_size(x->reader, x->partition);
   return x->start_idx + size == x->curr_idx;
 }
 
-int dcp_protein_iter_idx(struct dcp_protein_iter const *x)
+int protein_iter_idx(struct protein_iter const *x)
 {
   return x->curr_idx;
 }

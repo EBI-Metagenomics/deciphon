@@ -8,14 +8,14 @@
 #include "rc.h"
 #include "write.h"
 
-static void nullify_tempfiles(struct dcp_db_writer *x)
+static void nullify_tempfiles(struct db_writer *x)
 {
   x->tmp.header.fp = NULL;
   x->tmp.sizes.fp = NULL;
   x->tmp.proteins.fp = NULL;
 }
 
-static void destroy_tempfiles(struct dcp_db_writer *x)
+static void destroy_tempfiles(struct db_writer *x)
 {
   if (x->tmp.header.fp) fclose(x->tmp.header.fp);
   if (x->tmp.sizes.fp) fclose(x->tmp.sizes.fp);
@@ -23,7 +23,7 @@ static void destroy_tempfiles(struct dcp_db_writer *x)
   nullify_tempfiles(x);
 }
 
-static int create_tempfiles(struct dcp_db_writer *x)
+static int create_tempfiles(struct db_writer *x)
 {
   nullify_tempfiles(x);
   int rc = 0;
@@ -47,7 +47,7 @@ defer:
   return rc;
 }
 
-static int pack_header_protein_sizes(struct dcp_db_writer *db)
+static int pack_header_protein_sizes(struct db_writer *db)
 {
   enum lip_1darray_type type = LIP_1DARRAY_UINT32;
 
@@ -65,7 +65,7 @@ static int pack_header_protein_sizes(struct dcp_db_writer *db)
   return feof(lip_file_ptr(&db->tmp.sizes)) ? 0 : DCP_EFWRITE;
 }
 
-static int pack_header(struct dcp_db_writer *db)
+static int pack_header(struct db_writer *db)
 {
   int rc = 0;
   struct lip_file *stream = &db->file;
@@ -82,7 +82,7 @@ static int pack_header(struct dcp_db_writer *db)
   return pack_header_protein_sizes(db);
 }
 
-static int pack_proteins(struct dcp_db_writer *db)
+static int pack_proteins(struct db_writer *db)
 {
   if (!lip_write_cstr(&db->file, "proteins")) return DCP_EFWRITE;
 
@@ -92,7 +92,7 @@ static int pack_proteins(struct dcp_db_writer *db)
   return dcp_fs_copy(lip_file_ptr(&db->file), lip_file_ptr(&db->tmp.proteins));
 }
 
-int dcp_db_writer_close(struct dcp_db_writer *db)
+int db_writer_close(struct db_writer *db)
 {
   int rc = 0;
   if ((rc = write_mapsize(&db->file, 2))) defer_return(rc);
@@ -107,13 +107,13 @@ defer:
   return rc;
 }
 
-void dcp_db_writer_init(struct dcp_db_writer *x, struct dcp_model_params params)
+void db_writer_init(struct db_writer *x, struct model_params params)
 {
   x->nproteins = 0;
   x->params = params;
 }
 
-int dcp_db_writer_open(struct dcp_db_writer *x, FILE *restrict fp)
+int db_writer_open(struct db_writer *x, FILE *restrict fp)
 {
   int rc = 0;
 
@@ -122,7 +122,7 @@ int dcp_db_writer_open(struct dcp_db_writer *x, FILE *restrict fp)
   if ((rc = create_tempfiles(x))) return rc;
 
   // the last header field is protein_sizes written when the file is closed
-  struct dcp_model_params *p = &x->params;
+  struct model_params *p = &x->params;
   struct lip_file *stream = &x->tmp.header;
 
   if ((rc = write_key(stream, "magic_number"))) defer_return(rc);
@@ -143,12 +143,11 @@ int dcp_db_writer_open(struct dcp_db_writer *x, FILE *restrict fp)
   return rc;
 
 defer:
-  dcp_db_writer_close(x);
+  db_writer_close(x);
   return rc;
 }
 
-int dcp_db_writer_pack(struct dcp_db_writer *x,
-                       struct dcp_protein const *protein)
+int db_writer_pack(struct db_writer *x, struct protein const *protein)
 {
   int rc = 0;
 

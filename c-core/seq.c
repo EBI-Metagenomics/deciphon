@@ -18,8 +18,8 @@ int dcp_seq_setup(struct dcp_seq *x, long id, char const *name,
   if (!(new_data = dcp_strdup(data))) return DCP_ENOMEM;
 
   struct imm_abc const *abc = imm_eseq_abc(&x->imm_eseq);
-  if (abc->typeid == IMM_DNA) dcp_disambiguate_dna(strlen(new_data), new_data);
-  if (abc->typeid == IMM_RNA) dcp_disambiguate_rna(strlen(new_data), new_data);
+  if (abc->typeid == IMM_DNA) disambiguate_dna(strlen(new_data), new_data);
+  if (abc->typeid == IMM_RNA) disambiguate_rna(strlen(new_data), new_data);
 
   x->data = new_data;
   if (imm_seq_init(&x->imm_seq, imm_str(x->data), imm_eseq_abc(&x->imm_eseq)))

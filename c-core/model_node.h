@@ -1,10 +1,10 @@
-#ifndef DECIPHON_MODEL_NODE_H
-#define DECIPHON_MODEL_NODE_H
+#ifndef MODEL_NODE_H
+#define MODEL_NODE_H
 
 #include "imm/imm.h"
 #include "nuclt_dist.h"
 
-struct dcp_model_node
+struct model_node
 {
   union
   {
@@ -12,7 +12,7 @@ struct dcp_model_node
     struct
     {
       struct imm_frame_state state;
-      struct dcp_nuclt_dist nucltd;
+      struct nuclt_dist nucltd;
     } match;
   };
   struct imm_frame_state I;

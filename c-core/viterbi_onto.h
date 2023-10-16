@@ -1,5 +1,5 @@
-#ifndef DECIPHON_VITERBI_ONTO_H
-#define DECIPHON_VITERBI_ONTO_H
+#ifndef VITERBI_ONTO_H
+#define VITERBI_ONTO_H
 
 #include "array_size.h"
 #include "compiler.h"

@@ -1,5 +1,5 @@
-#ifndef DECIPHON_PROTEIN_H
-#define DECIPHON_PROTEIN_H
+#ifndef PROTEIN_H
+#define PROTEIN_H
 
 #include "entry_dist.h"
 #include "imm/imm.h"
@@ -8,9 +8,9 @@
 #include "protein_node.h"
 #include "protein_null.h"
 
-struct dcp_protein
+struct protein
 {
-  struct dcp_model_params params;
+  struct model_params params;
 
   char accession[32];
   imm_state_name *state_name;
@@ -23,26 +23,26 @@ struct dcp_protein
   float start_lprob;
   int core_size;
   struct protein_null null;
-  struct dcp_protein_background bg;
-  struct dcp_protein_node *nodes;
+  struct protein_background bg;
+  struct protein_node *nodes;
   float *nodes_emission;
-  struct dcp_xtrans xtrans;
+  struct xtrans xtrans;
   float *BMk;
 };
 
-void protein_init(struct dcp_protein *, struct dcp_model_params params);
-int protein_set_accession(struct dcp_protein *, char const *accession);
-void protein_setup(struct dcp_protein *, int seq_size, bool multi_hits,
+void protein_init(struct protein *, struct model_params params);
+int protein_set_accession(struct protein *, char const *accession);
+void protein_setup(struct protein *, int seq_size, bool multi_hits,
                    bool hmmer3_compat);
-int protein_absorb(struct dcp_protein *, struct dcp_model *);
-int protein_sample(struct dcp_protein *, int seed, int core_size);
-void protein_cleanup(struct dcp_protein *);
-void protein_dump(struct dcp_protein const *, FILE *restrict);
+int protein_absorb(struct protein *, struct model *);
+int protein_sample(struct protein *, int seed, int core_size);
+void protein_cleanup(struct protein *);
+void protein_dump(struct protein const *, FILE *restrict);
 
-int protein_pack(struct dcp_protein const *, struct lip_file *);
-int protein_unpack(struct dcp_protein *, struct lip_file *);
+int protein_pack(struct protein const *, struct lip_file *);
+int protein_unpack(struct protein *, struct lip_file *);
 
-int protein_decode(struct dcp_protein const *, struct imm_seq const *,
-                   int state_id, struct imm_codon *);
+int protein_decode(struct protein const *, struct imm_seq const *, int state_id,
+                   struct imm_codon *);
 
 #endif

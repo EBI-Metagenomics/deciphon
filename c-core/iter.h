@@ -1,5 +1,5 @@
-#ifndef DECIPHON_ITER_H
-#define DECIPHON_ITER_H
+#ifndef ITER_H
+#define ITER_H
 
 #include "container.h"
 #include "node.h"

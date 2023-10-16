@@ -1,5 +1,5 @@
-#ifndef DECIPHON_STRKCPY_H
-#define DECIPHON_STRKCPY_H
+#ifndef STRKCPY_H
+#define STRKCPY_H
 
 #include "strlcpy.h"
 #include <stdbool.h>

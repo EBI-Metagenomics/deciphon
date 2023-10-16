@@ -1,5 +1,5 @@
-#ifndef DECIPHON_VITERBI_INDEX_H
-#define DECIPHON_VITERBI_INDEX_H
+#ifndef VITERBI_INDEX_H
+#define VITERBI_INDEX_H
 
 #include "compiler.h"
 #include "state.h"

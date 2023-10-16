@@ -1,5 +1,27 @@
-#ifndef DECIPHON_COMPILER_H
-#define DECIPHON_COMPILER_H
+#ifndef COMPILER_H
+#define COMPILER_H
+
+#include <assert.h>
+
+/* clang-format off */
+#ifdef DECIPHON_STATIC_DEFINE
+#  define DCP_API
+#else
+#  ifdef deciphon_EXPORTS /* We are building this library */
+#    ifdef _WIN32
+#      define DCP_API __declspec(dllexport)
+#    else
+#      define DCP_API __attribute__((visibility("default")))
+#    endif
+#  else /* We are using this library */
+#    ifdef _WIN32
+#      define DCP_API __declspec(dllimport)
+#    else
+#      define DCP_API __attribute__((visibility("default")))
+#    endif
+#  endif
+#endif
+/* clang-format on */
 
 #ifdef __has_builtin
 #define DCP_HAS_BUILTIN(x) __has_builtin(x)
@@ -62,5 +84,11 @@
 #define ALIGNED __attribute__((aligned(16)))
 #define ASSUME_ALIGNED(x) __builtin_assume_aligned(x, 16)
 #endif
+
+DCP_UNUSED DCP_CONST int bug_on_reach(void)
+{
+  assert(0);
+  return 0;
+}
 
 #endif
