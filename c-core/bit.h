@@ -6,16 +6,16 @@
 #include <limits.h>
 
 // Set the first n bits to 1 from the lowest to the highest bits.
-DCP_CONST unsigned bit_lowset(unsigned n)
+DCP_CONST unsigned bit_lowset(int n)
 {
-  assert(0 <= n && n <= sizeof(unsigned) * CHAR_BIT);
-  return (n >= sizeof(unsigned) * CHAR_BIT) ? (unsigned)-1 : (1U << n) - 1;
+  assert(0 <= n && n <= (int)sizeof(unsigned) * CHAR_BIT);
+  return (n >= (int)sizeof(unsigned) * CHAR_BIT) ? (unsigned)-1 : (1U << n) - 1;
 }
 
 // Set bits to 1 within range [low, low + size).
-DCP_CONST unsigned bit_rangeset(unsigned low, unsigned size)
+DCP_CONST unsigned bit_rangeset(int low, int size)
 {
-  assert(0 <= low && low <= sizeof(unsigned) * CHAR_BIT);
+  assert(0 <= low && low <= (int)sizeof(unsigned) * CHAR_BIT);
   return bit_lowset(size) << low;
 }
 
