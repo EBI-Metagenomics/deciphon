@@ -14,6 +14,7 @@
 #include "seq.h"
 #include "seq_struct.h"
 #include "viterbi.h"
+#include "window.h"
 
 void dcp_scan_thrd_init(struct dcp_scan_thrd *x)
 {
@@ -67,10 +68,10 @@ void dcp_scan_thrd_cleanup(struct dcp_scan_thrd *x)
 static int infer_amino(struct dcp_chararray *x, struct dcp_match *match,
                        struct dcp_match_iter *it);
 
-static int run(struct dcp_scan_thrd *x, int protein_idx,
-               struct dcp_seq const *seq)
+static int run(struct dcp_scan_thrd *x, int protein_idx, struct window const *w)
 {
   int rc = 0;
+  struct dcp_seq const *seq = window_sequence(w);
   x->prod_thrd->match.seq_id = dcp_seq_id(seq);
 
   protein_setup(&x->protein, dcp_seq_size(seq), x->multi_hits,
@@ -130,7 +131,13 @@ int dcp_scan_thrd_run(struct dcp_scan_thrd *x, struct queue const *seqs)
     struct iter seq_iter = queue_iter(seqs);
     iter_for_each_entry(seq, &seq_iter, node)
     {
-      if ((rc = run(x, dcp_protein_iter_idx(protein_iter), seq))) break;
+      struct window w = window_setup(seq, x->protein.core_size);
+      int last_hit_pos = -1;
+      while (window_next(&w, last_hit_pos))
+      {
+        int protein_idx = dcp_protein_iter_idx(protein_iter);
+        if ((rc = run(x, protein_idx, &w))) break;
+      }
     }
   }
 
