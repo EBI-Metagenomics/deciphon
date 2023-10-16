@@ -32,7 +32,7 @@ struct dcp_scan *dcp_scan_new(void)
 {
   struct dcp_scan *x = malloc(sizeof(*x));
   if (!x) return NULL;
-  x->params = (struct dcp_scan_params){1, 0., true, false, false};
+  x->params = (struct dcp_scan_params){1, true, false, false};
   x->db.fp = NULL;
   dcp_db_reader_init(&x->db.reader);
   dcp_protein_reader_init(&x->db.protein);
@@ -109,7 +109,6 @@ int dcp_scan_run(struct dcp_scan *x, char const *dbfile, dcp_seq_next_fn *callb,
       .partition = 0,
       .prod_thrd = NULL,
       .dialer = &x->dialer,
-      .lrt_threshold = x->params.lrt_threshold,
       .multi_hits = x->params.multi_hits,
       .hmmer3_compat = x->params.hmmer3_compat,
       .disable_hmmer = x->params.disable_hmmer};

@@ -6,7 +6,6 @@
 struct dcp_scan_params
 {
   int num_threads;
-  double lrt_threshold;
   bool multi_hits;
   bool hmmer3_compat;
   bool disable_hmmer;

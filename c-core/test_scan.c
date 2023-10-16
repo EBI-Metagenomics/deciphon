@@ -15,14 +15,11 @@ static void setup_minifam(void);
 static void cleanup_minifam(void);
 
 static struct dcp_scan_params params_list[] = {
-    {1, 10., true, false, false}, {2, 10., true, false, false},
-    {2, 2., true, false, false},  {1, 0., false, false, false},
-    {1, 0., false, false, true},  {1, 0., false, true, false},
-    {1, 0., false, true, true},   {1, 0., true, false, false},
-    {1, 0., true, false, true},   {1, 0., true, true, false},
-    {1, 0., true, true, true}};
-static long chksum_list[] = {22661, 22661, 22661, 15234, 5874, 3598,
-                             11902, 22661, 4341,  22661, 4341};
+    {1, false, false, false}, {1, false, false, true}, {1, false, true, false},
+    {1, false, true, true},   {1, true, false, false}, {1, true, false, true},
+    {1, true, true, false},   {1, true, true, true}};
+static long chksum_list[] = {15234, 5874, 3598,  11902,
+                             22661, 4341, 22661, 4341};
 
 int main(void)
 {

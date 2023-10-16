@@ -17,7 +17,6 @@ struct dcp_scan_thrd
   struct dcp_protein protein;
   struct dcp_protein_iter iter;
 
-  double lrt_threshold;
   bool multi_hits;
   bool hmmer3_compat;
   bool disable_hmmer;
@@ -38,7 +37,6 @@ struct dcp_scan_thrd_params
   int partition;
   struct dcp_prod_writer_thrd *prod_thrd;
   struct dcp_hmmer_dialer *dialer;
-  double lrt_threshold;
   bool multi_hits;
   bool hmmer3_compat;
   bool disable_hmmer;

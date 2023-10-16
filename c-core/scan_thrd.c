@@ -37,7 +37,6 @@ int dcp_scan_thrd_setup(struct dcp_scan_thrd *x,
   dcp_prod_match_set_abc(&x->prod_thrd->match, abc_name);
 
   dcp_chararray_init(&x->amino);
-  x->lrt_threshold = params.lrt_threshold;
   x->multi_hits = params.multi_hits;
   x->hmmer3_compat = params.hmmer3_compat;
   x->disable_hmmer = params.disable_hmmer;
@@ -84,7 +83,7 @@ static int run(struct dcp_scan_thrd *x, int protein_idx, struct window const *w)
   x->prod_thrd->match.alt = x->task.score;
 
   float lrt = dcp_prod_match_get_lrt(&x->prod_thrd->match);
-  if (!imm_lprob_is_finite(lrt) || lrt < x->lrt_threshold) return rc;
+  if (!imm_lprob_is_finite(lrt) || lrt < 0.0f) return rc;
 
   if ((rc = dcp_viterbi(&x->protein, &seq->imm_eseq, &x->task, false)))
     return rc;

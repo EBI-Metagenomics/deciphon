@@ -14,7 +14,6 @@
 #define PRODDIR "prod_massive"
 #define EPSILON 0.01
 #define GENCODE 1
-#define LRT_THRESHOLD -1000.
 #define MULTI_HITS true
 #define HMMER3_COMPAT false
 
@@ -65,15 +64,13 @@ int main(void)
 
   struct dcp_scan *scan = dcp_scan_new();
   ok_or_exit(scan);
-  struct dcp_scan_params params = {1, LRT_THRESHOLD, MULTI_HITS, HMMER3_COMPAT,
-                                   true};
+  struct dcp_scan_params params = {1, MULTI_HITS, HMMER3_COMPAT, true};
   eq_or_exit(dcp_scan_setup(scan, params), 0);
 
   struct seqit it = seqit_init(NUM_SEQS, &random_sequence_next);
   dcp_fs_rmtree(PRODDIR);
   eq(dcp_scan_run(scan, DBFILE, next_seq, &it, PRODDIR), 0);
-  ok(chksum(PRODDIR "/products.tsv") == 55120 ||
-     chksum(PRODDIR "/products.tsv") == 41793);
+  eq(chksum(PRODDIR "/products.tsv"), 57189);
   eq(dcp_fs_rmtree(PRODDIR), 0);
 
   dcp_scan_del(scan);
