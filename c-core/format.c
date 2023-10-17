@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-int dcp_format(char *dst, size_t dsize, char const *fmt, ...)
+int format(char *dst, size_t dsize, char const *fmt, ...)
 {
   va_list args = {0};
   va_start(args, fmt);

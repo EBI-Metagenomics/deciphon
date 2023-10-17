@@ -32,7 +32,8 @@ int scan_thread_setup(struct scan_thread *x, struct scan_thread_params params)
 
   x->product = params.prod_thrd;
   char const *abc_name = imm_abc_typeid_name(db->nuclt.super.typeid);
-  product_line_set_abc(&x->product->line, abc_name);
+  if ((rc = product_line_set_abc(&x->product->line, abc_name)))
+    defer_return(rc);
 
   chararray_init(&x->amino);
   x->multi_hits = params.multi_hits;
@@ -86,7 +87,8 @@ static int run(struct scan_thread *x, int protein_idx, struct window const *w)
 
   if ((rc = viterbi(&x->protein, &seq->imm_eseq, &x->task, false))) return rc;
 
-  product_line_set_protein(&x->product->line, x->protein.accession);
+  if ((rc = product_line_set_protein(&x->product->line, x->protein.accession)))
+    return rc;
 
   struct match match = match_init(&x->protein);
   struct match_iter mit = {0};

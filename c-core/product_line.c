@@ -1,6 +1,6 @@
 #include "product_line.h"
 #include "array_size_field.h"
-#include "lrt.h"
+#include "rc.h"
 #include "sizeof_field.h"
 #include "xstrcpy.h"
 #include <string.h>
@@ -20,14 +20,14 @@ void product_line_init(struct product_line *x)
   x->evalue = 0;
 }
 
-void product_line_set_protein(struct product_line *x, char const *protein)
+int product_line_set_protein(struct product_line *x, char const *accession)
 {
   size_t size = array_size_field(struct product_line, protein);
-  xstrcpy(x->protein, protein, size);
+  return xstrcpy(x->protein, accession, size) ? 0 : DCP_ELONGACC;
 }
 
-void product_line_set_abc(struct product_line *x, char const *abc)
+int product_line_set_abc(struct product_line *x, char const *abc)
 {
   size_t size = array_size_field(struct product_line, abc);
-  xstrcpy(x->abc, abc, size);
+  return xstrcpy(x->abc, abc, size) ? 0 : DCP_ELONGABC;
 }

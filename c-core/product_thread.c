@@ -12,7 +12,7 @@
 #include <stdarg.h>
 #include <string.h>
 
-#define fmt(B, N, F, ...) dcp_format((B), (N), (F), __VA_ARGS__)
+#define fmt(B, N, F, ...) format((B), (N), (F), __VA_ARGS__)
 #define FMT(buf, format, ...) fmt((buf), array_size(buf), (format), __VA_ARGS__)
 
 /* Output example for two matches.

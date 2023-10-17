@@ -7,7 +7,7 @@
 #include "rc.h"
 #include "xstrcpy.h"
 
-#define fmt(B, N, F, ...) dcp_format((B), (N), (F), __VA_ARGS__)
+#define fmt(B, N, F, ...) format((B), (N), (F), __VA_ARGS__)
 #define FMT(buf, format, ...) fmt((buf), array_size(buf), (format), __VA_ARGS__)
 
 void product_init(struct product *x) { x->nthreads = 0; }

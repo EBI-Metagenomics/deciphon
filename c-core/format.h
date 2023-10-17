@@ -1,9 +1,9 @@
-#ifndef DCP_FORMAT_H
-#define DCP_FORMAT_H
+#ifndef FORMAT_H
+#define FORMAT_H
 
+#include "compiler.h"
 #include <stddef.h>
 
-int dcp_format(char *dst, size_t dsize, char const *fmt, ...)
-    __attribute__((format(printf, 3, 4)));
+int format(char *dst, size_t dsize, char const *fmt, ...) DCP_FORMAT(3, 4);
 
 #endif

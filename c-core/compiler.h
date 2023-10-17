@@ -71,6 +71,12 @@
 #define DCP_PURE DCP_INLINE
 #endif
 
+#if DCP_HAS_ATTRIBUTE(format)
+#define DCP_FORMAT(a, b) __attribute__((format(printf, a, b)))
+#else
+#define DCP_FORMAT (a, b)
+#endif
+
 #if !__AVX__ && !__ARM_NEON
 #error "Needs either AVX or NEON CPU extension"
 #endif

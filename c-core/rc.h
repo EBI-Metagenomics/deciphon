@@ -63,6 +63,7 @@ enum dcp_rc
   DCP_ESEQABC       = 57,
   DCP_EFDOPEN       = 58,
   DCP_EMKSTEMP      = 59,
+  DCP_ELONGABC      = 60,
 };
 // clang-format on
 

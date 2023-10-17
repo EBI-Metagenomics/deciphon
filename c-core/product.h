@@ -11,9 +11,12 @@ struct product
   struct product_thread threads[DCP_NTHREADS_MAX];
 };
 
-void product_init(struct product *);
-int product_open(struct product *, int nthreads, char const *dirname);
-int product_close(struct product *);
+// clang-format off
+void                   product_init(struct product *);
+int                    product_open(struct product *, int nthreads,
+                                    char const *dirname);
+int                    product_close(struct product *);
 struct product_thread *product_thread(struct product *, int idx);
+// clang-format on
 
 #endif
