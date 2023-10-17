@@ -6,11 +6,12 @@
 #include "protein.h"
 #include "protein_iter.h"
 #include "queue.h"
+#include "scan_thread_params.h"
 #include "viterbi.h"
-#include <stdio.h>
 
 struct chararray;
 struct product_thread;
+struct sequence_queue;
 
 struct scan_thread
 {
@@ -28,23 +29,11 @@ struct scan_thread
 };
 
 struct hmmer_dialer;
-struct protein_reader;
 struct sequence;
-
-struct scan_thread_params
-{
-  struct protein_reader *reader;
-  int partition;
-  struct product_thread *prod_thrd;
-  struct hmmer_dialer *dialer;
-  bool multi_hits;
-  bool hmmer3_compat;
-  bool disable_hmmer;
-};
 
 void scan_thread_init(struct scan_thread *);
 int scan_thread_setup(struct scan_thread *, struct scan_thread_params);
 void scan_thread_cleanup(struct scan_thread *);
-int scan_thread_run(struct scan_thread *, struct queue const *seqs);
+int scan_thread_run(struct scan_thread *, struct sequence_queue const *);
 
 #endif

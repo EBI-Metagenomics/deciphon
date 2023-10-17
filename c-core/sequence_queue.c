@@ -5,10 +5,15 @@
 #include "sequence.h"
 #include <stdlib.h>
 
-void sequence_queue_init(struct sequence_queue *x, struct imm_code const *code)
+void sequence_queue_init(struct sequence_queue *x)
+{
+  x->code = NULL;
+  queue_init(&x->sequences);
+}
+
+void sequence_queue_setup(struct sequence_queue *x, struct imm_code const *code)
 {
   x->code = code;
-  queue_init(&x->sequences);
 }
 
 int sequence_queue_put(struct sequence_queue *x, long id, char const *name,

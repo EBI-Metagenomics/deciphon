@@ -6,7 +6,9 @@
 
 #define DIAL_DEADLINE 15000
 
-int hmmer_dialer_init(struct hmmer_dialer *x, int port)
+void hmmer_dialer_init(struct hmmer_dialer *x) { x->dialer = NULL; }
+
+int hmmer_dialer_setup(struct hmmer_dialer *x, int port)
 {
   return (x->dialer = h3client_dialer_new("127.0.0.1", port)) ? 0 : DCP_ENOMEM;
 }

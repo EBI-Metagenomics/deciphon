@@ -30,7 +30,7 @@ int scan_thread_setup(struct scan_thread *x, struct scan_thread_params params)
   if ((rc = protein_reader_iter(params.reader, params.partition, &x->iter)))
     defer_return(rc);
 
-  x->product = params.prod_thrd;
+  x->product = params.product_thread;
   char const *abc_name = imm_abc_typeid_name(db->nuclt.super.typeid);
   if ((rc = product_line_set_abc(&x->product->line, abc_name)))
     defer_return(rc);
@@ -111,7 +111,7 @@ static int run(struct scan_thread *x, int protein_idx, struct window const *w)
   return rc;
 }
 
-int scan_thread_run(struct scan_thread *x, struct queue const *seqs)
+int scan_thread_run(struct scan_thread *x, struct sequence_queue const *sequences)
 {
   int rc = 0;
 

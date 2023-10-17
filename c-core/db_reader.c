@@ -11,17 +11,19 @@ void db_reader_init(struct db_reader *x)
 {
   x->nproteins = 0;
   x->protein_sizes = NULL;
+  x->fp = NULL;
 }
 
 static int unpack_header_protein_sizes(struct db_reader *x);
 
-int db_reader_open(struct db_reader *x, FILE *fp)
+int db_reader_open(struct db_reader *x, char const *filename)
 {
   int rc = 0;
+  if (!(x->fp = fopen(filename, "rb"))) defer_return(DCP_EOPENDB);
 
   x->nproteins = 0;
   x->protein_sizes = NULL;
-  lip_file_init(&x->file, fp);
+  lip_file_init(&x->file, x->fp);
 
   if ((rc = read_mapsize(&x->file, 2))) defer_return(rc);
 
@@ -58,10 +60,13 @@ defer:
   return rc;
 }
 
-void db_reader_close(struct db_reader *x)
+int db_reader_close(struct db_reader *x)
 {
   if (x->protein_sizes) free(x->protein_sizes);
   x->protein_sizes = NULL;
+  int rc = fclose(x->fp) ? DCP_EFCLOSE : 0;
+  x->fp = NULL;
+  return rc;
 }
 
 static int unpack_header_protein_sizes(struct db_reader *x)
