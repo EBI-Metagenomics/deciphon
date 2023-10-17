@@ -10,16 +10,19 @@ struct hmmer_result;
 
 struct product_thread
 {
-  int idx;
+  int id;
   char const *dirname;
-  char prodname[DCP_PATH_MAX];
+  char filename[DCP_PATH_MAX];
   struct product_line line;
 };
 
-int product_thread_init(struct product_thread *, int idx, char const *dirname);
-int product_thread_put(struct product_thread *, struct match *,
-                       struct match_iter *);
+// clang-format off
+int product_thread_init(struct product_thread *, int thread_id,
+                        char const *dirname);
+int product_thread_put_match(struct product_thread *, struct match *,
+                             struct match_iter *);
 int product_thread_put_hmmer(struct product_thread *,
                              struct hmmer_result const *);
+// clang-format on
 
 #endif

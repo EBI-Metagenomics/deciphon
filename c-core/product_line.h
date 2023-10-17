@@ -18,8 +18,10 @@ struct product_line
   float evalue;
 };
 
+// clang-format off
 void product_line_init(struct product_line *);
-int product_line_set_protein(struct product_line *, char const *);
-int product_line_set_abc(struct product_line *, char const *);
+int  product_line_set_protein(struct product_line *, char const *);
+int  product_line_set_abc(struct product_line *, char const *);
+// clang-format on
 
 #endif

@@ -107,7 +107,7 @@ static int run(struct scan_thread *x, int protein_idx, struct window const *w)
   }
 
   match_iter_init(&mit, sequence_immseq(seq), &x->task.path);
-  if ((rc = product_thread_put(x->product, &match, &mit))) return rc;
+  if ((rc = product_thread_put_match(x->product, &match, &mit))) return rc;
   return rc;
 }
 

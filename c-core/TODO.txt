@@ -7,3 +7,4 @@ models being identical.
 callback.
 - Standardise seq_size and emis_size naming
 - standardise errors
+- make write_match readable
