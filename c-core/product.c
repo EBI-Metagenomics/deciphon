@@ -21,7 +21,7 @@ int product_open(struct product *x, int nthreads, char const *dir)
   x->nthreads = nthreads;
 
   size = array_size_field(struct product, dirname);
-  if (!strkcpy(x->dirname, dir, size)) defer_return(DCP_ELONGPATH);
+  if (!xstrcpy(x->dirname, dir, size)) defer_return(DCP_ELONGPATH);
 
   char hmmer_dir[DCP_PATH_MAX] = {0};
   if ((rc = FMT(hmmer_dir, "%s/hmmer", x->dirname))) return rc;

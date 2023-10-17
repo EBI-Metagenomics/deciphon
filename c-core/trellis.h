@@ -4,9 +4,9 @@
 #include "bit.h"
 #include "compiler.h"
 #include "rc.h"
-#include "reallocf.h"
 #include "state.h"
 #include "static_assert.h"
+#include "xrealloc.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>

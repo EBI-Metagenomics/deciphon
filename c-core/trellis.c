@@ -14,10 +14,10 @@ int trellis_setup(struct trellis *x, int core_size, int seq_size)
   x->core_size = core_size;
 
   size_t num_stages = seq_size + 1;
-  x->xnodes = dcp_reallocf(x->xnodes, sizeof(*x->xnodes) * num_stages);
+  x->xnodes = xrealloc(x->xnodes, sizeof(*x->xnodes) * num_stages);
 
   size_t size = num_stages * core_size;
-  x->nodes = dcp_reallocf(x->nodes, sizeof(*x->nodes) * size);
+  x->nodes = xrealloc(x->nodes, sizeof(*x->nodes) * size);
 
   dcp_static_assert(CHAR_BIT * sizeof(*x->xnodes) >= SPECIAL_BITS, "");
   dcp_static_assert(CHAR_BIT * sizeof(*x->nodes) >= CORE_BITS, "");
