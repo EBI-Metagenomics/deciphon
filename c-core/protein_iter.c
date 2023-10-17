@@ -19,7 +19,7 @@ void protein_iter_init(struct protein_iter *x, struct protein_reader *reader,
 int protein_iter_rewind(struct protein_iter *x)
 {
   x->curr_idx = x->start_idx - 1;
-  return dcp_fs_seek(x->fp, x->offset, SEEK_SET);
+  return fs_seek(x->fp, x->offset, SEEK_SET);
 }
 
 int protein_iter_next(struct protein_iter *x, struct protein *protein)
@@ -31,7 +31,7 @@ int protein_iter_next(struct protein_iter *x, struct protein *protein)
   if (rc) return rc;
 
   long offset = 0;
-  dcp_fs_tell(x->fp, &offset);
+  fs_tell(x->fp, &offset);
   return rc;
 }
 

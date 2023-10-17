@@ -46,17 +46,17 @@
 
 #define BUFFSIZE (8 * 1024)
 
-int dcp_fs_tell(FILE *restrict fp, long *offset)
+int fs_tell(FILE *restrict fp, long *offset)
 {
   return (*offset = ftello(fp)) < 0 ? DCP_EFTELL : 0;
 }
 
-int dcp_fs_seek(FILE *restrict fp, long offset, int whence)
+int fs_seek(FILE *restrict fp, long offset, int whence)
 {
   return fseeko(fp, (off_t)offset, whence) < 0 ? DCP_EFSEEK : 0;
 }
 
-int dcp_fs_copy(FILE *restrict dst, FILE *restrict src)
+int fs_copy(FILE *restrict dst, FILE *restrict src)
 {
   static _Thread_local char buffer[BUFFSIZE];
   size_t n = 0;
@@ -71,15 +71,15 @@ int dcp_fs_copy(FILE *restrict dst, FILE *restrict src)
   return 0;
 }
 
-int dcp_fs_refopen(FILE *restrict fp, char const *mode, FILE **out)
+int fs_refopen(FILE *restrict fp, char const *mode, FILE **out)
 {
   char filepath[FILENAME_MAX] = {0};
-  int rc = dcp_fs_getpath(fp, sizeof filepath, filepath);
+  int rc = fs_getpath(fp, sizeof filepath, filepath);
   if (rc) return rc;
   return (*out = fopen(filepath, mode)) ? 0 : DCP_EREFOPEN;
 }
 
-int dcp_fs_getpath(FILE *restrict fp, unsigned size, char *filepath)
+int fs_getpath(FILE *restrict fp, unsigned size, char *filepath)
 {
   int fd = fileno(fp);
   if (fd < 0) return DCP_EGETPATH;
@@ -102,7 +102,7 @@ int dcp_fs_getpath(FILE *restrict fp, unsigned size, char *filepath)
   return 0;
 }
 
-int dcp_fs_close(FILE *restrict fp) { return fclose(fp) ? DCP_EFCLOSE : 0; }
+int fs_close(FILE *restrict fp) { return fclose(fp) ? DCP_EFCLOSE : 0; }
 
 static int fs_size(char const *filepath, long *size)
 {
@@ -112,7 +112,7 @@ static int fs_size(char const *filepath, long *size)
   return 0;
 }
 
-int dcp_fs_readall(char const *filepath, long *size, unsigned char **data)
+int fs_readall(char const *filepath, long *size, unsigned char **data)
 {
   *size = 0;
   *data = NULL;
@@ -140,9 +140,9 @@ int dcp_fs_readall(char const *filepath, long *size, unsigned char **data)
   return fclose(fp) ? DCP_EFCLOSE : 0;
 }
 
-int dcp_fs_tmpfile(FILE **out) { return (*out = tmpfile()) ? 0 : DCP_ETMPFILE; }
+int fs_tmpfile(FILE **out) { return (*out = tmpfile()) ? 0 : DCP_ETMPFILE; }
 
-int dcp_fs_copyp(FILE *restrict dst, FILE *restrict src)
+int fs_copyp(FILE *restrict dst, FILE *restrict src)
 {
   char buffer[8 * 1024];
   size_t n = 0;
@@ -177,7 +177,7 @@ static int fletcher16(FILE *fp, uint8_t *buf, size_t bufsize, long *chk)
   return 0;
 }
 
-int dcp_fs_cksum(char const *filepath, long *chk)
+int fs_cksum(char const *filepath, long *chk)
 {
   static _Thread_local uint8_t buffer[8 * 1024];
   FILE *fp = fopen(filepath, "rb");
@@ -188,16 +188,16 @@ int dcp_fs_cksum(char const *filepath, long *chk)
   return rc;
 }
 
-int dcp_fs_mkdir(char const *x, bool exist_ok)
+int fs_mkdir(char const *x, bool exist_ok)
 {
   return (mkdir(x, 0755) && !(errno == EEXIST && exist_ok)) ? DCP_EMKDIR : 0;
 }
 
-int dcp_fs_rmdir(char const *x) { return rmdir(x) < 0 ? DCP_ERMDIR : 0; }
+int fs_rmdir(char const *x) { return rmdir(x) < 0 ? DCP_ERMDIR : 0; }
 
-int dcp_fs_rmfile(char const *x) { return unlink(x) < 0 ? DCP_ERMFILE : 0; }
+int fs_rmfile(char const *x) { return unlink(x) < 0 ? DCP_ERMFILE : 0; }
 
-int dcp_fs_touch(char const *x)
+int fs_touch(char const *x)
 {
   if (access(x, F_OK) == 0) return 0;
   FILE *fp = fopen(x, "wb");
@@ -214,12 +214,12 @@ static int unlink_callb(const char *path, const struct stat *stat, int flag,
   return remove(path);
 }
 
-int dcp_fs_rmtree(char const *dirpath)
+int fs_rmtree(char const *dirpath)
 {
   return nftw(dirpath, unlink_callb, 64, FTW_DEPTH | FTW_PHYS);
 }
 
-int dcp_fs_size(char const *filepath, long *size)
+int fs_size(char const *filepath, long *size)
 {
   struct stat st = {};
   if (stat(filepath, &st)) return DCP_EFSTAT;
@@ -227,7 +227,7 @@ int dcp_fs_size(char const *filepath, long *size)
   return 0;
 }
 
-int dcp_fs_mkstemp(FILE **fp, char const *template)
+int fs_mkstemp(FILE **fp, char const *template)
 {
   char path[DCP_PATH_MAX] = {0};
   if (!xstrcpy(path, template, sizeof path)) return DCP_ENOMEM;
@@ -235,7 +235,7 @@ int dcp_fs_mkstemp(FILE **fp, char const *template)
   int fd = mkstemp(path);
   if (fd < 0) return DCP_EMKSTEMP;
 
-  int rc = dcp_fs_rmfile(path);
+  int rc = fs_rmfile(path);
   if (rc) return rc;
 
   return (*fp = fdopen(fd, "w+b")) ? 0 : DCP_EFDOPEN;

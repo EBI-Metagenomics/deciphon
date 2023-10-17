@@ -32,9 +32,9 @@ static int create_tempfiles(struct db_writer *x)
   FILE **sizes = &x->tmp.sizes.fp;
   FILE **proteins = &x->tmp.proteins.fp;
 
-  if ((rc = dcp_fs_mkstemp(header, ".header_XXXXXX"))) defer_return(rc);
-  if ((rc = dcp_fs_mkstemp(sizes, ".sizes_XXXXXX"))) defer_return(rc);
-  if ((rc = dcp_fs_mkstemp(proteins, ".proteins_XXXXXX"))) defer_return(rc);
+  if ((rc = fs_mkstemp(header, ".header_XXXXXX"))) defer_return(rc);
+  if ((rc = fs_mkstemp(sizes, ".sizes_XXXXXX"))) defer_return(rc);
+  if ((rc = fs_mkstemp(proteins, ".proteins_XXXXXX"))) defer_return(rc);
 
   lip_file_init(&x->tmp.header, *header);
   lip_file_init(&x->tmp.sizes, *sizes);
@@ -76,7 +76,7 @@ static int pack_header(struct db_writer *db)
   FILE *src = lip_file_ptr(&db->tmp.header);
   FILE *dst = lip_file_ptr(stream);
   rewind(src);
-  if ((rc = dcp_fs_copy(dst, src))) return rc;
+  if ((rc = fs_copy(dst, src))) return rc;
 
   if ((rc = write_key(stream, "protein_sizes"))) return rc;
   return pack_header_protein_sizes(db);
@@ -89,7 +89,7 @@ static int pack_proteins(struct db_writer *db)
   if (!lip_write_array_size(&db->file, db->nproteins)) return DCP_EFWRITE;
 
   rewind(lip_file_ptr(&db->tmp.proteins));
-  return dcp_fs_copy(lip_file_ptr(&db->file), lip_file_ptr(&db->tmp.proteins));
+  return fs_copy(lip_file_ptr(&db->file), lip_file_ptr(&db->tmp.proteins));
 }
 
 int db_writer_close(struct db_writer *db)
@@ -152,12 +152,12 @@ int db_writer_pack(struct db_writer *x, struct protein const *protein)
   int rc = 0;
 
   long start = 0;
-  if ((rc = dcp_fs_tell(lip_file_ptr(&x->tmp.proteins), &start))) return rc;
+  if ((rc = fs_tell(lip_file_ptr(&x->tmp.proteins), &start))) return rc;
 
   if ((rc = protein_pack(protein, &x->tmp.proteins))) return rc;
 
   long end = 0;
-  if ((rc = dcp_fs_tell(lip_file_ptr(&x->tmp.proteins), &end))) return rc;
+  if ((rc = fs_tell(lip_file_ptr(&x->tmp.proteins), &end))) return rc;
 
   if ((end - start) > UINT_MAX) return DCP_ELARGEPROTEIN;
 

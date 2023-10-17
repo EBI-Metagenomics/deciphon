@@ -26,8 +26,8 @@ int product_open(struct product *x, int nthreads, char const *dir)
   char hmmer_dir[DCP_PATH_MAX] = {0};
   if ((rc = FMT(hmmer_dir, "%s/hmmer", x->dirname))) return rc;
 
-  if ((rc = dcp_fs_mkdir(x->dirname, true))) defer_return(rc);
-  if ((rc = dcp_fs_mkdir(hmmer_dir, true))) defer_return(rc);
+  if ((rc = fs_mkdir(x->dirname, true))) defer_return(rc);
+  if ((rc = fs_mkdir(hmmer_dir, true))) defer_return(rc);
 
   for (int i = 0; i < nthreads; ++i)
   {
@@ -38,8 +38,8 @@ int product_open(struct product *x, int nthreads, char const *dir)
   return rc;
 
 defer:
-  dcp_fs_rmdir(hmmer_dir);
-  dcp_fs_rmdir(x->dirname);
+  fs_rmdir(hmmer_dir);
+  fs_rmdir(x->dirname);
   return rc;
 }
 
@@ -67,7 +67,7 @@ int product_close(struct product *x)
     FILE *tmp = fopen(file, "rb");
     if (!tmp) defer_return(rc);
 
-    if ((rc = dcp_fs_copy(fp, tmp)))
+    if ((rc = fs_copy(fp, tmp)))
     {
       fclose(tmp);
       defer_return(rc);
@@ -75,7 +75,7 @@ int product_close(struct product *x)
 
     if (fclose(tmp)) defer_return(DCP_EFCLOSE);
 
-    if ((rc = dcp_fs_rmfile(file))) defer_return(rc);
+    if ((rc = fs_rmfile(file))) defer_return(rc);
   }
 
   return fclose(fp) ? DCP_EFCLOSE : 0;

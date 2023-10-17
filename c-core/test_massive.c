@@ -20,7 +20,7 @@
 static long chksum(char const *filename)
 {
   long chk = 0;
-  eq_or_exit(dcp_fs_cksum(filename, &chk), 0);
+  eq_or_exit(fs_cksum(filename, &chk), 0);
   return chk;
 }
 
@@ -51,7 +51,7 @@ static void setup_database(void)
   press_del(press);
 }
 
-static void cleanup_database(void) { dcp_fs_rmfile(DBFILE); }
+static void cleanup_database(void) { fs_rmfile(DBFILE); }
 
 static void random_sequence_init(void);
 static char const *random_sequence_next(void);
@@ -68,10 +68,10 @@ int main(void)
   eq_or_exit(scan_setup(scan, params), 0);
 
   struct seqit it = seqit_init(NUM_SEQS, &random_sequence_next);
-  dcp_fs_rmtree(PRODDIR);
+  fs_rmtree(PRODDIR);
   eq(scan_run(scan, DBFILE, next_seq, &it, PRODDIR), 0);
   eq(chksum(PRODDIR "/products.tsv"), 27703);
-  eq(dcp_fs_rmtree(PRODDIR), 0);
+  eq(fs_rmtree(PRODDIR), 0);
 
   scan_del(scan);
   cleanup_database();

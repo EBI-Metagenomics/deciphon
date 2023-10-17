@@ -8,7 +8,7 @@
 static long filesize(char const *filename)
 {
   long size = 0;
-  eq_or_exit(dcp_fs_size(filename, &size), 0);
+  eq_or_exit(fs_size(filename, &size), 0);
   return size;
 }
 

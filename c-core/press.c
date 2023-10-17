@@ -129,7 +129,7 @@ bool press_end(struct press const *press)
 
 int press_close(struct press *press)
 {
-  int rc_r = press->reader.fp ? dcp_fs_close(press->reader.fp) : 0;
+  int rc_r = press->reader.fp ? fs_close(press->reader.fp) : 0;
   int rc_w = finish_writer(press);
   press->writer.fp = NULL;
   press->reader.fp = NULL;
@@ -147,7 +147,7 @@ static int finish_writer(struct press *press)
   int rc = db_writer_close(&press->writer.db);
   if (rc) defer_return(rc);
 
-  return dcp_fs_close(press->writer.fp);
+  return fs_close(press->writer.fp);
 
 defer:
   fclose(press->writer.fp);

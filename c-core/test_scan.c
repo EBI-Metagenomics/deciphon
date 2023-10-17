@@ -36,7 +36,7 @@ static bool next_seq(struct sequence *, void *);
 static long chksum(char const *filename)
 {
   long chk = 0;
-  eq_or_exit(dcp_fs_cksum(filename, &chk), 0);
+  eq_or_exit(fs_cksum(filename, &chk), 0);
   return chk;
 }
 
@@ -49,10 +49,10 @@ static void test_scan(struct scan_params params, long desired_chksum)
   eq(scan_setup(scan, params), 0);
 
   size_t idx = 0;
-  dcp_fs_rmtree("prod_scan");
+  fs_rmtree("prod_scan");
   eq(scan_run(scan, DBFILE, next_seq, &idx, "prod_scan"), 0);
   eq(chksum("prod_scan/products.tsv"), desired_chksum);
-  eq(dcp_fs_rmtree("prod_scan"), 0);
+  eq(fs_rmtree("prod_scan"), 0);
 
   scan_del(scan);
 }

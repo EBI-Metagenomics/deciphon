@@ -39,7 +39,7 @@ int product_thread_init(struct product_thread *x, int idx, char const *dir)
   x->dirname = dir;
   size_t n = array_size_field(struct product_thread, prodname);
   if ((rc = fmt(x->prodname, n, "%s/.products.%03d.tsv", dir, idx))) return rc;
-  if ((rc = dcp_fs_touch(x->prodname))) return rc;
+  if ((rc = fs_touch(x->prodname))) return rc;
   product_line_init(&x->line);
   return 0;
 }
@@ -84,7 +84,7 @@ int product_thread_put_hmmer(struct product_thread *x,
   char const *dirname = x->dirname;
 
   if ((rc = FMT(file, "%s/hmmer/%ld", dirname, x->line.sequence))) return rc;
-  if ((rc = dcp_fs_mkdir(file, true))) return rc;
+  if ((rc = fs_mkdir(file, true))) return rc;
 
   if ((rc = FMT(file, "%s/hmmer/%ld/%s.h3r", dirname, x->line.sequence,
                 x->line.protein)))

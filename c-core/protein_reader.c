@@ -39,7 +39,7 @@ int protein_reader_setup(struct protein_reader *x, struct db_reader *db,
   if (n > INT_MAX) return DCP_EFDATA;
   if ((int)n != db->nproteins) return DCP_EFDATA;
 
-  if ((rc = dcp_fs_tell(db->file.fp, x->partition_offset))) return rc;
+  if ((rc = fs_tell(db->file.fp, x->partition_offset))) return rc;
   partition_it(x);
 
   return rc;
@@ -71,8 +71,8 @@ int protein_reader_iter(struct protein_reader *x, int partition,
   int rc = 0;
   long offset = x->partition_offset[partition];
 
-  if ((rc = dcp_fs_refopen(fp, "rb", &newfp))) defer_return(rc);
-  if ((rc = dcp_fs_seek(newfp, offset, SEEK_SET))) defer_return(rc);
+  if ((rc = fs_refopen(fp, "rb", &newfp))) defer_return(rc);
+  if ((rc = fs_seek(newfp, offset, SEEK_SET))) defer_return(rc);
 
   int start_idx = x->partition_csum[partition];
   protein_iter_init(it, x, partition, start_idx, offset, newfp);
