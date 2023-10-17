@@ -44,7 +44,7 @@ static char const *msg[] = {
     [DCP_EIMMSETUPTASK] = "failed to setup task",
     [DCP_EWRITEPROD] = "failed to write product",
     [DCP_EINVALPART] = "invalid partition",
-    [DCP_ELONGACC] = "accession string is too long",
+    [DCP_ELONGACCESSION] = "accession string is too long",
     [DCP_EMANYTHREADS] = "too many threads",
     [DCP_ETMPFILE] = "failed to create temporary file",
     [DCP_EFFLUSH] = "failed to flush file",
@@ -63,6 +63,8 @@ static char const *msg[] = {
     [DCP_ESEQABC] = "failed to set sequence alphabet",
     [DCP_EFDOPEN] = "failed to open file descriptor",
     [DCP_EMKSTEMP] = "failed to make temporary file",
+    [DCP_ELONGABC] = "abc string is too long",
+    [DCP_ELONGCONSENSUS] = "consensus string is too long",
 };
 
 char const *dcp_strerror(int errno)
