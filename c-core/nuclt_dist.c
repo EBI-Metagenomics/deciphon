@@ -2,8 +2,7 @@
 #include "lip/lip.h"
 #include "rc.h"
 
-void nuclt_dist_init(struct nuclt_dist *x,
-                         struct imm_nuclt const *nuclt)
+void nuclt_dist_init(struct nuclt_dist *x, struct imm_nuclt const *nuclt)
 {
   x->nucltp.nuclt = nuclt;
   x->codonm.nuclt = nuclt;

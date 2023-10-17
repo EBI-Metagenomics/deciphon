@@ -8,7 +8,7 @@
 #include "protein_background.h"
 #include "read.h"
 #include "state.h"
-#include "strkcpy.h"
+#include "xstrcpy.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -37,7 +37,7 @@ void protein_init(struct protein *x, struct model_params params)
 int protein_set_accession(struct protein *x, char const *acc)
 {
   size_t n = array_size_field(struct protein, accession);
-  return strkcpy(x->accession, acc, n) ? 0 : DCP_ELONGACC;
+  return xstrcpy(x->accession, acc, n) ? 0 : DCP_ELONGACC;
 }
 
 void protein_setup(struct protein *x, int seq_size, bool multi_hits,
@@ -90,7 +90,7 @@ int protein_absorb(struct protein *x, struct model *m)
     defer_return(DCP_EDIFFABC);
 
   size_t n = array_size_field(struct protein, consensus);
-  dcp_strlcpy(x->consensus, m->consensus, n);
+  if (!xstrcpy(x->consensus, m->consensus, n)) defer_return(DCP_EFORMAT);
 
   x->start_lprob = IMM_LPROB_ONE;
   int core_size = x->core_size = m->core_size;

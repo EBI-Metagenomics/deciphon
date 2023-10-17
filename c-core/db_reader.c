@@ -89,8 +89,8 @@ static int unpack_header_protein_sizes(struct db_reader *x)
 }
 
 struct model_params db_reader_params(struct db_reader const *x,
-                                             struct imm_gencode const *gencode)
+                                     struct imm_gencode const *gencode)
 {
   return (struct model_params){gencode, &x->amino, &x->code, x->entry_dist,
-                                   x->epsilon};
+                               x->epsilon};
 }

@@ -4,9 +4,8 @@
 #include "protein.h"
 #include "protein_reader.h"
 
-void protein_iter_init(struct protein_iter *x,
-                           struct protein_reader *reader, int partition,
-                           int start_idx, long offset, FILE *fp)
+void protein_iter_init(struct protein_iter *x, struct protein_reader *reader,
+                       int partition, int start_idx, long offset, FILE *fp)
 {
   x->partition = partition;
   x->start_idx = start_idx;
@@ -42,7 +41,4 @@ bool protein_iter_end(struct protein_iter const *x)
   return x->start_idx + size == x->curr_idx;
 }
 
-int protein_iter_idx(struct protein_iter const *x)
-{
-  return x->curr_idx;
-}
+int protein_iter_idx(struct protein_iter const *x) { return x->curr_idx; }

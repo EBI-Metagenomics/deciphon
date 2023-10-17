@@ -4,13 +4,13 @@
 #include "state.h"
 
 struct codec codec_init(struct protein const *protein,
-                                struct imm_path const *path)
+                        struct imm_path const *path)
 {
   return (struct codec){0, 0, protein, path};
 }
 
 int codec_next(struct codec *x, struct imm_seq const *seq,
-                   struct imm_codon *codon)
+               struct imm_codon *codon)
 {
   struct imm_step const *step = NULL;
 

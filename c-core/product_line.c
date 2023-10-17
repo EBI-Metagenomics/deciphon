@@ -2,7 +2,7 @@
 #include "array_size_field.h"
 #include "lrt.h"
 #include "sizeof_field.h"
-#include "strkcpy.h"
+#include "xstrcpy.h"
 #include <string.h>
 
 void product_line_init(struct product_line *x)

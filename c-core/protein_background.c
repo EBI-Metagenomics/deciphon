@@ -10,8 +10,8 @@ void protein_background_init(struct protein_background *x)
 }
 
 void protein_background_absorb(struct protein_background *x,
-                                   struct model const *m,
-                                   struct imm_score_table *st)
+                               struct model const *m,
+                               struct imm_score_table *st)
 {
   x->nuclt_dist = m->background.nuclt_dist;
   imm_score_table_scores(st, &m->background.state.super, x->emission);

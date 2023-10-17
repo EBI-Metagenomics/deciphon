@@ -22,8 +22,8 @@ void protein_reader_init(struct protein_reader *x)
 static void partition_it(struct protein_reader *);
 static inline int min(int a, int b) { return a < b ? a : b; }
 
-int protein_reader_setup(struct protein_reader *x,
-                             struct db_reader *db, int npartitions)
+int protein_reader_setup(struct protein_reader *x, struct db_reader *db,
+                         int npartitions)
 {
   int rc = 0;
   x->db = db;
@@ -50,8 +50,7 @@ int protein_reader_npartitions(struct protein_reader const *x)
   return x->npartitions;
 }
 
-int protein_reader_partition_size(struct protein_reader const *x,
-                                      int partition)
+int protein_reader_partition_size(struct protein_reader const *x, int partition)
 {
   int const *csum = x->partition_csum;
   return csum[partition + 1] - csum[partition];
@@ -63,7 +62,7 @@ int protein_reader_size(struct protein_reader const *x)
 }
 
 int protein_reader_iter(struct protein_reader *x, int partition,
-                            struct protein_iter *it)
+                        struct protein_iter *it)
 {
   if (partition < 0 || x->npartitions < partition) return DCP_EINVALPART;
 
@@ -103,9 +102,8 @@ static void partition_it(struct protein_reader *x)
   }
 }
 
-struct model_params
-protein_reader_params(struct protein_reader *x,
-                          struct imm_gencode const *gencode)
+struct model_params protein_reader_params(struct protein_reader *x,
+                                          struct imm_gencode const *gencode)
 {
   return db_reader_params(x->db, gencode);
 }

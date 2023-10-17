@@ -1,7 +1,8 @@
+#include "xstrdup.h"
 #include <stdlib.h>
 #include <string.h>
 
-char *dcp_strdup(const char *s)
+char *xstrdup(const char *s)
 {
   size_t l = strlen(s);
   char *d = malloc(l + 1);

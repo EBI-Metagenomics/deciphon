@@ -88,7 +88,7 @@ defer:
 
 int scan_add(struct scan *x, long id, char const *name, char const *data)
 {
-  return sequence_queue_add(&x->sequences, id, name, data);
+  return sequence_queue_put(&x->sequences, id, name, data);
 }
 
 int scan_run(struct scan *x, char const *product_dir)

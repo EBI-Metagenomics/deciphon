@@ -31,8 +31,7 @@ bool have_finished_add(struct model const *);
 void init_delete(struct imm_mute_state *, struct model *);
 void init_insert(struct imm_frame_state *, float epsilon,
                  struct nuclt_dist const *, int node_idx);
-void init_match(struct imm_frame_state *, struct model *,
-                struct nuclt_dist *);
+void init_match(struct imm_frame_state *, struct model *, struct nuclt_dist *);
 
 int init_null_xtrans(struct imm_hmm *, struct model_xnode_null *);
 int init_alt_xtrans(struct imm_hmm *, struct model_xnode_alt *);
@@ -53,7 +52,7 @@ int setup_exit_trans(struct model *);
 int setup_transitions(struct model *);
 
 int model_add_node(struct model *x, float const lprobs[IMM_AMINO_SIZE],
-                       char consensus)
+                   char consensus)
 {
   if (!have_called_setup(x)) return DCP_EFUNCUSE;
 
@@ -112,7 +111,7 @@ void model_cleanup(struct model const *x)
 }
 
 void model_init(struct model *x, struct model_params params,
-                    float const null_lprobs[IMM_AMINO_SIZE])
+                float const null_lprobs[IMM_AMINO_SIZE])
 {
   x->params = params;
   x->core_size = 0;

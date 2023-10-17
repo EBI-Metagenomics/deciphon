@@ -18,9 +18,11 @@ struct sequence
   struct node node;
 };
 
-int sequence_init(struct sequence *, struct imm_code const *, long id,
-                  char const *name, char const *data);
-void sequence_cleanup(struct sequence *);
+// clang-format off
+int             sequence_init(struct sequence *, struct imm_code const *,
+                              long id, char const *name, char const *data);
+void            sequence_cleanup(struct sequence *);
 struct sequence sequence_slice(struct sequence const *, struct imm_range);
+// clang-format on
 
 #endif

@@ -3,7 +3,7 @@
 
 #include "compiler.h"
 #include "imm/imm.h"
-#include "seq_struct.h"
+#include "sequence.h"
 #include <stdbool.h>
 
 struct window

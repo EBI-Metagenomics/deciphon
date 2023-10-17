@@ -11,7 +11,7 @@ void sequence_queue_init(struct sequence_queue *x, struct imm_code const *code)
   queue_init(&x->sequences);
 }
 
-int sequence_queue_add(struct sequence_queue *x, long id, char const *name,
+int sequence_queue_put(struct sequence_queue *x, long id, char const *name,
                        char const *data)
 {
   int rc = 0;

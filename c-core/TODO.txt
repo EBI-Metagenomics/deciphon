@@ -6,3 +6,4 @@ models being identical.
 - Provide dcp_seq_queue_add for the user instead of a call
 callback.
 - Standardise seq_size and emis_size naming
+- standardise errors

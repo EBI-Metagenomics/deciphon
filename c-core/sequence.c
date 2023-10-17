@@ -3,7 +3,7 @@
 #include "disambiguate.h"
 #include "imm/imm.h"
 #include "rc.h"
-#include "strdup.h"
+#include "xstrdup.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -12,8 +12,8 @@ int sequence_init(struct sequence *x, struct imm_code const *code, long id,
 {
   int rc = 0;
   x->id = id;
-  x->name = dcp_strdup(name);
-  x->data = dcp_strdup(data);
+  x->name = xstrdup(name);
+  x->data = xstrdup(data);
   imm_eseq_init(&x->imm.eseq, code);
 
   if (!x->name || !x->data) defer_return(DCP_ENOMEM);

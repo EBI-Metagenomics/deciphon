@@ -11,8 +11,8 @@ void viterbi_task_init(struct viterbi_task *x)
   x->score = IMM_LPROB_NAN;
 }
 
-int viterbi_task_setup(struct viterbi_task *x, int core_size,
-                           int seq_size, bool const nopath)
+int viterbi_task_setup(struct viterbi_task *x, int core_size, int seq_size,
+                       bool const nopath)
 {
   int rc = 0;
   if ((rc = dp_renew(&x->dp, core_size))) defer_return(rc);

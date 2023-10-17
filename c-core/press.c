@@ -7,7 +7,7 @@
 #include "protein.h"
 #include "rc.h"
 #include "sizeof_field.h"
-#include "strkcpy.h"
+#include "xstrcpy.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -160,7 +160,7 @@ static int protein_write(struct press *x)
   if (rc) return rc;
 
   size_t n = array_size_field(struct protein, accession);
-  if (!strkcpy(x->protein.accession, x->reader.h3.protein.meta.acc, n))
+  if (!xstrcpy(x->protein.accession, x->reader.h3.protein.meta.acc, n))
     return DCP_EFORMAT;
 
   return db_writer_pack(&x->writer.db, &x->protein);
