@@ -104,14 +104,6 @@ int fs_getpath(FILE *restrict fp, unsigned size, char *filepath)
 
 int fs_close(FILE *restrict fp) { return fclose(fp) ? DCP_EFCLOSE : 0; }
 
-static int fs_size(char const *filepath, long *size)
-{
-  struct stat st = {0};
-  if (stat(filepath, &st) == 1) return DCP_EFSTAT;
-  *size = (long)st.st_size;
-  return 0;
-}
-
 int fs_readall(char const *filepath, long *size, unsigned char **data)
 {
   *size = 0;
