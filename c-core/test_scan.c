@@ -3,7 +3,7 @@
 #include "deciphon/press.h"
 #include "deciphon/scan.h"
 #include "deciphon/scan_params.h"
-#include "deciphon/seq.h"
+#include "deciphon/sequence.h"
 #include "imm/imm.h"
 #include "vendor/minctest.h"
 
@@ -31,7 +31,7 @@ int main(void)
   return lfails;
 }
 
-static bool next_seq(struct seq *, void *);
+static bool next_seq(struct sequence *, void *);
 
 static long chksum(char const *filename)
 {
@@ -57,7 +57,7 @@ static void test_scan(struct scan_params params, long desired_chksum)
   scan_del(scan);
 }
 
-static struct seq
+static struct sequence
 {
   long id;
   char const *name;
@@ -190,12 +190,12 @@ static struct seq
      "CCGCATCCGCTGTACTCGCTTTTTTTCTC"
      "TT"}};
 
-static bool next_seq(struct seq *x, void *arg)
+static bool next_seq(struct sequence *x, void *arg)
 {
   size_t *i = arg;
   if (*i < array_size(seqs))
   {
-    eq_or_exit(seq_setup(x, seqs[*i].id, seqs[*i].name, seqs[*i].data), 0);
+    eq_or_exit(sequence_setup(x, seqs[*i].id, seqs[*i].name, seqs[*i].data), 0);
     *i += 1;
     return true;
   }

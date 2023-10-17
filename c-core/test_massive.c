@@ -24,11 +24,11 @@ static long chksum(char const *filename)
   return chk;
 }
 
-static bool next_seq(struct seq *x, void *seqit)
+static bool next_seq(struct sequence *x, void *seqit)
 {
-  struct seq const *seq = seqit_next((struct seqit *)seqit);
+  struct sequence const *seq = seqit_next((struct seqit *)seqit);
   if (!seq) return false;
-  eq_or_exit(seq_setup(x, seq->id, seq->name, seq->data), 0);
+  eq_or_exit(sequence_setup(x, seq->id, seq->name, seq->data), 0);
   return true;
 }
 

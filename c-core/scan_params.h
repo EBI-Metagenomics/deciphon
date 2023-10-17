@@ -11,4 +11,7 @@ struct scan_params
   bool disable_hmmer;
 };
 
+#define SCAN_PARAMS_DEFAULT()                                                  \
+  (struct scan_params) { 1, true, false, false }
+
 #endif

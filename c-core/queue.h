@@ -16,6 +16,12 @@ struct queue
     {&name.head}, { &name.head }                                               \
   }
 
+static inline void queue_init(struct queue *x)
+{
+  x->head.next = &x->head;
+  x->tail.next = &x->head;
+}
+
 static inline struct iter queue_iter(struct queue const *x)
 {
   return (struct iter){&x->head, x->tail.next, &x->head};

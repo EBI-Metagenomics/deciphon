@@ -6,16 +6,17 @@
 #include "protein_reader.h"
 #include "queue.h"
 #include "scan_thread.h"
-#include "seq.h"
-#include "seq_iter.h"
+#include "sequence.h"
+#include "sequence_queue.h"
 #include <stdlib.h>
 
 struct scan
 {
-  struct scan_thread threads[DCP_NTHREADS_MAX];
-  struct product prod_writer;
-
   struct scan_params params;
+  struct scan_thread threads[DCP_NTHREADS_MAX];
+
+  struct product product;
+  struct sequence_queue sequences;
 
   struct
   {
@@ -24,7 +25,6 @@ struct scan
     struct protein_reader protein;
   } db;
 
-  struct seq_iter seqit;
   struct hmmer_dialer dialer;
 };
 
@@ -32,25 +32,19 @@ struct scan *scan_new(void)
 {
   struct scan *x = malloc(sizeof(*x));
   if (!x) return NULL;
-  x->params = (struct scan_params){1, true, false, false};
+
+  x->params = SCAN_PARAMS_DEFAULT();
+  for (int i = 0; i < x->params.num_threads; ++i)
+    scan_thread_init(x->threads + i);
+
+  product_init(&x->product);
+  sequence_queue_init(&x->sequences, NULL);
+
   x->db.fp = NULL;
   db_reader_init(&x->db.reader);
   protein_reader_init(&x->db.protein);
-  product_init(&x->prod_writer);
-  return x;
-}
 
-static void seqs_cleanup(struct queue *seqs)
-{
-  struct iter iter = queue_iter(seqs);
-  struct seq *tmp = NULL;
-  struct seq *seq = NULL;
-  iter_for_each_entry_safe(seq, tmp, &iter, node)
-  {
-    free((void *)seq->name);
-    seq_cleanup(seq);
-    free(seq);
-  }
+  return x;
 }
 
 int scan_dial(struct scan *x, int port)
@@ -70,37 +64,49 @@ void scan_del(struct scan const *x)
   if (x)
   {
     hmmer_dialer_cleanup((struct hmmer_dialer *)&x->dialer);
+    sequence_queue_cleanup((struct sequence_queue *)&x->sequences);
     free((void *)x);
   }
 }
 
 static inline int nthreads(struct scan *x) { return x->params.num_threads; }
 
-int scan_run(struct scan *x, char const *dbfile, seq_next_fn *callb,
-             void *userdata, char const *product_dir)
+int scan_open(struct scan *x, char const *dbfile)
 {
   int rc = 0;
-
-  for (int i = 0; i < nthreads(x); ++i)
-    scan_thread_init(x->threads + i);
 
   if (!(x->db.fp = fopen(dbfile, "rb"))) defer_return(DCP_EOPENDB);
   if ((rc = db_reader_open(&x->db.reader, x->db.fp))) defer_return(rc);
   if ((rc = protein_reader_setup(&x->db.protein, &x->db.reader, nthreads(x))))
     defer_return(rc);
 
+  sequence_queue_init(&x->sequences, &x->db.reader.code.super);
+
+defer:
+  return rc;
+}
+
+int scan_add(struct scan *x, long id, char const *name, char const *data)
+{
+  return sequence_queue_add(&x->sequences, id, name, data);
+}
+
+int scan_run(struct scan *x, char const *product_dir)
+{
+  int rc = 0;
+
   seq_iter_init(&x->seqit, &x->db.reader.code.super, callb, userdata);
   struct queue seqs = QUEUE_INIT(seqs);
   while (seq_iter_next(&x->seqit))
   {
-    struct seq *tmp = seq_iter_get(&x->seqit);
-    struct seq *seq = seq_clone(tmp);
-    seq_cleanup(tmp);
+    struct sequence *tmp = seq_iter_get(&x->seqit);
+    struct sequence *seq = sequence_clone(tmp);
+    sequence_cleanup(tmp);
     if (!seq) defer_return(DCP_ENOMEM);
     queue_put(&seqs, &seq->node);
   }
 
-  if ((rc = product_open(&x->prod_writer, nthreads(x), product_dir)))
+  if ((rc = product_open(&x->product, nthreads(x), product_dir)))
     defer_return(rc);
 
   struct scan_thread_params params = {.reader = &x->db.protein,
@@ -114,7 +120,7 @@ int scan_run(struct scan *x, char const *dbfile, seq_next_fn *callb,
   for (int i = 0; i < nthreads(x); ++i)
   {
     params.partition = i;
-    params.prod_thrd = product_thread(&x->prod_writer, i);
+    params.prod_thrd = product_thread(&x->product, i);
     if ((rc = scan_thread_setup(x->threads + i, params))) defer_return(rc);
   }
 
@@ -139,9 +145,23 @@ defer:
     scan_thread_cleanup(x->threads + i);
 
   if (rc)
-    product_close(&x->prod_writer);
+    product_close(&x->product);
   else
-    rc = product_close(&x->prod_writer);
+    rc = product_close(&x->product);
 
   return rc;
+}
+
+int scan_close(struct scan *x)
+{
+  db_reader_close(&x->db.reader);
+  if (x->db.fp)
+  {
+    fclose(x->db.fp);
+    x->db.fp = NULL;
+  }
+  for (int i = 0; i < nthreads(x); ++i)
+    scan_thread_cleanup(x->threads + i);
+
+  return product_close(&x->product);
 }

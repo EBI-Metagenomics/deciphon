@@ -1,5 +1,5 @@
 #include "window.h"
-#include "seq.h"
+#include "sequence.h"
 
 // We are respecting HMMER's limit on sequence size:
 //   https://github.com/EddyRivasLab/hmmer/blob/
@@ -8,7 +8,7 @@ static int const WINDOW_SIZE = 100000 * 3;
 
 IMM_CONST int max_size(int core_size) { return core_size * 3 * 3; }
 
-struct window window_setup(struct seq const *x, int core_size)
+struct window window_setup(struct sequence const *x, int core_size)
 {
   struct imm_range r = imm_range(0, 0);
   return (struct window){core_size, x, {}, r, -1};
@@ -16,7 +16,7 @@ struct window window_setup(struct seq const *x, int core_size)
 
 bool window_next(struct window *x, int last_hit_pos)
 {
-  if (x->range.stop == seq_size(x->seq)) return false;
+  if (x->range.stop == sequence_size(x->seq)) return false;
 
   assert(-1 <= last_hit_pos && last_hit_pos < imm_range_size(x->range));
 
@@ -32,17 +32,17 @@ bool window_next(struct window *x, int last_hit_pos)
   assert(stop_miss <= dcp_seq_size(x->seq));
 
   x->range.start = start_miss;
-  x->range.stop = imm_min(start_miss + WINDOW_SIZE, seq_size(x->seq));
+  x->range.stop = imm_min(start_miss + WINDOW_SIZE, sequence_size(x->seq));
 
-  x->iter = seq_slice(x->seq, x->range);
+  x->iter = sequence_slice(x->seq, x->range);
   x->id += 1;
   assert(dcp_seq_size(&x->iter) > 0);
   return true;
 }
 
-struct seq const *window_sequence(struct window const *x)
+struct sequence const *window_sequence(struct window const *x)
 {
-  return seq_size(&x->iter) ? &x->iter : NULL;
+  return sequence_size(&x->iter) ? &x->iter : NULL;
 }
 
 int window_id(struct window const *x) { return x->id; }

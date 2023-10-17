@@ -17,7 +17,7 @@ cpmaddpackage(
   GIT_TAG h3client-v0.12.6
   VERSION 0.12.6
   SOURCE_SUBDIR h3client)
-cpmaddpackage("gh:EBI-Metagenomics/imm@5.3.2")
+cpmaddpackage("gh:EBI-Metagenomics/imm@5.3.3")
 cpmaddpackage("gh:EBI-Metagenomics/lip@0.5.4")
 find_package(OpenMP)
 

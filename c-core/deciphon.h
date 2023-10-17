@@ -10,7 +10,8 @@ extern "C" {
 #include "rc.h"
 #include "scan.h"
 #include "scan_params.h"
-#include "seq.h"
+#include "sequence.h"
+#include "sequence_queue.h"
 #include "strerror.h"
 
 #ifdef __cplusplus

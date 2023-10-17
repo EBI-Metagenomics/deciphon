@@ -11,8 +11,7 @@
 #include "product_thread.h"
 #include "protein_iter.h"
 #include "protein_reader.h"
-#include "seq.h"
-#include "seq_struct.h"
+#include "sequence.h"
 #include "viterbi.h"
 #include "window.h"
 
@@ -68,13 +67,13 @@ static int infer_amino(struct chararray *x, struct match *match,
 static int run(struct scan_thread *x, int protein_idx, struct window const *w)
 {
   int rc = 0;
-  struct seq const *seq = window_sequence(w);
-  x->product->line.sequence = seq_id(seq);
+  struct sequence const *seq = window_sequence(w);
+  x->product->line.sequence = sequence_id(seq);
   x->product->line.window = w->id;
   x->product->line.window_start = window_range(w).start;
   x->product->line.window_stop = window_range(w).stop;
 
-  protein_setup(&x->protein, seq_size(seq), x->multi_hits,
+  protein_setup(&x->protein, sequence_size(seq), x->multi_hits,
                 x->hmmer3_compat);
 
   float null = viterbi_null(&x->protein, &seq->imm_eseq);
@@ -92,7 +91,7 @@ static int run(struct scan_thread *x, int protein_idx, struct window const *w)
   struct match match = match_init(&x->protein);
   struct match_iter mit = {0};
 
-  match_iter_init(&mit, seq_immseq(seq), &x->task.path);
+  match_iter_init(&mit, sequence_immseq(seq), &x->task.path);
   if ((rc = infer_amino(&x->amino, &match, &mit))) return rc;
 
   if (!x->disable_hmmer)
@@ -105,7 +104,7 @@ static int run(struct scan_thread *x, int protein_idx, struct window const *w)
       return rc;
   }
 
-  match_iter_init(&mit, seq_immseq(seq), &x->task.path);
+  match_iter_init(&mit, sequence_immseq(seq), &x->task.path);
   if ((rc = product_thread_put(x->product, &match, &mit))) return rc;
   return rc;
 }
@@ -122,7 +121,7 @@ int scan_thread_run(struct scan_thread *x, struct queue const *seqs)
   {
     if (protein_iter_end(protein_iter)) break;
 
-    struct seq *seq = NULL;
+    struct sequence *seq = NULL;
     struct iter seq_iter = queue_iter(seqs);
     iter_for_each_entry(seq, &seq_iter, node)
     {
