@@ -23,7 +23,7 @@ void product_line_init(struct product_line *x)
 int product_line_set_protein(struct product_line *x, char const *accession)
 {
   size_t size = array_size_field(struct product_line, protein);
-  return xstrcpy(x->protein, accession, size) ? 0 : DCP_ELONGACC;
+  return xstrcpy(x->protein, accession, size) ? 0 : DCP_ELONGACCESSION;
 }
 
 int product_line_set_abc(struct product_line *x, char const *abc)
