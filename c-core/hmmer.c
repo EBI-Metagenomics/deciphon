@@ -14,6 +14,8 @@ int hmmer_init(struct hmmer *x)
   return hmmer_result_init(&x->result);
 }
 
+bool hmmer_online(struct hmmer const *x) { return x->stream; }
+
 void hmmer_cleanup(struct hmmer *x)
 {
   if (x)

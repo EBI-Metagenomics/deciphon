@@ -1,6 +1,6 @@
-#include "deciphon/model.h"
-#include "deciphon/protein.h"
 #include "imm/imm.h"
+#include "model.h"
+#include "protein.h"
 #include "vendor/minctest.h"
 
 int main(void)

@@ -3,12 +3,14 @@
 
 #include "product_thread.h"
 #include "size.h"
+#include <stdbool.h>
 
 struct product
 {
   char dirname[DCP_PATH_MAX];
   int num_threads;
   struct product_thread threads[DCP_NTHREADS_MAX];
+  bool closed;
 };
 
 // clang-format off

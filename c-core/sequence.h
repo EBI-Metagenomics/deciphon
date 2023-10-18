@@ -23,6 +23,7 @@ int             sequence_init(struct sequence *, struct imm_code const *,
                               long id, char const *name, char const *data);
 void            sequence_cleanup(struct sequence *);
 struct sequence sequence_slice(struct sequence const *, struct imm_range);
+int             sequence_size(struct sequence const *);
 // clang-format on
 
 #endif

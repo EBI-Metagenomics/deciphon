@@ -82,10 +82,10 @@ defer:
   return rc;
 }
 
-void scan_close(struct scan *x)
+int scan_close(struct scan *x)
 {
   sequence_queue_cleanup(&x->sequences);
-  db_reader_close(&x->db.reader);
+  return db_reader_close(&x->db.reader) ? DCP_EFCLOSE : 0;
 }
 
 int scan_add(struct scan *x, long id, char const *name, char const *data)

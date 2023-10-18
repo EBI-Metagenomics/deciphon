@@ -11,6 +11,7 @@ void product_init(struct product *x)
 {
   x->dirname[0] = '\0';
   x->num_threads = 0;
+  x->closed = true;
 }
 
 int product_open(struct product *x, int num_threads, char const *dir)
@@ -36,7 +37,8 @@ int product_open(struct product *x, int num_threads, char const *dir)
       defer_return(rc);
   }
 
-  return rc;
+  x->closed = false;
+  return 0;
 
 defer:
   fs_rmdir(hmmer_dir);
@@ -46,6 +48,9 @@ defer:
 
 int product_close(struct product *x)
 {
+  if (x->closed) return 0;
+  x->closed = true;
+
   char filename[DCP_PATH_MAX] = {0};
   char *dir = x->dirname;
   int rc = 0;

@@ -33,6 +33,11 @@ defer:
   return rc;
 }
 
+struct iter sequence_queue_iter(struct sequence_queue const *x)
+{
+  return queue_iter(&x->sequences);
+}
+
 void sequence_queue_cleanup(struct sequence_queue *x)
 {
   struct iter iter = queue_iter(&x->sequences);
@@ -43,4 +48,5 @@ void sequence_queue_cleanup(struct sequence_queue *x)
     sequence_cleanup(seq);
     free(seq);
   }
+  queue_init(&x->sequences);
 }

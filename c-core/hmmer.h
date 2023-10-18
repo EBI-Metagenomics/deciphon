@@ -2,6 +2,7 @@
 #define HMMER_H
 
 #include "hmmer_result.h"
+#include <stdbool.h>
 
 struct hmmer
 {
@@ -10,6 +11,7 @@ struct hmmer
 };
 
 int hmmer_init(struct hmmer *);
+bool hmmer_online(struct hmmer const *);
 void hmmer_cleanup(struct hmmer *);
 int hmmer_warmup(struct hmmer *);
 int hmmer_get(struct hmmer *, int hmmidx, char const *name, char const *seq);

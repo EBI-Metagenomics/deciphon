@@ -16,7 +16,6 @@ struct scan_thread_params
   struct hmmer_dialer *dialer;
   bool multi_hits;
   bool hmmer3_compat;
-  bool disable_hmmer;
 };
 
 void scan_thread_params_init(struct scan_thread_params *, struct scan_params *,

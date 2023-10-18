@@ -29,14 +29,14 @@ bool window_next(struct window *x, int last_hit_pos)
   start_miss =
       imm_max(start_miss, imm_max(stop_miss - max_size(x->core_size), 0));
   // We cannot go over the sequence size.
-  assert(stop_miss <= dcp_seq_size(x->seq));
+  assert(stop_miss <= sequence_size(x->seq));
 
   x->range.start = start_miss;
   x->range.stop = imm_min(start_miss + WINDOW_SIZE, sequence_size(x->seq));
 
   x->iter = sequence_slice(x->seq, x->range);
   x->id += 1;
-  assert(dcp_seq_size(&x->iter) > 0);
+  assert(sequence_size(&x->iter) > 0);
   return true;
 }
 

@@ -13,6 +13,8 @@ int hmmer_dialer_setup(struct hmmer_dialer *x, int port)
   return (x->dialer = h3client_dialer_new("127.0.0.1", port)) ? 0 : DCP_ENOMEM;
 }
 
+bool hmmer_dialer_isset(struct hmmer_dialer const *x) { return x->dialer; }
+
 void hmmer_dialer_cleanup(struct hmmer_dialer *x)
 {
   if (x->dialer) h3client_dialer_del(x->dialer);

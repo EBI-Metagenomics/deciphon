@@ -45,7 +45,7 @@ int product_thread_put_match(struct product_thread *x, struct match *match,
   if (fprintf(fp, "%9.2g\t", line->evalue) < 0) defer_return(DCP_EWRITEPROD);
 
   int i = 0;
-  while (!(rc = match_iter_next(it, match)) && match_iter_end(it))
+  while (!(rc = match_iter_next(it, match)) && !match_iter_end(it))
   {
     if (i++ && fputc(';', fp) == EOF) defer_return(DCP_EWRITEPROD);
     if ((rc = write_match(fp, match))) defer_return(rc);

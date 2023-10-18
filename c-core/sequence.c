@@ -53,3 +53,8 @@ struct sequence sequence_slice(struct sequence const *x, struct imm_range r)
   struct imm_eseq eseq = imm_eseq_slice(&x->imm.eseq, r);
   return (struct sequence){x->id, x->name, x->data, {seq, eseq}, NODE_INIT()};
 }
+
+int sequence_size(struct sequence const *x)
+{
+  return imm_seq_size(&x->imm.seq);
+}

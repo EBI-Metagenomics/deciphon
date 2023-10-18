@@ -169,7 +169,7 @@ static int fletcher16(FILE *fp, uint8_t *buf, size_t bufsize, long *chk)
   return 0;
 }
 
-int fs_cksum(char const *filepath, long *chk)
+int fs_chksum(char const *filepath, long *chk)
 {
   static _Thread_local uint8_t buffer[8 * 1024];
   FILE *fp = fopen(filepath, "rb");

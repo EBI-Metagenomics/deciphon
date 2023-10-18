@@ -14,5 +14,4 @@ void scan_thread_params_init(struct scan_thread_params *x,
   x->dialer = dialer;
   x->multi_hits = y->multi_hits;
   x->hmmer3_compat = y->hmmer3_compat;
-  x->disable_hmmer = y->disable_hmmer;
 }

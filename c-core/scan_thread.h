@@ -20,7 +20,6 @@ struct scan_thread
 
   bool multi_hits;
   bool hmmer3_compat;
-  bool disable_hmmer;
 
   struct viterbi_task task;
   struct product_thread *product;
