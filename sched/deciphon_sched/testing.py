@@ -44,7 +44,7 @@ class MosquittoContainer(DockerContainer):
         sys.stderr.write(f"_healthcheck:begin:{time.time()}\n")
         host = self.get_container_host_ip()
         port = int(self.get_exposed_port(self.port))
-        paho.mqtt.client.Client().connect(host, port, 30)
+        paho.mqtt.client.Client().connect(host, port, 5)
         sys.stderr.write(f"_healthcheck:end:{time.time()}\n")
 
     def start(self):
