@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import urllib.parse
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import requests
 from deciphon_core.schema import Gencode
@@ -28,9 +28,10 @@ class SchedHTTPError(HTTPError):
 
 
 class Sched:
-    def __init__(self, url: HttpUrl):
+    def __init__(self, url: HttpUrl, s3_url: Optional[HttpUrl]):
         logger.info(f"Sched URL: {url}")
         self._url = url
+        self.s3_url = s3_url
 
     def handle_http_response(self, response):
         logger.debug(f"{response.request} {response.request.url} {response}")
@@ -151,11 +152,13 @@ class Presigned:
 
     def upload_hmm_post(self, filename: str):
         x = self._request(f"hmms/presigned-upload/{filename}")
-        return UploadPost(url=HttpUrl(x["url"]), fields=x["fields"])
+        url = self._sched.s3_url if self._sched.s3_url else HttpUrl(x["url"])
+        return UploadPost(url=url, fields=x["fields"])
 
     def upload_db_post(self, filename: str):
         x = self._request(f"dbs/presigned-upload/{filename}")
-        return UploadPost(url=HttpUrl(x["url"]), fields=x["fields"])
+        url = self._sched.s3_url if self._sched.s3_url else HttpUrl(x["url"])
+        return UploadPost(url=url, fields=x["fields"])
 
 
 class UploadPost(BaseModel):
