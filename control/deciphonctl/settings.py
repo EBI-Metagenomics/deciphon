@@ -7,8 +7,6 @@ class Settings(BaseSettings):
 
     sched_url: HttpUrl = HttpUrl("http://localhost")
 
-    s3_key: str = "minioadmin"
-    s3_secret: str = "minioadmin"
     s3_url: HttpUrl = HttpUrl("http://localhost:9000")
     s3_bucket: str = "deciphon"
 

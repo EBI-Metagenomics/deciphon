@@ -59,15 +59,13 @@ class ThreadedUvicorn:
 def compose(mqtt, s3, settings: Settings):
     settings.mqtt_host = mqtt["host"]
     settings.mqtt_port = mqtt["port"]
-    settings.s3_key = s3["access_key"]
-    settings.s3_secret = s3["secret_key"]
     settings.s3_url = HttpUrl(s3["url"])
 
     sched_settings = SchedSettings(
         mqtt_host=settings.mqtt_host,
         mqtt_port=settings.mqtt_port,
-        s3_key=settings.s3_key,
-        s3_secret=settings.s3_secret,
+        s3_key=s3["access_key"],
+        s3_secret=s3["secret_key"],
         s3_url=settings.s3_url,
     )
 
