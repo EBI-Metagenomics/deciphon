@@ -36,7 +36,16 @@ class Storage:
 
     def presigned_upload(self, file: str) -> PresignedUpload:
         self._logger.handler.debug(f"generating presigned upload for file {file}")
-        x = self._s3.generate_presigned_post(self._bucket, file)
+        x = self._s3.generate_presigned_post(
+            self._bucket,
+            file,
+            Conditions=[
+                ["starts-with", "$AWSAccessKeyId", ""],
+                ["starts-with", "$Signature", ""],
+                {"AWSAccessKeyId": "minioadmin"},
+                {"Signature": ""},
+            ],
+        )
         return PresignedUpload(url=HttpUrl(x["url"]), fields=x["fields"])
 
     def presigned_download(self, file: str) -> PresignedDownload:
