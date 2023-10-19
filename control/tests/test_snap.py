@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from deciphonctl.cli import app
@@ -24,6 +25,7 @@ def test_get(runner, files_path: Path):
     snap = files_path / "snap.dcs"
     runner.invoke(app, ["scan", "snap-add", "1", str(snap)])
     assert runner.invoke(app, ["scan", "snap-get", "1"]).exit_code == 0
+    os.unlink("snap.dcs")
 
 
 def test_rm(runner, files_path: Path):
