@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sys
+import time
 import paho.mqtt.client
 from testcontainers.core.container import DockerContainer
 from testcontainers.core.waiting_utils import wait_container_is_ready
@@ -32,16 +34,18 @@ def s3_cleanup(client):
 
 
 class MosquittoContainer(DockerContainer):
-    def __init__(self, image="eclipse-mosquitto:2.0.15", port=1883):
+    def __init__(self, image="eclipse-mosquitto:2", port=1883):
         super(MosquittoContainer, self).__init__(image)
         self.port = port
         self.with_exposed_ports(self.port)
 
     @wait_container_is_ready(ConnectionError)
     def _healthcheck(self):
+        sys.stderr.write(f"MosquittoContainer:_healthcheck:begin {time.time}\n")
         host = self.get_container_host_ip()
         port = int(self.get_exposed_port(self.port))
         paho.mqtt.client.Client().connect(host, port, 30)
+        sys.stderr.write(f"MosquittoContainer:_healthcheck:end {time.time}\n")
 
     def start(self):
         self.with_command("mosquitto -c /mosquitto-no-auth.conf")
