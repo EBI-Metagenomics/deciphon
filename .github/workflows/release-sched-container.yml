@@ -29,4 +29,4 @@ jobs:
           context: sched/
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: danilohorta/deciphon-sched:latest
+          tags: quay.io/danilohorta/deciphon-sched:latest
