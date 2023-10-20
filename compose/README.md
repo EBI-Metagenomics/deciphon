@@ -7,6 +7,8 @@ Deciphon server requires five different services to work:
 - [s3](https://min.io) server to store protein databases;
 - [mqtt](https://mosquitto.org) server to orchestrate message sharing.
 
+Fortunately they can be started by a single command using Docker Compose.
+
 ## Quick start ⚡
 
 Enter
@@ -45,7 +47,7 @@ deciphonctl hmm ls
 
 A web application will only need to interact with the REST API via port `8000` by default.
 One must take care however of setting the variable `DECIPHON_SCHED_ALLOW_ORIGINS` in `compose.cfg`
-property for Cross-Origin Resource Sharing.
+properly for Cross-Origin Resource Sharing.
 
 ## 👤 Author
 
