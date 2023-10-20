@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import paho.mqtt.client
+from time import time
 from testcontainers.core.container import DockerContainer
 from testcontainers.core.waiting_utils import wait_container_is_ready
 from testcontainers.minio import MinioContainer
@@ -44,7 +45,11 @@ class MosquittoContainer(DockerContainer):
         paho.mqtt.client.Client().connect(host, port, 1)
 
     def start(self):
+        print(f"start:1:{time()}")
         self.with_command("mosquitto -c /mosquitto-no-auth.conf")
+        print(f"start:2:{time()}")
         super().start()
+        print(f"start:3:{time()}")
         self._healthcheck()
+        print(f"start:4:{time()}")
         return self
