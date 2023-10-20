@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   sched:
-    image: quay.io/danilohorta/deciphon-sched
+    image: danilohorta/deciphon-sched
     restart: unless-stopped
     ports:
       - "1515:8080"
@@ -33,7 +33,7 @@ services:
         "debug"
       ]
   presser:
-    image: quay.io/danilohorta/deciphonctl
+    image: danilohorta/deciphonctl
     restart: unless-stopped
     build: control
     environment:
@@ -51,7 +51,7 @@ services:
     depends_on:
       - mosquitto
   scanner:
-    image: quay.io/danilohorta/deciphonctl
+    image: danilohorta/deciphonctl
     restart: unless-stopped
     build: control
     environment:
