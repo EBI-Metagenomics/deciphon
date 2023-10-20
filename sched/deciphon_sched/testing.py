@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import paho.mqtt.client
-import time
 from testcontainers.core.container import DockerContainer
 from testcontainers.core.waiting_utils import wait_container_is_ready
 from testcontainers.minio import MinioContainer
@@ -38,20 +37,17 @@ class MosquittoContainer(DockerContainer):
         self.port = port
         self.with_exposed_ports(self.port)
 
-    # @wait_container_is_ready(ConnectionError)
+    @wait_container_is_ready(ConnectionError)
     def _healthcheck(self):
         host = self.get_container_host_ip()
         port = int(self.get_exposed_port(self.port))
-        paho.mqtt.client.Client().connect(host, port, 1)
+        x = paho.mqtt.client.Client()
+        x.connect(host, port, 1)
+        if x.loop() != 0:
+            raise ConnectionError()
 
     def start(self):
-        # print(f"start:1:{time()}")
         self.with_command("mosquitto -c /mosquitto-no-auth.conf")
-        # print(f"start:2:{time()}")
         super().start()
-        # print(f"start:3:{time()}")
         self._healthcheck()
-        time.sleep(10)
-        self._healthcheck()
-        # print(f"start:4:{time()}")
         return self
