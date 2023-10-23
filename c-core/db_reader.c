@@ -9,7 +9,7 @@
 
 void db_reader_init(struct db_reader *x)
 {
-  x->nproteins = 0;
+  x->num_proteins = 0;
   x->protein_sizes = NULL;
   x->fp = NULL;
 }
@@ -21,7 +21,7 @@ int db_reader_open(struct db_reader *x, char const *filename)
   int rc = 0;
   if (!(x->fp = fopen(filename, "rb"))) defer_return(DCP_EOPENDB);
 
-  x->nproteins = 0;
+  x->num_proteins = 0;
   x->protein_sizes = NULL;
   lip_file_init(&x->file, x->fp);
 
@@ -76,14 +76,14 @@ static int unpack_header_protein_sizes(struct db_reader *x)
   unsigned n = 0;
   if (!lip_read_1darray_size_type(&x->file, &n, &type)) return DCP_EFREAD;
   if (n > INT_MAX) return DCP_EFDATA;
-  x->nproteins = (int)n;
+  x->num_proteins = (int)n;
 
   if (type != LIP_1DARRAY_UINT32) return DCP_EFDATA;
 
-  x->protein_sizes = malloc(sizeof(*x->protein_sizes) * x->nproteins);
+  x->protein_sizes = malloc(sizeof(*x->protein_sizes) * x->num_proteins);
   if (!x->protein_sizes) return DCP_ENOMEM;
 
-  if (!lip_read_1darray_u32_data(&x->file, x->nproteins, x->protein_sizes))
+  if (!lip_read_1darray_u32_data(&x->file, x->num_proteins, x->protein_sizes))
   {
     free(x->protein_sizes);
     x->protein_sizes = NULL;

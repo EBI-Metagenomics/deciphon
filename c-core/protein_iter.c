@@ -5,11 +5,11 @@
 #include "protein_reader.h"
 
 void protein_iter_init(struct protein_iter *x, struct protein_reader *reader,
-                       int partition, int start_idx, long offset, FILE *fp)
+                       int start_idx, int end_idx, long offset, FILE *fp)
 {
-  x->partition = partition;
   x->start_idx = start_idx;
   x->curr_idx = start_idx - 1;
+  x->end_idx = end_idx;
   x->offset = offset;
   x->fp = fp;
   lip_file_init(&x->file, fp);
@@ -37,8 +37,7 @@ int protein_iter_next(struct protein_iter *x, struct protein *protein)
 
 bool protein_iter_end(struct protein_iter const *x)
 {
-  int size = protein_reader_partition_size(x->reader, x->partition);
-  return x->start_idx + size == x->curr_idx;
+  return x->curr_idx == x->end_idx;
 }
 
 int protein_iter_idx(struct protein_iter const *x) { return x->curr_idx; }

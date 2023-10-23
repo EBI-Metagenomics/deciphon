@@ -8,7 +8,7 @@
 
 struct db_reader
 {
-  int nproteins;
+  int num_proteins;
   uint32_t *protein_sizes;
   FILE *fp;
   struct lip_file file;

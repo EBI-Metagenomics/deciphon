@@ -9,9 +9,9 @@ struct protein_reader;
 
 struct protein_iter
 {
-  int partition;
   int start_idx;
   int curr_idx;
+  int end_idx;
   long offset;
   FILE *fp;
   struct lip_file file;
@@ -19,7 +19,7 @@ struct protein_iter
 };
 
 void protein_iter_init(struct protein_iter *, struct protein_reader *,
-                       int partition, int start_idx, long offset, FILE *);
+                       int start_idx, int end_idx, long offset, FILE *);
 int protein_iter_rewind(struct protein_iter *);
 int protein_iter_next(struct protein_iter *, struct protein *);
 bool protein_iter_end(struct protein_iter const *);
