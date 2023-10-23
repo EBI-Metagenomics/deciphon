@@ -7,7 +7,6 @@
 #include "imm/imm.h"
 #include "reduce_fmax.h"
 #include "trellis.h"
-#include "viterbi_index.h"
 #include "viterbi_task.h"
 
 INLINE float onto_N(struct trellis *t, float const S[restrict],

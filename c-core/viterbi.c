@@ -10,7 +10,6 @@
 #include "reduce_fmax.h"
 #include "scan_thread.h"
 #include "trellis.h"
-#include "viterbi_index.h"
 #include "viterbi_onto.h"
 #include "viterbi_task.h"
 #include <stdlib.h>
