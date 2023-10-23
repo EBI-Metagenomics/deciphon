@@ -10,10 +10,12 @@ struct hmmer
   struct hmmer_result result;
 };
 
-int hmmer_init(struct hmmer *);
+// clang-format off
+int  hmmer_init(struct hmmer *);
 bool hmmer_online(struct hmmer const *);
 void hmmer_cleanup(struct hmmer *);
-int hmmer_warmup(struct hmmer *);
-int hmmer_get(struct hmmer *, int hmmidx, char const *name, char const *seq);
+int  hmmer_warmup(struct hmmer *);
+int  hmmer_get(struct hmmer *, int hmmidx, char const *name, char const *seq);
+// clang-format on
 
 #endif

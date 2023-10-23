@@ -4,7 +4,7 @@
 #include "hmmer_result.h"
 #include "rc.h"
 
-#define NUM_RETRIES 15
+#define NUM_RETRIES 30
 #define REQUEST_DEADLINE 30000
 #define WARMUP_DEADLINE 10000
 

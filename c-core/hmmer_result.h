@@ -10,11 +10,12 @@ struct hmmer_result
   struct h3client_result *handle;
 };
 
-int hmmer_result_init(struct hmmer_result *);
-void hmmer_result_cleanup(struct hmmer_result *);
-
-int hmmer_result_nhits(struct hmmer_result const *);
+// clang-format off
+int   hmmer_result_init(struct hmmer_result *);
+void  hmmer_result_cleanup(struct hmmer_result *);
+int   hmmer_result_num_hits(struct hmmer_result const *);
 float hmmer_result_evalue(struct hmmer_result const *);
-int hmmer_result_pack(struct hmmer_result const *, FILE *);
+int   hmmer_result_pack(struct hmmer_result const *, FILE *);
+// clang-format on
 
 #endif

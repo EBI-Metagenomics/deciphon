@@ -11,10 +11,12 @@ struct hmmer_dialer
   struct h3client_dialer *dialer;
 };
 
+// clang-format off
 void hmmer_dialer_init(struct hmmer_dialer *);
-int hmmer_dialer_setup(struct hmmer_dialer *, int port);
-bool hmmer_dialer_isset(struct hmmer_dialer const *);
+int  hmmer_dialer_setup(struct hmmer_dialer *, int port);
+bool hmmer_dialer_online(struct hmmer_dialer const *);
 void hmmer_dialer_cleanup(struct hmmer_dialer *);
-int hmmer_dialer_dial(struct hmmer_dialer *, struct hmmer *);
+int  hmmer_dialer_dial(struct hmmer_dialer *, struct hmmer *);
+// clang-format on
 
 #endif

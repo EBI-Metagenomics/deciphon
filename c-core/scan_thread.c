@@ -41,7 +41,7 @@ int scan_thread_setup(struct scan_thread *x, struct scan_thread_params params)
   x->hmmer3_compat = params.hmmer3_compat;
 
   if ((rc = hmmer_init(&x->hmmer))) defer_return(rc);
-  if (hmmer_dialer_isset(params.dialer))
+  if (hmmer_dialer_online(params.dialer))
   {
     if ((rc = hmmer_dialer_dial(params.dialer, &x->hmmer))) defer_return(rc);
     if ((rc = hmmer_warmup(&x->hmmer))) defer_return(rc);
@@ -100,7 +100,7 @@ static int run(struct scan_thread *x, int protein_idx, struct window const *w)
   {
     if ((rc = hmmer_get(&x->hmmer, protein_idx, seq->name, x->amino.data)))
       return rc;
-    if (hmmer_result_nhits(&x->hmmer.result) == 0) return rc;
+    if (hmmer_result_num_hits(&x->hmmer.result) == 0) return rc;
     x->product->line.evalue = hmmer_result_evalue(&x->hmmer.result);
     if ((rc = product_thread_put_hmmer(x->product, &x->hmmer.result)))
       return rc;
