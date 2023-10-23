@@ -24,7 +24,7 @@ void protein_init(struct protein *x, struct model_params params)
   memset(x->consensus, 0, array_size_field(struct protein, consensus));
 
   x->core_size = 0;
-  protein_null_init(&x->null);
+  protein_null_init(&x->null, params.code->nuclt);
   protein_background_init(&x->bg, params.code->nuclt);
   x->nodes = NULL;
   x->emission = NULL;

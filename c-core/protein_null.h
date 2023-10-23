@@ -15,7 +15,7 @@ struct imm_score_table;
 struct xtrans;
 struct model;
 
-void protein_null_init(struct protein_null *);
+void protein_null_init(struct protein_null *, struct imm_nuclt const *);
 void protein_null_setup(struct protein_null *, struct xtrans const *);
 void protein_null_absorb(struct protein_null *, struct imm_score_table *,
                          struct nuclt_dist const *, struct imm_state const *);
