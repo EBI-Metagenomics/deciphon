@@ -15,8 +15,8 @@
 
 #include "fs.h"
 #include "array_size.h"
-#include "rc.h"
 #include "deciphon_limits.h"
+#include "rc.h"
 #include "xstrcpy.h"
 #include <assert.h>
 #include <errno.h>
@@ -71,15 +71,17 @@ int fs_copy(FILE *restrict dst, FILE *restrict src)
   return 0;
 }
 
+static int getpath(FILE *restrict fp, unsigned size, char *filepath);
+
 int fs_refopen(FILE *restrict fp, char const *mode, FILE **out)
 {
   char filepath[FILENAME_MAX] = {0};
-  int rc = fs_getpath(fp, sizeof filepath, filepath);
+  int rc = getpath(fp, sizeof filepath, filepath);
   if (rc) return rc;
   return (*out = fopen(filepath, mode)) ? 0 : DCP_EREFOPEN;
 }
 
-int fs_getpath(FILE *restrict fp, unsigned size, char *filepath)
+int getpath(FILE *restrict fp, unsigned size, char *filepath)
 {
   int fd = fileno(fp);
   if (fd < 0) return DCP_EGETPATH;
@@ -103,51 +105,6 @@ int fs_getpath(FILE *restrict fp, unsigned size, char *filepath)
 }
 
 int fs_close(FILE *restrict fp) { return fclose(fp) ? DCP_EFCLOSE : 0; }
-
-int fs_readall(char const *filepath, long *size, unsigned char **data)
-{
-  *size = 0;
-  *data = NULL;
-  int rc = fs_size(filepath, size);
-  if (rc) return rc;
-
-  if (*size == 0) return 0;
-
-  FILE *fp = fopen(filepath, "rb");
-  if (!fp) return DCP_EFOPEN;
-
-  if (!(*data = malloc(*size)))
-  {
-    fclose(fp);
-    return DCP_ENOMEM;
-  }
-
-  if (fread(*data, *size, 1, fp) < 1)
-  {
-    fclose(fp);
-    free(*data);
-    return DCP_EFREAD;
-  }
-
-  return fclose(fp) ? DCP_EFCLOSE : 0;
-}
-
-int fs_tmpfile(FILE **out) { return (*out = tmpfile()) ? 0 : DCP_ETMPFILE; }
-
-int fs_copyp(FILE *restrict dst, FILE *restrict src)
-{
-  char buffer[8 * 1024];
-  size_t n = 0;
-  while ((n = fread(buffer, sizeof(*buffer), BUFFSIZE, src)) > 0)
-  {
-    if (n < BUFFSIZE && ferror(src)) return DCP_EFREAD;
-
-    if (fwrite(buffer, sizeof(*buffer), n, dst) < n) return DCP_EFWRITE;
-  }
-  if (ferror(src)) return DCP_EFREAD;
-
-  return 0;
-}
 
 static int fletcher16(FILE *fp, uint8_t *buf, size_t bufsize, long *chk)
 {
