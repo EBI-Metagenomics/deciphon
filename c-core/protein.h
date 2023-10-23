@@ -20,7 +20,7 @@ struct protein
   struct protein_null null;
   struct protein_background bg;
   struct protein_node *nodes;
-  float *nodes_emission;
+  float *emission;
   struct xtrans xtrans;
   float *BMk;
 };
@@ -32,7 +32,7 @@ void protein_setup(struct protein *, int seq_size, bool multi_hits,
 int protein_absorb(struct protein *, struct model *);
 int protein_sample(struct protein *, int seed, int core_size);
 void protein_cleanup(struct protein *);
-void protein_dump(struct protein const *, FILE *restrict);
+void protein_dump(struct protein const *, FILE *);
 
 int protein_pack(struct protein const *, struct lip_file *);
 int protein_unpack(struct protein *, struct lip_file *);

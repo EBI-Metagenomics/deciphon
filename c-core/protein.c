@@ -8,6 +8,8 @@
 #include "protein_background.h"
 #include "read.h"
 #include "state.h"
+#include "write.h"
+#include "xrealloc.h"
 #include "xstrcpy.h"
 #include <stdlib.h>
 #include <string.h>
@@ -24,7 +26,7 @@ void protein_init(struct protein *x, struct model_params params)
   protein_null_init(&x->null);
   protein_background_init(&x->bg);
   x->nodes = NULL;
-  x->nodes_emission = NULL;
+  x->emission = NULL;
   xtrans_init(&x->xtrans);
   x->BMk = NULL;
 }
@@ -91,39 +93,35 @@ int protein_absorb(struct protein *x, struct model *m)
                       &m->null.state.super);
   protein_background_absorb(&x->bg, m, &x->score_table);
 
-  void *ptr = realloc(x->nodes, (core_size + 1) * sizeof(*x->nodes));
-  if (!ptr) defer_return(DCP_ENOMEM);
-  x->nodes = ptr;
+  x->nodes = xrealloc(x->nodes, (core_size + 1) * sizeof(*x->nodes));
+  if (!x->nodes) defer_return(DCP_ENOMEM);
 
-  ptr =
-      realloc(x->nodes_emission,
-              (core_size + 1) * sizeof(*x->nodes_emission) * PROTEIN_NODE_SIZE);
-  if (!ptr) defer_return(DCP_ENOMEM);
-  x->nodes_emission = ptr;
+  n = (core_size + 1) * sizeof(*x->emission) * PROTEIN_NODE_SIZE;
+  x->emission = xrealloc(x->emission, n);
+  if (!x->emission) defer_return(DCP_ENOMEM);
 
   for (int i = 0; i <= core_size; ++i)
   {
-    float *e = x->nodes_emission + i * PROTEIN_NODE_SIZE;
-    struct model_node const *n = &m->alt.nodes[imm_min(i, core_size - 1)];
-    imm_score_table_scores(&x->score_table, &n->match.state.super, e);
-    x->nodes[i].nuclt_dist = n->match.nucltd;
+    float *e = x->emission + i * PROTEIN_NODE_SIZE;
+    struct model_node const *node = &m->alt.nodes[imm_min(i, core_size - 1)];
+    imm_score_table_scores(&x->score_table, &node->match.state.super, e);
+    x->nodes[i].nuclt_dist = node->match.nucltd;
     x->nodes[i].trans = m->alt.trans[imm_min(i + 1, core_size)];
     x->nodes[i].emission = e;
   }
 
-  ptr = realloc(x->BMk, core_size * sizeof(*x->BMk));
-  if (!ptr && x->core_size > 0) defer_return(DCP_ENOMEM);
-  x->BMk = ptr;
+  x->BMk = xrealloc(x->BMk, core_size * sizeof(*x->BMk));
+  if (!x->BMk && x->core_size > 0) defer_return(DCP_ENOMEM);
   memcpy(x->BMk, m->BMk, x->core_size * sizeof(*x->BMk));
 
   return rc;
 
 defer:
-  if (x->nodes) free(x->nodes);
-  if (x->nodes_emission) free(x->nodes_emission);
-  if (x->BMk) free(x->BMk);
+  free(x->nodes);
+  free(x->emission);
+  free(x->BMk);
   x->nodes = NULL;
-  x->nodes_emission = NULL;
+  x->emission = NULL;
   x->BMk = NULL;
   return rc;
 }
@@ -181,16 +179,16 @@ void protein_cleanup(struct protein *x)
   if (x)
   {
     imm_score_table_cleanup(&x->score_table);
-    if (x->nodes) free(x->nodes);
-    if (x->nodes_emission) free(x->nodes_emission);
-    if (x->BMk) free(x->BMk);
+    free(x->nodes);
+    free(x->emission);
+    free(x->BMk);
     x->nodes = NULL;
-    x->nodes_emission = NULL;
+    x->emission = NULL;
     x->BMk = NULL;
   }
 }
 
-void protein_dump(struct protein const *x, FILE *restrict fp)
+void protein_dump(struct protein const *x, FILE *fp)
 {
   fprintf(fp, "# protein\n");
   fprintf(fp, "entry_dist: %d\n", x->params.entry_dist);
@@ -244,64 +242,50 @@ int protein_pack(struct protein const *x, struct lip_file *file)
 {
   int rc = 0;
 
-  if (!lip_write_map_size(file, 10)) return DCP_EFWRITE;
+  if ((rc = write_mapsize(file, 10))) return rc;
 
-  if (!lip_write_cstr(file, "accession")) return DCP_EFWRITE;
+  if ((rc = write_key(file, "accession"))) return rc;
   if (!lip_write_cstr(file, x->accession)) return DCP_EFWRITE;
 
-  if (!lip_write_cstr(file, "gencode")) return DCP_EFWRITE;
-  if (!lip_write_int(file, x->params.gencode->id)) return DCP_EFWRITE;
+  if ((rc = write_key(file, "gencode"))) return rc;
+  if ((rc = write_int(file, x->params.gencode->id))) return DCP_EFWRITE;
 
-  if (!lip_write_cstr(file, "consensus")) return DCP_EFWRITE;
+  if ((rc = write_key(file, "consensus"))) return rc;
   if (!lip_write_cstr(file, x->consensus)) return DCP_EFWRITE;
 
-  if (!lip_write_cstr(file, "core_size")) return DCP_EFWRITE;
-  if (!lip_write_int(file, x->core_size)) return DCP_EFWRITE;
+  if ((rc = write_key(file, "core_size"))) return rc;
+  if ((rc = write_int(file, x->core_size))) return DCP_EFWRITE;
 
-  if (!lip_write_cstr(file, "null_nuclt_dist")) return DCP_EFWRITE;
+  if ((rc = write_key(file, "null_nuclt_dist"))) return rc;
   if ((rc = nuclt_dist_pack(&x->null.nuclt_dist, file))) return rc;
 
-  if (!lip_write_cstr(file, "null_emission")) return DCP_EFWRITE;
-  if (!lip_write_1darray_size_type(file, PROTEIN_NODE_SIZE, LIP_1DARRAY_F32))
-    return DCP_EFWRITE;
-  if (!lip_write_1darray_float_data(file, PROTEIN_NODE_SIZE, x->null.emission))
-    return DCP_EFWRITE;
+  if ((rc = write_key(file, "null_emission"))) return rc;
+  if ((rc = write_f32array(file, PROTEIN_NODE_SIZE, x->null.emission)))
+    return rc;
 
-  if (!lip_write_cstr(file, "bg_nuclt_dist")) return DCP_EFWRITE;
+  if ((rc = write_key(file, "bg_nuclt_dist"))) return rc;
   if ((rc = nuclt_dist_pack(&x->bg.nuclt_dist, file))) return rc;
 
-  if (!lip_write_cstr(file, "bg_emission")) return DCP_EFWRITE;
-  if (!lip_write_1darray_size_type(file, PROTEIN_NODE_SIZE, LIP_1DARRAY_F32))
-    return DCP_EFWRITE;
-  if (!lip_write_1darray_float_data(file, PROTEIN_NODE_SIZE, x->bg.emission))
-    return DCP_EFWRITE;
+  if ((rc = write_key(file, "bg_emission"))) return rc;
+  if ((rc = write_f32array(file, PROTEIN_NODE_SIZE, x->bg.emission))) return rc;
 
-  if (!lip_write_cstr(file, "nodes")) return DCP_EFWRITE;
-  if (!lip_write_map_size(file, (x->core_size + 1) * 3)) return DCP_EFWRITE;
+  if ((rc = write_key(file, "nodes"))) return rc;
+  if ((rc = write_mapsize(file, (x->core_size + 1) * 3))) return rc;
   for (int i = 0; i < x->core_size + 1; ++i)
   {
-    if (!lip_write_cstr(file, "nuclt_dist")) return DCP_EFWRITE;
+    if ((rc = write_key(file, "nuclt_dist"))) return rc;
     if ((rc = nuclt_dist_pack(&x->nodes[i].nuclt_dist, file))) return rc;
 
-    if (!lip_write_cstr(file, "trans")) return DCP_EFWRITE;
-    if (!lip_write_1darray_size_type(file, TRANS_SIZE, LIP_1DARRAY_F32))
-      return DCP_EFWRITE;
-    if (!lip_write_1darray_float_data(file, TRANS_SIZE, x->nodes[i].trans.data))
-      return DCP_EFWRITE;
+    if ((rc = write_key(file, "trans"))) return rc;
+    if ((rc = write_f32array(file, TRANS_SIZE, x->nodes[i].trans.data)))
+      return rc;
 
-    if (!lip_write_cstr(file, "emission")) return DCP_EFWRITE;
-    if (!lip_write_1darray_size_type(file, PROTEIN_NODE_SIZE, LIP_1DARRAY_F32))
-      return DCP_EFWRITE;
-    if (!lip_write_1darray_float_data(file, PROTEIN_NODE_SIZE,
-                                      x->nodes[i].emission))
-      return DCP_EFWRITE;
+    if ((rc = write_key(file, "emission"))) return rc;
+    if ((rc = write_f32array(file, PROTEIN_NODE_SIZE, x->nodes[i].emission)))
+      return rc;
   }
-
-  if (!lip_write_cstr(file, "BMk")) return DCP_EFWRITE;
-  if (!lip_write_1darray_size_type(file, x->core_size, LIP_1DARRAY_F32))
-    return DCP_EFWRITE;
-  if (!lip_write_1darray_float_data(file, x->core_size, x->BMk))
-    return DCP_EFWRITE;
+  if ((rc = write_key(file, "BMk"))) return rc;
+  if ((rc = write_f32array(file, x->core_size, x->BMk))) return rc;
 
   return 0;
 }
@@ -342,15 +326,12 @@ int protein_unpack(struct protein *x, struct lip_file *file)
   if ((rc = read_key(file, "bg_emission"))) return rc;
   if ((rc = read_f32array(file, PROTEIN_NODE_SIZE, x->bg.emission))) return rc;
 
-  void *ptr = realloc(x->nodes, (x->core_size + 1) * sizeof(*x->nodes));
-  if (!ptr) return DCP_ENOMEM;
-  x->nodes = ptr;
+  x->nodes = xrealloc(x->nodes, (x->core_size + 1) * sizeof(*x->nodes));
+  if (!x->nodes) return DCP_ENOMEM;
 
-  ptr = realloc(x->nodes_emission, (x->core_size + 1) *
-                                       sizeof(*x->nodes_emission) *
-                                       PROTEIN_NODE_SIZE);
-  if (!ptr) return DCP_EFWRITE;
-  x->nodes_emission = ptr;
+  size_t n = (x->core_size + 1) * sizeof(*x->emission) * PROTEIN_NODE_SIZE;
+  x->emission = xrealloc(x->emission, n);
+  if (!x->emission) return DCP_EFWRITE;
 
   if ((rc = read_key(file, "nodes"))) return rc;
   if ((rc = read_mapsize(file, (x->core_size + 1) * 3))) return rc;
@@ -363,16 +344,14 @@ int protein_unpack(struct protein *x, struct lip_file *file)
     if ((rc = read_f32array(file, TRANS_SIZE, x->nodes[i].trans.data)))
       return rc;
 
-    float *emission = x->nodes_emission + i * PROTEIN_NODE_SIZE;
-    x->nodes[i].emission = emission;
+    x->nodes[i].emission = x->emission + i * PROTEIN_NODE_SIZE;
     if ((rc = read_key(file, "emission"))) return rc;
     if ((rc = read_f32array(file, PROTEIN_NODE_SIZE, x->nodes[i].emission)))
       return rc;
   }
 
-  ptr = realloc(x->BMk, x->core_size * sizeof(*x->BMk));
-  if (!ptr && x->core_size > 0) return DCP_EFWRITE;
-  x->BMk = ptr;
+  x->BMk = xrealloc(x->BMk, x->core_size * sizeof(*x->BMk));
+  if (!x->BMk && x->core_size > 0) return DCP_EFWRITE;
 
   if ((rc = read_key(file, "BMk"))) return rc;
   if ((rc = read_f32array(file, x->core_size, x->BMk))) return rc;
