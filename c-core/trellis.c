@@ -15,9 +15,7 @@ int trellis_setup(struct trellis *x, int core_size, int seq_size)
 
   size_t num_stages = seq_size + 1;
   x->xnodes = xrealloc(x->xnodes, sizeof(*x->xnodes) * num_stages);
-
-  size_t size = num_stages * core_size;
-  x->nodes = xrealloc(x->nodes, sizeof(*x->nodes) * size);
+  x->nodes = xrealloc(x->nodes, sizeof(*x->nodes) * (num_stages * core_size));
 
   xstatic_assert(CHAR_BIT * sizeof(*x->xnodes) >= SPECIAL_BITS);
   xstatic_assert(CHAR_BIT * sizeof(*x->nodes) >= CORE_BITS);

@@ -44,11 +44,13 @@ struct trellis
   uint16_t *node;
 };
 
+// clang-format off
 void trellis_init(struct trellis *);
-int trellis_setup(struct trellis *, int core_size, int seq_size);
+int  trellis_setup(struct trellis *, int core_size, int seq_size);
 void trellis_cleanup(struct trellis *);
-int trellis_get_previous_state(struct trellis const *, int id);
-int trellis_get_emission_size(struct trellis const *, int id);
+int  trellis_get_previous_state(struct trellis const *, int id);
+int  trellis_get_emission_size(struct trellis const *, int id);
+// clang-format on
 
 // clang-format off
 CONST int trellis_xnode_get_field(uint32_t x, int state)

@@ -57,18 +57,13 @@ struct model
   float *BMk;
 };
 
-int model_add_node(struct model *, float const lp[IMM_AMINO_SIZE],
-                   char consensus);
-
-int model_add_trans(struct model *, struct trans);
-
+// clang-format off
+int  model_add_node(struct model *, float const lprobs[], char consensus);
+int  model_add_trans(struct model *, struct trans);
 void model_cleanup(struct model const *);
-
-void model_init(struct model *, struct model_params params,
-                float const null_lprobs[IMM_AMINO_SIZE]);
-
-int model_setup(struct model *, int core_size);
-
+void model_init(struct model *, struct model_params, float const null_lprobs[]);
+int  model_setup(struct model *, int core_size);
 void model_write_dot(struct model const *, FILE *);
+// clang-format on
 
 #endif

@@ -6,6 +6,7 @@
 #include "node.h"
 #include "nuclt_dist.h"
 #include "rc.h"
+#include "xrealloc.h"
 #include <assert.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -51,8 +52,7 @@ int setup_entry_trans(struct model *);
 int setup_exit_trans(struct model *);
 int setup_transitions(struct model *);
 
-int model_add_node(struct model *x, float const lprobs[IMM_AMINO_SIZE],
-                   char consensus)
+int model_add_node(struct model *x, float const lprobs[], char consensus)
 {
   if (!have_called_setup(x)) return DCP_EFUNCUSE;
 
@@ -111,7 +111,7 @@ void model_cleanup(struct model const *x)
 }
 
 void model_init(struct model *x, struct model_params params,
-                float const null_lprobs[IMM_AMINO_SIZE])
+                float const null_lprobs[])
 {
   x->params = params;
   x->core_size = 0;
@@ -174,24 +174,20 @@ int model_setup(struct model *x, int core_size)
   int n = x->core_size;
   x->alt.node_idx = 0;
 
-  void *ptr = realloc(x->BMk, n * sizeof(*x->BMk));
-  if (!ptr && n > 0) defer_return(DCP_ENOMEM);
-  x->BMk = ptr;
+  x->BMk = xrealloc(x->BMk, n * sizeof(*x->BMk));
+  if (!x->BMk && n > 0) defer_return(DCP_ENOMEM);
 
-  ptr = realloc(x->alt.nodes, n * sizeof(*x->alt.nodes));
-  if (!ptr && n > 0) defer_return(DCP_ENOMEM);
-  x->alt.nodes = ptr;
+  x->alt.nodes = xrealloc(x->alt.nodes, n * sizeof(*x->alt.nodes));
+  if (!x->alt.nodes && n > 0) defer_return(DCP_ENOMEM);
 
   if (x->params.entry_dist == ENTRY_DIST_OCCUPANCY)
   {
-    ptr = realloc(x->alt.locc, n * sizeof(*x->alt.locc));
-    if (!ptr && n > 0) defer_return(DCP_ENOMEM);
-    x->alt.locc = ptr;
+    x->alt.locc = xrealloc(x->alt.locc, n * sizeof(*x->alt.locc));
+    if (!x->alt.locc && n > 0) defer_return(DCP_ENOMEM);
   }
   x->alt.trans_idx = 0;
-  ptr = realloc(x->alt.trans, (n + 1) * sizeof(*x->alt.trans));
-  if (!ptr) defer_return(DCP_ENOMEM);
-  x->alt.trans = ptr;
+  x->alt.trans = xrealloc(x->alt.trans, (n + 1) * sizeof(*x->alt.trans));
+  if (!x->alt.trans) defer_return(DCP_ENOMEM);
 
   model_reset(x);
   return add_xnodes(x);
