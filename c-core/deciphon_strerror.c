@@ -1,4 +1,4 @@
-#include "strerror.h"
+#include "deciphon_strerror.h"
 #include "array_size.h"
 #include "rc.h"
 #include <stdio.h>
@@ -67,7 +67,7 @@ static char const *msg[] = {
     [DCP_ELONGCONSENSUS] = "consensus string is too long",
 };
 
-char const *dcp_strerror(int errno)
+char const *deciphon_strerror(int errno)
 {
   if (errno > 0 && errno < (int)array_size(msg)) return msg[errno];
 

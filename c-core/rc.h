@@ -2,7 +2,7 @@
 #define RC_H
 
 // clang-format off
-enum dcp_rc
+enum rc
 {
   DCP_EDIFFABC       = 1,
   DCP_EFCLOSE        = 2,

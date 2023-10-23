@@ -11,7 +11,7 @@ static inline long ceildiv(long x, long y)
   return (x + y - 1) / y;
 }
 
-long dcp_partition_size(long nelems, long nparts, long idx)
+long partition_size(long nelems, long nparts, long idx)
 {
   return ceildiv(MAX(0, nelems - idx), nparts);
 }

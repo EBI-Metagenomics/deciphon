@@ -10,7 +10,7 @@ enum entry_dist
   DCP_ENTRY_DIST_OCCUPANCY,
 };
 
-static inline bool dcp_entry_dist_valid(int x)
+static inline bool entry_dist_valid(int x)
 {
   return x > DCP_ENTRY_DIST_NULL && x <= DCP_ENTRY_DIST_OCCUPANCY;
 }

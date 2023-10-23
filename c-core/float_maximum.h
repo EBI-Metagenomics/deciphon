@@ -1,10 +1,10 @@
-#ifndef DCP_FMAX_H
-#define DCP_FMAX_H
+#ifndef FLOAT_MAXIMUM_H
+#define FLOAT_MAXIMUM_H
 
 #include "compiler.h"
 #include <math.h>
 
-DCP_CONST float dcp_fmax(float a, float b)
+DCP_CONST float float_maximum(float a, float b)
 {
 #if __aarch64__
   return fmax(a, b);

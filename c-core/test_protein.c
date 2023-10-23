@@ -59,12 +59,12 @@ static void test_protein_uniform(void)
 
   eq(imm_path_step(&task.path, 0)->seqsize, 0);
   eq(imm_path_step(&task.path, 0)->state_id, STATE_S);
-  dcp_state_name(imm_path_step(&task.path, 0)->state_id, name);
+  state_name(imm_path_step(&task.path, 0)->state_id, name);
   cmp(name, "S");
 
   eq(imm_path_step(&task.path, 13)->seqsize, 0);
   eq(imm_path_step(&task.path, 13)->state_id, STATE_T);
-  dcp_state_name(imm_path_step(&task.path, 13)->state_id, name);
+  state_name(imm_path_step(&task.path, 13)->state_id, name);
   cmp(name, "T");
 
   struct codec codec = codec_init(&protein, &task.path);
@@ -141,12 +141,12 @@ static void test_protein_occupancy(void)
 
   eq(imm_path_step(&task.path, 0)->seqsize, 0);
   eq(imm_path_step(&task.path, 0)->state_id, STATE_S);
-  dcp_state_name(imm_path_step(&task.path, 0)->state_id, name);
+  state_name(imm_path_step(&task.path, 0)->state_id, name);
   cmp(name, "S");
 
   eq(imm_path_step(&task.path, 13)->seqsize, 0);
   eq(imm_path_step(&task.path, 13)->state_id, STATE_T);
-  dcp_state_name(imm_path_step(&task.path, 13)->state_id, name);
+  state_name(imm_path_step(&task.path, 13)->state_id, name);
   cmp(name, "T");
 
   struct codec codec = codec_init(&protein, &task.path);

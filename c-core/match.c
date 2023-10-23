@@ -13,7 +13,7 @@ int match_setup(struct match *x, struct imm_step step, struct imm_seq seq)
   x->step = step;
   x->seq = seq;
 
-  if (!dcp_state_is_mute(step.state_id))
+  if (!state_is_mute(step.state_id))
   {
     x->codon = imm_codon_any(x->protein->params.code->nuclt);
     return protein_decode(x->protein, &seq, step.state_id, &x->codon);
@@ -28,14 +28,14 @@ void match_state_name(struct match const *x, char *dst)
 
 bool match_state_is_mute(struct match const *x)
 {
-  return dcp_state_is_mute(x->step.state_id);
+  return state_is_mute(x->step.state_id);
 }
 
 bool match_state_is_core(struct match const *x)
 {
-  return dcp_state_is_match(x->step.state_id) ||
-         dcp_state_is_insert(x->step.state_id) ||
-         dcp_state_is_delete(x->step.state_id);
+  return state_is_match(x->step.state_id) ||
+         state_is_insert(x->step.state_id) ||
+         state_is_delete(x->step.state_id);
 }
 
 char match_amino(struct match const *x)

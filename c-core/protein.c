@@ -17,7 +17,7 @@ void protein_init(struct protein *x, struct model_params params)
   x->params = params;
 
   memset(x->accession, 0, array_size_field(struct protein, accession));
-  x->state_name = &dcp_state_name;
+  x->state_name = &state_name;
 
   x->epsilon_frame = imm_frame_epsilon(params.epsilon);
 
@@ -390,16 +390,16 @@ int protein_unpack(struct protein *x, struct lip_file *file)
 int protein_decode(struct protein const *x, struct imm_seq const *seq,
                    int state_id, struct imm_codon *codon)
 {
-  assert(!dcp_state_is_mute(state_id));
+  assert(!state_is_mute(state_id));
 
   struct nuclt_dist const *nucltd = NULL;
-  if (dcp_state_is_insert(state_id))
+  if (state_is_insert(state_id))
   {
     nucltd = &x->bg.nuclt_dist;
   }
-  else if (dcp_state_is_match(state_id))
+  else if (state_is_match(state_id))
   {
-    int idx = dcp_state_idx(state_id);
+    int idx = state_idx(state_id);
     nucltd = &x->nodes[idx].nuclt_dist;
   }
   else

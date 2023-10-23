@@ -1,10 +1,10 @@
 #ifndef DB_WRITER_H
 #define DB_WRITER_H
 
+#include "deciphon_limits.h"
 #include "imm/imm.h"
 #include "lip/lip.h"
 #include "model_params.h"
-#include "size.h"
 #include <stdio.h>
 
 struct db_writer

@@ -1,6 +1,6 @@
-#include "u16toa.h"
+#include "xu16toa.h"
 
-int dcp_u16toa(char *str, uint16_t num)
+int xu16toa(char *str, uint16_t num)
 {
   char const *const begin = str;
   *str = '0';

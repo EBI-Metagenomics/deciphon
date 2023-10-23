@@ -91,7 +91,7 @@ static void partition_it(struct protein_reader *x)
   int part = 0;
   for (int i = 0; i < k; ++i)
   {
-    int size = (int)dcp_partition_size(n, k, i);
+    int size = (int)partition_size(n, k, i);
 
     x->partition_csum[i + 1] = x->partition_csum[i] + size;
 

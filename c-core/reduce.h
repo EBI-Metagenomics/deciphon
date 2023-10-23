@@ -2,7 +2,7 @@
 #define REDUCE_H
 
 #include "compiler.h"
-#include "fmax.h"
+#include "float_maximum.h"
 #include <float.h>
 #include <math.h>
 
@@ -33,10 +33,10 @@ DCP_CONST float reduce_fmax(int const size, float const array[restrict])
 #endif
 
   for (; i < size; i++)
-    max = dcp_fmax(max, x[i]);
+    max = float_maximum(max, x[i]);
 
 #if __ARM_NEON
-  if (size > 3) max = dcp_fmax(max, vmaxvq_f32(r));
+  if (size > 3) max = float_maximum(max, vmaxvq_f32(r));
 #endif
 #if __AVX__
   if (size > 7)
@@ -44,7 +44,7 @@ DCP_CONST float reduce_fmax(int const size, float const array[restrict])
     r = _mm256_max_ps(r, _mm256_permute_ps(r, _MM_SHUFFLE(2, 3, 0, 1)));
     r = _mm256_max_ps(r, _mm256_permute_ps(r, _MM_SHUFFLE(1, 0, 3, 2)));
     r = _mm256_max_ps(r, _mm256_permute2f128_ps(r, r, _MM_SHUFFLE(0, 0, 0, 1)));
-    max = dcp_fmax(max, _mm_cvtss_f32(_mm256_castps256_ps128(r)));
+    max = float_maximum(max, _mm_cvtss_f32(_mm256_castps256_ps128(r)));
   }
 #endif
 

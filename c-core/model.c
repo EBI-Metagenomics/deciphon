@@ -208,17 +208,7 @@ defer:
 
 void model_write_dot(struct model const *x, FILE *fp)
 {
-  imm_hmm_dump(&x->alt.hmm, dcp_state_name, fp);
-}
-
-struct imm_amino const *dcp_model_amino(struct model const *x)
-{
-  return x->params.amino;
-}
-
-struct imm_nuclt const *dcp_model_nuclt(struct model const *x)
-{
-  return x->params.code->nuclt;
+  imm_hmm_dump(&x->alt.hmm, state_name, fp);
 }
 
 int add_xnodes(struct model *x)
@@ -306,7 +296,7 @@ bool have_finished_add(struct model const *x)
 
 void init_delete(struct imm_mute_state *state, struct model *x)
 {
-  int id = dcp_state_make_delete_id(x->alt.node_idx);
+  int id = state_make_delete_id(x->alt.node_idx);
   imm_mute_state_init(state, id, &x->params.code->nuclt->super);
 }
 
@@ -314,7 +304,7 @@ void init_insert(struct imm_frame_state *state, float epsilon,
                  struct nuclt_dist const *nucltd, int node_idx)
 {
   float e = epsilon;
-  int id = dcp_state_make_insert_id(node_idx);
+  int id = state_make_insert_id(node_idx);
   struct imm_nuclt_lprob const *nucltp = &nucltd->nucltp;
   struct imm_codon_marg const *codonm = &nucltd->codonm;
 
@@ -325,7 +315,7 @@ void init_match(struct imm_frame_state *state, struct model *x,
                 struct nuclt_dist *d)
 {
   float e = x->params.epsilon;
-  int id = dcp_state_make_match_id(x->alt.node_idx);
+  int id = state_make_match_id(x->alt.node_idx);
   imm_frame_state_init(state, id, &d->nucltp, &d->codonm, e, imm_span(1, 5));
 }
 

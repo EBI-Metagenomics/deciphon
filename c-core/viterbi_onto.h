@@ -45,7 +45,7 @@ DCP_INLINE float onto_B(struct trellis *t, float const S[restrict],
       S[lukbak(0)] + SB + 0,
       N[lukbak(0)] + NB + 0,
   };
-  if (!t) return dcp_fmax(x[0], x[1]);
+  if (!t) return float_maximum(x[0], x[1]);
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
@@ -173,7 +173,7 @@ DCP_INLINE float onto_D(struct trellis *t, float const M[restrict],
       M[lukbak(0)] + MD + 0,
       D[lukbak(0)] + DD + 0,
   };
-  if (!t) return dcp_fmax(x[0], x[1]);
+  if (!t) return float_maximum(x[0], x[1]);
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
@@ -273,7 +273,7 @@ DCP_INLINE float onto_T(struct trellis *t, float const E[restrict],
     E[lukbak(0)] + ET + 0,
     C[lukbak(0)] + CT + 0,
   };
-  if (!t) return dcp_fmax(x[0], x[1]);
+  if (!t) return float_maximum(x[0], x[1]);
   // clang-format on
 
   int i = find_fmax(array_size(x), x);

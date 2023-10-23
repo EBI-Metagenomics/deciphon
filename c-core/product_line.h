@@ -1,7 +1,7 @@
 #ifndef PRODUCT_LINE_H
 #define PRODUCT_LINE_H
 
-#include "size.h"
+#include "deciphon_limits.h"
 
 struct product_line
 {

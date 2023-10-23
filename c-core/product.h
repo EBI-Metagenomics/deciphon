@@ -2,7 +2,7 @@
 #define PRODUCT_H
 
 #include "product_thread.h"
-#include "size.h"
+#include "deciphon_limits.h"
 #include <stdbool.h>
 
 struct product

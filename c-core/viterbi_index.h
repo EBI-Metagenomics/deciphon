@@ -28,9 +28,9 @@ DCP_CONST int ID(int index, int core_size)
   if (index < IX(STATE_E, 0, core_size))
   {
     int core_index = (index - 3) / 3;
-    if (index % 3 == 0) return dcp_state_make_match_id(core_index);
-    if (index % 3 == 1) return dcp_state_make_delete_id(core_index);
-    if (index % 3 == 2) return dcp_state_make_insert_id(core_index);
+    if (index % 3 == 0) return state_make_match_id(core_index);
+    if (index % 3 == 1) return state_make_delete_id(core_index);
+    if (index % 3 == 2) return state_make_insert_id(core_index);
     DCP_UNREACHABLE();
   }
   if (index == IX(STATE_E, 0, core_size)) return STATE_E;

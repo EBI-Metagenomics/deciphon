@@ -263,8 +263,8 @@ DCP_INLINE void viterbi_on_range(struct protein *x, struct viterbi_task *task,
       Dk = dp_next(Dk);
       Dk[lukbak(0)] = Dn;
 
-      Emax = dcp_fmax(Emax, Mn + xt.ME + 0);
-      Emax = dcp_fmax(Emax, Dn + xt.DE + 0);
+      Emax = float_maximum(Emax, Mn + xt.ME + 0);
+      Emax = float_maximum(Emax, Dn + xt.DE + 0);
     }
     // Skip transition into Ik1 state (does not exist)
     if (tr) trellis_next_node(tr);
@@ -333,19 +333,19 @@ int viterbi(struct protein *x, struct imm_eseq const *eseq,
 
 static int unzip_path(struct trellis *x, int seq_size, struct imm_path *path)
 {
-  int state = dcp_state_make_end();
+  int state = state_make_end();
   assert(seq_size <= INT_MAX);
   int stage = (int)seq_size;
   trellis_seek_xnode(x, stage);
 
-  while (!dcp_state_is_start(state) || stage)
+  while (!state_is_start(state) || stage)
   {
     int size = trellis_get_emission_size(x, state);
     if (imm_path_add(path, imm_step(state, size, 0))) return DCP_ENOMEM;
     state = trellis_get_previous_state(x, state);
     stage -= size;
-    if (dcp_state_is_core(state))
-      trellis_seek_node(x, stage, dcp_state_idx(state));
+    if (state_is_core(state))
+      trellis_seek_node(x, stage, state_idx(state));
     else
       trellis_seek_xnode(x, stage);
   }

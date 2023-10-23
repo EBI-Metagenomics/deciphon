@@ -37,7 +37,7 @@ int db_reader_open(struct db_reader *x, char const *filename)
 
   if ((rc = read_key(&x->file, "entry_dist"))) defer_return(rc);
   if ((rc = read_int(&x->file, &x->entry_dist))) defer_return(rc);
-  if (!dcp_entry_dist_valid(x->entry_dist)) defer_return(DCP_EFDATA);
+  if (!entry_dist_valid(x->entry_dist)) defer_return(DCP_EFDATA);
 
   if ((rc = read_key(&x->file, "epsilon"))) defer_return(rc);
   if ((rc = read_float(&x->file, &x->epsilon))) defer_return(rc);
