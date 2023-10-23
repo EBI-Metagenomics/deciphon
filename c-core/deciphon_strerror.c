@@ -65,6 +65,7 @@ static char const *msg[] = {
     [DCP_EMKSTEMP] = "failed to make temporary file",
     [DCP_ELONGABC] = "abc string is too long",
     [DCP_ELONGCONSENSUS] = "consensus string is too long",
+    [DCP_ELARGECORESIZE] = "number of core nodes is too long",
 };
 
 char const *deciphon_strerror(int errno)

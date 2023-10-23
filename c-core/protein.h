@@ -1,7 +1,7 @@
 #ifndef PROTEIN_H
 #define PROTEIN_H
 
-#include "entry_dist.h"
+#include "deciphon_limits.h"
 #include "imm/imm.h"
 #include "model.h"
 #include "protein_background.h"
@@ -12,15 +12,10 @@ struct protein
 {
   struct model_params params;
 
-  char accession[32];
-  imm_state_name *state_name;
-
-  struct imm_frame_epsilon epsilon_frame;
-
+  char accession[DCP_ACCESSION_SIZE];
   struct imm_score_table score_table;
   char consensus[DCP_MODEL_MAX + 1];
 
-  float start_lprob;
   int core_size;
   struct protein_null null;
   struct protein_background bg;

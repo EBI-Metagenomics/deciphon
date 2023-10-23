@@ -17,14 +17,9 @@ void protein_init(struct protein *x, struct model_params params)
   x->params = params;
 
   memset(x->accession, 0, array_size_field(struct protein, accession));
-  x->state_name = &state_name;
-
-  x->epsilon_frame = imm_frame_epsilon(params.epsilon);
-
   imm_score_table_init(&x->score_table, &params.code->super);
   memset(x->consensus, 0, array_size_field(struct protein, consensus));
 
-  x->start_lprob = IMM_LPROB_ONE;
   x->core_size = 0;
   protein_null_init(&x->null);
   protein_background_init(&x->bg);
@@ -77,8 +72,6 @@ void protein_setup(struct protein *x, int seq_size, bool multi_hits,
   x->xtrans = t;
 }
 
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-
 int protein_absorb(struct protein *x, struct model *m)
 {
   int rc = 0;
@@ -92,8 +85,8 @@ int protein_absorb(struct protein *x, struct model *m)
   size_t n = array_size_field(struct protein, consensus);
   if (!xstrcpy(x->consensus, m->consensus, n)) defer_return(DCP_ELONGCONSENSUS);
 
-  x->start_lprob = IMM_LPROB_ONE;
   int core_size = x->core_size = m->core_size;
+  if (core_size > DCP_CORE_SIZE) defer_return(DCP_ELARGECORESIZE);
   protein_null_absorb(&x->null, &x->score_table, &m->null.nuclt_dist,
                       &m->null.state.super);
   protein_background_absorb(&x->bg, m, &x->score_table);
@@ -111,10 +104,10 @@ int protein_absorb(struct protein *x, struct model *m)
   for (int i = 0; i <= core_size; ++i)
   {
     float *e = x->nodes_emission + i * PROTEIN_NODE_SIZE;
-    struct model_node const *n = &m->alt.nodes[MIN(i, core_size - 1)];
+    struct model_node const *n = &m->alt.nodes[imm_min(i, core_size - 1)];
     imm_score_table_scores(&x->score_table, &n->match.state.super, e);
     x->nodes[i].nuclt_dist = n->match.nucltd;
-    x->nodes[i].trans = m->alt.trans[MIN(i + 1, core_size)];
+    x->nodes[i].trans = m->alt.trans[imm_min(i + 1, core_size)];
     x->nodes[i].emission = e;
   }
 
@@ -405,8 +398,8 @@ int protein_decode(struct protein const *x, struct imm_seq const *seq,
   else
     nucltd = &x->null.nuclt_dist;
 
-  struct imm_frame_cond cond = {x->epsilon_frame, &nucltd->nucltp,
-                                &nucltd->codonm};
+  struct imm_frame_cond cond = {imm_frame_epsilon(x->params.epsilon),
+                                &nucltd->nucltp, &nucltd->codonm};
 
   if (imm_lprob_is_nan(imm_frame_cond_decode(&cond, seq, codon)))
     return DCP_EDECODON;

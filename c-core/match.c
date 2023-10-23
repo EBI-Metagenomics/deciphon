@@ -23,7 +23,7 @@ int match_setup(struct match *x, struct imm_step step, struct imm_seq seq)
 
 void match_state_name(struct match const *x, char *dst)
 {
-  x->protein->state_name(x->step.state_id, dst);
+  state_name(x->step.state_id, dst);
 }
 
 bool match_state_is_mute(struct match const *x)

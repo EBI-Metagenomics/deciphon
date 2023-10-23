@@ -1,5 +1,5 @@
-#ifndef SIZE_H
-#define SIZE_H
+#ifndef DECIPHON_LIMITS_H
+#define DECIPHON_LIMITS_H
 
 enum deciphon_limits
 {
@@ -8,6 +8,8 @@ enum deciphon_limits
   DCP_NPARTITIONS_MAX = 128,
   DCP_NTHREADS_MAX = 128,
   DCP_PATH_MAX = 512,
+  DCP_ACCESSION_SIZE = 32,
+  DCP_CORE_SIZE = 16384,
 };
 
 #endif

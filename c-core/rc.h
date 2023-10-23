@@ -66,6 +66,7 @@ enum rc
   DCP_ELONGABC       = 60,
   DCP_ELONGCONSENSUS = 61,
   DCP_ENOTDIALED     = 62,
+  DCP_ELARGECORESIZE = 63,
 };
 // clang-format on
 
