@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import urllib.parse
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import requests
 from deciphon_core.schema import Gencode
@@ -28,9 +28,10 @@ class SchedHTTPError(HTTPError):
 
 
 class Sched:
-    def __init__(self, url: HttpUrl):
+    def __init__(self, url: HttpUrl, s3_url: Optional[HttpUrl]):
         logger.info(f"Sched URL: {url}")
         self._url = url
+        self.s3_url = s3_url
 
     def handle_http_response(self, response):
         logger.debug(f"{response.request} {response.request.url} {response}")
@@ -70,20 +71,20 @@ class Sched:
 
     def hmm_post(self, file: HMMFile, gencode: Gencode, epsilon: float):
         self.post(
-            self.url("/hmms/"),
+            self.url("hmms/"),
             params={"gencode": gencode, "epsilon": epsilon},
             json={"name": file.name},
         )
 
     def hmm_delete(self, hmm_id: int):
-        self.delete(self.url(f"/hmms/{hmm_id}"))
+        self.delete(self.url(f"hmms/{hmm_id}"))
 
     def hmm_list(self):
-        return self.get(self.url("/hmms")).json()
+        return self.get(self.url("hmms")).json()
 
     def db_post(self, file: DBFile):
         self.post(
-            self.url("/dbs/"),
+            self.url("dbs/"),
             json={
                 "name": file.name,
                 "gencode": int(file.gencode),
@@ -92,42 +93,42 @@ class Sched:
         )
 
     def db_delete(self, db_id: int):
-        self.delete(self.url(f"/dbs/{db_id}"))
+        self.delete(self.url(f"dbs/{db_id}"))
 
     def db_list(self):
-        return self.get(self.url("/dbs")).json()
+        return self.get(self.url("dbs")).json()
 
     def job_list(self):
-        return self.get(self.url("/jobs")).json()
+        return self.get(self.url("jobs")).json()
 
     def scan_post(self, scan: Scan):
-        self.post(self.url("/scans/"), json=scan.model_dump())
+        self.post(self.url("scans/"), json=scan.model_dump())
 
     def scan_delete(self, scan_id: int):
-        self.delete(self.url(f"/scans/{scan_id}"))
+        self.delete(self.url(f"scans/{scan_id}"))
 
     def scan_list(self):
-        return self.get(self.url("/scans")).json()
+        return self.get(self.url("scans")).json()
 
     def job_patch(self, x: JobUpdate):
         json = {"state": x.state.value, "progress": x.progress, "error": x.error}
         self.patch(self.url(f"jobs/{x.id}"), json=json)
 
     def seq_list(self):
-        return self.get(self.url("/seqs")).json()
+        return self.get(self.url("seqs")).json()
 
     def snap_post(self, scan_id: int, snap: FilePath):
         files = {"file": open(snap, "rb")}
-        self.post(self.url(f"/scans/{scan_id}/snap.dcs"), files=files)
+        self.post(self.url(f"scans/{scan_id}/snap.dcs"), files=files)
 
     def snap_get(self, scan_id: int):
-        return self.get(self.url(f"/scans/{scan_id}/snap.dcs")).content
+        return self.get(self.url(f"scans/{scan_id}/snap.dcs")).content
 
     def snap_delete(self, scan_id: int):
-        self.delete(self.url(f"/scans/{scan_id}/snap.dcs"))
+        self.delete(self.url(f"scans/{scan_id}/snap.dcs"))
 
     def snap_view(self, scan_id: int):
-        x = self.get(self.url(f"/scans/{scan_id}/snap.dcs/view")).text
+        x = self.get(self.url(f"scans/{scan_id}/snap.dcs/view")).text
         return strip_empty_lines(x)
 
     def url(self, endpoint: str):
@@ -151,11 +152,13 @@ class Presigned:
 
     def upload_hmm_post(self, filename: str):
         x = self._request(f"hmms/presigned-upload/{filename}")
-        return UploadPost(url=HttpUrl(x["url"]), fields=x["fields"])
+        url = self._sched.s3_url if self._sched.s3_url else HttpUrl(x["url"])
+        return UploadPost(url=url, fields=x["fields"])
 
     def upload_db_post(self, filename: str):
         x = self._request(f"dbs/presigned-upload/{filename}")
-        return UploadPost(url=HttpUrl(x["url"]), fields=x["fields"])
+        url = self._sched.s3_url if self._sched.s3_url else HttpUrl(x["url"])
+        return UploadPost(url=url, fields=x["fields"])
 
 
 class UploadPost(BaseModel):

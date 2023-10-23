@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20.2 FATAL_ERROR)
-project(deciphon VERSION 0.11.3 LANGUAGES C)
+project(deciphon VERSION 0.11.5 LANGUAGES C)
 
 include(cmake/warnings.cmake)
 include(cmake/sanitizers.cmake)
@@ -28,12 +28,18 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
-# A modern CPU having SSE2 will likely have AVX2.
-# Until Cmake team implements a check for AVX I
-# will leave it as it is.
-cmake_host_system_information(RESULT HAS_AVX QUERY HAS_SSE2)
-if(HAS_AVX)
+message(STATUS "CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
+  set(X86 TRUE)
+else()
+  set(X86 FALSE)
+endif()
+message(STATUS "X86: ${X86}")
+
+cmake_host_system_information(RESULT HAS_SSE2 QUERY HAS_SSE2)
+if(HAS_SSE2 AND X86)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mavx")
+  message(STATUS "Detected AVX extension.")
 endif()
 
 file(GLOB DECIPHON_SOURCES "*.c")

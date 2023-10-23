@@ -19,8 +19,11 @@ class LogLevel(str, Enum):
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="deciphon_sched_")
 
+    host: str = "0.0.0.0"
+    port: int = 8000
+
     endpoint_prefix: str = ""
-    allow_origins: list[str] = ["http://localhost"]
+    allow_origins: list[str] = ["http://127.0.0.1", "http://localhost"]
     log_level: LogLevel = LogLevel.info
 
     database_url: AnyUrl = AnyUrl("sqlite+pysqlite:///:memory:")

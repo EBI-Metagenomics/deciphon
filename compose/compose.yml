@@ -1,0 +1,49 @@
+version: "3.8"
+services:
+  sched:
+    image: danilohorta/deciphon-sched
+    restart: unless-stopped
+    ports: ["8000:8000"]
+    environment:
+      - DECIPHON_SCHED_PORT
+      - DECIPHON_SCHED_HOST
+      - DECIPHON_SCHED_ALLOW_ORIGINS
+      - DECIPHON_SCHED_LOG_LEVEL
+      - DECIPHON_SCHED_S3_URL
+      - DECIPHON_SCHED_MQTT_HOST
+      - DECIPHON_SCHED_MQTT_PORT
+      - DECIPHON_SCHED_DATABASE_URL
+    depends_on:
+      - s3
+      - mqtt
+      - presser
+      - scanner
+    command: ["deciphon-sched"]
+  presser:
+    image: danilohorta/deciphonctl
+    restart: unless-stopped
+    environment:
+      - DECIPHONCTL_SCHED_URL
+      - DECIPHONCTL_MQTT_HOST
+      - DECIPHONCTL_MQTT_PORT
+    depends_on:
+      - mqtt
+    command: ["deciphonctl", "presser", "run", "--log-level", "debug"]
+  scanner:
+    image: danilohorta/deciphonctl
+    restart: unless-stopped
+    environment:
+      - DECIPHONCTL_SCHED_URL
+      - DECIPHONCTL_MQTT_HOST
+      - DECIPHONCTL_MQTT_PORT
+    depends_on:
+      - mqtt
+    command: ["deciphonctl", "scanner", "run", "--log-level", "debug"]
+  s3:
+    image: quay.io/minio/minio
+    restart: unless-stopped
+    ports: ["9000:9000"]
+    command: ["server", "/data"]
+  mqtt:
+    image: library/eclipse-mosquitto
+    command: ["mosquitto", "-c", "/mosquitto-no-auth.conf"]

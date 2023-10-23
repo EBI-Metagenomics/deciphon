@@ -48,11 +48,11 @@ class Ext:
 
 
 EXTS = [
-    Ext("EBI-Metagenomics", "lip", "v0.5.3", "./", CMAKE_OPTS),
+    Ext("EBI-Metagenomics", "lip", "v0.5.4", "./", CMAKE_OPTS),
     Ext(
         "EBI-Metagenomics",
         "hmmer3",
-        "hmmer-reader-v0.7.2",
+        "hmmer-reader-v0.7.3",
         "./hmmer-reader",
         CMAKE_OPTS,
     ),
@@ -61,14 +61,14 @@ EXTS = [
     Ext(
         "EBI-Metagenomics",
         "hmmer3",
-        "h3client-v0.12.5",
+        "h3client-v0.12.6",
         "./h3client",
         CMAKE_OPTS + CPM_OPTS,
     ),
     Ext(
         "EBI-Metagenomics",
         "deciphon",
-        "c-core-v0.11.3",
+        "c-core-v0.11.5",
         "./c-core",
         CMAKE_OPTS + CPM_OPTS,
     ),
