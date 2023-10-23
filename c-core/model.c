@@ -447,7 +447,7 @@ int setup_entry_trans(struct model *x)
   }
   else
   {
-    assert(x->params.entry_dist == DCP_ENTRY_DIST_OCCUPANCY);
+    assert(x->params.entry_dist == ENTRY_DIST_OCCUPANCY);
     calculate_occupancy(x);
     struct imm_state *B = &x->xnode.alt.B.super;
     for (int i = 0; i < x->core_size; ++i)

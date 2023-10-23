@@ -27,9 +27,11 @@ struct db_writer
 
 struct protein;
 
+// clang-format off
 void db_writer_init(struct db_writer *, struct model_params);
-int db_writer_open(struct db_writer *, FILE *restrict);
-int db_writer_pack(struct db_writer *, struct protein const *);
-int db_writer_close(struct db_writer *);
+int  db_writer_open(struct db_writer *, FILE *restrict);
+int  db_writer_pack(struct db_writer *, struct protein const *);
+int  db_writer_close(struct db_writer *);
+// clang-format on
 
 #endif

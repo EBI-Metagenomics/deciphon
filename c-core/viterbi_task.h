@@ -29,7 +29,4 @@ int  viterbi_task_setup(struct viterbi_task *, int core_size, int seq_size,
 void viterbi_task_cleanup(struct viterbi_task *);
 // clang-format on
 
-CONST int lukbak(int i) { return i; }
-CONST int nchars(int n) { return n - 1; }
-
 #endif

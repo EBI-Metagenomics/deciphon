@@ -10,6 +10,9 @@
 #include "viterbi_dp.h"
 #include "viterbi_task.h"
 
+CONST int lukbak(int i) { return i; }
+CONST int nchars(int n) { return n - 1; }
+
 INLINE float onto_N(struct trellis *t, float const S[restrict],
                     float const N[restrict], float const SN, float const NN,
                     float const emission[restrict])
