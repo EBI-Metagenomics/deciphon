@@ -6,6 +6,7 @@
 #include "find.h"
 #include "imm/imm.h"
 #include "protein.h"
+#include "protein_node.h"
 #include "reduce.h"
 #include "scan_thread.h"
 #include "trellis.h"

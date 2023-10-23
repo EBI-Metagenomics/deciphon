@@ -14,7 +14,8 @@ struct protein_background
 struct imm_score_table;
 struct model;
 
-void protein_background_init(struct protein_background *);
+void protein_background_init(struct protein_background *,
+                             struct imm_nuclt const *);
 void protein_background_absorb(struct protein_background *,
                                struct model const *, struct imm_score_table *);
 

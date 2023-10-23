@@ -2,9 +2,10 @@
 #include "array_size.h"
 #include "imm/score_table.h"
 
-void protein_background_init(struct protein_background *x)
+void protein_background_init(struct protein_background *x,
+                             struct imm_nuclt const *nuclt)
 {
-  nuclt_dist_init(&x->nuclt_dist, &imm_dna_iupac.super);
+  nuclt_dist_init(&x->nuclt_dist, nuclt);
   for (size_t i = 0; i < array_size(x->emission); ++i)
     x->emission[i] = IMM_LPROB_NAN;
 }

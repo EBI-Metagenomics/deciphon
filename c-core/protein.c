@@ -6,6 +6,7 @@
 #include "lip/lip.h"
 #include "model.h"
 #include "protein_background.h"
+#include "protein_node.h"
 #include "read.h"
 #include "state.h"
 #include "write.h"
@@ -24,7 +25,7 @@ void protein_init(struct protein *x, struct model_params params)
 
   x->core_size = 0;
   protein_null_init(&x->null);
-  protein_background_init(&x->bg);
+  protein_background_init(&x->bg, params.code->nuclt);
   x->nodes = NULL;
   x->emission = NULL;
   xtrans_init(&x->xtrans);

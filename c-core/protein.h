@@ -5,7 +5,6 @@
 #include "imm/imm.h"
 #include "model.h"
 #include "protein_background.h"
-#include "protein_node.h"
 #include "protein_null.h"
 
 struct protein
