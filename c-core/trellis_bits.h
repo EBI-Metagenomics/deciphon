@@ -27,4 +27,9 @@ xstatic_assert(SPECIAL_BITS <= sizeof(uint32_t) * CHAR_BIT);
 #define CORE_BITS (MBITS + DBITS + IBITS)
 xstatic_assert(CORE_BITS <= sizeof(uint16_t) * CHAR_BIT);
 
+enum
+{
+  VITERBI_PAST_SIZE = 6
+};
+
 #endif

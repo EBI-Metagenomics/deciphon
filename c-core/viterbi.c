@@ -147,7 +147,7 @@ static struct extra_trans extra_trans(struct xtrans xt)
 INLINE void make_future(float x[])
 {
   memmove(&x[lukbak(1)], &x[lukbak(0)],
-          sizeof(float) * (DCP_VITERBI_PAST_SIZE - 1));
+          sizeof(float) * (VITERBI_PAST_SIZE - 1));
 }
 
 float viterbi_null(struct protein *x, struct imm_eseq const *eseq)
@@ -155,13 +155,13 @@ float viterbi_null(struct protein *x, struct imm_eseq const *eseq)
   int seq_size = (int)imm_eseq_size(eseq);
 
 #define NINF IMM_LPROB_ZERO
-  float S[DCP_VITERBI_PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
-  float R[DCP_VITERBI_PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
+  float S[VITERBI_PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
+  float R[VITERBI_PAST_SIZE] = {NINF, NINF, NINF, NINF, NINF, NINF};
 #undef NINF
   S[lukbak(0)] = 0;
 
-  int ix[DCP_VITERBI_PAST_SIZE - 1] ALIGNED = {0};
-  float null[DCP_VITERBI_PAST_SIZE - 1] ALIGNED = {0};
+  int ix[VITERBI_PAST_SIZE - 1] ALIGNED = {0};
+  float null[VITERBI_PAST_SIZE - 1] ALIGNED = {0};
   for (int r = 0; r < seq_size + 1; ++r)
   {
     fetch_indices(ix, eseq, r, false);
@@ -190,10 +190,10 @@ INLINE void viterbi_on_range(struct protein *x, struct viterbi_task *task,
   float *restrict C = task->C;
   float *restrict T = task->T;
 
-  int ix[DCP_VITERBI_PAST_SIZE - 1] ALIGNED = {0};
-  float null[DCP_VITERBI_PAST_SIZE - 1] ALIGNED = {0};
-  float bg[DCP_VITERBI_PAST_SIZE - 1] ALIGNED = {0};
-  float match[DCP_VITERBI_PAST_SIZE - 1] ALIGNED = {0};
+  int ix[VITERBI_PAST_SIZE - 1] ALIGNED = {0};
+  float null[VITERBI_PAST_SIZE - 1] ALIGNED = {0};
+  float bg[VITERBI_PAST_SIZE - 1] ALIGNED = {0};
+  float match[VITERBI_PAST_SIZE - 1] ALIGNED = {0};
 
   if (tr) trellis_seek_xnode(tr, row_start);
   if (tr) trellis_seek_node(tr, row_start, 0);

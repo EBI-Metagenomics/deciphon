@@ -1,6 +1,7 @@
 #include "viterbi_task.h"
 #include "defer_return.h"
 #include "rc.h"
+#include "viterbi_dp.h"
 #include <stdlib.h>
 
 void viterbi_task_init(struct viterbi_task *x)
@@ -17,7 +18,7 @@ int viterbi_task_setup(struct viterbi_task *x, int core_size, int seq_size,
   int rc = 0;
   if ((rc = dp_renew(&x->dp, core_size))) defer_return(rc);
 
-  for (int i = 0; i < DCP_VITERBI_PAST_SIZE; ++i)
+  for (int i = 0; i < VITERBI_PAST_SIZE; ++i)
   {
     x->S[i] = IMM_LPROB_ZERO;
     x->N[i] = IMM_LPROB_ZERO;
