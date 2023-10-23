@@ -1,6 +1,6 @@
-#include "deciphon_strerror.h"
 #include "array_size.h"
 #include "rc.h"
+#include "string_error.h"
 #include <stdio.h>
 
 static char const *msg[] = {
@@ -72,7 +72,7 @@ static char const *msg[] = {
     [DCP_EENDOFNODES] = "unexpected end of nodes",
 };
 
-char const *deciphon_strerror(int errno)
+char const *string_error(int errno)
 {
   if (errno > 0 && errno < (int)array_size(msg)) return msg[errno];
 
