@@ -93,7 +93,7 @@ INLINE float onto_M0(struct trellis *t, float const B[restrict],
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
-  trellis_set(t, STATE_MATCH, i);
+  trellis_set(t, STATE_M, i);
   return x[i];
 }
 
@@ -120,7 +120,7 @@ INLINE float onto_I(struct trellis *t, float const M[restrict],
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
-  trellis_set(t, STATE_INSERT, i);
+  trellis_set(t, STATE_I, i);
   return x[i];
 }
 
@@ -161,7 +161,7 @@ INLINE float onto_M(struct trellis *t, float const B[restrict],
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
-  trellis_set(t, STATE_MATCH, i);
+  trellis_set(t, STATE_M, i);
   return x[i];
 }
 
@@ -177,7 +177,7 @@ INLINE float onto_D(struct trellis *t, float const M[restrict],
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
-  trellis_set(t, STATE_DELETE, i);
+  trellis_set(t, STATE_D, i);
   return x[i];
 }
 
@@ -193,8 +193,8 @@ INLINE void fmax_idx(float *value, int *src, float new_value, int new_src)
 INLINE float onto_E(struct trellis *t, float *restrict dp, float const ME,
                         float const DE, int const core_size)
 {
-  float *Mk = dp_rewind(dp, STATE_MATCH);
-  float *Dk = dp_rewind(dp, STATE_DELETE);
+  float *Mk = dp_rewind(dp, STATE_M);
+  float *Dk = dp_rewind(dp, STATE_D);
   float x = Mk[lukbak(1)] + ME;
   // int src = MIX(0);
   int src = 0;

@@ -369,7 +369,7 @@ int protein_decode(struct protein const *x, struct imm_seq const *seq,
   if (state_is_insert(state_id))
     nucltd = &x->bg.nuclt_dist;
   else if (state_is_match(state_id))
-    nucltd = &x->nodes[state_idx(state_id)].nuclt_dist;
+    nucltd = &x->nodes[state_core_idx(state_id)].nuclt_dist;
   else
     nucltd = &x->null.nuclt_dist;
 

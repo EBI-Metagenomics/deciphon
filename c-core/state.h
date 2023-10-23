@@ -10,34 +10,36 @@ enum
 
 enum state_id
 {
-  STATE_MATCH = (0 << (STATE_ID_BITS - 2)),
-  STATE_INSERT = (1 << (STATE_ID_BITS - 2)),
-  STATE_DELETE = (2 << (STATE_ID_BITS - 2)),
-  STATE_EXT = (3 << (STATE_ID_BITS - 2)),
-  STATE_F = (STATE_EXT | 0),
-  STATE_R = (STATE_EXT | 1),
-  STATE_G = (STATE_EXT | 2),
-  STATE_S = (STATE_EXT | 3),
-  STATE_N = (STATE_EXT | 4),
-  STATE_B = (STATE_EXT | 5),
-  STATE_E = (STATE_EXT | 6),
-  STATE_J = (STATE_EXT | 7),
-  STATE_C = (STATE_EXT | 8),
-  STATE_T = (STATE_EXT | 9),
+  STATE_M = (0 << (STATE_ID_BITS - 2)),
+  STATE_I = (1 << (STATE_ID_BITS - 2)),
+  STATE_D = (2 << (STATE_ID_BITS - 2)),
+  STATE_X = (3 << (STATE_ID_BITS - 2)),
+  STATE_F = (STATE_X | 0),
+  STATE_R = (STATE_X | 1),
+  STATE_G = (STATE_X | 2),
+  STATE_S = (STATE_X | 3),
+  STATE_N = (STATE_X | 4),
+  STATE_B = (STATE_X | 5),
+  STATE_E = (STATE_X | 6),
+  STATE_J = (STATE_X | 7),
+  STATE_C = (STATE_X | 8),
+  STATE_T = (STATE_X | 9),
 };
 
-int state_make_end(void);
-bool state_is_start(int id);
-bool state_is_end(int id);
-bool state_is_core(int id);
-bool state_is_match(int id);
-bool state_is_insert(int id);
-bool state_is_delete(int id);
-bool state_is_mute(int id);
-int state_idx(int id);
+// clang-format off
+int   state_make_end(void);
+bool  state_is_start(int id);
+bool  state_is_end(int id);
+bool  state_is_core(int id);
+bool  state_is_match(int id);
+bool  state_is_insert(int id);
+bool  state_is_delete(int id);
+bool  state_is_mute(int id);
+int   state_core_idx(int id);
 char *state_name(int id, char *name);
-int state_make_match_id(int idx);
-int state_make_insert_id(int idx);
-int state_make_delete_id(int idx);
+int   state_make_match_id(int idx);
+int   state_make_insert_id(int idx);
+int   state_make_delete_id(int idx);
+// clang-format on
 
 #endif

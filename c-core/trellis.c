@@ -63,29 +63,29 @@ int trellis_get_previous_state(struct trellis const *x, int id)
 
   if (state_is_match(id))
   {
-    int s = (int[]){STATE_B, STATE_MATCH, STATE_INSERT, STATE_DELETE}[v / 5];
+    int s = (int[]){STATE_B, STATE_M, STATE_I, STATE_D}[v / 5];
     if (s == STATE_B) return STATE_B;
     assert(idx > 0);
-    if (s == STATE_MATCH) return state_make_match_id(idx - 1);
-    if (s == STATE_INSERT) return state_make_insert_id(idx - 1);
-    if (s == STATE_DELETE) return state_make_delete_id(idx - 1);
+    if (s == STATE_M) return state_make_match_id(idx - 1);
+    if (s == STATE_I) return state_make_insert_id(idx - 1);
+    if (s == STATE_D) return state_make_delete_id(idx - 1);
     UNREACHABLE();
   }
 
   if (state_is_delete(id))
   {
-    int s = (int[]){STATE_MATCH, STATE_DELETE}[v];
+    int s = (int[]){STATE_M, STATE_D}[v];
     assert(idx > 0);
-    if (s == STATE_MATCH) return state_make_match_id(idx - 1);
-    if (s == STATE_DELETE) return state_make_delete_id(idx - 1);
+    if (s == STATE_M) return state_make_match_id(idx - 1);
+    if (s == STATE_D) return state_make_delete_id(idx - 1);
     UNREACHABLE();
   }
 
   if (state_is_insert(id))
   {
-    int s = (int[]){STATE_MATCH, STATE_INSERT}[v / 5];
-    if (s == STATE_MATCH) return state_make_match_id(idx);
-    if (s == STATE_INSERT) return state_make_insert_id(idx);
+    int s = (int[]){STATE_M, STATE_I}[v / 5];
+    if (s == STATE_M) return state_make_match_id(idx);
+    if (s == STATE_I) return state_make_insert_id(idx);
     UNREACHABLE();
   }
 

@@ -9,9 +9,9 @@ CONST int IX(int id, int core_index, int core_size)
   if (id == STATE_S) return 0;
   if (id == STATE_N) return 1;
   if (id == STATE_B) return 2;
-  if (id == STATE_MATCH) return 3 + core_index * 3 + 0;
-  if (id == STATE_DELETE) return 3 + core_index * 3 + 1;
-  if (id == STATE_INSERT) return 3 + core_index * 3 + 2;
+  if (id == STATE_M) return 3 + core_index * 3 + 0;
+  if (id == STATE_D) return 3 + core_index * 3 + 1;
+  if (id == STATE_I) return 3 + core_index * 3 + 2;
   if (id == STATE_E) return 3 + core_size * 3 + 0;
   if (id == STATE_J) return 3 + core_size * 3 + 1;
   if (id == STATE_C) return 3 + core_size * 3 + 2;
@@ -45,9 +45,9 @@ CONST int SIX(void) { return IX(STATE_S, -1, -1); }
 CONST int NIX(void) { return IX(STATE_N, -1, -1); }
 CONST int BIX(void) { return IX(STATE_B, -1, -1); }
 
-CONST int MIX(int core_index) { return IX(STATE_MATCH, core_index, -1); }
-CONST int DIX(int core_index) { return IX(STATE_DELETE, core_index, -1); }
-CONST int IIX(int core_index) { return IX(STATE_INSERT, core_index, -1); }
+CONST int MIX(int core_index) { return IX(STATE_M, core_index, -1); }
+CONST int DIX(int core_index) { return IX(STATE_D, core_index, -1); }
+CONST int IIX(int core_index) { return IX(STATE_I, core_index, -1); }
 
 CONST int EIX(int core_size) { return IX(STATE_E, -1, core_size); }
 CONST int JIX(int core_size) { return IX(STATE_J, -1, core_size); }

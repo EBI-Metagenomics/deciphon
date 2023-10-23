@@ -36,9 +36,9 @@ INLINE void dp_del(float **dp)
 
 CONST float *dp_rewind(float *x, int state)
 {
-  if (state == STATE_MATCH) return x + 0 * DCP_VITERBI_PAST_SIZE;
-  if (state == STATE_INSERT) return x + 1 * DCP_VITERBI_PAST_SIZE;
-  if (state == STATE_DELETE) return x + 2 * DCP_VITERBI_PAST_SIZE;
+  if (state == STATE_M) return x + 0 * DCP_VITERBI_PAST_SIZE;
+  if (state == STATE_I) return x + 1 * DCP_VITERBI_PAST_SIZE;
+  if (state == STATE_D) return x + 2 * DCP_VITERBI_PAST_SIZE;
   UNREACHABLE();
   return NULL;
 }

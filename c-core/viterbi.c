@@ -216,9 +216,9 @@ INLINE void viterbi_on_range(struct protein *x, struct viterbi_task *task,
     make_future(S);
     make_future(N);
 
-    float *Mk = dp_rewind(task->dp, STATE_MATCH);
-    float *Ik = dp_rewind(task->dp, STATE_INSERT);
-    float *Dk = dp_rewind(task->dp, STATE_DELETE);
+    float *Mk = dp_rewind(task->dp, STATE_M);
+    float *Ik = dp_rewind(task->dp, STATE_I);
+    float *Dk = dp_rewind(task->dp, STATE_D);
     fetch_emission(match, x->nodes[0].emission, ix, safe);
 
     if (tr) trellis_clear_node(tr);
@@ -346,7 +346,7 @@ static int unzip_path(struct trellis *x, int seq_size, struct imm_path *path)
     state = trellis_get_previous_state(x, state);
     stage -= size;
     if (state_is_core(state))
-      trellis_seek_node(x, stage, state_idx(state));
+      trellis_seek_node(x, stage, state_core_idx(state));
     else
       trellis_seek_xnode(x, stage);
   }
