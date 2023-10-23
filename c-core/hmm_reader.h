@@ -17,9 +17,11 @@ struct hmm_reader
   bool end;
 };
 
+// clang-format off
 void hmm_reader_init(struct hmm_reader *, struct model_params, FILE *);
-int hmm_reader_next(struct hmm_reader *);
+int  hmm_reader_next(struct hmm_reader *);
 bool hmm_reader_end(struct hmm_reader const *);
 void hmm_reader_cleanup(struct hmm_reader const *);
+// clang-format on
 
 #endif

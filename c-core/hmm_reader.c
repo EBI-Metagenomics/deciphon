@@ -31,7 +31,7 @@ int hmm_reader_next(struct hmm_reader *h3r)
   if ((rc = model_setup(&h3r->model, core_size))) return rc;
 
   hmr_rc = hmr_next_node(&h3r->hmr, &h3r->protein);
-  assert(hmr_rc != HMR_EOF);
+  if (hmr_rc == HMR_EOF) return DCP_EENDOFFILE;
 
   struct trans t = {
       .MM = (float)h3r->protein.node.trans[HMR_TRANS_MM],
@@ -42,8 +42,7 @@ int hmm_reader_next(struct hmm_reader *h3r)
       .DM = (float)h3r->protein.node.trans[HMR_TRANS_DM],
       .DD = (float)h3r->protein.node.trans[HMR_TRANS_DD],
   };
-  rc = model_add_trans(&h3r->model, t);
-  assert(!rc);
+  if ((rc = model_add_trans(&h3r->model, t))) return rc;
 
   while (!(hmr_rc = hmr_next_node(&h3r->hmr, &h3r->protein)))
   {
@@ -52,10 +51,9 @@ int hmm_reader_next(struct hmm_reader *h3r)
       match_lprobs[i] = (float)h3r->protein.node.match[i];
 
     char consensus = h3r->protein.node.excess.cons;
-    rc = model_add_node(&h3r->model, match_lprobs, consensus);
-    assert(!rc);
+    if ((rc = model_add_node(&h3r->model, match_lprobs, consensus))) return rc;
 
-    struct trans t2 = {
+    t = (struct trans){
         .MM = (float)h3r->protein.node.trans[HMR_TRANS_MM],
         .MI = (float)h3r->protein.node.trans[HMR_TRANS_MI],
         .MD = (float)h3r->protein.node.trans[HMR_TRANS_MD],
@@ -64,12 +62,9 @@ int hmm_reader_next(struct hmm_reader *h3r)
         .DM = (float)h3r->protein.node.trans[HMR_TRANS_DM],
         .DD = (float)h3r->protein.node.trans[HMR_TRANS_DD],
     };
-    rc = model_add_trans(&h3r->model, t2);
-    assert(!rc);
+    if ((rc = model_add_trans(&h3r->model, t))) return rc;
   }
-  assert(hmr_rc == HMR_END);
-
-  return 0;
+  return hmr_rc == HMR_END ? 0 : DCP_EENDOFNODES;
 }
 
 bool hmm_reader_end(struct hmm_reader const *reader) { return reader->end; }

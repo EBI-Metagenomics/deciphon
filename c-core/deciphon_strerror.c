@@ -68,6 +68,8 @@ static char const *msg[] = {
     [DCP_ELARGECORESIZE] = "number of core nodes is too long",
     [DCP_EINVALSTATE] = "invalid state",
     [DCP_EINVALSIZE] = "invalid size",
+    [DCP_EENDOFFILE] = "unexpected end of file",
+    [DCP_EENDOFNODES] = "unexpected end of nodes",
 };
 
 char const *deciphon_strerror(int errno)
