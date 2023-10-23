@@ -5,14 +5,14 @@
 #include "compiler.h"
 #include "find_fmax.h"
 #include "imm/imm.h"
-#include "reduce.h"
+#include "reduce_fmax.h"
 #include "trellis.h"
 #include "viterbi_index.h"
 #include "viterbi_task.h"
 
 INLINE float onto_N(struct trellis *t, float const S[restrict],
-                        float const N[restrict], float const SN, float const NN,
-                        float const emission[restrict])
+                    float const N[restrict], float const SN, float const NN,
+                    float const emission[restrict])
 {
   float const *e = ASSUME_ALIGNED(emission);
   // clang-format off
@@ -38,7 +38,7 @@ INLINE float onto_N(struct trellis *t, float const S[restrict],
 }
 
 INLINE float onto_B(struct trellis *t, float const S[restrict],
-                        float const N[restrict], float const SB, float const NB)
+                    float const N[restrict], float const SB, float const NB)
 {
   // clang-format off
   float const x[] ALIGNED = {
@@ -54,8 +54,8 @@ INLINE float onto_B(struct trellis *t, float const S[restrict],
 }
 
 INLINE float adjust_onto_B(struct trellis *t, float const B[restrict],
-                               float const E[restrict], float const J[restrict],
-                               float const EB, float const JB)
+                           float const E[restrict], float const J[restrict],
+                           float const EB, float const JB)
 {
   // clang-format off
   float const x[] ALIGNED = {
@@ -77,8 +77,8 @@ INLINE float adjust_onto_B(struct trellis *t, float const B[restrict],
   return x[i];
 }
 
-INLINE float onto_M0(struct trellis *t, float const B[restrict],
-                         float const BM, float const emission[restrict])
+INLINE float onto_M0(struct trellis *t, float const B[restrict], float const BM,
+                     float const emission[restrict])
 {
   float const *e = ASSUME_ALIGNED(emission);
   // clang-format off
@@ -98,8 +98,8 @@ INLINE float onto_M0(struct trellis *t, float const B[restrict],
 }
 
 INLINE float onto_I(struct trellis *t, float const M[restrict],
-                        float const I[restrict], float const MI, float const II,
-                        float const emission[restrict])
+                    float const I[restrict], float const MI, float const II,
+                    float const emission[restrict])
 {
   float const *e = ASSUME_ALIGNED(emission);
   // clang-format off
@@ -125,10 +125,10 @@ INLINE float onto_I(struct trellis *t, float const M[restrict],
 }
 
 INLINE float onto_M(struct trellis *t, float const B[restrict],
-                        float const M[restrict], float const I[restrict],
-                        float const D[restrict], float const BM, float const MM,
-                        float const IM, float const DM,
-                        float const emission[restrict])
+                    float const M[restrict], float const I[restrict],
+                    float const D[restrict], float const BM, float const MM,
+                    float const IM, float const DM,
+                    float const emission[restrict])
 {
   float const *e = ASSUME_ALIGNED(emission);
   // clang-format off
@@ -166,7 +166,7 @@ INLINE float onto_M(struct trellis *t, float const B[restrict],
 }
 
 INLINE float onto_D(struct trellis *t, float const M[restrict],
-                        float const D[restrict], float const MD, float const DD)
+                    float const D[restrict], float const MD, float const DD)
 {
   // clang-format off
   float const x[] ALIGNED = {
@@ -191,7 +191,7 @@ INLINE void fmax_idx(float *value, int *src, float new_value, int new_src)
 }
 
 INLINE float onto_E(struct trellis *t, float *restrict dp, float const ME,
-                        float const DE, int const core_size)
+                    float const DE, int const core_size)
 {
   float *Mk = dp_rewind(dp, STATE_M);
   float *Dk = dp_rewind(dp, STATE_D);
@@ -212,8 +212,8 @@ INLINE float onto_E(struct trellis *t, float *restrict dp, float const ME,
 }
 
 INLINE float onto_J(struct trellis *t, float const E[restrict],
-                        float const J[restrict], float const EJ, float const JJ,
-                        float const emission[restrict])
+                    float const J[restrict], float const EJ, float const JJ,
+                    float const emission[restrict])
 {
   float const *e = ASSUME_ALIGNED(emission);
   // clang-format off
@@ -239,8 +239,8 @@ INLINE float onto_J(struct trellis *t, float const E[restrict],
 }
 
 INLINE float onto_C(struct trellis *t, float const E[restrict],
-                        float const C[restrict], float const EC, float const CC,
-                        float const emission[restrict])
+                    float const C[restrict], float const EC, float const CC,
+                    float const emission[restrict])
 {
   float const *e = ASSUME_ALIGNED(emission);
   // clang-format off
@@ -266,7 +266,7 @@ INLINE float onto_C(struct trellis *t, float const E[restrict],
 }
 
 INLINE float onto_T(struct trellis *t, float const E[restrict],
-                        float const C[restrict], float const ET, float const CT)
+                    float const C[restrict], float const ET, float const CT)
 {
   // clang-format off
   float const x[] ALIGNED = {

@@ -17,6 +17,6 @@ struct xtrans
 };
 
 void xtrans_init(struct xtrans *);
-void xtrans_dump(struct xtrans const *, FILE *restrict);
+void xtrans_dump(struct xtrans const *, FILE *);
 
 #endif

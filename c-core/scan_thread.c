@@ -70,7 +70,7 @@ static int run(struct scan_thread *x, int protein_idx, struct window const *w)
   int rc = 0;
   struct sequence const *seq = window_sequence(w);
   x->product->line.sequence = seq->id;
-  x->product->line.window = w->id;
+  x->product->line.window = w->idx;
   x->product->line.window_start = window_range(w).start;
   x->product->line.window_stop = window_range(w).stop;
 

@@ -4,9 +4,9 @@
 #include "fs.h"
 #include "lip/1darray/1darray.h"
 #include "magic_number.h"
+#include "pack.h"
 #include "protein.h"
 #include "rc.h"
-#include "write.h"
 
 static void nullify_tempfiles(struct db_writer *x)
 {
@@ -70,15 +70,15 @@ static int pack_header(struct db_writer *db)
   int rc = 0;
   struct lip_file *stream = &db->file;
 
-  if ((rc = write_key(stream, "header"))) return rc;
-  if ((rc = write_mapsize(stream, 6))) return rc;
+  if ((rc = pack_key(stream, "header"))) return rc;
+  if ((rc = pack_mapsize(stream, 6))) return rc;
 
   FILE *src = lip_file_ptr(&db->tmp.header);
   FILE *dst = lip_file_ptr(stream);
   rewind(src);
   if ((rc = fs_copy(dst, src))) return rc;
 
-  if ((rc = write_key(stream, "protein_sizes"))) return rc;
+  if ((rc = pack_key(stream, "protein_sizes"))) return rc;
   return pack_header_protein_sizes(db);
 }
 
@@ -95,7 +95,7 @@ static int pack_proteins(struct db_writer *db)
 int db_writer_close(struct db_writer *db)
 {
   int rc = 0;
-  if ((rc = write_mapsize(&db->file, 2))) defer_return(rc);
+  if ((rc = pack_mapsize(&db->file, 2))) defer_return(rc);
 
   if ((rc = pack_header(db))) defer_return(rc);
   if ((rc = pack_proteins(db))) defer_return(rc);
@@ -125,20 +125,20 @@ int db_writer_open(struct db_writer *x, FILE *restrict fp)
   struct model_params *p = &x->params;
   struct lip_file *stream = &x->tmp.header;
 
-  if ((rc = write_key(stream, "magic_number"))) defer_return(rc);
-  if ((rc = write_int(stream, MAGIC_NUMBER))) defer_return(rc);
+  if ((rc = pack_key(stream, "magic_number"))) defer_return(rc);
+  if ((rc = pack_int(stream, MAGIC_NUMBER))) defer_return(rc);
 
-  if ((rc = write_key(stream, "entry_dist"))) defer_return(rc);
-  if ((rc = write_int(stream, p->entry_dist))) defer_return(rc);
+  if ((rc = pack_key(stream, "entry_dist"))) defer_return(rc);
+  if ((rc = pack_int(stream, p->entry_dist))) defer_return(rc);
 
-  if ((rc = write_key(stream, "epsilon"))) defer_return(rc);
-  if ((rc = write_float(stream, p->epsilon))) defer_return(rc);
+  if ((rc = pack_key(stream, "epsilon"))) defer_return(rc);
+  if ((rc = pack_float(stream, p->epsilon))) defer_return(rc);
 
-  if ((rc = write_key(stream, "abc"))) defer_return(rc);
-  if ((rc = write_abc(stream, &p->code->nuclt->super))) defer_return(rc);
+  if ((rc = pack_key(stream, "abc"))) defer_return(rc);
+  if ((rc = pack_abc(stream, &p->code->nuclt->super))) defer_return(rc);
 
-  if ((rc = write_key(stream, "amino"))) defer_return(rc);
-  if ((rc = write_abc(stream, &p->amino->super))) defer_return(rc);
+  if ((rc = pack_key(stream, "amino"))) defer_return(rc);
+  if ((rc = pack_abc(stream, &p->amino->super))) defer_return(rc);
 
   return rc;
 
@@ -162,7 +162,7 @@ int db_writer_pack(struct db_writer *x, struct protein const *protein)
   if ((end - start) > UINT_MAX) return DCP_ELARGEPROTEIN;
 
   unsigned protein_size = (unsigned)(end - start);
-  if ((rc = write_int(&x->tmp.sizes, protein_size))) return rc;
+  if ((rc = pack_int(&x->tmp.sizes, protein_size))) return rc;
 
   x->nproteins++;
   return rc;

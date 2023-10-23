@@ -15,9 +15,11 @@ struct match_iter
   int offset;
 };
 
+// clang-format off
 void match_iter_init(struct match_iter *, struct imm_seq const *,
                      struct imm_path const *);
-int match_iter_next(struct match_iter *, struct match *);
+int  match_iter_next(struct match_iter *, struct match *);
 bool match_iter_end(struct match_iter const *);
+// clang-format on
 
 #endif

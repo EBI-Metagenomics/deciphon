@@ -1,5 +1,5 @@
-#ifndef REDUCE_H
-#define REDUCE_H
+#ifndef REDUCE_FMAX_H
+#define REDUCE_FMAX_H
 
 #include "compiler.h"
 #include "float_maximum.h"

@@ -7,7 +7,7 @@
 #include "imm/imm.h"
 #include "protein.h"
 #include "protein_node.h"
-#include "reduce.h"
+#include "reduce_fmax.h"
 #include "scan_thread.h"
 #include "trellis.h"
 #include "viterbi_index.h"
@@ -39,7 +39,7 @@
 //   (E , C)    -> T
 
 PURE int emission_index(struct imm_eseq const *x, int pos, int size,
-                            bool const safe)
+                        bool const safe)
 {
   return ((!safe && (pos) < 0) ? -1 : (int)imm_eseq_get(x, pos, size, 1));
 }
@@ -49,13 +49,10 @@ PURE float safe_get(float const x[restrict], int i, bool const safe)
   return (safe ? (x)[(i)] : (i) >= 0 ? (x)[(i)] : IMM_LPROB_ZERO);
 }
 
-PURE float const *unsafe_get(float const x[restrict], int i)
-{
-  return x + i;
-}
+PURE float const *unsafe_get(float const x[restrict], int i) { return x + i; }
 
-INLINE void fetch_indices(int x[restrict], struct imm_eseq const *eseq,
-                              int row, bool const safe)
+INLINE void fetch_indices(int x[restrict], struct imm_eseq const *eseq, int row,
+                          bool const safe)
 {
   x[0] = emission_index(eseq, row - 1, 1, safe);
   x[1] = emission_index(eseq, row - 2, 2, safe);
@@ -65,7 +62,7 @@ INLINE void fetch_indices(int x[restrict], struct imm_eseq const *eseq,
 }
 
 INLINE void fetch_emission(float x[restrict], float emission[restrict],
-                               int const ix[restrict], bool const safe)
+                           int const ix[restrict], bool const safe)
 {
   x[0] = safe_get(emission, ix[nchars(1)], safe);
   x[1] = safe_get(emission, ix[nchars(2)], safe);
@@ -74,8 +71,7 @@ INLINE void fetch_emission(float x[restrict], float emission[restrict],
   x[4] = safe_get(emission, ix[nchars(5)], safe);
 }
 
-INLINE void prefetch_emission(float emission[restrict],
-                                  int const ix[restrict])
+INLINE void prefetch_emission(float emission[restrict], int const ix[restrict])
 {
   PREFETCH(unsafe_get(emission, ix[nchars(1)]), 0, 1);
   PREFETCH(unsafe_get(emission, ix[nchars(2)]), 0, 1);
@@ -85,7 +81,7 @@ INLINE void prefetch_emission(float emission[restrict],
 }
 
 PURE float onto_R(float const S[restrict], float const R[restrict],
-                      float const RR, float const emission[restrict])
+                  float const RR, float const emission[restrict])
 {
   // clang-format off
   float const x[] ALIGNED = {
@@ -181,9 +177,8 @@ float viterbi_null(struct protein *x, struct imm_eseq const *eseq)
 }
 
 INLINE void viterbi_on_range(struct protein *x, struct viterbi_task *task,
-                                 struct imm_eseq const *eseq, int row_start,
-                                 int row_end, bool const safe,
-                                 struct trellis *tr)
+                             struct imm_eseq const *eseq, int row_start,
+                             int row_end, bool const safe, struct trellis *tr)
 {
   int core_size = x->core_size;
 

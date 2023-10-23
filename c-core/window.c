@@ -1,4 +1,5 @@
 #include "window.h"
+#include "compiler.h"
 #include "sequence.h"
 
 // We are respecting HMMER's limit on sequence size:
@@ -6,7 +7,7 @@
 //   9acd8b6758a0ca5d21db6d167e0277484341929b/src/p7_pipeline.c#L714
 static int const WINDOW_SIZE = 100000 * 3;
 
-IMM_CONST int max_size(int core_size) { return core_size * 3 * 3; }
+CONST int max_size(int core_size) { return core_size * 3 * 3; }
 
 struct window window_setup(struct sequence const *x, int core_size)
 {
@@ -35,7 +36,7 @@ bool window_next(struct window *x, int last_hit_pos)
   x->range.stop = imm_min(start_miss + WINDOW_SIZE, sequence_size(x->seq));
 
   x->iter = sequence_slice(x->seq, x->range);
-  x->id += 1;
+  x->idx += 1;
   assert(sequence_size(&x->iter) > 0);
   return true;
 }
@@ -45,6 +46,6 @@ struct sequence const *window_sequence(struct window const *x)
   return sequence_size(&x->iter) ? &x->iter : NULL;
 }
 
-int window_id(struct window const *x) { return x->id; }
+int window_idx(struct window const *x) { return x->idx; }
 
 struct imm_range window_range(struct window const *x) { return x->range; }

@@ -7,7 +7,7 @@
 #include "partition_size.h"
 #include "protein_iter.h"
 #include "rc.h"
-#include "read.h"
+#include "unpack.h"
 #include <string.h>
 
 void protein_reader_init(struct protein_reader *x)
@@ -30,7 +30,7 @@ int protein_reader_setup(struct protein_reader *x, struct db_reader *db,
   if (num_partitions > DCP_NPARTITIONS_MAX) return DCP_EMANYPARTS;
   x->num_partitions = imm_min(num_partitions, db->num_proteins);
 
-  if ((rc = read_key(&db->file, "proteins"))) return rc;
+  if ((rc = unpack_key(&db->file, "proteins"))) return rc;
 
   unsigned num_proteins = 0;
   if (!lip_read_array_size(&db->file, &num_proteins)) return DCP_EFREAD;

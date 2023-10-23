@@ -4,7 +4,7 @@
 #include "lip/1darray/1darray.h"
 #include "magic_number.h"
 #include "rc.h"
-#include "read.h"
+#include "unpack.h"
 #include <stdlib.h>
 
 void db_reader_init(struct db_reader *x)
@@ -25,32 +25,32 @@ int db_reader_open(struct db_reader *x, char const *filename)
   x->protein_sizes = NULL;
   lip_file_init(&x->file, x->fp);
 
-  if ((rc = read_mapsize(&x->file, 2))) defer_return(rc);
+  if ((rc = unpack_mapsize(&x->file, 2))) defer_return(rc);
 
-  if ((rc = read_key(&x->file, "header"))) defer_return(rc);
-  if ((rc = read_mapsize(&x->file, 6))) defer_return(rc);
+  if ((rc = unpack_key(&x->file, "header"))) defer_return(rc);
+  if ((rc = unpack_mapsize(&x->file, 6))) defer_return(rc);
 
   int magic_number = 0;
-  if ((rc = read_key(&x->file, "magic_number"))) defer_return(rc);
-  if ((rc = read_int(&x->file, &magic_number))) defer_return(rc);
+  if ((rc = unpack_key(&x->file, "magic_number"))) defer_return(rc);
+  if ((rc = unpack_int(&x->file, &magic_number))) defer_return(rc);
   if (magic_number != MAGIC_NUMBER) defer_return(DCP_EFDATA);
 
-  if ((rc = read_key(&x->file, "entry_dist"))) defer_return(rc);
-  if ((rc = read_int(&x->file, &x->entry_dist))) defer_return(rc);
+  if ((rc = unpack_key(&x->file, "entry_dist"))) defer_return(rc);
+  if ((rc = unpack_int(&x->file, &x->entry_dist))) defer_return(rc);
   if (!entry_dist_valid(x->entry_dist)) defer_return(DCP_EFDATA);
 
-  if ((rc = read_key(&x->file, "epsilon"))) defer_return(rc);
-  if ((rc = read_float(&x->file, &x->epsilon))) defer_return(rc);
+  if ((rc = unpack_key(&x->file, "epsilon"))) defer_return(rc);
+  if ((rc = unpack_float(&x->file, &x->epsilon))) defer_return(rc);
   if (x->epsilon < 0 || x->epsilon > 1) defer_return(DCP_EFDATA);
 
-  if ((rc = read_key(&x->file, "abc"))) defer_return(rc);
-  if ((rc = read_abc(&x->file, &x->nuclt.super))) defer_return(rc);
+  if ((rc = unpack_key(&x->file, "abc"))) defer_return(rc);
+  if ((rc = unpack_abc(&x->file, &x->nuclt.super))) defer_return(rc);
 
-  if ((rc = read_key(&x->file, "amino"))) defer_return(rc);
-  if ((rc = read_abc(&x->file, &x->amino.super))) defer_return(rc);
+  if ((rc = unpack_key(&x->file, "amino"))) defer_return(rc);
+  if ((rc = unpack_abc(&x->file, &x->amino.super))) defer_return(rc);
 
   imm_nuclt_code_init(&x->code, &x->nuclt);
-  if ((rc = read_key(&x->file, "protein_sizes"))) defer_return(rc);
+  if ((rc = unpack_key(&x->file, "protein_sizes"))) defer_return(rc);
   if ((rc = unpack_header_protein_sizes(x))) defer_return(rc);
 
   return rc;

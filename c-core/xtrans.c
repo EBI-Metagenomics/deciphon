@@ -15,7 +15,7 @@ void xtrans_init(struct xtrans *t)
   t->RR = IMM_LPROB_ONE;
 }
 
-void xtrans_dump(struct xtrans const *x, FILE *restrict fp)
+void xtrans_dump(struct xtrans const *x, FILE *fp)
 {
   float const arr[] = {x->NN, x->NB, x->EC, x->CC, x->CT,
                        x->EJ, x->JJ, x->JB, x->RR};
