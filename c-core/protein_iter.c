@@ -26,13 +26,7 @@ int protein_iter_next(struct protein_iter *x, struct protein *protein)
 {
   x->curr_idx += 1;
   if (protein_iter_end(x)) return 0;
-
-  int rc = protein_unpack(protein, &x->file);
-  if (rc) return rc;
-
-  long offset = 0;
-  fs_tell(x->fp, &offset);
-  return rc;
+  return protein_unpack(protein, &x->file);
 }
 
 bool protein_iter_end(struct protein_iter const *x)
