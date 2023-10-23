@@ -5,14 +5,14 @@
 
 enum entry_dist
 {
-  DCP_ENTRY_DIST_NULL,
-  DCP_ENTRY_DIST_UNIFORM,
-  DCP_ENTRY_DIST_OCCUPANCY,
+  ENTRY_DIST_NULL,
+  ENTRY_DIST_UNIFORM,
+  ENTRY_DIST_OCCUPANCY,
 };
 
 static inline bool entry_dist_valid(int x)
 {
-  return x > DCP_ENTRY_DIST_NULL && x <= DCP_ENTRY_DIST_OCCUPANCY;
+  return x > ENTRY_DIST_NULL && x <= ENTRY_DIST_OCCUPANCY;
 }
 
 #endif

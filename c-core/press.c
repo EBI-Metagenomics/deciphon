@@ -53,7 +53,7 @@ int press_setup(struct press *x, int gencode_id, float epsilon)
   x->params.amino = &imm_amino_iupac;
   imm_nuclt_code_init(&x->code, &imm_dna_iupac.super);
   x->params.code = &x->code;
-  x->params.entry_dist = DCP_ENTRY_DIST_OCCUPANCY;
+  x->params.entry_dist = ENTRY_DIST_OCCUPANCY;
   x->params.epsilon = epsilon;
   return 0;
 }

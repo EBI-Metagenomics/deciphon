@@ -28,7 +28,7 @@ static void test_protein_uniform(void)
       .gencode = imm_gencode_get(1),
       .amino = amino,
       .code = &code,
-      .entry_dist = DCP_ENTRY_DIST_UNIFORM,
+      .entry_dist = ENTRY_DIST_UNIFORM,
       .epsilon = 0.1,
   };
 
@@ -110,7 +110,7 @@ static void test_protein_occupancy(void)
       .gencode = imm_gencode_get(1),
       .amino = amino,
       .code = &code,
-      .entry_dist = DCP_ENTRY_DIST_OCCUPANCY,
+      .entry_dist = ENTRY_DIST_OCCUPANCY,
       .epsilon = 0.1,
   };
 

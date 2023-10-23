@@ -3,7 +3,7 @@
 
 #include "array_size.h"
 #include "compiler.h"
-#include "find.h"
+#include "find_fmax.h"
 #include "imm/imm.h"
 #include "reduce.h"
 #include "trellis.h"

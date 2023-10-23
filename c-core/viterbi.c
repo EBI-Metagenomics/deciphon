@@ -3,7 +3,7 @@
 #include "array_size_field.h"
 #include "compiler.h"
 #include "defer_return.h"
-#include "find.h"
+#include "find_fmax.h"
 #include "imm/imm.h"
 #include "protein.h"
 #include "protein_node.h"
@@ -355,7 +355,7 @@ static int unzip_path(struct trellis *x, int seq_size, struct imm_path *path)
   return 0;
 }
 
-void viterbi_dump(struct protein *x, FILE *restrict fp)
+void viterbi_dump(struct protein *x, FILE *fp)
 {
   int core_size = x->core_size;
 
@@ -418,7 +418,7 @@ void viterbi_dump(struct protein *x, FILE *restrict fp)
   }
 }
 
-void viterbi_dump_dot(struct protein *x, FILE *restrict fp)
+void viterbi_dump_dot(struct protein *x, FILE *fp)
 {
   char const *f32f = imm_fmt_get_f32();
 

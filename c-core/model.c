@@ -182,7 +182,7 @@ int model_setup(struct model *x, int core_size)
   if (!ptr && n > 0) defer_return(DCP_ENOMEM);
   x->alt.nodes = ptr;
 
-  if (x->params.entry_dist == DCP_ENTRY_DIST_OCCUPANCY)
+  if (x->params.entry_dist == ENTRY_DIST_OCCUPANCY)
   {
     ptr = realloc(x->alt.locc, n * sizeof(*x->alt.locc));
     if (!ptr && n > 0) defer_return(DCP_ENOMEM);
@@ -435,7 +435,7 @@ void setup_nuclt_dist(struct imm_gencode const *gc, struct nuclt_dist *dist,
 
 int setup_entry_trans(struct model *x)
 {
-  if (x->params.entry_dist == DCP_ENTRY_DIST_UNIFORM)
+  if (x->params.entry_dist == ENTRY_DIST_UNIFORM)
   {
     float M = (float)x->core_size;
     float cost = log(2.0 / (M * (M + 1))) * M;

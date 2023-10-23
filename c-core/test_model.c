@@ -35,7 +35,7 @@ int main(void)
       .gencode = imm_gencode_get(1),
       .amino = amino,
       .code = &code,
-      .entry_dist = DCP_ENTRY_DIST_OCCUPANCY,
+      .entry_dist = ENTRY_DIST_OCCUPANCY,
       .epsilon = 0.01,
   };
   model_init(&model, params, null_lprobs);

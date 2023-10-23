@@ -1,5 +1,5 @@
-#ifndef FIND_H
-#define FIND_H
+#ifndef FIND_FMAX_H
+#define FIND_FMAX_H
 
 #include "compiler.h"
 
