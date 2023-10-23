@@ -1,4 +1,10 @@
 #include "trellis.h"
+#include "rc.h"
+#include "xrealloc.h"
+#include <stdlib.h>
+
+CONST unsigned xnode_get_field(uint32_t x, int state);
+CONST unsigned node_get_field(uint16_t x, int state);
 
 void trellis_init(struct trellis *x)
 {
@@ -41,11 +47,11 @@ void trellis_cleanup(struct trellis *x)
   x->node = x->nodes = NULL;
 }
 
-int trellis_get_previous_state(struct trellis const *x, int id)
+int trellis_previous_state(struct trellis const *x, int id)
 {
   if (!state_is_core(id))
   {
-    int v = trellis_xnode_get_field(*x->xnode, id);
+    unsigned v = xnode_get_field(*x->xnode, id);
     if (id == STATE_S) return (int[]){STATE_S}[v];
     if (id == STATE_N) return (int[]){STATE_S, STATE_N}[v / 5];
     if (id == STATE_B) return (int[]){STATE_S, STATE_N, STATE_E, STATE_J}[v];
@@ -57,7 +63,7 @@ int trellis_get_previous_state(struct trellis const *x, int id)
   }
 
   int idx = (x->node - x->nodes) % x->core_size;
-  int v = trellis_node_get_field(*x->node, id);
+  unsigned v = node_get_field(*x->node, id);
 
   if (state_is_match(id))
   {
@@ -91,16 +97,50 @@ int trellis_get_previous_state(struct trellis const *x, int id)
   return 0;
 }
 
-int trellis_get_emission_size(struct trellis const *x, int id)
+int trellis_emission_size(struct trellis const *x, int id)
 {
   if (id == STATE_S) return 0;
-  if (id == STATE_N) return trellis_xnode_get_field(*x->xnode, STATE_N) % 5 + 1;
+  if (id == STATE_N) return xnode_get_field(*x->xnode, STATE_N) % 5 + 1;
   if (id == STATE_B) return 0;
   if (id == STATE_E) return 0;
-  if (id == STATE_C) return trellis_xnode_get_field(*x->xnode, STATE_C) % 5 + 1;
+  if (id == STATE_C) return xnode_get_field(*x->xnode, STATE_C) % 5 + 1;
   if (id == STATE_T) return 0;
-  if (id == STATE_J) return trellis_xnode_get_field(*x->xnode, STATE_J) % 5 + 1;
+  if (id == STATE_J) return xnode_get_field(*x->xnode, STATE_J) % 5 + 1;
 
   if (state_is_delete(id)) return 0;
-  return trellis_node_get_field(*x->node, id) % 5 + 1;
+  return node_get_field(*x->node, id) % 5 + 1;
 }
+
+void trellis_seek_xnode(struct trellis *x, int stage)
+{
+  x->xnode = x->xnodes + stage;
+}
+
+void trellis_seek_node(struct trellis *x, int stage, int core_idx)
+{
+  x->node = x->nodes + stage * x->core_size + core_idx;
+}
+
+// clang-format off
+CONST unsigned xnode_get_field(uint32_t x, int state)
+{
+  if (state == STATE_S) return bit_extract(x, 0                                                , SBITS);
+  if (state == STATE_N) return bit_extract(x, 0 + SBITS                                        , NBITS);
+  if (state == STATE_B) return bit_extract(x, 0 + SBITS + NBITS                                , BBITS);
+  if (state == STATE_E) return bit_extract(x, 0 + SBITS + NBITS + BBITS                        , EBITS);
+  if (state == STATE_C) return bit_extract(x, 0 + SBITS + NBITS + BBITS + EBITS                , CBITS);
+  if (state == STATE_T) return bit_extract(x, 0 + SBITS + NBITS + BBITS + EBITS + CBITS        , TBITS);
+  if (state == STATE_J) return bit_extract(x, 0 + SBITS + NBITS + BBITS + EBITS + CBITS + TBITS, JBITS);
+  UNREACHABLE();
+  return 0;
+}
+
+CONST unsigned node_get_field(uint16_t x, int state)
+{
+  if (state_is_match(state))  return bit_extract(x, 0                , MBITS);
+  if (state_is_delete(state)) return bit_extract(x, 0 + MBITS        , DBITS);
+  if (state_is_insert(state)) return bit_extract(x, 0 + MBITS + DBITS, IBITS);
+  UNREACHABLE();
+  return 0;
+}
+// clang-format on

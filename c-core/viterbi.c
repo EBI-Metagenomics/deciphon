@@ -336,9 +336,9 @@ static int unzip_path(struct trellis *x, int seq_size, struct imm_path *path)
 
   while (!state_is_start(state) || stage)
   {
-    int size = trellis_get_emission_size(x, state);
+    int size = trellis_emission_size(x, state);
     if (imm_path_add(path, imm_step(state, size, 0))) return DCP_ENOMEM;
-    state = trellis_get_previous_state(x, state);
+    state = trellis_previous_state(x, state);
     stage -= size;
     if (state_is_core(state))
       trellis_seek_node(x, stage, state_core_idx(state));

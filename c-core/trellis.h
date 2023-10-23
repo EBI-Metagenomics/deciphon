@@ -3,35 +3,8 @@
 
 #include "bit.h"
 #include "compiler.h"
-#include "rc.h"
 #include "state.h"
-#include "xstatic_assert.h"
-#include "xrealloc.h"
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
-
-// Number of bits used by each special state
-#define SBITS 0  // starting state
-#define NBITS 4  // (S, N)        -> N: 1bit + (emis_size=5): 3bits
-#define BBITS 2  // (S, N, E, J)  -> B: 2bits
-#define EBITS 15 // (Mk, Dk)      -> E: 1bit + (core_size=16,384): 14bits
-#define CBITS 4  // (E, C)        -> C: 1bit + (emis_size=5): 3bits
-#define TBITS 1  // (E, C)        -> T: 1bit
-#define JBITS 4  // (E, J)        -> J: 1bit + (emis_size=5): 3bits
-
-// Total number of bits used by special states
-#define SPECIAL_BITS (SBITS + NBITS + BBITS + EBITS + CBITS + TBITS + JBITS)
-xstatic_assert(SPECIAL_BITS <= sizeof(uint32_t) * CHAR_BIT);
-
-// Number of bits used by each core state
-#define MBITS 5 // (B, Mk, Ik, Dk) -> Mn: 2bits + (emis_size=5): 3bits
-#define DBITS 1 // (Mk, Dk)        -> Dn: 1bit
-#define IBITS 4 // (Mk, Ik)        -> Ik: 1bits + (emis_size=5): 3bits
-
-// Total number of bits used by core states
-#define CORE_BITS (MBITS + DBITS + IBITS)
-xstatic_assert(CORE_BITS <= sizeof(uint16_t) * CHAR_BIT);
+#include "trellis_bits.h"
 
 struct trellis
 {
@@ -45,66 +18,34 @@ struct trellis
 };
 
 // clang-format off
-void trellis_init(struct trellis *);
-int  trellis_setup(struct trellis *, int core_size, int seq_size);
-void trellis_cleanup(struct trellis *);
-int  trellis_get_previous_state(struct trellis const *, int id);
-int  trellis_get_emission_size(struct trellis const *, int id);
-// clang-format on
-
-// clang-format off
-CONST int trellis_xnode_get_field(uint32_t x, int state)
-{
-  if (state == STATE_S) return bit_extract(x, 0                                                , SBITS);
-  if (state == STATE_N) return bit_extract(x, 0 + SBITS                                        , NBITS);
-  if (state == STATE_B) return bit_extract(x, 0 + SBITS + NBITS                                , BBITS);
-  if (state == STATE_E) return bit_extract(x, 0 + SBITS + NBITS + BBITS                        , EBITS);
-  if (state == STATE_C) return bit_extract(x, 0 + SBITS + NBITS + BBITS + EBITS                , CBITS);
-  if (state == STATE_T) return bit_extract(x, 0 + SBITS + NBITS + BBITS + EBITS + CBITS        , TBITS);
-  if (state == STATE_J) return bit_extract(x, 0 + SBITS + NBITS + BBITS + EBITS + CBITS + TBITS, JBITS);
-  UNREACHABLE();
-  return 0;
-}
-
-CONST int trellis_node_get_field(uint16_t x, int state)
-{
-  if (state_is_match(state))  return bit_extract(x, 0                , MBITS);
-  if (state_is_delete(state)) return bit_extract(x, 0 + MBITS        , DBITS);
-  if (state_is_insert(state)) return bit_extract(x, 0 + MBITS + DBITS, IBITS);
-  UNREACHABLE();
-  return 0;
-}
-// clang-format on
-
+void        trellis_init(struct trellis *);
+int         trellis_setup(struct trellis *, int core_size, int seq_size);
+void        trellis_cleanup(struct trellis *);
+int         trellis_previous_state(struct trellis const *, int id);
+int         trellis_emission_size(struct trellis const *, int id);
 INLINE void trellis_next_xnode(struct trellis *x) { x->xnode++; }
 INLINE void trellis_next_node(struct trellis *x) { x->node++; }
-
-INLINE void trellis_seek_xnode(struct trellis *x, int stage)
-{
-  x->xnode = x->xnodes + stage;
-}
-
-INLINE void trellis_seek_node(struct trellis *x, int stage, int core_idx)
-{
-  x->node = x->nodes + stage * x->core_size + core_idx;
-}
-
+void        trellis_seek_xnode(struct trellis *x, int stage);
+void        trellis_seek_node(struct trellis *x, int stage, int core_idx);
 INLINE void trellis_clear_xnode(struct trellis *x) { *x->xnode = 0; }
 INLINE void trellis_clear_node(struct trellis *x) { *x->node = 0; }
+// clang-format on
 
 // clang-format off
 INLINE void trellis_set(struct trellis *x, int id, int value)
 {
-  if (id == STATE_S) *x->xnode |= value << (0);
-  if (id == STATE_N) *x->xnode |= value << (0 + SBITS);
-  if (id == STATE_B) *x->xnode |= value << (0 + SBITS + NBITS);
-  if (id == STATE_E) *x->xnode |= value << (0 + SBITS + NBITS + BBITS);
-  if (id == STATE_C) *x->xnode |= value << (0 + SBITS + NBITS + BBITS + EBITS);
-  if (id == STATE_T) *x->xnode |= value << (0 + SBITS + NBITS + BBITS + EBITS + CBITS);
-  if (id == STATE_J) *x->xnode |= value << (0 + SBITS + NBITS + BBITS + EBITS + CBITS + TBITS);
-  if (state_is_match(id))  *x->node |= value << (0);
-  if (state_is_delete(id)) *x->node |= value << (0 + MBITS);
-  if (state_is_insert(id)) *x->node |= value << (0 + MBITS + DBITS);
+  unsigned v = *(unsigned *)&value;
+  if      (id == STATE_S) *x->xnode |= v << (0);
+  else if (id == STATE_N) *x->xnode |= v << (0 + SBITS);
+  else if (id == STATE_B) *x->xnode |= v << (0 + SBITS + NBITS);
+  else if (id == STATE_E) *x->xnode |= v << (0 + SBITS + NBITS + BBITS);
+  else if (id == STATE_C) *x->xnode |= v << (0 + SBITS + NBITS + BBITS + EBITS);
+  else if (id == STATE_T) *x->xnode |= v << (0 + SBITS + NBITS + BBITS + EBITS + CBITS);
+  else if (id == STATE_J) *x->xnode |= v << (0 + SBITS + NBITS + BBITS + EBITS + CBITS + TBITS);
+  else if (state_is_match(id))  *x->node |= v << (0);
+  else if (state_is_delete(id)) *x->node |= v << (0 + MBITS);
+  else if (state_is_insert(id)) *x->node |= v << (0 + MBITS + DBITS);
+  else UNREACHABLE();
 }
 
 INLINE void trellis_replace(struct trellis *x, int id, int value)
