@@ -10,10 +10,11 @@ struct chararray
   char *data;
 };
 
+// clang-format off
 void chararray_init(struct chararray *);
 void chararray_cleanup(struct chararray *);
-
-int chararray_append(struct chararray *, char);
+int  chararray_append(struct chararray *, char);
 void chararray_reset(struct chararray *);
+// clang-format on
 
 #endif

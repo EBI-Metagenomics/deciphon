@@ -68,6 +68,7 @@ enum rc
   DCP_ENOTDIALED     = 62,
   DCP_ELARGECORESIZE = 63,
   DCP_EINVALSTATE    = 64,
+  DCP_EINVALSIZE     = 65,
 };
 // clang-format on
 

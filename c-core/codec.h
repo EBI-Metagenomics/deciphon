@@ -16,8 +16,11 @@ struct codec
   struct imm_path const *path;
 };
 
+// clang-format off
 struct codec codec_init(struct protein const *, struct imm_path const *);
-int codec_next(struct codec *, struct imm_seq const *, struct imm_codon *);
-bool codec_end(struct codec const *);
+int          codec_next(struct codec *, struct imm_seq const *,
+                        struct imm_codon *);
+bool         codec_end(struct codec const *);
+// clang-format on
 
 #endif

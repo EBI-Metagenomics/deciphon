@@ -1,5 +1,6 @@
 #include "chararray.h"
 #include "rc.h"
+#include "xrealloc.h"
 #include <stdlib.h>
 
 void chararray_init(struct chararray *x)
@@ -26,10 +27,9 @@ int chararray_append(struct chararray *x, char c)
 {
   if (x->size + 1 > x->capacity)
   {
-    char *data = realloc(x->data, next_capacity(x->capacity));
-    if (!data) return DCP_ENOMEM;
+    x->data = xrealloc(x->data, next_capacity(x->capacity));
+    if (!x->data) return DCP_ENOMEM;
     x->capacity = next_capacity(x->capacity);
-    x->data = data;
   }
 
   x->data[x->size++] = c;

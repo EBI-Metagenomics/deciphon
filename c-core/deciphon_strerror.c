@@ -67,6 +67,7 @@ static char const *msg[] = {
     [DCP_ELONGCONSENSUS] = "consensus string is too long",
     [DCP_ELARGECORESIZE] = "number of core nodes is too long",
     [DCP_EINVALSTATE] = "invalid state",
+    [DCP_EINVALSIZE] = "invalid size",
 };
 
 char const *deciphon_strerror(int errno)
