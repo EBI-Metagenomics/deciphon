@@ -17,16 +17,12 @@ struct protein_reader
 struct imm_gencode;
 
 // clang-format off
-void                protein_reader_init(struct protein_reader *);
-int                 protein_reader_setup(struct protein_reader *,
-                                         struct db_reader *,
-                                         int num_partitions);
-int                 protein_reader_num_partitions(struct protein_reader const *);
-int                 protein_reader_partition_size(struct protein_reader const *,
-                                                  int partition);
-int                 protein_reader_size(struct protein_reader const *);
-int                 protein_reader_iter(struct protein_reader *, int partition,
-                                        struct protein_iter *);
+void protein_reader_init(struct protein_reader *);
+int  protein_reader_setup(struct protein_reader *, struct db_reader *, int num_partitions);
+int  protein_reader_num_partitions(struct protein_reader const *);
+int  protein_reader_partition_size(struct protein_reader const *, int partition);
+int  protein_reader_size(struct protein_reader const *);
+int  protein_reader_iter(struct protein_reader *, int partition, struct protein_iter *);
 // clang-format on
 
 #endif

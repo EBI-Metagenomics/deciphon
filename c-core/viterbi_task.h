@@ -24,8 +24,7 @@ struct viterbi_task
 
 // clang-format off
 void viterbi_task_init(struct viterbi_task *);
-int  viterbi_task_setup(struct viterbi_task *, int core_size, int seq_size,
-                        bool const nopath);
+int  viterbi_task_setup(struct viterbi_task *, int core_size, int seq_size, bool const nopath);
 void viterbi_task_cleanup(struct viterbi_task *);
 // clang-format on
 

@@ -15,8 +15,7 @@ struct product
 
 // clang-format off
 void                   product_init(struct product *);
-int                    product_open(struct product *, int num_threads,
-                                    char const *dirname);
+int                    product_open(struct product *, int num_threads, char const *dirname);
 int                    product_close(struct product *);
 struct product_thread *product_thread(struct product *, int thread_id);
 // clang-format on

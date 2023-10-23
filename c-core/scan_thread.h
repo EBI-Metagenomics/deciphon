@@ -30,9 +30,11 @@ struct scan_thread
 struct hmmer_dialer;
 struct sequence;
 
+// clang-format off
 void scan_thread_init(struct scan_thread *);
-int scan_thread_setup(struct scan_thread *, struct scan_thread_params);
+int  scan_thread_setup(struct scan_thread *, struct scan_thread_params);
 void scan_thread_cleanup(struct scan_thread *);
-int scan_thread_run(struct scan_thread *, struct sequence_queue const *);
+int  scan_thread_run(struct scan_thread *, struct sequence_queue const *);
+// clang-format on
 
 #endif

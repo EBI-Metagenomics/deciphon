@@ -4,4 +4,5 @@
 struct tm;
 
 void now(struct tm *);
+
 #endif

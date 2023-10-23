@@ -19,8 +19,7 @@ struct protein_iter
 };
 
 // clang-format off
-void protein_iter_init(struct protein_iter *, struct protein_reader *,
-                       int start_idx, int end_idx, long offset, FILE *);
+void protein_iter_init(struct protein_iter *, struct protein_reader *, int start_idx, int end_idx, long offset, FILE *);
 int  protein_iter_rewind(struct protein_iter *);
 int  protein_iter_next(struct protein_iter *, struct protein *);
 bool protein_iter_end(struct protein_iter const *);
