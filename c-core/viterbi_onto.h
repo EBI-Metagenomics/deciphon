@@ -10,7 +10,7 @@
 #include "viterbi_index.h"
 #include "viterbi_task.h"
 
-DCP_INLINE float onto_N(struct trellis *t, float const S[restrict],
+INLINE float onto_N(struct trellis *t, float const S[restrict],
                         float const N[restrict], float const SN, float const NN,
                         float const emission[restrict])
 {
@@ -37,7 +37,7 @@ DCP_INLINE float onto_N(struct trellis *t, float const S[restrict],
   return x[i];
 }
 
-DCP_INLINE float onto_B(struct trellis *t, float const S[restrict],
+INLINE float onto_B(struct trellis *t, float const S[restrict],
                         float const N[restrict], float const SB, float const NB)
 {
   // clang-format off
@@ -53,7 +53,7 @@ DCP_INLINE float onto_B(struct trellis *t, float const S[restrict],
   return x[i];
 }
 
-DCP_INLINE float adjust_onto_B(struct trellis *t, float const B[restrict],
+INLINE float adjust_onto_B(struct trellis *t, float const B[restrict],
                                float const E[restrict], float const J[restrict],
                                float const EB, float const JB)
 {
@@ -77,7 +77,7 @@ DCP_INLINE float adjust_onto_B(struct trellis *t, float const B[restrict],
   return x[i];
 }
 
-DCP_INLINE float onto_M0(struct trellis *t, float const B[restrict],
+INLINE float onto_M0(struct trellis *t, float const B[restrict],
                          float const BM, float const emission[restrict])
 {
   float const *e = ASSUME_ALIGNED(emission);
@@ -97,7 +97,7 @@ DCP_INLINE float onto_M0(struct trellis *t, float const B[restrict],
   return x[i];
 }
 
-DCP_INLINE float onto_I(struct trellis *t, float const M[restrict],
+INLINE float onto_I(struct trellis *t, float const M[restrict],
                         float const I[restrict], float const MI, float const II,
                         float const emission[restrict])
 {
@@ -124,7 +124,7 @@ DCP_INLINE float onto_I(struct trellis *t, float const M[restrict],
   return x[i];
 }
 
-DCP_INLINE float onto_M(struct trellis *t, float const B[restrict],
+INLINE float onto_M(struct trellis *t, float const B[restrict],
                         float const M[restrict], float const I[restrict],
                         float const D[restrict], float const BM, float const MM,
                         float const IM, float const DM,
@@ -165,7 +165,7 @@ DCP_INLINE float onto_M(struct trellis *t, float const B[restrict],
   return x[i];
 }
 
-DCP_INLINE float onto_D(struct trellis *t, float const M[restrict],
+INLINE float onto_D(struct trellis *t, float const M[restrict],
                         float const D[restrict], float const MD, float const DD)
 {
   // clang-format off
@@ -181,7 +181,7 @@ DCP_INLINE float onto_D(struct trellis *t, float const M[restrict],
   return x[i];
 }
 
-DCP_INLINE void fmax_idx(float *value, int *src, float new_value, int new_src)
+INLINE void fmax_idx(float *value, int *src, float new_value, int new_src)
 {
   if (new_value > *value)
   {
@@ -190,7 +190,7 @@ DCP_INLINE void fmax_idx(float *value, int *src, float new_value, int new_src)
   }
 }
 
-DCP_INLINE float onto_E(struct trellis *t, float *restrict dp, float const ME,
+INLINE float onto_E(struct trellis *t, float *restrict dp, float const ME,
                         float const DE, int const core_size)
 {
   float *Mk = dp_rewind(dp, STATE_MATCH);
@@ -211,7 +211,7 @@ DCP_INLINE float onto_E(struct trellis *t, float *restrict dp, float const ME,
   return x;
 }
 
-DCP_INLINE float onto_J(struct trellis *t, float const E[restrict],
+INLINE float onto_J(struct trellis *t, float const E[restrict],
                         float const J[restrict], float const EJ, float const JJ,
                         float const emission[restrict])
 {
@@ -238,7 +238,7 @@ DCP_INLINE float onto_J(struct trellis *t, float const E[restrict],
   return x[i];
 }
 
-DCP_INLINE float onto_C(struct trellis *t, float const E[restrict],
+INLINE float onto_C(struct trellis *t, float const E[restrict],
                         float const C[restrict], float const EC, float const CC,
                         float const emission[restrict])
 {
@@ -265,7 +265,7 @@ DCP_INLINE float onto_C(struct trellis *t, float const E[restrict],
   return x[i];
 }
 
-DCP_INLINE float onto_T(struct trellis *t, float const E[restrict],
+INLINE float onto_T(struct trellis *t, float const E[restrict],
                         float const C[restrict], float const ET, float const CT)
 {
   // clang-format off

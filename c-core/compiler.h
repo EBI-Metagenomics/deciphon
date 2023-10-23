@@ -5,76 +5,76 @@
 
 /* clang-format off */
 #ifdef DECIPHON_STATIC_DEFINE
-#  define DCP_API
+#  define API
 #else
 #  ifdef deciphon_EXPORTS /* We are building this library */
 #    ifdef _WIN32
-#      define DCP_API __declspec(dllexport)
+#      define API __declspec(dllexport)
 #    else
-#      define DCP_API __attribute__((visibility("default")))
+#      define API __attribute__((visibility("default")))
 #    endif
 #  else /* We are using this library */
 #    ifdef _WIN32
-#      define DCP_API __declspec(dllimport)
+#      define API __declspec(dllimport)
 #    else
-#      define DCP_API __attribute__((visibility("default")))
+#      define API __attribute__((visibility("default")))
 #    endif
 #  endif
 #endif
 /* clang-format on */
 
 #ifdef __has_builtin
-#define DCP_HAS_BUILTIN(x) __has_builtin(x)
+#define HAS_BUILTIN(x) __has_builtin(x)
 #else
-#define DCP_HAS_BUILTIN(x) (0)
+#define HAS_BUILTIN(x) (0)
 #endif
 
-#if DCP_HAS_BUILTIN(__builtin_unreachable)
-#define DCP_UNREACHABLE() __builtin_unreachable()
+#if HAS_BUILTIN(__builtin_unreachable)
+#define UNREACHABLE() __builtin_unreachable()
 #else
-#define DCP_UNREACHABLE() (void)(0)
+#define UNREACHABLE() (void)(0)
 #endif
 
 #ifdef __has_attribute
-#define DCP_HAS_ATTRIBUTE(x) __has_attribute(x)
+#define HAS_ATTRIBUTE(x) __has_attribute(x)
 #else
-#define DCP_HAS_ATTRIBUTE(x) (0)
+#define HAS_ATTRIBUTE(x) (0)
 #endif
 
-#if DCP_HAS_ATTRIBUTE(unused)
-#define DCP_UNUSED __attribute__((unused))
+#if HAS_ATTRIBUTE(unused)
+#define UNUSED __attribute__((unused))
 #else
-#define DCP_UNUSED
+#define UNUSED
 #endif
 
-#if DCP_HAS_BUILTIN(__builtin_prefetch)
-#define DCP_PREFETCH(addr, rw, locality) __builtin_prefetch(addr, rw, locality)
+#if HAS_BUILTIN(__builtin_prefetch)
+#define PREFETCH(addr, rw, locality) __builtin_prefetch(addr, rw, locality)
 #else
-#define DCP_PREFETCH(addr, rw, locality) (void)(0)
+#define PREFETCH(addr, rw, locality) (void)(0)
 #endif
 
-#if DCP_HAS_ATTRIBUTE(always_inline)
-#define DCP_INLINE static inline __attribute__((always_inline))
+#if HAS_ATTRIBUTE(always_inline)
+#define INLINE static inline __attribute__((always_inline))
 #else
-#define DCP_INLINE static inline
+#define INLINE static inline
 #endif
 
-#if DCP_HAS_ATTRIBUTE(const)
-#define DCP_CONST DCP_INLINE __attribute__((const))
+#if HAS_ATTRIBUTE(const)
+#define CONST INLINE __attribute__((const))
 #else
-#define DCP_CONST DCP_INLINE
+#define CONST INLINE
 #endif
 
-#if DCP_HAS_ATTRIBUTE(pure)
-#define DCP_PURE DCP_INLINE __attribute__((pure))
+#if HAS_ATTRIBUTE(pure)
+#define PURE INLINE __attribute__((pure))
 #else
-#define DCP_PURE DCP_INLINE
+#define PURE INLINE
 #endif
 
-#if DCP_HAS_ATTRIBUTE(format)
-#define DCP_FORMAT(a, b) __attribute__((format(printf, a, b)))
+#if HAS_ATTRIBUTE(format)
+#define FORMAT(a, b) __attribute__((format(printf, a, b)))
 #else
-#define DCP_FORMAT (a, b)
+#define FORMAT (a, b)
 #endif
 
 #if !__AVX__ && !__ARM_NEON
@@ -91,7 +91,7 @@
 #define ASSUME_ALIGNED(x) __builtin_assume_aligned(x, 16)
 #endif
 
-DCP_UNUSED DCP_CONST int bug_on_reach(void)
+UNUSED CONST int bug_on_reach(void)
 {
   assert(0);
   return 0;

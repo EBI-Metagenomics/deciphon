@@ -3,6 +3,6 @@
 
 #include "compiler.h"
 
-DCP_API char const *deciphon_strerror(int err);
+API char const *deciphon_strerror(int err);
 
 #endif

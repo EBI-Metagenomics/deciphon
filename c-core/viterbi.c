@@ -38,23 +38,23 @@
 //   (E , C)    -> C
 //   (E , C)    -> T
 
-DCP_PURE int emission_index(struct imm_eseq const *x, int pos, int size,
+PURE int emission_index(struct imm_eseq const *x, int pos, int size,
                             bool const safe)
 {
   return ((!safe && (pos) < 0) ? -1 : (int)imm_eseq_get(x, pos, size, 1));
 }
 
-DCP_PURE float safe_get(float const x[restrict], int i, bool const safe)
+PURE float safe_get(float const x[restrict], int i, bool const safe)
 {
   return (safe ? (x)[(i)] : (i) >= 0 ? (x)[(i)] : IMM_LPROB_ZERO);
 }
 
-DCP_PURE float const *unsafe_get(float const x[restrict], int i)
+PURE float const *unsafe_get(float const x[restrict], int i)
 {
   return x + i;
 }
 
-DCP_INLINE void fetch_indices(int x[restrict], struct imm_eseq const *eseq,
+INLINE void fetch_indices(int x[restrict], struct imm_eseq const *eseq,
                               int row, bool const safe)
 {
   x[0] = emission_index(eseq, row - 1, 1, safe);
@@ -64,7 +64,7 @@ DCP_INLINE void fetch_indices(int x[restrict], struct imm_eseq const *eseq,
   x[4] = emission_index(eseq, row - 5, 5, safe);
 }
 
-DCP_INLINE void fetch_emission(float x[restrict], float emission[restrict],
+INLINE void fetch_emission(float x[restrict], float emission[restrict],
                                int const ix[restrict], bool const safe)
 {
   x[0] = safe_get(emission, ix[nchars(1)], safe);
@@ -74,17 +74,17 @@ DCP_INLINE void fetch_emission(float x[restrict], float emission[restrict],
   x[4] = safe_get(emission, ix[nchars(5)], safe);
 }
 
-DCP_INLINE void prefetch_emission(float emission[restrict],
+INLINE void prefetch_emission(float emission[restrict],
                                   int const ix[restrict])
 {
-  DCP_PREFETCH(unsafe_get(emission, ix[nchars(1)]), 0, 1);
-  DCP_PREFETCH(unsafe_get(emission, ix[nchars(2)]), 0, 1);
-  DCP_PREFETCH(unsafe_get(emission, ix[nchars(3)]), 0, 1);
-  DCP_PREFETCH(unsafe_get(emission, ix[nchars(4)]), 0, 1);
-  DCP_PREFETCH(unsafe_get(emission, ix[nchars(5)]), 0, 1);
+  PREFETCH(unsafe_get(emission, ix[nchars(1)]), 0, 1);
+  PREFETCH(unsafe_get(emission, ix[nchars(2)]), 0, 1);
+  PREFETCH(unsafe_get(emission, ix[nchars(3)]), 0, 1);
+  PREFETCH(unsafe_get(emission, ix[nchars(4)]), 0, 1);
+  PREFETCH(unsafe_get(emission, ix[nchars(5)]), 0, 1);
 }
 
-DCP_PURE float onto_R(float const S[restrict], float const R[restrict],
+PURE float onto_R(float const S[restrict], float const R[restrict],
                       float const RR, float const emission[restrict])
 {
   // clang-format off
@@ -149,7 +149,7 @@ static struct extra_trans extra_trans(struct xtrans xt)
   };
 }
 
-DCP_INLINE void make_future(float x[])
+INLINE void make_future(float x[])
 {
   memmove(&x[lukbak(1)], &x[lukbak(0)],
           sizeof(float) * (DCP_VITERBI_PAST_SIZE - 1));
@@ -180,7 +180,7 @@ float viterbi_null(struct protein *x, struct imm_eseq const *eseq)
   return R[lukbak(1)];
 }
 
-DCP_INLINE void viterbi_on_range(struct protein *x, struct viterbi_task *task,
+INLINE void viterbi_on_range(struct protein *x, struct viterbi_task *task,
                                  struct imm_eseq const *eseq, int row_start,
                                  int row_end, bool const safe,
                                  struct trellis *tr)

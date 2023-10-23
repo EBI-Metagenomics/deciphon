@@ -3,7 +3,7 @@
 
 #include "compiler.h"
 
-DCP_CONST int find_fmax(int const size, float const x[restrict])
+CONST int find_fmax(int const size, float const x[restrict])
 {
   int maxi = 0;
   float max = x[maxi];

@@ -27,7 +27,7 @@ int viterbi_task_setup(struct viterbi_task *, int core_size, int seq_size,
                        bool const nopath);
 void viterbi_task_cleanup(struct viterbi_task *);
 
-DCP_CONST int lukbak(int i) { return i; }
-DCP_CONST int nchars(int n) { return n - 1; }
+CONST int lukbak(int i) { return i; }
+CONST int nchars(int n) { return n - 1; }
 
 #endif

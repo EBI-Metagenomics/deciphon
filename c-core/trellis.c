@@ -69,7 +69,7 @@ int trellis_get_previous_state(struct trellis const *x, int id)
     if (s == STATE_MATCH) return state_make_match_id(idx - 1);
     if (s == STATE_INSERT) return state_make_insert_id(idx - 1);
     if (s == STATE_DELETE) return state_make_delete_id(idx - 1);
-    DCP_UNREACHABLE();
+    UNREACHABLE();
   }
 
   if (state_is_delete(id))
@@ -78,7 +78,7 @@ int trellis_get_previous_state(struct trellis const *x, int id)
     assert(idx > 0);
     if (s == STATE_MATCH) return state_make_match_id(idx - 1);
     if (s == STATE_DELETE) return state_make_delete_id(idx - 1);
-    DCP_UNREACHABLE();
+    UNREACHABLE();
   }
 
   if (state_is_insert(id))
@@ -86,10 +86,10 @@ int trellis_get_previous_state(struct trellis const *x, int id)
     int s = (int[]){STATE_MATCH, STATE_INSERT}[v / 5];
     if (s == STATE_MATCH) return state_make_match_id(idx);
     if (s == STATE_INSERT) return state_make_insert_id(idx);
-    DCP_UNREACHABLE();
+    UNREACHABLE();
   }
 
-  DCP_UNREACHABLE();
+  UNREACHABLE();
   return 0;
 }
 

@@ -51,7 +51,7 @@ int trellis_get_previous_state(struct trellis const *, int id);
 int trellis_get_emission_size(struct trellis const *, int id);
 
 // clang-format off
-DCP_CONST int trellis_xnode_get_field(uint32_t x, int state)
+CONST int trellis_xnode_get_field(uint32_t x, int state)
 {
   if (state == STATE_S) return bit_extract(x, 0                                                , SBITS);
   if (state == STATE_N) return bit_extract(x, 0 + SBITS                                        , NBITS);
@@ -60,38 +60,38 @@ DCP_CONST int trellis_xnode_get_field(uint32_t x, int state)
   if (state == STATE_C) return bit_extract(x, 0 + SBITS + NBITS + BBITS + EBITS                , CBITS);
   if (state == STATE_T) return bit_extract(x, 0 + SBITS + NBITS + BBITS + EBITS + CBITS        , TBITS);
   if (state == STATE_J) return bit_extract(x, 0 + SBITS + NBITS + BBITS + EBITS + CBITS + TBITS, JBITS);
-  DCP_UNREACHABLE();
+  UNREACHABLE();
   return 0;
 }
 
-DCP_CONST int trellis_node_get_field(uint16_t x, int state)
+CONST int trellis_node_get_field(uint16_t x, int state)
 {
   if (state_is_match(state))  return bit_extract(x, 0                , MBITS);
   if (state_is_delete(state)) return bit_extract(x, 0 + MBITS        , DBITS);
   if (state_is_insert(state)) return bit_extract(x, 0 + MBITS + DBITS, IBITS);
-  DCP_UNREACHABLE();
+  UNREACHABLE();
   return 0;
 }
 // clang-format on
 
-DCP_INLINE void trellis_next_xnode(struct trellis *x) { x->xnode++; }
-DCP_INLINE void trellis_next_node(struct trellis *x) { x->node++; }
+INLINE void trellis_next_xnode(struct trellis *x) { x->xnode++; }
+INLINE void trellis_next_node(struct trellis *x) { x->node++; }
 
-DCP_INLINE void trellis_seek_xnode(struct trellis *x, int stage)
+INLINE void trellis_seek_xnode(struct trellis *x, int stage)
 {
   x->xnode = x->xnodes + stage;
 }
 
-DCP_INLINE void trellis_seek_node(struct trellis *x, int stage, int core_idx)
+INLINE void trellis_seek_node(struct trellis *x, int stage, int core_idx)
 {
   x->node = x->nodes + stage * x->core_size + core_idx;
 }
 
-DCP_INLINE void trellis_clear_xnode(struct trellis *x) { *x->xnode = 0; }
-DCP_INLINE void trellis_clear_node(struct trellis *x) { *x->node = 0; }
+INLINE void trellis_clear_xnode(struct trellis *x) { *x->xnode = 0; }
+INLINE void trellis_clear_node(struct trellis *x) { *x->node = 0; }
 
 // clang-format off
-DCP_INLINE void trellis_set(struct trellis *x, int id, int value)
+INLINE void trellis_set(struct trellis *x, int id, int value)
 {
   if (id == STATE_S) *x->xnode |= value << (0);
   if (id == STATE_N) *x->xnode |= value << (0 + SBITS);
@@ -105,7 +105,7 @@ DCP_INLINE void trellis_set(struct trellis *x, int id, int value)
   if (state_is_insert(id)) *x->node |= value << (0 + MBITS + DBITS);
 }
 
-DCP_INLINE void trellis_replace(struct trellis *x, int id, int value)
+INLINE void trellis_replace(struct trellis *x, int id, int value)
 {
   assert(id == STATE_B);
   *x->xnode &= ~bit_rangeset(SBITS + NBITS, BBITS);

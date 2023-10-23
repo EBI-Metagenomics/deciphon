@@ -14,7 +14,7 @@
 #include <immintrin.h>
 #endif
 
-DCP_CONST float reduce_fmax(int const size, float const array[restrict])
+CONST float reduce_fmax(int const size, float const array[restrict])
 {
   float max = -INFINITY;
   int i = 0;
