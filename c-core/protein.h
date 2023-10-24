@@ -1,11 +1,11 @@
 #ifndef PROTEIN_H
 #define PROTEIN_H
 
-#include "xlimits.h"
 #include "imm/imm.h"
 #include "model.h"
 #include "protein_background.h"
 #include "protein_null.h"
+#include "xlimits.h"
 
 struct protein
 {
@@ -25,9 +25,10 @@ struct protein
 };
 
 // clang-format off
-void protein_init(struct protein *, struct model_params params);
+void protein_init(struct protein *);
+void protein_setup(struct protein *, struct model_params params);
 int  protein_set_accession(struct protein *, char const *accession);
-void protein_setup(struct protein *, int seq_size, bool multi_hits, bool hmmer3_compat);
+void protein_reset(struct protein *, int seq_size, bool multi_hits, bool hmmer3_compat);
 int  protein_absorb(struct protein *, struct model *);
 int  protein_sample(struct protein *, int seed, int core_size);
 void protein_cleanup(struct protein *);

@@ -11,7 +11,8 @@ struct hmmer
 };
 
 // clang-format off
-int  hmmer_init(struct hmmer *);
+void hmmer_init(struct hmmer *);
+int  hmmer_setup(struct hmmer *);
 bool hmmer_online(struct hmmer const *);
 void hmmer_cleanup(struct hmmer *);
 int  hmmer_warmup(struct hmmer *);

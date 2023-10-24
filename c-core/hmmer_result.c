@@ -4,8 +4,11 @@
 #include <math.h>
 #include <stddef.h>
 
-int hmmer_result_init(struct hmmer_result *x)
+void hmmer_result_init(struct hmmer_result *x) { x->handle = NULL; }
+
+int hmmer_result_setup(struct hmmer_result *x)
 {
+  if (x->handle) return 0;
   return (x->handle = h3client_result_new()) ? 0 : DCP_ENOMEM;
 }
 

@@ -5,17 +5,30 @@
 #include "lip/file/file.h"
 #include "lip/lip.h"
 #include "model.h"
+#include "pack.h"
 #include "protein_background.h"
 #include "protein_node.h"
-#include "unpack.h"
 #include "state.h"
-#include "pack.h"
+#include "unpack.h"
 #include "xrealloc.h"
 #include "xstrcpy.h"
 #include <stdlib.h>
 #include <string.h>
 
-void protein_init(struct protein *x, struct model_params params)
+void protein_init(struct protein *x)
+{
+  memset(x, 0, sizeof(*x));
+
+  static struct imm_code code = {0};
+  imm_code_init(&code, &imm_dna_iupac.super.super);
+  imm_score_table_init(&x->score_table, &code);
+
+  x->nodes = NULL;
+  x->emission = NULL;
+  x->BMk = NULL;
+}
+
+void protein_setup(struct protein *x, struct model_params params)
 {
   x->params = params;
 
@@ -38,7 +51,7 @@ int protein_set_accession(struct protein *x, char const *acc)
   return xstrcpy(x->accession, acc, n) ? 0 : DCP_ELONGACCESSION;
 }
 
-void protein_setup(struct protein *x, int seq_size, bool multi_hits,
+void protein_reset(struct protein *x, int seq_size, bool multi_hits,
                    bool hmmer3_compat)
 {
   assert(seq_size > 0);
@@ -325,7 +338,8 @@ int protein_unpack(struct protein *x, struct lip_file *file)
   if ((rc = nuclt_dist_unpack(&x->bg.nuclt_dist, file))) return rc;
 
   if ((rc = unpack_key(file, "bg_emission"))) return rc;
-  if ((rc = unpack_f32array(file, PROTEIN_NODE_SIZE, x->bg.emission))) return rc;
+  if ((rc = unpack_f32array(file, PROTEIN_NODE_SIZE, x->bg.emission)))
+    return rc;
 
   x->nodes = xrealloc(x->nodes, (x->core_size + 1) * sizeof(*x->nodes));
   if (!x->nodes) return DCP_ENOMEM;

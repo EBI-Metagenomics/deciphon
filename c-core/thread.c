@@ -20,44 +20,44 @@
 void thread_init(struct thread *x)
 {
   *x = (struct thread){};
+  protein_init(&x->protein);
+  x->multi_hits = false;
+  x->hmmer3_compat = false;
   viterbi_task_init(&x->task);
+  x->product = NULL;
+  chararray_init(&x->amino);
+  hmmer_init(&x->hmmer);
 }
 
 int thread_setup(struct thread *x, struct thread_params params)
 {
   struct database_reader const *db = params.reader->db;
-  protein_init(&x->protein, database_reader_params(db, NULL));
+  protein_setup(&x->protein, database_reader_params(db, NULL));
   int rc = 0;
 
   if ((rc = protein_reader_iter(params.reader, params.partition, &x->iter)))
-    defer_return(rc);
+    return rc;
 
   x->product = params.product_thread;
-  char const *abc_name = imm_abc_typeid_name(db->nuclt.super.typeid);
-  if ((rc = product_line_set_abc(&x->product->line, abc_name)))
-    defer_return(rc);
+  char const *abc = imm_abc_typeid_name(db->nuclt.super.typeid);
+  if ((rc = product_line_set_abc(&x->product->line, abc))) return rc;
 
-  chararray_init(&x->amino);
   x->multi_hits = params.multi_hits;
   x->hmmer3_compat = params.hmmer3_compat;
 
-  if ((rc = hmmer_init(&x->hmmer))) defer_return(rc);
+  if ((rc = hmmer_setup(&x->hmmer))) return rc;
   if (hmmer_dialer_online(params.dialer))
   {
-    if ((rc = hmmer_dialer_dial(params.dialer, &x->hmmer))) defer_return(rc);
-    if ((rc = hmmer_warmup(&x->hmmer))) defer_return(rc);
+    if ((rc = hmmer_dialer_dial(params.dialer, &x->hmmer))) return rc;
+    if ((rc = hmmer_warmup(&x->hmmer))) return rc;
   }
 
-  return rc;
-
-defer:
-  protein_cleanup(&x->protein);
-  chararray_cleanup(&x->amino);
   return rc;
 }
 
 void thread_cleanup(struct thread *x)
 {
+  protein_cleanup(&x->protein);
   viterbi_task_cleanup(&x->task);
   chararray_cleanup(&x->amino);
   hmmer_cleanup(&x->hmmer);
@@ -75,7 +75,7 @@ static int run(struct thread *x, int protein_idx, struct window const *w)
   x->product->line.window_start = window_range(w).start;
   x->product->line.window_stop = window_range(w).stop;
 
-  protein_setup(&x->protein, sequence_size(seq), x->multi_hits,
+  protein_reset(&x->protein, sequence_size(seq), x->multi_hits,
                 x->hmmer3_compat);
 
   float null = viterbi_null(&x->protein, &seq->imm.eseq);
@@ -112,8 +112,7 @@ static int run(struct thread *x, int protein_idx, struct window const *w)
   return rc;
 }
 
-int thread_run(struct thread *x,
-                    struct sequence_queue const *sequences)
+int thread_run(struct thread *x, struct sequence_queue const *sequences)
 {
   int rc = 0;
 

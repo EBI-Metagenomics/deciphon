@@ -11,7 +11,8 @@ struct hmmer_result
 };
 
 // clang-format off
-int   hmmer_result_init(struct hmmer_result *);
+void  hmmer_result_init(struct hmmer_result *);
+int   hmmer_result_setup(struct hmmer_result *);
 void  hmmer_result_cleanup(struct hmmer_result *);
 int   hmmer_result_num_hits(struct hmmer_result const *);
 float hmmer_result_evalue(struct hmmer_result const *);

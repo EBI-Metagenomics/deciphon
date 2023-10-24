@@ -52,7 +52,8 @@ int main(void)
   eq(model_add_trans(&model, t[3]), 0);
 
   struct protein protein = {};
-  protein_init(&protein, params);
+  protein_init(&protein);
+  protein_setup(&protein, params);
   eq(protein_set_accession(&protein, "accession"), 0);
 
   eq(protein_absorb(&protein, &model), 0);

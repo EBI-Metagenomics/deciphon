@@ -8,11 +8,13 @@
 #define REQUEST_DEADLINE 30000
 #define WARMUP_DEADLINE 10000
 
-int hmmer_init(struct hmmer *x)
+void hmmer_init(struct hmmer *x)
 {
   x->stream = NULL;
-  return hmmer_result_init(&x->result);
+  hmmer_result_init(&x->result);
 }
+
+int hmmer_setup(struct hmmer *x) { return hmmer_result_setup(&x->result); }
 
 bool hmmer_online(struct hmmer const *x) { return x->stream; }
 

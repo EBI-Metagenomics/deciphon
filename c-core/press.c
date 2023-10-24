@@ -38,12 +38,13 @@ static int protein_write(struct press *);
 
 struct press *press_new(void)
 {
-  struct press *p = malloc(sizeof(struct press));
-  if (!p) return NULL;
+  struct press *x = malloc(sizeof(*x));
+  if (!x) return NULL;
 
-  p->writer.fp = NULL;
-  p->reader.fp = NULL;
-  return p;
+  x->writer.fp = NULL;
+  x->reader.fp = NULL;
+  protein_init(&x->protein);
+  return x;
 }
 
 int press_setup(struct press *x, int gencode_id, float epsilon)
@@ -76,7 +77,7 @@ int press_open(struct press *x, char const *hmm, char const *db)
 
   hmm_reader_init(&x->reader.h3, x->params, x->reader.fp);
 
-  protein_init(&x->protein, x->params);
+  protein_setup(&x->protein, x->params);
 
   char const *acc = x->reader.h3.protein.meta.acc;
   if ((rc = protein_set_accession(&x->protein, acc))) defer_return(rc);
