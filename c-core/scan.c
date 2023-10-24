@@ -5,10 +5,10 @@
 #include "product.h"
 #include "protein_reader.h"
 #include "queue.h"
-#include "thread_params.h"
 #include "sequence.h"
 #include "sequence_queue.h"
 #include "thread.h"
+#include "thread_params.h"
 #include <stdlib.h>
 
 struct scan
@@ -48,18 +48,18 @@ struct scan *scan_new(struct scan_params params)
   return x;
 }
 
-void scan_del(struct scan const *x)
+void scan_del(struct scan const *scan)
 {
+  struct scan *x = (struct scan *)scan;
   if (x)
   {
-    struct scan *y = (struct scan *)x;
-    hmmer_dialer_cleanup(&y->dialer);
-    database_reader_close(&y->db.reader);
-    sequence_queue_cleanup(&y->sequences);
-    product_close(&y->product);
+    hmmer_dialer_cleanup(&x->dialer);
+    database_reader_close(&x->db.reader);
+    sequence_queue_cleanup(&x->sequences);
+    product_close(&x->product);
     for (int i = 0; i < x->params.num_threads; ++i)
-      thread_cleanup(y->threads + i);
-    free(y);
+      thread_cleanup(x->threads + i);
+    free(x);
   }
 }
 
@@ -71,14 +71,12 @@ int scan_dial(struct scan *x, int port)
 int scan_open(struct scan *x, char const *dbfile)
 {
   int rc = 0;
-  int num_threads = x->params.num_threads;
+  int n = x->params.num_threads;
 
-  if ((rc = database_reader_open(&x->db.reader, dbfile))) defer_return(rc);
-  if ((rc = protein_reader_setup(&x->db.protein, &x->db.reader, num_threads)))
-    defer_return(rc);
+  if ((rc = database_reader_open(&x->db.reader, dbfile))) return rc;
+  if ((rc = protein_reader_setup(&x->db.protein, &x->db.reader, n))) return rc;
   sequence_queue_setup(&x->sequences, &x->db.reader.code.super);
 
-defer:
   return rc;
 }
 
@@ -103,9 +101,12 @@ int scan_run(struct scan *x, char const *product_dir)
 
   for (int i = 0; i < num_threads; ++i)
   {
-    struct thread_params params = {};
-    thread_params_init(&params, &x->params, &x->dialer, &x->db.protein,
-                            product_thread(&x->product, i), i);
+    struct thread_params params = {&x->db.protein,
+                                   i,
+                                   product_thread(&x->product, i),
+                                   &x->dialer,
+                                   x->params.multi_hits,
+                                   x->params.hmmer3_compat};
     if ((rc = thread_setup(x->threads + i, params))) defer_return(rc);
   }
 
