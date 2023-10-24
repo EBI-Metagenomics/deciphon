@@ -14,6 +14,7 @@
 #include "sequence.h"
 #include "sequence_queue.h"
 #include "viterbi.h"
+#include "viterbi_task.h"
 #include "window.h"
 
 void scan_thread_init(struct scan_thread *x)

@@ -1,8 +1,9 @@
-#include "deciphon/codec.h"
-#include "deciphon/protein.h"
-#include "deciphon/viterbi.h"
+#include "codec.h"
 #include "imm/imm.h"
+#include "protein.h"
 #include "vendor/minctest.h"
+#include "viterbi.h"
+#include "viterbi_task.h"
 
 static void test_protein_uniform(void);
 static void test_protein_occupancy(void);

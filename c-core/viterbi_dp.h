@@ -7,6 +7,7 @@
 #include "state.h"
 #include "trellis_bits.h"
 #include <stdlib.h>
+#include <string.h>
 
 // clang-format off
 int          dp_renew(float **, int core_size);
@@ -21,6 +22,21 @@ CONST float *dp_rewind(float *x, int state)
   if (state == STATE_D) return x + 2 * VITERBI_PAST_SIZE;
   UNREACHABLE();
   return NULL;
+}
+
+CONST float dp_of(float const x[restrict], int look_back)
+{
+  return x[look_back];
+}
+
+INLINE void dp_set(float x[restrict], int look_back, float value)
+{
+  x[look_back] = value;
+}
+
+INLINE void dp_advance(float x[])
+{
+  memmove(&x[1], &x[0], sizeof(float) * (VITERBI_PAST_SIZE - 1));
 }
 
 #endif

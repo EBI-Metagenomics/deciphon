@@ -8,6 +8,7 @@
 #include "queue.h"
 #include "scan_thread_params.h"
 #include "viterbi.h"
+#include "viterbi_task.h"
 
 struct chararray;
 struct product_thread;
