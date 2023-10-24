@@ -1,6 +1,6 @@
 #include "scan_params.h"
 #include "rc.h"
-#include "deciphon_limits.h"
+#include "xlimits.h"
 
 int scan_params_setup(struct scan_params *x, int num_threads, bool multi_hits,
                       bool hmmer3_compat)

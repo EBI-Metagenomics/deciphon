@@ -1,7 +1,7 @@
 #ifndef PROTEIN_READER_H
 #define PROTEIN_READER_H
 
-#include "deciphon_limits.h"
+#include "xlimits.h"
 
 struct db_reader;
 struct protein_iter;

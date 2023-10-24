@@ -15,7 +15,7 @@
 
 #include "fs.h"
 #include "array_size.h"
-#include "deciphon_limits.h"
+#include "xlimits.h"
 #include "rc.h"
 #include "xstrcpy.h"
 #include <assert.h>

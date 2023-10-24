@@ -1,7 +1,7 @@
-#ifndef DECIPHON_LIMITS_H
-#define DECIPHON_LIMITS_H
+#ifndef XLIMITS_H
+#define XLIMITS_H
 
-enum deciphon_limits
+enum
 {
   DCP_ABC_NAME_SIZE = 16,
   DCP_PROFILE_NAME_SIZE = 64,
