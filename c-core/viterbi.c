@@ -170,10 +170,9 @@ INLINE void viterbi_on_range(struct protein *x, struct viterbi_task *t,
 int viterbi(struct protein *x, struct imm_eseq const *eseq,
             struct viterbi_task *task, bool const nopath)
 {
-  assert(imm_eseq_size(eseq) <= INT_MAX);
+  assert(imm_eseq_size(eseq) < INT_MAX);
   int seq_size = imm_eseq_size(eseq);
-  int rc = viterbi_task_setup(task, x->core_size, seq_size, nopath);
-  if (rc) return rc;
+  int rc = 0;
 
   dp_set(task->S, 0, 0);
 

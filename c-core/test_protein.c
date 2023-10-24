@@ -54,6 +54,8 @@ static void test_protein_uniform(void)
 
   struct viterbi_task task = {};
   viterbi_task_init(&task);
+  viterbi_task_setup(&task, protein.core_size);
+  viterbi_task_setup_path(&task, imm_eseq_size(&eseq));
   close(viterbi(&protein, &eseq, &task, false), 0);
   close(task.score, -55.59428153448);
 
@@ -137,6 +139,8 @@ static void test_protein_occupancy(void)
 
   struct viterbi_task task = {};
   viterbi_task_init(&task);
+  viterbi_task_setup(&task, protein.core_size);
+  viterbi_task_setup_path(&task, imm_eseq_size(&eseq));
   close(viterbi(&protein, &eseq, &task, false), 0);
   close(task.score, -54.35543421312);
 

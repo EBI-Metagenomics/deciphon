@@ -8,6 +8,7 @@
 
 struct viterbi_task
 {
+  int core_size;
   float *dp;
   DECLARE_DP(S);
   DECLARE_DP(N);
@@ -23,7 +24,8 @@ struct viterbi_task
 
 // clang-format off
 void viterbi_task_init(struct viterbi_task *);
-int  viterbi_task_setup(struct viterbi_task *, int core_size, int seq_size, bool const nopath);
+int  viterbi_task_setup(struct viterbi_task *, int core_size);
+int  viterbi_task_setup_path(struct viterbi_task *, int seq_size);
 void viterbi_task_cleanup(struct viterbi_task *);
 // clang-format on
 

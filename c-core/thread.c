@@ -19,10 +19,11 @@
 
 void thread_init(struct thread *x)
 {
-  *x = (struct thread){};
   protein_init(&x->protein);
+
   x->multi_hits = false;
   x->hmmer3_compat = false;
+
   viterbi_task_init(&x->task);
   x->product = NULL;
   chararray_init(&x->amino);
@@ -80,12 +81,14 @@ static int run(struct thread *x, int protein_idx, struct window const *w)
 
   float null = viterbi_null(&x->protein, &seq->imm.eseq);
 
+  if ((rc = viterbi_task_setup(&x->task, x->protein.core_size))) return rc;
   if ((rc = viterbi(&x->protein, &seq->imm.eseq, &x->task, true))) return rc;
   float alt = x->task.score;
 
   if (!imm_lprob_is_finite(lrt(null, alt)) || alt < null) return rc;
   x->product->line.lrt = lrt(null, alt);
 
+  if ((rc = viterbi_task_setup_path(&x->task, sequence_size(seq)))) return rc;
   if ((rc = viterbi(&x->protein, &seq->imm.eseq, &x->task, false))) return rc;
 
   if ((rc = product_line_set_protein(&x->product->line, x->protein.accession)))
