@@ -18,13 +18,13 @@ int viterbi_task_setup(struct viterbi_task *x, int core_size, int seq_size,
   int rc = 0;
   if ((rc = dp_core_renew(&x->dp, core_size))) defer_return(rc);
 
-  dp_fill(x->S, VITERBI_PAST_SIZE, IMM_LPROB_ZERO);
-  dp_fill(x->N, VITERBI_PAST_SIZE, IMM_LPROB_ZERO);
-  dp_fill(x->B, VITERBI_PAST_SIZE, IMM_LPROB_ZERO);
-  dp_fill(x->J, VITERBI_PAST_SIZE, IMM_LPROB_ZERO);
-  dp_fill(x->E, VITERBI_PAST_SIZE, IMM_LPROB_ZERO);
-  dp_fill(x->C, VITERBI_PAST_SIZE, IMM_LPROB_ZERO);
-  dp_fill(x->T, VITERBI_PAST_SIZE, IMM_LPROB_ZERO);
+  dp_fill(x->S, IMM_LPROB_ZERO);
+  dp_fill(x->N, IMM_LPROB_ZERO);
+  dp_fill(x->B, IMM_LPROB_ZERO);
+  dp_fill(x->J, IMM_LPROB_ZERO);
+  dp_fill(x->E, IMM_LPROB_ZERO);
+  dp_fill(x->C, IMM_LPROB_ZERO);
+  dp_fill(x->T, IMM_LPROB_ZERO);
 
   if (!nopath)
   {

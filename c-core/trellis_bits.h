@@ -29,7 +29,7 @@ xstatic_assert(CORE_BITS <= sizeof(uint16_t) * CHAR_BIT);
 
 enum
 {
-  VITERBI_PAST_SIZE = 6
+  PAST_SIZE = 6
 };
 
 #endif

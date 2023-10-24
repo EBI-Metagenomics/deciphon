@@ -3,6 +3,7 @@
 
 #include "compiler.h"
 #include "imm/imm.h"
+#include "trellis_bits.h"
 #include <stdbool.h>
 
 PURE int get_index(struct imm_eseq const *x, int pos, int size, bool const safe)
@@ -20,37 +21,31 @@ PURE float const *get_emission_addr(float const x[restrict], int i)
   return x + i;
 }
 
-#define DECLARE_EMISSION_INDEX(name, size) int name[(size)] ALIGNED
-#define DECLARE_EMISSION_TABLE(name, size) float name[(size)] ALIGNED
+#define DECLARE_EMISSION_INDEX(name) int name[PAST_SIZE - 1] ALIGNED
+#define DECLARE_EMISSION_TABLE(name) float name[PAST_SIZE - 1] ALIGNED
 
 INLINE void emission_index(int index[restrict], struct imm_eseq const *eseq,
                            int row, bool const safe)
 {
-  index[0] = get_index(eseq, row - 1, 1, safe);
-  index[1] = get_index(eseq, row - 2, 2, safe);
-  index[2] = get_index(eseq, row - 3, 3, safe);
-  index[3] = get_index(eseq, row - 4, 4, safe);
-  index[4] = get_index(eseq, row - 5, 5, safe);
+#pragma omp unroll
+  for (int i = 0; i < PAST_SIZE - 1; ++i)
+    index[i] = get_index(eseq, row - i - 1, i + 1, safe);
 }
 
 INLINE void emission_fetch(float x[restrict], float emission[restrict],
                            int const index[restrict], bool const safe)
 {
-  x[0] = get_emission(emission, index[0], safe);
-  x[1] = get_emission(emission, index[1], safe);
-  x[2] = get_emission(emission, index[2], safe);
-  x[3] = get_emission(emission, index[3], safe);
-  x[4] = get_emission(emission, index[4], safe);
+#pragma omp unroll
+  for (int i = 0; i < PAST_SIZE - 1; ++i)
+    x[i] = get_emission(emission, index[i], safe);
 }
 
-INLINE void emission_prefetc(float emission[restrict],
-                             int const index[restrict])
+INLINE void emission_prefetch(float emission[restrict],
+                              int const index[restrict])
 {
-  PREFETCH(get_emission_addr(emission, index[0]), 0, 1);
-  PREFETCH(get_emission_addr(emission, index[1]), 0, 1);
-  PREFETCH(get_emission_addr(emission, index[2]), 0, 1);
-  PREFETCH(get_emission_addr(emission, index[3]), 0, 1);
-  PREFETCH(get_emission_addr(emission, index[4]), 0, 1);
+#pragma omp unroll
+  for (int i = 0; i < PAST_SIZE - 1; ++i)
+    PREFETCH(get_emission_addr(emission, index[i]), 0, 1);
 }
 
 CONST float emission_of(float const emission[restrict], int num_chars)

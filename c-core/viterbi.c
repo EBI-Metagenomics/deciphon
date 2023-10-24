@@ -1,18 +1,10 @@
-#include "viterbi.h"
-#include "array_size.h"
-#include "array_size_field.h"
-#include "compiler.h"
-#include "defer_return.h"
-#include "find_fmax.h"
 #include "imm/imm.h"
 #include "protein.h"
 #include "protein_node.h"
-#include "reduce_fmax.h"
-#include "scan_thread.h"
-#include "trellis.h"
+#include "viterbi_dp.h"
 #include "viterbi_emission.h"
 #include "viterbi_onto.h"
-#include "viterbi_task.h"
+#include "viterbi_path.h"
 #include "viterbi_xtrans.h"
 #include <stdlib.h>
 #include <string.h>
@@ -43,14 +35,14 @@ float viterbi_null(struct protein *x, struct imm_eseq const *eseq)
 {
   int seq_size = imm_eseq_size(eseq);
 
-  DECLARE_DP(S, VITERBI_PAST_SIZE);
-  DECLARE_DP(R, VITERBI_PAST_SIZE);
-  dp_fill(S, VITERBI_PAST_SIZE, IMM_LPROB_ZERO);
-  dp_fill(R, VITERBI_PAST_SIZE, IMM_LPROB_ZERO);
+  DECLARE_DP(S);
+  DECLARE_DP(R);
+  dp_fill(S, IMM_LPROB_ZERO);
+  dp_fill(R, IMM_LPROB_ZERO);
   dp_set(S, 0, 0);
 
-  DECLARE_EMISSION_INDEX(ix, VITERBI_PAST_SIZE - 1) = {0};
-  DECLARE_EMISSION_TABLE(null, VITERBI_PAST_SIZE - 1) = {0};
+  DECLARE_EMISSION_INDEX(ix) = {0};
+  DECLARE_EMISSION_TABLE(null) = {0};
 
   for (int r = 0; r < seq_size + 1; ++r)
   {
@@ -73,10 +65,10 @@ INLINE void viterbi_on_range(struct protein *x, struct viterbi_task *t,
 
   struct viterbi_xtrans const xt = viterbi_xtrans(x->xtrans);
 
-  DECLARE_EMISSION_INDEX(ix, VITERBI_PAST_SIZE - 1) = {0};
-  DECLARE_EMISSION_TABLE(null, VITERBI_PAST_SIZE - 1) = {0};
-  DECLARE_EMISSION_TABLE(bg, VITERBI_PAST_SIZE - 1) = {0};
-  DECLARE_EMISSION_TABLE(match, VITERBI_PAST_SIZE - 1) = {0};
+  DECLARE_EMISSION_INDEX(ix) = {0};
+  DECLARE_EMISSION_TABLE(null) = {0};
+  DECLARE_EMISSION_TABLE(bg) = {0};
+  DECLARE_EMISSION_TABLE(match) = {0};
 
   if (tr) trellis_seek_xnode(tr, row_start);
   if (tr) trellis_seek_node(tr, row_start, 0);
@@ -125,7 +117,7 @@ INLINE void viterbi_on_range(struct protein *x, struct viterbi_task *t,
 
       // [BM(n), M(k), I(k), D(k)] -> M(n)
       float Mn = onto_M(tr, t->B, Mk, Ik, Dk, BM, MM, IM, DM, match);
-      emission_prefetc(x->nodes[k + 2].emission, ix);
+      emission_prefetch(x->nodes[k + 2].emission, ix);
 
       // [M(k), D(k)] -> D(n)
       float Dn = onto_D(tr, Mk, Dk, MD, DD);
@@ -174,8 +166,6 @@ INLINE void viterbi_on_range(struct protein *x, struct viterbi_task *t,
   }
 }
 
-static int unzip_path(struct trellis *x, int seq_size, struct imm_path *path);
-
 int viterbi(struct protein *x, struct imm_eseq const *eseq,
             struct viterbi_task *task, bool const nopath)
 {
@@ -207,27 +197,4 @@ int viterbi(struct protein *x, struct imm_eseq const *eseq,
   }
 
   return rc;
-}
-
-static int unzip_path(struct trellis *x, int seq_size, struct imm_path *path)
-{
-  int state = state_make_end();
-  assert(seq_size <= INT_MAX);
-  int stage = (int)seq_size;
-  trellis_seek_xnode(x, stage);
-
-  while (!state_is_start(state) || stage)
-  {
-    int size = trellis_emission_size(x, state);
-    if (imm_path_add(path, imm_step(state, size, 0))) return DCP_ENOMEM;
-    state = trellis_previous_state(x, state);
-    stage -= size;
-    if (state_is_core(state))
-      trellis_seek_node(x, stage, state_core_idx(state));
-    else
-      trellis_seek_xnode(x, stage);
-  }
-  if (imm_path_add(path, imm_step(state, 0, 0))) return DCP_ENOMEM;
-  imm_path_reverse(path);
-  return 0;
 }

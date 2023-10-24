@@ -10,13 +10,13 @@
 struct viterbi_task
 {
   float *dp;
-  DECLARE_DP(S, VITERBI_PAST_SIZE);
-  DECLARE_DP(N, VITERBI_PAST_SIZE);
-  DECLARE_DP(B, VITERBI_PAST_SIZE);
-  DECLARE_DP(J, VITERBI_PAST_SIZE);
-  DECLARE_DP(E, VITERBI_PAST_SIZE);
-  DECLARE_DP(C, VITERBI_PAST_SIZE);
-  DECLARE_DP(T, VITERBI_PAST_SIZE);
+  DECLARE_DP(S);
+  DECLARE_DP(N);
+  DECLARE_DP(B);
+  DECLARE_DP(J);
+  DECLARE_DP(E);
+  DECLARE_DP(C);
+  DECLARE_DP(T);
   struct trellis trellis;
   struct imm_path path;
   float score;

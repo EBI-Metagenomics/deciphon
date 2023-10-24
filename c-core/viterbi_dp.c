@@ -3,7 +3,7 @@
 
 int dp_core_renew(float **dp, int core_size)
 {
-  size_t size = 3 * VITERBI_PAST_SIZE * core_size;
+  size_t size = 3 * PAST_SIZE * core_size;
 
   *dp = xrealloc(*dp, sizeof(float) * size);
   if (!*dp && size > 0) return DCP_ENOMEM;
