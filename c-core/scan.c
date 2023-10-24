@@ -122,10 +122,6 @@ defer:
   for (int i = 0; i < num_threads; ++i)
     thread_cleanup(x->threads + i);
 
-  if (rc)
-    product_close(&x->product);
-  else
-    rc = product_close(&x->product);
-
-  return rc;
+  int product_rc = product_close(&x->product);
+  return rc ? rc : product_rc;
 }
