@@ -1,6 +1,6 @@
 #include "scan_thread.h"
 #include "chararray.h"
-#include "db_reader.h"
+#include "database_reader.h"
 #include "defer_return.h"
 #include "hmmer_dialer.h"
 #include "lrt.h"
@@ -25,8 +25,8 @@ void scan_thread_init(struct scan_thread *x)
 
 int scan_thread_setup(struct scan_thread *x, struct scan_thread_params params)
 {
-  struct db_reader const *db = params.reader->db;
-  protein_init(&x->protein, db_reader_params(db, NULL));
+  struct database_reader const *db = params.reader->db;
+  protein_init(&x->protein, database_reader_params(db, NULL));
   int rc = 0;
 
   if ((rc = protein_reader_iter(params.reader, params.partition, &x->iter)))

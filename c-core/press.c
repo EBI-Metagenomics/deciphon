@@ -1,6 +1,6 @@
 #include "press.h"
 #include "array_size_field.h"
-#include "db_writer.h"
+#include "database_writer.h"
 #include "defer_return.h"
 #include "fs.h"
 #include "hmm_reader.h"
@@ -16,7 +16,7 @@ struct press
   struct
   {
     FILE *fp;
-    struct db_writer db;
+    struct database_writer db;
   } writer;
 
   struct
@@ -70,8 +70,9 @@ int press_open(struct press *x, char const *hmm, char const *db)
 
   if ((rc = count_proteins(x))) defer_return(rc);
 
-  db_writer_init(&x->writer.db, x->params);
-  if ((rc = db_writer_open(&x->writer.db, x->writer.fp))) defer_return(rc);
+  database_writer_init(&x->writer.db, x->params);
+  if ((rc = database_writer_open(&x->writer.db, x->writer.fp)))
+    defer_return(rc);
 
   hmm_reader_init(&x->reader.h3, x->params, x->reader.fp);
 
@@ -144,7 +145,7 @@ static int finish_writer(struct press *press)
 {
   if (!press->writer.fp) return 0;
 
-  int rc = db_writer_close(&press->writer.db);
+  int rc = database_writer_close(&press->writer.db);
   if (rc) defer_return(rc);
 
   return fs_close(press->writer.fp);
@@ -163,5 +164,5 @@ static int protein_write(struct press *x)
   if (!xstrcpy(x->protein.accession, x->reader.h3.protein.meta.acc, n))
     return DCP_ELONGACCESSION;
 
-  return db_writer_pack(&x->writer.db, &x->protein);
+  return database_writer_pack(&x->writer.db, &x->protein);
 }

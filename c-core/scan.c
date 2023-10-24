@@ -1,5 +1,5 @@
 #include "scan.h"
-#include "db_reader.h"
+#include "database_reader.h"
 #include "defer_return.h"
 #include "hmmer_dialer.h"
 #include "product.h"
@@ -21,7 +21,7 @@ struct scan
 
   struct
   {
-    struct db_reader reader;
+    struct database_reader reader;
     struct protein_reader protein;
   } db;
 
@@ -40,7 +40,7 @@ struct scan *scan_new(struct scan_params params)
   product_init(&x->product);
   sequence_queue_init(&x->sequences);
 
-  db_reader_init(&x->db.reader);
+  database_reader_init(&x->db.reader);
   protein_reader_init(&x->db.protein);
 
   hmmer_dialer_init(&x->dialer);
@@ -54,7 +54,7 @@ void scan_del(struct scan const *x)
   {
     struct scan *y = (struct scan *)x;
     hmmer_dialer_cleanup(&y->dialer);
-    db_reader_close(&y->db.reader);
+    database_reader_close(&y->db.reader);
     sequence_queue_cleanup(&y->sequences);
     product_close(&y->product);
     for (int i = 0; i < x->params.num_threads; ++i)
@@ -73,7 +73,7 @@ int scan_open(struct scan *x, char const *dbfile)
   int rc = 0;
   int num_threads = x->params.num_threads;
 
-  if ((rc = db_reader_open(&x->db.reader, dbfile))) defer_return(rc);
+  if ((rc = database_reader_open(&x->db.reader, dbfile))) defer_return(rc);
   if ((rc = protein_reader_setup(&x->db.protein, &x->db.reader, num_threads)))
     defer_return(rc);
   sequence_queue_setup(&x->sequences, &x->db.reader.code.super);
@@ -85,7 +85,7 @@ defer:
 int scan_close(struct scan *x)
 {
   sequence_queue_cleanup(&x->sequences);
-  return db_reader_close(&x->db.reader) ? DCP_EFCLOSE : 0;
+  return database_reader_close(&x->db.reader) ? DCP_EFCLOSE : 0;
 }
 
 int scan_add(struct scan *x, long id, char const *name, char const *data)

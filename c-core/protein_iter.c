@@ -1,5 +1,5 @@
 #include "protein_iter.h"
-#include "db_reader.h"
+#include "database_reader.h"
 #include "fs.h"
 #include "protein.h"
 #include "protein_reader.h"

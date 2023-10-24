@@ -1,13 +1,13 @@
-#ifndef DB_WRITER_H
-#define DB_WRITER_H
+#ifndef DATABASE_WRITER_H
+#define DATABASE_WRITER_H
 
-#include "xlimits.h"
 #include "imm/imm.h"
 #include "lip/lip.h"
 #include "model_params.h"
+#include "xlimits.h"
 #include <stdio.h>
 
-struct db_writer
+struct database_writer
 {
   int nproteins;
   struct lip_file file;
@@ -28,10 +28,10 @@ struct db_writer
 struct protein;
 
 // clang-format off
-void db_writer_init(struct db_writer *, struct model_params);
-int  db_writer_open(struct db_writer *, FILE *restrict);
-int  db_writer_pack(struct db_writer *, struct protein const *);
-int  db_writer_close(struct db_writer *);
+void database_writer_init(struct database_writer *, struct model_params);
+int  database_writer_open(struct database_writer *, FILE *restrict);
+int  database_writer_pack(struct database_writer *, struct protein const *);
+int  database_writer_close(struct database_writer *);
 // clang-format on
 
 #endif

@@ -1,6 +1,6 @@
 #include "protein_reader.h"
 #include "array_size_field.h"
-#include "db_reader.h"
+#include "database_reader.h"
 #include "defer_return.h"
 #include "fs.h"
 #include "imm/imm.h"
@@ -20,7 +20,7 @@ void protein_reader_init(struct protein_reader *x)
 
 static void partition_it(struct protein_reader *);
 
-int protein_reader_setup(struct protein_reader *x, struct db_reader *db,
+int protein_reader_setup(struct protein_reader *x, struct database_reader *db,
                          int num_partitions)
 {
   int rc = 0;

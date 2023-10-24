@@ -1,4 +1,4 @@
-#include "db_reader.h"
+#include "database_reader.h"
 #include "defer_return.h"
 #include "imm/imm.h"
 #include "lip/1darray/1darray.h"
@@ -7,16 +7,16 @@
 #include "unpack.h"
 #include <stdlib.h>
 
-void db_reader_init(struct db_reader *x)
+void database_reader_init(struct database_reader *x)
 {
   x->num_proteins = 0;
   x->protein_sizes = NULL;
   x->fp = NULL;
 }
 
-static int unpack_header_protein_sizes(struct db_reader *x);
+static int unpack_header_protein_sizes(struct database_reader *x);
 
-int db_reader_open(struct db_reader *x, char const *filename)
+int database_reader_open(struct database_reader *x, char const *filename)
 {
   int rc = 0;
   if (!(x->fp = fopen(filename, "rb"))) defer_return(DCP_EOPENDB);
@@ -56,11 +56,11 @@ int db_reader_open(struct db_reader *x, char const *filename)
   return rc;
 
 defer:
-  db_reader_close(x);
+  database_reader_close(x);
   return rc;
 }
 
-int db_reader_close(struct db_reader *x)
+int database_reader_close(struct database_reader *x)
 {
   if (x->protein_sizes) free(x->protein_sizes);
   x->protein_sizes = NULL;
@@ -69,7 +69,7 @@ int db_reader_close(struct db_reader *x)
   return rc;
 }
 
-static int unpack_header_protein_sizes(struct db_reader *x)
+static int unpack_header_protein_sizes(struct database_reader *x)
 {
   enum lip_1darray_type type = 0;
 
@@ -93,8 +93,8 @@ static int unpack_header_protein_sizes(struct db_reader *x)
   return 0;
 }
 
-struct model_params db_reader_params(struct db_reader const *x,
-                                     struct imm_gencode const *gencode)
+struct model_params database_reader_params(struct database_reader const *x,
+                                           struct imm_gencode const *gencode)
 {
   return (struct model_params){gencode, &x->amino, &x->code, x->entry_dist,
                                x->epsilon};

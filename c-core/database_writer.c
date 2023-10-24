@@ -1,4 +1,4 @@
-#include "db_writer.h"
+#include "database_writer.h"
 #include "defer_return.h"
 #include "entry_dist.h"
 #include "fs.h"
@@ -8,14 +8,14 @@
 #include "protein.h"
 #include "rc.h"
 
-static void nullify_tempfiles(struct db_writer *x)
+static void nullify_tempfiles(struct database_writer *x)
 {
   x->tmp.header.fp = NULL;
   x->tmp.sizes.fp = NULL;
   x->tmp.proteins.fp = NULL;
 }
 
-static void destroy_tempfiles(struct db_writer *x)
+static void destroy_tempfiles(struct database_writer *x)
 {
   if (x->tmp.header.fp) fclose(x->tmp.header.fp);
   if (x->tmp.sizes.fp) fclose(x->tmp.sizes.fp);
@@ -23,7 +23,7 @@ static void destroy_tempfiles(struct db_writer *x)
   nullify_tempfiles(x);
 }
 
-static int create_tempfiles(struct db_writer *x)
+static int create_tempfiles(struct database_writer *x)
 {
   nullify_tempfiles(x);
   int rc = 0;
@@ -47,7 +47,7 @@ defer:
   return rc;
 }
 
-static int pack_header_protein_sizes(struct db_writer *db)
+static int pack_header_protein_sizes(struct database_writer *db)
 {
   enum lip_1darray_type type = LIP_1DARRAY_UINT32;
 
@@ -65,7 +65,7 @@ static int pack_header_protein_sizes(struct db_writer *db)
   return feof(lip_file_ptr(&db->tmp.sizes)) ? 0 : DCP_EFWRITE;
 }
 
-static int pack_header(struct db_writer *db)
+static int pack_header(struct database_writer *db)
 {
   int rc = 0;
   struct lip_file *stream = &db->file;
@@ -82,7 +82,7 @@ static int pack_header(struct db_writer *db)
   return pack_header_protein_sizes(db);
 }
 
-static int pack_proteins(struct db_writer *db)
+static int pack_proteins(struct database_writer *db)
 {
   if (!lip_write_cstr(&db->file, "proteins")) return DCP_EFWRITE;
 
@@ -92,7 +92,7 @@ static int pack_proteins(struct db_writer *db)
   return fs_copy(lip_file_ptr(&db->file), lip_file_ptr(&db->tmp.proteins));
 }
 
-int db_writer_close(struct db_writer *db)
+int database_writer_close(struct database_writer *db)
 {
   int rc = 0;
   if ((rc = pack_mapsize(&db->file, 2))) defer_return(rc);
@@ -107,13 +107,13 @@ defer:
   return rc;
 }
 
-void db_writer_init(struct db_writer *x, struct model_params params)
+void database_writer_init(struct database_writer *x, struct model_params params)
 {
   x->nproteins = 0;
   x->params = params;
 }
 
-int db_writer_open(struct db_writer *x, FILE *restrict fp)
+int database_writer_open(struct database_writer *x, FILE *restrict fp)
 {
   int rc = 0;
 
@@ -143,11 +143,12 @@ int db_writer_open(struct db_writer *x, FILE *restrict fp)
   return rc;
 
 defer:
-  db_writer_close(x);
+  database_writer_close(x);
   return rc;
 }
 
-int db_writer_pack(struct db_writer *x, struct protein const *protein)
+int database_writer_pack(struct database_writer *x,
+                         struct protein const *protein)
 {
   int rc = 0;
 
