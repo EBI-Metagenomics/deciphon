@@ -58,7 +58,7 @@ float viterbi_null(struct protein *x, struct imm_eseq const *eseq)
   return dp_get(R, 1);
 }
 
-INLINE void viterbi_on_range(struct protein *x, struct viterbi_task *t,
+INLINE void viterbi_on_range(struct protein const *x, struct viterbi_task *t,
                              struct imm_eseq const *eseq, int row_start,
                              int row_end, bool const safe, struct trellis *tr)
 {
@@ -167,12 +167,11 @@ INLINE void viterbi_on_range(struct protein *x, struct viterbi_task *t,
   }
 }
 
-int viterbi(struct protein *x, struct imm_eseq const *eseq,
-            struct viterbi_task *task, bool const nopath)
+float viterbi_alt(struct viterbi_task *task, struct imm_eseq const *eseq,
+                  bool const nopath)
 {
   assert(imm_eseq_size(eseq) < INT_MAX);
   int seq_size = imm_eseq_size(eseq);
-  int rc = 0;
 
   dp_set(task->S, 0, 0);
 
@@ -180,21 +179,23 @@ int viterbi(struct protein *x, struct imm_eseq const *eseq,
   int row_mid = seq_size + 1 < (PAST_SIZE - 1) ? seq_size + 1 : (PAST_SIZE - 1);
   int row_end = seq_size + 1;
 
+  struct protein const *x = task->protein;
   if (nopath)
   {
     viterbi_on_range(x, task, eseq, row_start, row_mid, false, NULL);
     viterbi_on_range(x, task, eseq, row_mid, row_end, true, NULL);
-    task->score = dp_get(task->T, 1);
   }
   else
   {
     viterbi_on_range(x, task, eseq, row_start, row_mid, false, &task->trellis);
     viterbi_on_range(x, task, eseq, row_mid, row_end, true, &task->trellis);
-    task->score = dp_get(task->T, 1);
-    imm_path_reset(&task->path);
-    if (!imm_lprob_is_nan(task->score))
-      rc = unzip_path(&task->trellis, seq_size, &task->path);
   }
 
-  return rc;
+  return dp_get(task->T, 1);
+}
+
+int viterbi_alt_extract_path(struct viterbi_task *task, int seq_size)
+{
+  imm_path_reset(&task->path);
+  return unzip_path(&task->trellis, seq_size, &task->path);
 }

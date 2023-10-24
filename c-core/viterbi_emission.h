@@ -32,7 +32,7 @@ INLINE void emission_index(int index[restrict], struct imm_eseq const *eseq,
     index[i] = get_index(eseq, row - i - 1, i + 1, safe);
 }
 
-INLINE void emission_fetch(float x[restrict], float emission[restrict],
+INLINE void emission_fetch(float x[restrict], float const emission[restrict],
                            int const index[restrict], bool const safe)
 {
 #pragma omp unroll

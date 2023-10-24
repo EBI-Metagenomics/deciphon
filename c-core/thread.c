@@ -81,15 +81,16 @@ static int run(struct thread *x, int protein_idx, struct window const *w)
 
   float null = viterbi_null(&x->protein, &seq->imm.eseq);
 
-  if ((rc = viterbi_task_setup(&x->task, x->protein.core_size))) return rc;
-  if ((rc = viterbi(&x->protein, &seq->imm.eseq, &x->task, true))) return rc;
-  float alt = x->task.score;
+  if ((rc = viterbi_task_setup_protein(&x->task, &x->protein))) return rc;
+  float alt = viterbi_alt(&x->task, &seq->imm.eseq, true);
 
   if (!imm_lprob_is_finite(lrt(null, alt)) || alt < null) return rc;
   x->product->line.lrt = lrt(null, alt);
 
   if ((rc = viterbi_task_setup_path(&x->task, sequence_size(seq)))) return rc;
-  if ((rc = viterbi(&x->protein, &seq->imm.eseq, &x->task, false))) return rc;
+  viterbi_alt(&x->task, &seq->imm.eseq, false);
+  rc = viterbi_alt_extract_path(&x->task, sequence_size(seq));
+  if (rc) return rc;
 
   if ((rc = product_line_set_protein(&x->product->line, x->protein.accession)))
     return rc;
