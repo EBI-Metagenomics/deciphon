@@ -12,6 +12,7 @@
 #include "trellis.h"
 #include "viterbi_onto.h"
 #include "viterbi_task.h"
+#include "viterbi_xtrans.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -40,7 +41,7 @@
 PURE int emission_index(struct imm_eseq const *x, int pos, int size,
                         bool const safe)
 {
-  return ((!safe && (pos) < 0) ? -1 : (int)imm_eseq_get(x, pos, size, 1));
+  return ((!safe && (pos) < 0) ? -1 : imm_eseq_get(x, pos, size, 1));
 }
 
 PURE float safe_get(float const x[restrict], int i, bool const safe)
@@ -77,71 +78,6 @@ INLINE void prefetch_emission(float emission[restrict], int const ix[restrict])
   PREFETCH(unsafe_get(emission, ix[nchars(3)]), 0, 1);
   PREFETCH(unsafe_get(emission, ix[nchars(4)]), 0, 1);
   PREFETCH(unsafe_get(emission, ix[nchars(5)]), 0, 1);
-}
-
-PURE float onto_R(float const S[restrict], float const R[restrict],
-                  float const RR, float const emission[restrict])
-{
-  // clang-format off
-  float const x[] ALIGNED = {
-      S[lukbak(1)] + 0 + emission[nchars(1)],
-      S[lukbak(2)] + 0 + emission[nchars(2)],
-      S[lukbak(3)] + 0 + emission[nchars(3)],
-      S[lukbak(4)] + 0 + emission[nchars(4)],
-      S[lukbak(5)] + 0 + emission[nchars(5)],
-
-      R[lukbak(1)] + RR + emission[nchars(1)],
-      R[lukbak(2)] + RR + emission[nchars(2)],
-      R[lukbak(3)] + RR + emission[nchars(3)],
-      R[lukbak(4)] + RR + emission[nchars(4)],
-      R[lukbak(5)] + RR + emission[nchars(5)],
-  };
-  // clang-format on
-  return reduce_fmax(array_size(x), x);
-}
-
-struct extra_trans
-{
-  float const SB;
-  float const SN;
-  float const NN;
-  float const NB;
-
-  float const ET;
-  float const EC;
-  float const CC;
-  float const CT;
-
-  float const EB;
-  float const EJ;
-  float const JJ;
-  float const JB;
-
-  float const ME;
-  float const DE;
-};
-
-static struct extra_trans extra_trans(struct xtrans xt)
-{
-  return (struct extra_trans){
-      .SB = xt.NB,
-      .SN = xt.NN,
-      .NN = xt.NN,
-      .NB = xt.NB,
-
-      .ET = xt.EC + xt.CT,
-      .EC = xt.EC + xt.CC,
-      .CC = xt.CC,
-      .CT = xt.CT,
-
-      .EB = xt.EJ + xt.JB,
-      .EJ = xt.EJ + xt.JJ,
-      .JJ = xt.JJ,
-      .JB = xt.JB,
-
-      .ME = IMM_LPROB_ONE,
-      .DE = IMM_LPROB_ONE,
-  };
 }
 
 INLINE void make_future(float x[])
@@ -181,7 +117,7 @@ INLINE void viterbi_on_range(struct protein *x, struct viterbi_task *task,
 {
   int core_size = x->core_size;
 
-  struct extra_trans const xt = extra_trans(x->xtrans);
+  struct viterbi_xtrans const xt = viterbi_xtrans(x->xtrans);
   float *restrict S = task->S;
   float *restrict N = task->N;
   float *restrict B = task->B;
@@ -416,7 +352,7 @@ void viterbi_dump_dot(struct protein *x, FILE *fp)
 {
   char const *f32f = imm_fmt_get_f32();
 
-  struct extra_trans const xtrans = extra_trans(x->xtrans);
+  struct viterbi_xtrans const xtrans = viterbi_xtrans(x->xtrans);
 
   fprintf(fp, "S -> B [label=");
   fprintf(fp, f32f, xtrans.SB);

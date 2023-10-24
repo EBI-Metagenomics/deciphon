@@ -1,7 +1,6 @@
 #ifndef VITERBI_TASK_H
 #define VITERBI_TASK_H
 
-#include "compiler.h"
 #include "imm/imm.h"
 #include "trellis.h"
 #include "trellis_bits.h"

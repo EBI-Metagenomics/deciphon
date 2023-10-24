@@ -13,6 +13,27 @@
 CONST int lukbak(int i) { return i; }
 CONST int nchars(int n) { return n - 1; }
 
+PURE float onto_R(float const S[restrict], float const R[restrict],
+                  float const RR, float const emission[restrict])
+{
+  // clang-format off
+  float const x[] ALIGNED = {
+      S[lukbak(1)] + 0 + emission[nchars(1)],
+      S[lukbak(2)] + 0 + emission[nchars(2)],
+      S[lukbak(3)] + 0 + emission[nchars(3)],
+      S[lukbak(4)] + 0 + emission[nchars(4)],
+      S[lukbak(5)] + 0 + emission[nchars(5)],
+
+      R[lukbak(1)] + RR + emission[nchars(1)],
+      R[lukbak(2)] + RR + emission[nchars(2)],
+      R[lukbak(3)] + RR + emission[nchars(3)],
+      R[lukbak(4)] + RR + emission[nchars(4)],
+      R[lukbak(5)] + RR + emission[nchars(5)],
+  };
+  // clang-format on
+  return reduce_fmax(array_size(x), x);
+}
+
 INLINE float onto_N(struct trellis *t, float const S[restrict],
                     float const N[restrict], float const SN, float const NN,
                     float const emission[restrict])
