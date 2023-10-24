@@ -1,4 +1,4 @@
-#include "scan_thread.h"
+#include "thread.h"
 #include "chararray.h"
 #include "database_reader.h"
 #include "defer_return.h"
@@ -17,13 +17,13 @@
 #include "viterbi_task.h"
 #include "window.h"
 
-void scan_thread_init(struct scan_thread *x)
+void thread_init(struct thread *x)
 {
-  *x = (struct scan_thread){};
+  *x = (struct thread){};
   viterbi_task_init(&x->task);
 }
 
-int scan_thread_setup(struct scan_thread *x, struct scan_thread_params params)
+int thread_setup(struct thread *x, struct thread_params params)
 {
   struct database_reader const *db = params.reader->db;
   protein_init(&x->protein, database_reader_params(db, NULL));
@@ -56,7 +56,7 @@ defer:
   return rc;
 }
 
-void scan_thread_cleanup(struct scan_thread *x)
+void thread_cleanup(struct thread *x)
 {
   viterbi_task_cleanup(&x->task);
   chararray_cleanup(&x->amino);
@@ -66,7 +66,7 @@ void scan_thread_cleanup(struct scan_thread *x)
 static int infer_amino(struct chararray *x, struct match *match,
                        struct match_iter *it);
 
-static int run(struct scan_thread *x, int protein_idx, struct window const *w)
+static int run(struct thread *x, int protein_idx, struct window const *w)
 {
   int rc = 0;
   struct sequence const *seq = window_sequence(w);
@@ -112,7 +112,7 @@ static int run(struct scan_thread *x, int protein_idx, struct window const *w)
   return rc;
 }
 
-int scan_thread_run(struct scan_thread *x,
+int thread_run(struct thread *x,
                     struct sequence_queue const *sequences)
 {
   int rc = 0;

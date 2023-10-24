@@ -5,16 +5,16 @@
 #include "product.h"
 #include "protein_reader.h"
 #include "queue.h"
-#include "scan_thread.h"
-#include "scan_thread_params.h"
+#include "thread_params.h"
 #include "sequence.h"
 #include "sequence_queue.h"
+#include "thread.h"
 #include <stdlib.h>
 
 struct scan
 {
   struct scan_params params;
-  struct scan_thread threads[DCP_NTHREADS_MAX];
+  struct thread threads[DCP_NTHREADS_MAX];
 
   struct product product;
   struct sequence_queue sequences;
@@ -35,7 +35,7 @@ struct scan *scan_new(struct scan_params params)
 
   x->params = params;
   for (int i = 0; i < x->params.num_threads; ++i)
-    scan_thread_init(x->threads + i);
+    thread_init(x->threads + i);
 
   product_init(&x->product);
   sequence_queue_init(&x->sequences);
@@ -58,7 +58,7 @@ void scan_del(struct scan const *x)
     sequence_queue_cleanup(&y->sequences);
     product_close(&y->product);
     for (int i = 0; i < x->params.num_threads; ++i)
-      scan_thread_cleanup(y->threads + i);
+      thread_cleanup(y->threads + i);
     free(y);
   }
 }
@@ -103,23 +103,23 @@ int scan_run(struct scan *x, char const *product_dir)
 
   for (int i = 0; i < num_threads; ++i)
   {
-    struct scan_thread_params params = {};
-    scan_thread_params_init(&params, &x->params, &x->dialer, &x->db.protein,
+    struct thread_params params = {};
+    thread_params_init(&params, &x->params, &x->dialer, &x->db.protein,
                             product_thread(&x->product, i), i);
-    if ((rc = scan_thread_setup(x->threads + i, params))) defer_return(rc);
+    if ((rc = thread_setup(x->threads + i, params))) defer_return(rc);
   }
 
 #pragma omp parallel for default(none) shared(x, num_threads, rc)
   for (int i = 0; i < num_threads; ++i)
   {
-    int r = scan_thread_run(x->threads + i, &x->sequences);
+    int r = thread_run(x->threads + i, &x->sequences);
 #pragma omp critical
     if (r && !rc) rc = r;
   }
 
 defer:
   for (int i = 0; i < num_threads; ++i)
-    scan_thread_cleanup(x->threads + i);
+    thread_cleanup(x->threads + i);
 
   if (rc)
     product_close(&x->product);
