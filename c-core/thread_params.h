@@ -18,8 +18,4 @@ struct thread_params
   bool hmmer3_compat;
 };
 
-void thread_params_init(struct thread_params *, struct scan_params *,
-                        struct hmmer_dialer *, struct protein_reader *,
-                        struct product_thread *, int partition);
-
 #endif
