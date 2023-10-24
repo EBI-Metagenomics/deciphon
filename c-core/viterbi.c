@@ -5,6 +5,7 @@
 #include "viterbi_emission.h"
 #include "viterbi_onto.h"
 #include "viterbi_path.h"
+#include "viterbi_task.h"
 #include "viterbi_xtrans.h"
 #include <stdlib.h>
 #include <string.h>
@@ -63,7 +64,7 @@ INLINE void viterbi_on_range(struct protein *x, struct viterbi_task *t,
 {
   int core_size = x->core_size;
 
-  struct viterbi_xtrans const xt = viterbi_xtrans(x->xtrans);
+  struct viterbi_xtrans const xt = viterbi_xtrans_init(x->xtrans);
 
   DECLARE_EMISSION_INDEX(ix) = {0};
   DECLARE_EMISSION_TABLE(null) = {0};
@@ -177,7 +178,7 @@ int viterbi(struct protein *x, struct imm_eseq const *eseq,
   dp_set(task->S, 0, 0);
 
   int row_start = 0;
-  int row_mid = seq_size + 1 < 5 ? seq_size + 1 : 5;
+  int row_mid = seq_size + 1 < (PAST_SIZE - 1) ? seq_size + 1 : (PAST_SIZE - 1);
   int row_end = seq_size + 1;
 
   if (nopath)

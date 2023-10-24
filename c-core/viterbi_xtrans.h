@@ -25,7 +25,7 @@ struct viterbi_xtrans
   float const DE;
 };
 
-CONST struct viterbi_xtrans viterbi_xtrans(struct xtrans x)
+CONST struct viterbi_xtrans viterbi_xtrans_init(struct xtrans x)
 {
   return (struct viterbi_xtrans){
       .SB = x.NB,

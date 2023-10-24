@@ -71,7 +71,7 @@ void viterbi_dump_dot(struct protein *x, FILE *fp)
 {
   char const *f32f = imm_fmt_get_f32();
 
-  struct viterbi_xtrans const xtrans = viterbi_xtrans(x->xtrans);
+  struct viterbi_xtrans const xtrans = viterbi_xtrans_init(x->xtrans);
 
   fprintf(fp, "S -> B [label=");
   fprintf(fp, f32f, xtrans.SB);

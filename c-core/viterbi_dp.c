@@ -1,4 +1,5 @@
 #include "viterbi_dp.h"
+#include "imm/imm.h"
 #include "xrealloc.h"
 
 int dp_core_renew(float **dp, int core_size)

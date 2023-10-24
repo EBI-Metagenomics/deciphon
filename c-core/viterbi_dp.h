@@ -2,14 +2,14 @@
 #define VITERBI_DP_H
 
 #include "compiler.h"
-#include "imm/imm.h"
 #include "rc.h"
 #include "state.h"
-#include "trellis_bits.h"
+#include "viterbi_bits.h"
 #include <stdlib.h>
 #include <string.h>
 
 // clang-format off
+INLINE void  dp_core_init(float **x) { *x = NULL; }
 int          dp_core_renew(float **, int core_size);
 void         dp_core_del(float **);
 CONST float *dp_core_next(float *x) { return x + 3 * PAST_SIZE; }

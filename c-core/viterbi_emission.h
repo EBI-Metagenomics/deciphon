@@ -3,7 +3,7 @@
 
 #include "compiler.h"
 #include "imm/imm.h"
-#include "trellis_bits.h"
+#include "viterbi_bits.h"
 #include <stdbool.h>
 
 PURE int get_index(struct imm_eseq const *x, int pos, int size, bool const safe)

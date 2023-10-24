@@ -27,9 +27,4 @@ xstatic_assert(SPECIAL_BITS <= sizeof(uint32_t) * CHAR_BIT);
 #define CORE_BITS (MBITS + DBITS + IBITS)
 xstatic_assert(CORE_BITS <= sizeof(uint16_t) * CHAR_BIT);
 
-enum
-{
-  PAST_SIZE = 6
-};
-
 #endif

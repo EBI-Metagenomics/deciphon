@@ -9,7 +9,6 @@
 #include "trellis.h"
 #include "viterbi_dp.h"
 #include "viterbi_emission.h"
-#include "viterbi_task.h"
 
 PURE float onto_R(float const S[restrict], float const R[restrict],
                   float const RR, float const e[restrict])

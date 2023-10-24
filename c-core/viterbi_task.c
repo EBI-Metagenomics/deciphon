@@ -1,12 +1,11 @@
 #include "viterbi_task.h"
 #include "defer_return.h"
 #include "rc.h"
-#include "viterbi_dp.h"
 #include <stdlib.h>
 
 void viterbi_task_init(struct viterbi_task *x)
 {
-  x->dp = NULL;
+  dp_core_init(&x->dp);
   trellis_init(&x->trellis);
   x->path = imm_path();
   x->score = IMM_LPROB_NAN;

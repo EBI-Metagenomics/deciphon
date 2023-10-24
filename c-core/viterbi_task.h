@@ -3,7 +3,6 @@
 
 #include "imm/imm.h"
 #include "trellis.h"
-#include "trellis_bits.h"
 #include "viterbi_dp.h"
 #include <stdbool.h>
 
