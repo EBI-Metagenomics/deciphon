@@ -10,10 +10,18 @@
 #include <string.h>
 
 // clang-format off
-int          dp_renew(float **, int core_size);
-void         dp_del(float **);
-CONST float *dp_next(float *x) { return x + 3 * VITERBI_PAST_SIZE; }
+int          dp_core_renew(float **, int core_size);
+void         dp_core_del(float **);
+CONST float *dp_core_next(float *x) { return x + 3 * VITERBI_PAST_SIZE; }
 // clang-format on
+
+#define DECLARE_DP(name, size) float name[(size)] ALIGNED
+
+INLINE void dp_fill(float *x, int size, float value)
+{
+  for (int i = 0; i < size; ++i)
+    x[i] = value;
+}
 
 CONST float *dp_rewind(float *x, int state)
 {
@@ -24,7 +32,7 @@ CONST float *dp_rewind(float *x, int state)
   return NULL;
 }
 
-CONST float dp_of(float const x[restrict], int look_back)
+CONST float dp_get(float const x[restrict], int look_back)
 {
   return x[look_back];
 }

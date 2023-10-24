@@ -16,18 +16,15 @@ int viterbi_task_setup(struct viterbi_task *x, int core_size, int seq_size,
                        bool const nopath)
 {
   int rc = 0;
-  if ((rc = dp_renew(&x->dp, core_size))) defer_return(rc);
+  if ((rc = dp_core_renew(&x->dp, core_size))) defer_return(rc);
 
-  for (int i = 0; i < VITERBI_PAST_SIZE; ++i)
-  {
-    x->S[i] = IMM_LPROB_ZERO;
-    x->N[i] = IMM_LPROB_ZERO;
-    x->B[i] = IMM_LPROB_ZERO;
-    x->J[i] = IMM_LPROB_ZERO;
-    x->E[i] = IMM_LPROB_ZERO;
-    x->C[i] = IMM_LPROB_ZERO;
-    x->T[i] = IMM_LPROB_ZERO;
-  }
+  dp_fill(x->S, VITERBI_PAST_SIZE, IMM_LPROB_ZERO);
+  dp_fill(x->N, VITERBI_PAST_SIZE, IMM_LPROB_ZERO);
+  dp_fill(x->B, VITERBI_PAST_SIZE, IMM_LPROB_ZERO);
+  dp_fill(x->J, VITERBI_PAST_SIZE, IMM_LPROB_ZERO);
+  dp_fill(x->E, VITERBI_PAST_SIZE, IMM_LPROB_ZERO);
+  dp_fill(x->C, VITERBI_PAST_SIZE, IMM_LPROB_ZERO);
+  dp_fill(x->T, VITERBI_PAST_SIZE, IMM_LPROB_ZERO);
 
   if (!nopath)
   {
@@ -47,6 +44,6 @@ defer:
 void viterbi_task_cleanup(struct viterbi_task *x)
 {
   trellis_cleanup(&x->trellis);
-  dp_del(&x->dp);
+  dp_core_del(&x->dp);
   imm_path_cleanup(&x->path);
 }

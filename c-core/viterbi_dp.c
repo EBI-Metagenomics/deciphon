@@ -1,7 +1,7 @@
 #include "viterbi_dp.h"
 #include "xrealloc.h"
 
-int dp_renew(float **dp, int core_size)
+int dp_core_renew(float **dp, int core_size)
 {
   size_t size = 3 * VITERBI_PAST_SIZE * core_size;
 
@@ -14,7 +14,7 @@ int dp_renew(float **dp, int core_size)
   return 0;
 }
 
-void dp_del(float **dp)
+void dp_core_del(float **dp)
 {
   free(*dp);
   *dp = NULL;

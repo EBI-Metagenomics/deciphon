@@ -20,6 +20,9 @@ PURE float const *get_emission_addr(float const x[restrict], int i)
   return x + i;
 }
 
+#define DECLARE_EMISSION_INDEX(name, size) int name[(size)] ALIGNED
+#define DECLARE_EMISSION_TABLE(name, size) float name[(size)] ALIGNED
+
 INLINE void emission_index(int index[restrict], struct imm_eseq const *eseq,
                            int row, bool const safe)
 {

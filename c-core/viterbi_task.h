@@ -4,18 +4,19 @@
 #include "imm/imm.h"
 #include "trellis.h"
 #include "trellis_bits.h"
+#include "viterbi_dp.h"
 #include <stdbool.h>
 
 struct viterbi_task
 {
   float *dp;
-  float S[VITERBI_PAST_SIZE];
-  float N[VITERBI_PAST_SIZE];
-  float B[VITERBI_PAST_SIZE];
-  float J[VITERBI_PAST_SIZE];
-  float E[VITERBI_PAST_SIZE];
-  float C[VITERBI_PAST_SIZE];
-  float T[VITERBI_PAST_SIZE];
+  DECLARE_DP(S, VITERBI_PAST_SIZE);
+  DECLARE_DP(N, VITERBI_PAST_SIZE);
+  DECLARE_DP(B, VITERBI_PAST_SIZE);
+  DECLARE_DP(J, VITERBI_PAST_SIZE);
+  DECLARE_DP(E, VITERBI_PAST_SIZE);
+  DECLARE_DP(C, VITERBI_PAST_SIZE);
+  DECLARE_DP(T, VITERBI_PAST_SIZE);
   struct trellis trellis;
   struct imm_path path;
   float score;
