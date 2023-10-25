@@ -12,6 +12,7 @@ struct viterbi
 {
   struct protein const *protein;
   struct imm_eseq const *seq;
+  DECLARE_DP(R);
   DECLARE_COREDP(dp);
   DECLARE_DP(S);
   DECLARE_DP(N);

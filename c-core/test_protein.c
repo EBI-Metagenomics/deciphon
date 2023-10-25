@@ -46,8 +46,6 @@ static void test_protein_uniform(void)
 
   eq(imm_eseq_setup(&eseq, &seq), 0);
 
-  close(viterbi_null(&protein, &eseq), -48.9272687711);
-
   char name[IMM_STATE_NAME_SIZE];
 
   eq(imm_eseq_setup(&eseq, &seq), 0);
@@ -55,9 +53,10 @@ static void test_protein_uniform(void)
   struct viterbi task = {};
   viterbi_init(&task);
   viterbi_setup(&task, &protein, &eseq);
-  viterbi_setup_path(&task);
-  close(viterbi_alt(&task, &eseq, false), -55.59428153448);
-  eq(viterbi_alt_extract_path(&task, imm_eseq_size(&eseq)), 0);
+  close(viterbi_null_loglik(&task), -48.9272687711);
+  float score = 0;
+  close(viterbi_alt_path(&task, &score), 0);
+  close(score, -55.59428153448);
 
   eq(imm_path_nsteps(&task.path), 14U);
 
@@ -131,8 +130,6 @@ static void test_protein_occupancy(void)
 
   eq(imm_eseq_setup(&eseq, &seq), 0);
 
-  close(viterbi_null(&protein, &eseq), -48.9272687711);
-
   char name[IMM_STATE_NAME_SIZE];
 
   eq(imm_eseq_setup(&eseq, &seq), 0);
@@ -140,9 +137,10 @@ static void test_protein_occupancy(void)
   struct viterbi task = {};
   viterbi_init(&task);
   viterbi_setup(&task, &protein, &eseq);
-  viterbi_setup_path(&task);
-  close(viterbi_alt(&task, &eseq, false), -54.35543421312);
-  eq(viterbi_alt_extract_path(&task, imm_eseq_size(&eseq)), 0);
+  close(viterbi_null_loglik(&task), -48.9272687711);
+  float score = 0;
+  close(viterbi_alt_path(&task, &score), 0);
+  close(score, -54.35543421312);
 
   eq(imm_path_nsteps(&task.path), 14U);
 

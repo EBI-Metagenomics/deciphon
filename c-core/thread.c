@@ -79,18 +79,15 @@ static int run(struct thread *x, int protein_idx, struct window const *w)
   protein_reset(&x->protein, sequence_size(seq), x->multi_hits,
                 x->hmmer3_compat);
 
-  float null = viterbi_null(&x->protein, &seq->imm.eseq);
-
   if ((rc = viterbi_setup(&x->task, &x->protein, &seq->imm.eseq))) return rc;
-  float alt = viterbi_alt(&x->task, &seq->imm.eseq, true);
+
+  float null = viterbi_null_loglik(&x->task);
+  float alt = viterbi_alt_loglik(&x->task);
 
   if (!imm_lprob_is_finite(lrt(null, alt)) || alt < null) return rc;
   x->product->line.lrt = lrt(null, alt);
 
-  if ((rc = viterbi_setup_path(&x->task))) return rc;
-  viterbi_alt(&x->task, &seq->imm.eseq, false);
-  rc = viterbi_alt_extract_path(&x->task, sequence_size(seq));
-  if (rc) return rc;
+  if ((rc = viterbi_alt_path(&x->task, NULL))) return rc;
 
   if ((rc = product_line_set_protein(&x->product->line, x->protein.accession)))
     return rc;
