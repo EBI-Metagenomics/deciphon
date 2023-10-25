@@ -41,8 +41,8 @@ int product_thread_put_match(struct product_thread *x, struct match *match,
   if (fprintf(fp, "%d\t", line->window_stop) < 0) defer_return(DCP_EWRITEPROD);
   if (fprintf(fp, "%s\t", line->protein) < 0) defer_return(DCP_EWRITEPROD);
   if (fprintf(fp, "%s\t", line->abc) < 0) defer_return(DCP_EWRITEPROD);
-  if (fprintf(fp, "%6.1f\t", line->lrt) < 0) defer_return(DCP_EWRITEPROD);
-  if (fprintf(fp, "%9.2g\t", line->evalue) < 0) defer_return(DCP_EWRITEPROD);
+  if (fprintf(fp, "%.1f\t", line->lrt) < 0) defer_return(DCP_EWRITEPROD);
+  if (fprintf(fp, "%.2g\t", line->evalue) < 0) defer_return(DCP_EWRITEPROD);
 
   int i = 0;
   while (!(rc = match_iter_next(it, match)) && !match_iter_end(it))

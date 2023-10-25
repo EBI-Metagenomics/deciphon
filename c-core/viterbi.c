@@ -202,7 +202,7 @@ static inline int row_mid(int end)
 
 float viterbi_alt_loglik(struct viterbi *x)
 {
-  assert(imm_eseq_size(eseq) < INT_MAX);
+  assert(imm_eseq_size(x->seq) < INT_MAX);
   int seq_size = imm_eseq_size(x->seq);
   int end = seq_size + 1;
 
@@ -214,7 +214,7 @@ float viterbi_alt_loglik(struct viterbi *x)
 
 int viterbi_alt_path(struct viterbi *x, struct imm_path *path, float *loglik)
 {
-  assert(imm_eseq_size(eseq) < INT_MAX);
+  assert(imm_eseq_size(x->seq) < INT_MAX);
   int seq_size = imm_eseq_size(x->seq);
   int end = seq_size + 1;
 

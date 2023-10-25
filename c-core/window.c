@@ -5,13 +5,13 @@
 // We are respecting HMMER's limit on sequence size:
 //   https://github.com/EddyRivasLab/hmmer/blob/
 //   9acd8b6758a0ca5d21db6d167e0277484341929b/src/p7_pipeline.c#L714
-static int const WINDOW_SIZE = 100000 * 3;
+static int const WINDOW_SIZE = 3 * (100000 - 100);
 
 CONST int max_size(int core_size) { return core_size * 3 * 3; }
 
 struct window window_setup(struct sequence const *x, int core_size)
 {
-  struct imm_range r = imm_range(0, 0);
+  struct imm_range r = imm_range(-1, 0);
   return (struct window){core_size, x, {}, r, -1};
 }
 
@@ -24,11 +24,11 @@ bool window_next(struct window *x, int last_hit_pos)
   // We want to avoid miss hits. So lets compute an interval
   // that would include such a missed hit.
   int stop_miss = x->range.stop + 1;
-  int start_miss = x->range.start + last_hit_pos + 1;
+  int start_miss =
+      imm_max(x->range.start + 1, x->range.start + last_hit_pos + 1);
   // Lets shorten that interval by assuming that the largest hit
   // would have size max_size(x->core_size).
-  start_miss =
-      imm_max(start_miss, imm_max(stop_miss - max_size(x->core_size), 0));
+  start_miss = imm_max(start_miss, stop_miss - 3 * max_size(x->core_size));
   // We cannot go over the sequence size.
   assert(stop_miss <= sequence_size(x->seq));
 

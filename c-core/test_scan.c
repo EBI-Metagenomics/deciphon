@@ -15,8 +15,7 @@ static struct scan_params params_list[] = {
     {1, false, false}, {1, false, false}, {1, false, true}, {1, false, true},
     {1, true, false},  {1, true, false},  {1, true, true},  {1, true, true}};
 static bool dial_list[] = {true, false, true, false, true, false, true, false};
-static long chksum_list[] = {17247, 17247, 34525, 34525,
-                             25540, 25540, 25540, 25540};
+static long chksum_list[] = {23638, 23638, 18132, 18132, 699, 699, 699, 699};
 
 int main(void)
 {
