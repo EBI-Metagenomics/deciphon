@@ -10,6 +10,7 @@ enum
   DCP_PATH_MAX = 512,
   DCP_ACCESSION_SIZE = 32,
   DCP_CORE_SIZE = 16384,
+  DCP_PAST_SIZE = 6,
 };
 
 #endif
