@@ -17,7 +17,7 @@ cpmaddpackage(
   GIT_TAG h3client-v0.12.6
   VERSION 0.12.6
   SOURCE_SUBDIR h3client)
-cpmaddpackage("gh:EBI-Metagenomics/imm@5.3.3")
+cpmaddpackage("gh:EBI-Metagenomics/imm@5.3.4")
 cpmaddpackage("gh:EBI-Metagenomics/lip@0.5.4")
 find_package(OpenMP)
 
@@ -66,7 +66,6 @@ endif()
 target_include_directories(
   deciphon
   PUBLIC $<INSTALL_INTERFACE:include>
-         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
          $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
   PRIVATE ${PROJECT_SOURCE_DIR}
 )
