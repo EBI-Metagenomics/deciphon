@@ -3,7 +3,7 @@
 #include "protein.h"
 #include "vendor/minctest.h"
 #include "viterbi.h"
-#include "viterbi_task.h"
+#include "viterbi_struct.h"
 
 static void test_protein_uniform(void);
 static void test_protein_occupancy(void);
@@ -52,10 +52,10 @@ static void test_protein_uniform(void)
 
   eq(imm_eseq_setup(&eseq, &seq), 0);
 
-  struct viterbi_task task = {};
-  viterbi_task_init(&task);
-  viterbi_task_setup_protein(&task, &protein);
-  viterbi_task_setup_path(&task, imm_eseq_size(&eseq));
+  struct viterbi task = {};
+  viterbi_init(&task);
+  viterbi_setup(&task, &protein, &eseq);
+  viterbi_setup_path(&task);
   close(viterbi_alt(&task, &eseq, false), -55.59428153448);
   eq(viterbi_alt_extract_path(&task, imm_eseq_size(&eseq)), 0);
 
@@ -96,7 +96,7 @@ static void test_protein_uniform(void)
   eq(i, 10);
 
   imm_eseq_cleanup(&eseq);
-  viterbi_task_cleanup(&task);
+  viterbi_cleanup(&task);
   protein_cleanup(&protein);
 }
 
@@ -137,10 +137,10 @@ static void test_protein_occupancy(void)
 
   eq(imm_eseq_setup(&eseq, &seq), 0);
 
-  struct viterbi_task task = {};
-  viterbi_task_init(&task);
-  viterbi_task_setup_protein(&task, &protein);
-  viterbi_task_setup_path(&task, imm_eseq_size(&eseq));
+  struct viterbi task = {};
+  viterbi_init(&task);
+  viterbi_setup(&task, &protein, &eseq);
+  viterbi_setup_path(&task);
   close(viterbi_alt(&task, &eseq, false), -54.35543421312);
   eq(viterbi_alt_extract_path(&task, imm_eseq_size(&eseq)), 0);
 
@@ -181,6 +181,6 @@ static void test_protein_occupancy(void)
   eq(i, 10);
 
   imm_eseq_cleanup(&eseq);
-  viterbi_task_cleanup(&task);
+  viterbi_cleanup(&task);
   protein_cleanup(&protein);
 }

@@ -5,8 +5,8 @@
 #include "viterbi_index.h"
 #include "viterbi_onto.h"
 #include "viterbi_path.h"
+#include "viterbi_struct.h"
 #include "viterbi_table.h"
-#include "viterbi_task.h"
 #include "viterbi_xtrans.h"
 #include <stdlib.h>
 #include <string.h>
@@ -59,7 +59,7 @@ float viterbi_null(struct protein *x, struct imm_eseq const *eseq)
   return dp_get(R, 1);
 }
 
-INLINE void viterbi_on_range(struct protein const *x, struct viterbi_task *t,
+INLINE void viterbi_on_range(struct protein const *x, struct viterbi *t,
                              struct imm_eseq const *eseq, int row_start,
                              int row_end, bool const safe, struct trellis *tr)
 {
@@ -168,7 +168,7 @@ INLINE void viterbi_on_range(struct protein const *x, struct viterbi_task *t,
   }
 }
 
-float viterbi_alt(struct viterbi_task *task, struct imm_eseq const *eseq,
+float viterbi_alt(struct viterbi *task, struct imm_eseq const *eseq,
                   bool const nopath)
 {
   assert(imm_eseq_size(eseq) < INT_MAX);
@@ -196,8 +196,47 @@ float viterbi_alt(struct viterbi_task *task, struct imm_eseq const *eseq,
   return dp_get(task->T, 1);
 }
 
-int viterbi_alt_extract_path(struct viterbi_task *task, int seq_size)
+int viterbi_alt_extract_path(struct viterbi *task, int seq_size)
 {
   imm_path_reset(&task->path);
   return unzip_path(&task->trellis, seq_size, &task->path);
+}
+
+void viterbi_init(struct viterbi *x)
+{
+  x->protein = NULL;
+  coredp_init(&x->dp);
+  trellis_init(&x->trellis);
+  x->path = imm_path();
+}
+
+int viterbi_setup(struct viterbi *x, struct protein const *protein,
+                          struct imm_eseq const *eseq)
+{
+  x->protein = protein;
+  x->seq = eseq;
+
+  dp_fill(x->S, IMM_LPROB_ZERO);
+  dp_fill(x->N, IMM_LPROB_ZERO);
+  dp_fill(x->B, IMM_LPROB_ZERO);
+  dp_fill(x->J, IMM_LPROB_ZERO);
+  dp_fill(x->E, IMM_LPROB_ZERO);
+  dp_fill(x->C, IMM_LPROB_ZERO);
+  dp_fill(x->T, IMM_LPROB_ZERO);
+
+  return coredp_setup(&x->dp, x->protein->core_size);
+}
+
+int viterbi_setup_path(struct viterbi *x)
+{
+  imm_path_reset(&x->path);
+  int seq_size = imm_eseq_size(x->seq);
+  return trellis_setup(&x->trellis, x->protein->core_size, seq_size);
+}
+
+void viterbi_cleanup(struct viterbi *x)
+{
+  trellis_cleanup(&x->trellis);
+  coredp_cleanup(&x->dp);
+  imm_path_cleanup(&x->path);
 }

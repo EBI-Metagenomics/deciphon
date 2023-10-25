@@ -14,7 +14,7 @@
 #include "sequence.h"
 #include "sequence_queue.h"
 #include "viterbi.h"
-#include "viterbi_task.h"
+#include "viterbi_struct.h"
 #include "window.h"
 
 void thread_init(struct thread *x)
@@ -24,7 +24,7 @@ void thread_init(struct thread *x)
   x->multi_hits = false;
   x->hmmer3_compat = false;
 
-  viterbi_task_init(&x->task);
+  viterbi_init(&x->task);
   x->product = NULL;
   chararray_init(&x->amino);
   hmmer_init(&x->hmmer);
@@ -59,7 +59,7 @@ int thread_setup(struct thread *x, struct thread_params params)
 void thread_cleanup(struct thread *x)
 {
   protein_cleanup(&x->protein);
-  viterbi_task_cleanup(&x->task);
+  viterbi_cleanup(&x->task);
   chararray_cleanup(&x->amino);
   hmmer_cleanup(&x->hmmer);
 }
@@ -81,13 +81,13 @@ static int run(struct thread *x, int protein_idx, struct window const *w)
 
   float null = viterbi_null(&x->protein, &seq->imm.eseq);
 
-  if ((rc = viterbi_task_setup_protein(&x->task, &x->protein))) return rc;
+  if ((rc = viterbi_setup(&x->task, &x->protein, &seq->imm.eseq))) return rc;
   float alt = viterbi_alt(&x->task, &seq->imm.eseq, true);
 
   if (!imm_lprob_is_finite(lrt(null, alt)) || alt < null) return rc;
   x->product->line.lrt = lrt(null, alt);
 
-  if ((rc = viterbi_task_setup_path(&x->task, sequence_size(seq)))) return rc;
+  if ((rc = viterbi_setup_path(&x->task))) return rc;
   viterbi_alt(&x->task, &seq->imm.eseq, false);
   rc = viterbi_alt_extract_path(&x->task, sequence_size(seq));
   if (rc) return rc;
