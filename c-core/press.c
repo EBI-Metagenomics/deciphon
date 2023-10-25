@@ -144,8 +144,8 @@ void press_del(struct press const *x)
 {
   if (x)
   {
-    free((void *)x);
     protein_cleanup((struct protein *)&x->protein);
+    free((void *)x);
   }
 }
 

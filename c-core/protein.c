@@ -18,11 +18,7 @@
 void protein_init(struct protein *x)
 {
   memset(x, 0, sizeof(*x));
-
-  static struct imm_code code = {0};
-  imm_code_init(&code, &imm_dna_iupac.super.super);
-  imm_score_table_init(&x->score_table, &code);
-
+  x->params.code = NULL;
   x->nodes = NULL;
   x->emission = NULL;
   x->BMk = NULL;
@@ -192,7 +188,8 @@ void protein_cleanup(struct protein *x)
 {
   if (x)
   {
-    imm_score_table_cleanup(&x->score_table);
+    if (x->params.code) imm_score_table_cleanup(&x->score_table);
+    x->params.code = NULL;
     free(x->nodes);
     free(x->emission);
     free(x->BMk);
