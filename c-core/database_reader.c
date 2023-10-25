@@ -64,7 +64,8 @@ int database_reader_close(struct database_reader *x)
 {
   if (x->protein_sizes) free(x->protein_sizes);
   x->protein_sizes = NULL;
-  int rc = fclose(x->fp) ? DCP_EFCLOSE : 0;
+  int rc = 0;
+  if (x->fp) rc = fclose(x->fp) ? DCP_EFCLOSE : 0;
   x->fp = NULL;
   return rc;
 }
