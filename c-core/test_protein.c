@@ -17,6 +17,7 @@ int main(void)
 
 static void test_protein_uniform(void)
 {
+  struct imm_path path = imm_path();
   struct imm_amino const *amino = &imm_amino_iupac;
   struct imm_nuclt const *nuclt = &imm_dna_iupac.super;
   struct imm_nuclt_code code = {};
@@ -55,22 +56,22 @@ static void test_protein_uniform(void)
   viterbi_setup(&task, &protein, &eseq);
   close(viterbi_null_loglik(&task), -48.9272687711);
   float score = 0;
-  close(viterbi_alt_path(&task, &score), 0);
+  close(viterbi_alt_path(&task, &path, &score), 0);
   close(score, -55.59428153448);
 
-  eq(imm_path_nsteps(&task.path), 14U);
+  eq(imm_path_nsteps(&path), 14U);
 
-  eq(imm_path_step(&task.path, 0)->seqsize, 0);
-  eq(imm_path_step(&task.path, 0)->state_id, STATE_S);
-  state_name(imm_path_step(&task.path, 0)->state_id, name);
+  eq(imm_path_step(&path, 0)->seqsize, 0);
+  eq(imm_path_step(&path, 0)->state_id, STATE_S);
+  state_name(imm_path_step(&path, 0)->state_id, name);
   cmp(name, "S");
 
-  eq(imm_path_step(&task.path, 13)->seqsize, 0);
-  eq(imm_path_step(&task.path, 13)->state_id, STATE_T);
-  state_name(imm_path_step(&task.path, 13)->state_id, name);
+  eq(imm_path_step(&path, 13)->seqsize, 0);
+  eq(imm_path_step(&path, 13)->state_id, STATE_T);
+  state_name(imm_path_step(&path, 13)->state_id, name);
   cmp(name, "T");
 
-  struct codec codec = codec_init(&protein, &task.path);
+  struct codec codec = codec_init(&protein, &path);
   int rc = 0;
 
   struct imm_codon codons[10] = {
@@ -97,10 +98,12 @@ static void test_protein_uniform(void)
   imm_eseq_cleanup(&eseq);
   viterbi_cleanup(&task);
   protein_cleanup(&protein);
+  imm_path_cleanup(&path);
 }
 
 static void test_protein_occupancy(void)
 {
+  struct imm_path path = imm_path();
   struct imm_amino const *amino = &imm_amino_iupac;
   struct imm_nuclt const *nuclt = &imm_dna_iupac.super;
   struct imm_nuclt_code code;
@@ -139,22 +142,22 @@ static void test_protein_occupancy(void)
   viterbi_setup(&task, &protein, &eseq);
   close(viterbi_null_loglik(&task), -48.9272687711);
   float score = 0;
-  close(viterbi_alt_path(&task, &score), 0);
+  close(viterbi_alt_path(&task, &path, &score), 0);
   close(score, -54.35543421312);
 
-  eq(imm_path_nsteps(&task.path), 14U);
+  eq(imm_path_nsteps(&path), 14U);
 
-  eq(imm_path_step(&task.path, 0)->seqsize, 0);
-  eq(imm_path_step(&task.path, 0)->state_id, STATE_S);
-  state_name(imm_path_step(&task.path, 0)->state_id, name);
+  eq(imm_path_step(&path, 0)->seqsize, 0);
+  eq(imm_path_step(&path, 0)->state_id, STATE_S);
+  state_name(imm_path_step(&path, 0)->state_id, name);
   cmp(name, "S");
 
-  eq(imm_path_step(&task.path, 13)->seqsize, 0);
-  eq(imm_path_step(&task.path, 13)->state_id, STATE_T);
-  state_name(imm_path_step(&task.path, 13)->state_id, name);
+  eq(imm_path_step(&path, 13)->seqsize, 0);
+  eq(imm_path_step(&path, 13)->state_id, STATE_T);
+  state_name(imm_path_step(&path, 13)->state_id, name);
   cmp(name, "T");
 
-  struct codec codec = codec_init(&protein, &task.path);
+  struct codec codec = codec_init(&protein, &path);
   int rc = 0;
 
   struct imm_codon codons[10] = {
@@ -181,4 +184,5 @@ static void test_protein_occupancy(void)
   imm_eseq_cleanup(&eseq);
   viterbi_cleanup(&task);
   protein_cleanup(&protein);
+  imm_path_cleanup(&path);
 }

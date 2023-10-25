@@ -22,10 +22,11 @@ struct thread
   bool multi_hits;
   bool hmmer3_compat;
 
-  struct viterbi task;
+  struct viterbi viterbi;
   struct product_thread *product;
   struct chararray amino;
   struct hmmer hmmer;
+  struct imm_path path;
 };
 
 struct hmmer_dialer;

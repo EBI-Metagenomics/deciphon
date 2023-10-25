@@ -3,6 +3,7 @@
 #include "database_reader.h"
 #include "defer_return.h"
 #include "hmmer_dialer.h"
+#include "infer_amino.h"
 #include "lrt.h"
 #include "match.h"
 #include "match_iter.h"
@@ -24,10 +25,11 @@ void thread_init(struct thread *x)
   x->multi_hits = false;
   x->hmmer3_compat = false;
 
-  viterbi_init(&x->task);
+  viterbi_init(&x->viterbi);
   x->product = NULL;
   chararray_init(&x->amino);
   hmmer_init(&x->hmmer);
+  x->path = imm_path();
 }
 
 int thread_setup(struct thread *x, struct thread_params params)
@@ -59,59 +61,14 @@ int thread_setup(struct thread *x, struct thread_params params)
 void thread_cleanup(struct thread *x)
 {
   protein_cleanup(&x->protein);
-  viterbi_cleanup(&x->task);
+  viterbi_cleanup(&x->viterbi);
   chararray_cleanup(&x->amino);
   hmmer_cleanup(&x->hmmer);
+  imm_path_cleanup(&x->path);
 }
 
-static int infer_amino(struct chararray *x, struct match *match,
-                       struct match_iter *it);
-
-static int run(struct thread *x, int protein_idx, struct window const *w)
-{
-  int rc = 0;
-  struct sequence const *seq = window_sequence(w);
-  x->product->line.sequence = seq->id;
-  x->product->line.window = w->idx;
-  x->product->line.window_start = window_range(w).start;
-  x->product->line.window_stop = window_range(w).stop;
-
-  protein_reset(&x->protein, sequence_size(seq), x->multi_hits,
-                x->hmmer3_compat);
-
-  if ((rc = viterbi_setup(&x->task, &x->protein, &seq->imm.eseq))) return rc;
-
-  float null = viterbi_null_loglik(&x->task);
-  float alt = viterbi_alt_loglik(&x->task);
-
-  if (!imm_lprob_is_finite(lrt(null, alt)) || alt < null) return rc;
-  x->product->line.lrt = lrt(null, alt);
-
-  if ((rc = viterbi_alt_path(&x->task, NULL))) return rc;
-
-  if ((rc = product_line_set_protein(&x->product->line, x->protein.accession)))
-    return rc;
-
-  struct match match = match_init(&x->protein);
-  struct match_iter mit = {0};
-
-  match_iter_init(&mit, &seq->imm.seq, &x->task.path);
-  if ((rc = infer_amino(&x->amino, &match, &mit))) return rc;
-
-  if (hmmer_online(&x->hmmer))
-  {
-    if ((rc = hmmer_get(&x->hmmer, protein_idx, seq->name, x->amino.data)))
-      return rc;
-    if (hmmer_result_num_hits(&x->hmmer.result) == 0) return rc;
-    x->product->line.evalue = hmmer_result_evalue(&x->hmmer.result);
-    if ((rc = product_thread_put_hmmer(x->product, &x->hmmer.result)))
-      return rc;
-  }
-
-  match_iter_init(&mit, &seq->imm.seq, &x->task.path);
-  if ((rc = product_thread_put_match(x->product, &match, &mit))) return rc;
-  return rc;
-}
+static int process_window(struct thread *, int protein_idx,
+                          struct window const *);
 
 int thread_run(struct thread *x, struct sequence_queue const *sequences)
 {
@@ -134,7 +91,7 @@ int thread_run(struct thread *x, struct sequence_queue const *sequences)
       while (window_next(&w, last_hit_pos))
       {
         int protein_idx = protein_iter_idx(protein_iter);
-        if ((rc = run(x, protein_idx, &w))) break;
+        if ((rc = process_window(x, protein_idx, &w))) break;
       }
     }
   }
@@ -144,19 +101,63 @@ cleanup:
   return rc;
 }
 
-static int infer_amino(struct chararray *x, struct match *match,
-                       struct match_iter *it)
+static int hmmer_stage(struct protein *, struct product_thread *,
+                       struct hmmer *, struct chararray *,
+                       struct sequence const *, int protein_idx,
+                       struct imm_path const *);
+
+static int process_window(struct thread *x, int protein_idx,
+                          struct window const *w)
 {
   int rc = 0;
+  struct sequence const *seq = window_sequence(w);
+  struct product_line *line = &x->product->line;
+  line->sequence = seq->id;
+  line->window = w->idx;
+  line->window_start = window_range(w).start;
+  line->window_stop = window_range(w).stop;
+  bool multi_hits = x->multi_hits;
+  bool hmmer3_compat = x->hmmer3_compat;
 
-  chararray_reset(x);
-  while (!(rc = match_iter_next(it, match)))
+  protein_reset(&x->protein, sequence_size(seq), multi_hits, hmmer3_compat);
+  if ((rc = viterbi_setup(&x->viterbi, &x->protein, &seq->imm.eseq))) return rc;
+
+  float null = viterbi_null_loglik(&x->viterbi);
+  float alt = viterbi_alt_loglik(&x->viterbi);
+  line->lrt = lrt(null, alt);
+  if (!imm_lprob_is_finite(line->lrt) || line->lrt < 0) return rc;
+
+  if ((rc = product_line_set_protein(line, x->protein.accession))) return rc;
+  if ((rc = viterbi_alt_path(&x->viterbi, &x->path, NULL))) return rc;
+
+  if (hmmer_online(&x->hmmer))
   {
-    if (match_iter_end(it)) break;
-    if (!match_state_is_core(match)) continue;
-    if (match_state_is_mute(match)) continue;
-    if ((rc = chararray_append(x, match_amino(match)))) return rc;
+    if ((rc = hmmer_stage(&x->protein, x->product, &x->hmmer, &x->amino, seq,
+                          protein_idx, &x->path)))
+      return rc;
   }
 
-  return chararray_append(x, '\0');
+  struct match match = match_init(&x->protein);
+  struct match_iter mit = {0};
+  match_iter_init(&mit, &seq->imm.seq, &x->path);
+  return product_thread_put_match(x->product, &match, &mit);
+}
+
+static int hmmer_stage(struct protein *protein, struct product_thread *product,
+                       struct hmmer *hmmer, struct chararray *amino,
+                       struct sequence const *seq, int protein_idx,
+                       struct imm_path const *path)
+{
+  int rc = 0;
+  struct match match = match_init(protein);
+  struct match_iter mit = {0};
+  match_iter_init(&mit, &seq->imm.seq, path);
+
+  if ((rc = infer_amino(amino, &match, &mit))) return rc;
+
+  if ((rc = hmmer_get(hmmer, protein_idx, seq->name, amino->data))) return rc;
+  if (hmmer_result_num_hits(&hmmer->result) == 0) return rc;
+
+  product->line.evalue = hmmer_result_evalue(&hmmer->result);
+  return product_thread_put_hmmer(product, &hmmer->result);
 }

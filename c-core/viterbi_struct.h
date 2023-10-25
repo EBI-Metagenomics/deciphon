@@ -22,7 +22,6 @@ struct viterbi
   DECLARE_DP(C);
   DECLARE_DP(T);
   struct trellis trellis;
-  struct imm_path path;
 };
 
 #endif

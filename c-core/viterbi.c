@@ -38,7 +38,6 @@ void viterbi_init(struct viterbi *x)
   x->protein = NULL;
   coredp_init(&x->dp);
   trellis_init(&x->trellis);
-  x->path = imm_path();
 }
 
 int viterbi_setup(struct viterbi *x, struct protein const *protein,
@@ -62,7 +61,6 @@ void viterbi_cleanup(struct viterbi *x)
 {
   trellis_cleanup(&x->trellis);
   coredp_cleanup(&x->dp);
-  imm_path_cleanup(&x->path);
 }
 
 float viterbi_null_loglik(struct viterbi *x)
@@ -214,7 +212,7 @@ float viterbi_alt_loglik(struct viterbi *x)
   return dp_get(x->T, 1);
 }
 
-int viterbi_alt_path(struct viterbi *x, float *loglik)
+int viterbi_alt_path(struct viterbi *x, struct imm_path *path, float *loglik)
 {
   assert(imm_eseq_size(eseq) < INT_MAX);
   int seq_size = imm_eseq_size(x->seq);
@@ -228,6 +226,6 @@ int viterbi_alt_path(struct viterbi *x, float *loglik)
   alternative(x, row_mid(end), end, true, &x->trellis);
   if (loglik) *loglik = dp_get(x->T, 1);
 
-  imm_path_reset(&x->path);
-  return unzip_path(&x->trellis, seq_size, &x->path);
+  imm_path_reset(path);
+  return unzip_path(&x->trellis, seq_size, path);
 }
