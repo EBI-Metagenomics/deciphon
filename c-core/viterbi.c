@@ -2,9 +2,10 @@
 #include "protein.h"
 #include "protein_node.h"
 #include "viterbi_dp.h"
-#include "viterbi_emission.h"
+#include "viterbi_index.h"
 #include "viterbi_onto.h"
 #include "viterbi_path.h"
+#include "viterbi_table.h"
 #include "viterbi_task.h"
 #include "viterbi_xtrans.h"
 #include <stdlib.h>
@@ -42,13 +43,13 @@ float viterbi_null(struct protein *x, struct imm_eseq const *eseq)
   dp_fill(R, IMM_LPROB_ZERO);
   dp_set(S, 0, 0);
 
-  DECLARE_EMISSION_INDEX(ix) = {0};
-  DECLARE_EMISSION_TABLE(null) = {0};
+  DECLARE_INDEX(ix) = {0};
+  DECLARE_TABLE(null) = {0};
 
   for (int r = 0; r < seq_size + 1; ++r)
   {
-    emission_index(ix, eseq, r, false);
-    emission_fetch(null, x->null.emission, ix, false);
+    index_setup(ix, eseq, r, false);
+    table_setup(null, x->null.emission, ix, false);
 
     dp_set(R, 0, onto_R(S, R, x->null.RR, null));
     dp_advance(S);
@@ -66,19 +67,19 @@ INLINE void viterbi_on_range(struct protein const *x, struct viterbi_task *t,
 
   struct viterbi_xtrans const xt = viterbi_xtrans_init(x->xtrans);
 
-  DECLARE_EMISSION_INDEX(ix) = {0};
-  DECLARE_EMISSION_TABLE(null) = {0};
-  DECLARE_EMISSION_TABLE(bg) = {0};
-  DECLARE_EMISSION_TABLE(match) = {0};
+  DECLARE_INDEX(ix) = {0};
+  DECLARE_TABLE(null) = {0};
+  DECLARE_TABLE(bg) = {0};
+  DECLARE_TABLE(match) = {0};
 
   if (tr) trellis_seek_xnode(tr, row_start);
   if (tr) trellis_seek_node(tr, row_start, 0);
   for (int r = row_start; r < row_end; ++r)
   {
     if (tr) trellis_clear_xnode(tr);
-    emission_index(ix, eseq, r, safe);
-    emission_fetch(null, x->null.emission, ix, safe);
-    emission_fetch(bg, x->bg.emission, ix, safe);
+    index_setup(ix, eseq, r, safe);
+    table_setup(null, x->null.emission, ix, safe);
+    table_setup(bg, x->bg.emission, ix, safe);
 
     dp_set(t->N, 0, onto_N(tr, t->S, t->N, xt.SN, xt.NN, null));
     dp_set(t->B, 0, onto_B(tr, t->S, t->N, xt.SB, xt.NB));
@@ -86,10 +87,10 @@ INLINE void viterbi_on_range(struct protein const *x, struct viterbi_task *t,
     dp_advance(t->S);
     dp_advance(t->N);
 
-    float *Mk = dp_rewind(t->dp, STATE_M);
-    float *Ik = dp_rewind(t->dp, STATE_I);
-    float *Dk = dp_rewind(t->dp, STATE_D);
-    emission_fetch(match, x->nodes[0].emission, ix, safe);
+    float *Mk = coredp_rewind(t->dp, STATE_M);
+    float *Ik = coredp_rewind(t->dp, STATE_I);
+    float *Dk = coredp_rewind(t->dp, STATE_D);
+    table_setup(match, x->nodes[0].emission, ix, safe);
 
     if (tr) trellis_clear_node(tr);
     // BM(0) -> M(0)
@@ -109,7 +110,7 @@ INLINE void viterbi_on_range(struct protein const *x, struct viterbi_task *t,
       float const DM = x->nodes[k].trans.DM;
       float const DD = x->nodes[k].trans.DD;
       float const BM = x->BMk[n];
-      emission_fetch(match, x->nodes[n].emission, ix, safe);
+      table_setup(match, x->nodes[n].emission, ix, safe);
 
       // [M(k), I(k)] -> I(k)
       dp_set(Ik, 0, onto_I(tr, Mk, Ik, MI, II, bg));
@@ -118,7 +119,7 @@ INLINE void viterbi_on_range(struct protein const *x, struct viterbi_task *t,
 
       // [BM(n), M(k), I(k), D(k)] -> M(n)
       float Mn = onto_M(tr, t->B, Mk, Ik, Dk, BM, MM, IM, DM, match);
-      emission_prefetch(x->nodes[k + 2].emission, ix);
+      table_prefetch(x->nodes[k + 2].emission, ix);
 
       // [M(k), D(k)] -> D(n)
       float Dn = onto_D(tr, Mk, Dk, MD, DD);
@@ -127,11 +128,11 @@ INLINE void viterbi_on_range(struct protein const *x, struct viterbi_task *t,
       dp_advance(Ik);
       dp_advance(Dk);
 
-      Mk = dp_core_next(Mk);
+      Mk = coredp_next(Mk);
       dp_set(Mk, 0, Mn);
 
-      Ik = dp_core_next(Ik);
-      Dk = dp_core_next(Dk);
+      Ik = coredp_next(Ik);
+      Dk = coredp_next(Dk);
       dp_set(Dk, 0, Dn);
 
       Emax = float_maximum(Emax, Mn + xt.ME + 0);
@@ -176,7 +177,8 @@ float viterbi_alt(struct viterbi_task *task, struct imm_eseq const *eseq,
   dp_set(task->S, 0, 0);
 
   int row_start = 0;
-  int row_mid = seq_size + 1 < (PAST_SIZE - 1) ? seq_size + 1 : (PAST_SIZE - 1);
+  int row_mid =
+      seq_size + 1 < (DCP_PAST_SIZE - 1) ? seq_size + 1 : (DCP_PAST_SIZE - 1);
   int row_end = seq_size + 1;
 
   struct protein const *x = task->protein;

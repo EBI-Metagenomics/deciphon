@@ -2,12 +2,13 @@
 #include "defer_return.h"
 #include "protein.h"
 #include "rc.h"
+#include "viterbi_coredp.h"
 #include <stdlib.h>
 
 void viterbi_task_init(struct viterbi_task *x)
 {
   x->protein = NULL;
-  dp_core_init(&x->dp);
+  coredp_init(&x->dp);
   trellis_init(&x->trellis);
   x->path = imm_path();
 }
@@ -25,7 +26,7 @@ int viterbi_task_setup_protein(struct viterbi_task *x,
   dp_fill(x->C, IMM_LPROB_ZERO);
   dp_fill(x->T, IMM_LPROB_ZERO);
 
-  return dp_core_renew(&x->dp, x->protein->core_size);
+  return coredp_setup(&x->dp, x->protein->core_size);
 }
 
 int viterbi_task_setup_path(struct viterbi_task *x, int seq_size)
@@ -37,6 +38,6 @@ int viterbi_task_setup_path(struct viterbi_task *x, int seq_size)
 void viterbi_task_cleanup(struct viterbi_task *x)
 {
   trellis_cleanup(&x->trellis);
-  dp_core_del(&x->dp);
+  coredp_cleanup(&x->dp);
   imm_path_cleanup(&x->path);
 }
