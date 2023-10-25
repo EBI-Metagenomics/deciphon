@@ -5,8 +5,7 @@
 #include "rc.h"
 
 #define NUM_RETRIES 30
-#define REQUEST_DEADLINE 30000
-#define WARMUP_DEADLINE 10000
+#define DEADLINE 30000
 
 void hmmer_init(struct hmmer *x)
 {
@@ -31,7 +30,7 @@ void hmmer_cleanup(struct hmmer *x)
 int hmmer_warmup(struct hmmer *x)
 {
   char cmd[] = "--hmmdb 1 --hmmdb_range 0..0 --acc --cut_ga";
-  long deadline = h3client_deadline(WARMUP_DEADLINE);
+  long deadline = h3client_deadline(DEADLINE);
 
   if (h3client_stream_put(x->stream, cmd, "warmup", "", deadline))
     return DCP_EH3CWARMUP;
@@ -48,7 +47,7 @@ int hmmer_get(struct hmmer *x, int hmmidx, char const *name, char const *seq)
 
   for (int i = 0; i < NUM_RETRIES; ++i)
   {
-    long deadline = h3client_deadline(REQUEST_DEADLINE);
+    long deadline = h3client_deadline(DEADLINE);
 
     int rc = h3client_stream_put(x->stream, cmd, name, seq, deadline);
     if (rc == H3CLIENT_ETIMEDOUT) continue;
