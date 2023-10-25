@@ -140,7 +140,14 @@ int press_close(struct press *press)
   return rc_r ? rc_r : (rc_w ? rc_w : 0);
 }
 
-void press_del(struct press const *x) { free((void *)x); }
+void press_del(struct press const *x)
+{
+  if (x)
+  {
+    free((void *)x);
+    protein_cleanup((struct protein *)&x->protein);
+  }
+}
 
 static int finish_writer(struct press *press)
 {
