@@ -24,7 +24,7 @@ CONST unsigned bit_rangeset(int low, int size)
     __typeof__(x) y = (x);                                                     \
     unsigned l = (low);                                                        \
     unsigned s = (size);                                                       \
-    assert(0 <= l && l <= sizeof(y) * CHAR_BIT);                               \
+    assert(l <= sizeof(y) * CHAR_BIT);                               \
     (y >> l) & bit_lowset(s);                                                  \
   })
 
