@@ -59,7 +59,7 @@ static void test_protein_uniform(void)
   close(viterbi_alt_path(&task, &path, &score), 0);
   close(score, -55.59428153448);
 
-  eq(imm_path_nsteps(&path), 14U);
+  eq(imm_path_nsteps(&path), 14);
 
   eq(imm_path_step(&path, 0)->seqsize, 0);
   eq(imm_path_step(&path, 0)->state_id, STATE_S);
@@ -145,7 +145,7 @@ static void test_protein_occupancy(void)
   close(viterbi_alt_path(&task, &path, &score), 0);
   close(score, -54.35543421312);
 
-  eq(imm_path_nsteps(&path), 14U);
+  eq(imm_path_nsteps(&path), 14);
 
   eq(imm_path_step(&path, 0)->seqsize, 0);
   eq(imm_path_step(&path, 0)->state_id, STATE_S);
