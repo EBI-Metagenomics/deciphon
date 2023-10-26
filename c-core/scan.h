@@ -1,7 +1,7 @@
 #ifndef SCAN_H
 #define SCAN_H
 
-#include "compiler.h"
+#include "api.h"
 #include "params.h"
 
 struct scan;

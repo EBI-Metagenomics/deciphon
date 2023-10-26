@@ -1,7 +1,7 @@
 #ifndef PARAMS_H
 #define PARAMS_H
 
-#include "compiler.h"
+#include "api.h"
 #include <stdbool.h>
 
 struct params
