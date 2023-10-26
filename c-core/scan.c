@@ -13,7 +13,7 @@
 
 struct scan
 {
-  struct scan_params params;
+  struct params params;
   struct thread threads[DCP_NTHREADS_MAX];
 
   struct product product;
@@ -28,7 +28,7 @@ struct scan
   struct hmmer_dialer dialer;
 };
 
-struct scan *scan_new(struct scan_params params)
+struct scan *scan_new(struct params params)
 {
   struct scan *x = malloc(sizeof(*x));
   if (!x) return NULL;

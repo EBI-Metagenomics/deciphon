@@ -2,12 +2,12 @@
 #define SCAN_H
 
 #include "compiler.h"
-#include "scan_params.h"
+#include "params.h"
 
 struct scan;
 
 // clang-format off
-API struct scan *scan_new(struct scan_params);
+API struct scan *scan_new(struct params);
 API void         scan_del(struct scan const *);
 API int          scan_dial(struct scan *, int port);
 API int          scan_open(struct scan *, char const *dbfile);

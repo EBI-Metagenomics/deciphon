@@ -2,7 +2,7 @@
 #include "imm/imm.h"
 #include "press.h"
 #include "scan.h"
-#include "scan_params.h"
+#include "params.h"
 #include "test_consensus.h"
 #include "test_utils.h"
 #include "vendor/minctest.h"
@@ -32,10 +32,10 @@ int main(void)
   }
   seq[SIZE] = '\0';
 
-  struct scan_params params = {};
+  struct params params = {};
   struct scan *scan = NULL;
 
-  eq(scan_params_setup(&params, 1, true, false), 0);
+  eq(params_setup(&params, 1, true, false), 0);
   ok(scan = scan_new(params));
   eq(scan_open(scan, DBFILE), 0);
   eq(scan_add(scan, sequences[0].id, sequences[0].name, seq), 0);

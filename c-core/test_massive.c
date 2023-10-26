@@ -2,7 +2,7 @@
 #include "imm/imm.h"
 #include "press.h"
 #include "scan.h"
-#include "scan_params.h"
+#include "params.h"
 #include "test_utils.h"
 #include "vendor/minctest.h"
 
@@ -19,10 +19,10 @@ int main(void)
   fs_rmtree(PRODDIR);
   random_sequence_init();
   char name[256] = {};
-  struct scan_params params = {};
+  struct params params = {};
   struct scan *scan = NULL;
 
-  eq(scan_params_setup(&params, 1, true, false), 0);
+  eq(params_setup(&params, 1, true, false), 0);
   ok(scan = scan_new(params));
   eq(scan_open(scan, DBFILE), 0);
   for (int i = 0; i < 10000; ++i)

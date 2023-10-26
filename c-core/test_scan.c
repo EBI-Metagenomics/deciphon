@@ -2,7 +2,7 @@
 #include "fs.h"
 #include "imm/imm.h"
 #include "scan.h"
-#include "scan_params.h"
+#include "params.h"
 #include "test_consensus.h"
 #include "test_utils.h"
 #include "vendor/minctest.h"
@@ -11,7 +11,7 @@
 #define DBFILE "test_scan.dcp"
 #define PRODDIR "test_scan"
 
-static struct scan_params params_list[] = {
+static struct params params_list[] = {
     {1, false, false}, {1, false, false}, {1, false, true}, {1, false, true},
     {1, true, false},  {1, true, false},  {1, true, true},  {1, true, true}};
 static bool dial_list[] = {true, false, true, false, true, false, true, false};

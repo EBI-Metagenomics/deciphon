@@ -6,7 +6,7 @@
 struct protein_reader;
 struct product_thread;
 struct hmmer_dialer;
-struct scan_params;
+struct params;
 
 struct thread_params
 {
