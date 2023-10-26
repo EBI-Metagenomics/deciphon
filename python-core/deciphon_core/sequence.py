@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
-__all__ = ["Seq"]
+__all__ = ["Sequence"]
 
 
 @dataclass
-class Seq:
+class Sequence:
     id: int
     name: str
     data: str

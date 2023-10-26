@@ -1,59 +1,51 @@
-struct dcp_press;
-struct dcp_scan;
-struct dcp_seq;
+struct press;
+struct scan;
 struct h3client_result;
 
-// Scan parameters
-struct dcp_scan_params
+// parameters
+struct params
 {
-  int num_threads;
-  double lrt_threshold;
+  int  num_threads;
   bool multi_hits;
   bool hmmer3_compat;
 };
-
-// Seq
-typedef bool dcp_seq_next_fn(struct dcp_seq *, void *);
-int dcp_seq_setup(struct dcp_seq *, long id, char const *name,
-                  char const *data);
-void dcp_seq_cleanup(struct dcp_seq *);
+int params_setup(struct params *, int num_threads, bool multi_hits, bool hmmer3_compat);
 
 // Press
-struct dcp_press *dcp_press_new(void);
-int dcp_press_setup(struct dcp_press *, int gencode_id, float epsilon);
-int dcp_press_open(struct dcp_press *, char const *hmm, char const *db);
-long dcp_press_nproteins(struct dcp_press const *);
-int dcp_press_next(struct dcp_press *);
-bool dcp_press_end(struct dcp_press const *);
-int dcp_press_close(struct dcp_press *);
-void dcp_press_del(struct dcp_press const *);
+struct press *press_new(void);
+int           press_setup(struct press *, int gencode_id, float epsilon);
+int           press_open(struct press *, char const *hmm, char const *db);
+long          press_nproteins(struct press const *);
+int           press_next(struct press *);
+bool          press_end(struct press const *);
+int           press_close(struct press *);
+void          press_del(struct press const *);
 
 // Scan
-struct dcp_scan *dcp_scan_new(void);
-int dcp_scan_dial(struct dcp_scan *, int port);
-int dcp_scan_setup(struct dcp_scan *, struct dcp_scan_params);
-void dcp_scan_del(struct dcp_scan const *);
-int dcp_scan_run(struct dcp_scan *, char const *dbfile, dcp_seq_next_fn *callb,
-                 void *userdata, char const *product_dir);
+struct scan *scan_new(struct params);
+void         scan_del(struct scan const *);
+int          scan_dial(struct scan *, int port);
+int          scan_open(struct scan *, char const *dbfile);
+int          scan_close(struct scan *);
+int          scan_add(struct scan *, long id, char const *name, char const *data);
+int          scan_run(struct scan *, char const *product_dir);
+
 
 // Strerror
-char const *dcp_strerror(int err);
+char const *string_error(int err);
 
 // H3client
 struct h3client_result *h3client_result_new(void);
-void h3client_result_del(struct h3client_result const *);
-int h3client_result_unpack(struct h3client_result *, FILE *);
-int h3client_result_errnum(struct h3client_result const *);
-char const *h3client_result_errstr(struct h3client_result const *);
-void h3client_result_print_targets(struct h3client_result const *, FILE *);
-void h3client_result_print_domains(struct h3client_result const *, FILE *);
-void h3client_result_print_targets_table(struct h3client_result const *,
-                                         FILE *);
-void h3client_result_print_domains_table(struct h3client_result const *,
-                                         FILE *);
+void                    h3client_result_del(struct h3client_result const *);
+int                     h3client_result_unpack(struct h3client_result *, FILE *);
+int                     h3client_result_errnum(struct h3client_result const *);
+char const *            h3client_result_errstr(struct h3client_result const *);
+void                    h3client_result_print_targets(struct h3client_result const *, FILE *);
+void                    h3client_result_print_domains(struct h3client_result const *, FILE *);
+void                    h3client_result_print_targets_table(struct h3client_result const *, FILE *);
+void                    h3client_result_print_domains_table(struct h3client_result const *, FILE *);
 
+// Stdio
 FILE *fopen(char const *filename, char const *mode);
 FILE *fdopen(int, char const *);
-int fclose(FILE *);
-
-extern "Python" bool next_seq_callb(struct dcp_seq *, void *);
+int   fclose(FILE *);
