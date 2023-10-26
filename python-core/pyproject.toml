@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deciphon-core"
-version = "0.17.1"
+version = "0.17.2"
 description = "Python wrapper around the Deciphon C library"
 authors = ["Danilo Horta <horta@ebi.ac.uk>"]
 license = "MIT"
@@ -29,7 +29,13 @@ h3daemon = "^0"
 pythonpath = ["."]
 
 [build-system]
-requires = ["poetry-core", "cffi", "cmake", "patchelf;sys_platform=='linux'"]
+requires = [
+  "poetry-core",
+  "cffi",
+  "cmake",
+  "patchelf;sys_platform=='linux'",
+  "setuptools;python_version>='3.12'",
+]
 build-backend = "poetry.core.masonry.api"
 
 [tool.cibuildwheel]
