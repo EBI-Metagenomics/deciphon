@@ -1,4 +1,6 @@
+from __future__ import annotations
 import os
+import hashlib
 import shutil
 from pathlib import Path
 
@@ -25,11 +27,25 @@ def test_scan(tmp_path: Path, files_path: Path):
             "sequences.fna",
             "--snapfile",
             "snap_file.dcs",
-            "--lrt-threshold",
-            "2",
             "--num-threads",
             "1",
         ],
     )
     assert result.exit_code == 0
-    assert Path("snap_file.dcs").exists()
+    snap = Path("snap_file.dcs")
+    assert snap.exists()
+    shutil.unpack_archive(snap, format="zip")
+    products = basedir(snap) / "products.tsv"
+    assert checksum(products)[:8] == "835d822b"
+
+
+def checksum(filename: Path):
+    hash_obj = hashlib.md5()
+    with open(filename, "rb") as file:
+        for chunk in iter(lambda: file.read(4096), b""):
+            hash_obj.update(chunk)
+    return hash_obj.hexdigest()
+
+
+def basedir(x: Path):
+    return x.parent / str(x.stem)

@@ -11,6 +11,7 @@ class catch_validation:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        del exc_tb
         if exc_type is ValidationError:
             input = exc_val.errors()[0]["input"]
             msg = exc_val.errors()[0]["msg"]

@@ -5,9 +5,9 @@ from pathlib import Path
 from subprocess import DEVNULL
 from typing import Optional
 
+from deciphon_core.params import Params
 from deciphon_core.press import PressContext
 from deciphon_core.scan import Scan
-from deciphon_core.scan_params import ScanParams
 from deciphon_core.schema import Gencode, HMMFile, NewSnapFile
 from deciphon_snap.read_snap import read_snap
 from deciphon_snap.view import view_alignments
@@ -18,7 +18,7 @@ from deciphon.catch_validation import catch_validation
 from deciphon.gencode import gencodes
 from deciphon.h3daemon import H3Daemon
 from deciphon.hmmer_press import hmmer_press
-from deciphon.seq_file import SeqFile
+from deciphon.read_sequences import read_sequences
 from deciphon.service_exit import service_exit
 
 __all__ = ["app"]
@@ -31,7 +31,6 @@ app = Typer(
 )
 
 O_PROGRESS = Option(True, "--progress/--no-progress", help="Display progress bar.")
-O_LRT_THRESHOLD = Option(0.0, "--lrt-threshold", help="LRT threshold.")
 O_NUM_THREADS = Option(1, "--num-threads", help="Number of threads.")
 O_MULTI_HITS = Option(True, "--multi-hits/--no-multi-hits", help="Set multi-hits.")
 O_HMMER3_COMPAT = Option(
@@ -111,7 +110,6 @@ def scan(
     ),
     snapfile: Optional[Path] = Option(None, help="File to store results."),
     num_threads: int = O_NUM_THREADS,
-    lrt_threshold: float = O_LRT_THRESHOLD,
     multi_hits: bool = O_MULTI_HITS,
     hmmer3_compat: bool = O_HMMER3_COMPAT,
     progress: bool = O_PROGRESS,
@@ -124,18 +122,15 @@ def scan(
         db = hmm.dbfile
         snap = NewSnapFile(path=snapfile if snapfile else seqfile.with_suffix(".dcs"))
 
-        with SeqFile(path=seqfile) as seq:
-            with H3Daemon(hmm, stdout=DEVNULL) as daemon:
-                params = ScanParams(
-                    num_threads=num_threads,
-                    lrt_threshold=lrt_threshold,
-                    multi_hits=multi_hits,
-                    hmmer3_compat=hmmer3_compat,
-                )
-                scan = Scan()
+        sequences = read_sequences(seqfile)
+        with H3Daemon(hmm, stdout=DEVNULL) as daemon:
+            params = Params(num_threads, multi_hits, hmmer3_compat)
+            scan = Scan(params, db)
+            with scan:
                 scan.dial(daemon.port)
-                scan.setup(params)
-                scan.run(db, seq, snap)
+                for seq in sequences:
+                    scan.add(seq)
+                scan.run(snap)
                 echo(
                     "Scan has finished successfully and "
                     f"results stored in '{snap.path}'."

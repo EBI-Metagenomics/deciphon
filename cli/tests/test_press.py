@@ -16,4 +16,4 @@ def test_press(tmp_path: Path, files_path: Path):
     result = runner.invoke(app, ["press", "minifam.hmm", "11"])
     assert result.exit_code == 0
 
-    assert Path("minifam.dcp").stat().st_size == 9933912
+    assert Path("minifam.dcp").stat().st_size ==3536712
