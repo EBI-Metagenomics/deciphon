@@ -36,7 +36,7 @@ struct sequence;
 void thread_init(struct thread *);
 int  thread_setup(struct thread *, struct thread_params);
 void thread_cleanup(struct thread *);
-int  thread_run(struct thread *, struct sequence_queue const *);
+int  thread_run(struct thread *, struct sequence_queue const *, int *done_proteins);
 // clang-format on
 
 #endif

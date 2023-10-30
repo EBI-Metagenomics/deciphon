@@ -26,6 +26,9 @@ struct scan
   } db;
 
   struct hmmer_dialer dialer;
+
+  int total_proteins;
+  int done_proteins;
 };
 
 struct scan *scan_new(struct params params)
@@ -44,6 +47,9 @@ struct scan *scan_new(struct params params)
   protein_reader_init(&x->db.protein);
 
   hmmer_dialer_init(&x->dialer);
+
+  x->total_proteins = 0;
+  x->done_proteins = 0;
 
   return x;
 }
@@ -72,10 +78,13 @@ int scan_open(struct scan *x, char const *dbfile)
 {
   int rc = 0;
   int n = x->params.num_threads;
+  x->done_proteins = 0;
 
   if ((rc = database_reader_open(&x->db.reader, dbfile))) return rc;
   if ((rc = protein_reader_setup(&x->db.protein, &x->db.reader, n))) return rc;
   sequence_queue_setup(&x->sequences, &x->db.reader.code.super);
+
+  x->total_proteins = protein_reader_size(&x->db.protein);
 
   return rc;
 }
@@ -113,10 +122,11 @@ int scan_run(struct scan *x, char const *product_dir)
 #pragma omp parallel for default(none) shared(x, num_threads, rc)
   for (int i = 0; i < num_threads; ++i)
   {
-    int r = thread_run(x->threads + i, &x->sequences);
+    int r = thread_run(x->threads + i, &x->sequences, &x->done_proteins);
 #pragma omp critical
     if (r && !rc) rc = r;
   }
+  assert(x->done_proteins == x->total_proteins);
 
 defer:
   for (int i = 0; i < num_threads; ++i)
@@ -124,4 +134,9 @@ defer:
 
   int product_rc = product_close(&x->product);
   return rc ? rc : product_rc;
+}
+
+int scan_progress(struct scan const *x)
+{
+  return (100 * x->done_proteins) / x->total_proteins;
 }

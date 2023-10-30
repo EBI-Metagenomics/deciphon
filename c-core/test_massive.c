@@ -1,8 +1,8 @@
 #include "fs.h"
 #include "imm/imm.h"
+#include "params.h"
 #include "press.h"
 #include "scan.h"
-#include "params.h"
 #include "test_utils.h"
 #include "vendor/minctest.h"
 
@@ -31,6 +31,7 @@ int main(void)
     eq(scan_add(scan, i, name, random_sequence_next()), 0);
   }
   eq(scan_run(scan, PRODDIR), 0);
+  eq(scan_progress(scan), 100);
   eq(chksum(PRODDIR "/products.tsv"), 44039);
   eq(scan_close(scan), 0);
 

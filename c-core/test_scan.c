@@ -1,8 +1,8 @@
 #include "array_size.h"
 #include "fs.h"
 #include "imm/imm.h"
-#include "scan.h"
 #include "params.h"
+#include "scan.h"
 #include "test_consensus.h"
 #include "test_utils.h"
 #include "vendor/minctest.h"
@@ -34,6 +34,7 @@ int main(void)
       eq(scan_add(scan, id, sequences[j].name, sequences[j].data), 0);
     }
     eq(scan_run(scan, PRODDIR), 0);
+    eq(scan_progress(scan), 100);
     eq(scan_close(scan), 0);
     scan_del(scan);
     eq(chksum(PRODDIR "/products.tsv"), chksum_list[i]);

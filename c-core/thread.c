@@ -70,7 +70,8 @@ void thread_cleanup(struct thread *x)
 static int process_window(struct thread *, int protein_idx,
                           struct window const *);
 
-int thread_run(struct thread *x, struct sequence_queue const *sequences)
+int thread_run(struct thread *x, struct sequence_queue const *sequences,
+               int *done_proteins)
 {
   int rc = 0;
 
@@ -94,6 +95,9 @@ int thread_run(struct thread *x, struct sequence_queue const *sequences)
         if ((rc = process_window(x, protein_idx, &w))) break;
       }
     }
+
+#pragma omp atomic update
+    (*done_proteins)++;
   }
 
 cleanup:
