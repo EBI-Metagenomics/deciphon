@@ -11,7 +11,7 @@
 INLINE void index_setup(int index[restrict], struct imm_eseq const *eseq,
                         int row, bool const safe)
 {
-#pragma omp unroll
+#pragma GCC unroll(DCP_PAST_SIZE - 1)
   for (int i = 0; i < DCP_PAST_SIZE - 1; ++i)
   {
     int pos = row - i - 1;

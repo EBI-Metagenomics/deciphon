@@ -10,7 +10,7 @@
 #define SIZE 500000
 #define HMMFILE "minifam.hmm"
 #define DBFILE "test_window.dcp"
-#define PRODDIR "test_window"
+#define PRODDIR "test_window_prod"
 
 int main(void)
 {

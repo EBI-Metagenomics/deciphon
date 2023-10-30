@@ -3,7 +3,7 @@
 
 #include "compiler.h"
 
-CONST int find_fmax(int const size, float const x[restrict])
+PURE int find_fmax(int const size, float const x[restrict])
 {
   int maxi = 0;
   float max = x[maxi];

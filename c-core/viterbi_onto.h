@@ -28,7 +28,7 @@ PURE float onto_R(float const S[restrict], float const R[restrict],
       dp_get(R, 5) + RR + table_get(e, 5),
   };
   // clang-format on
-  return reduce_fmax(array_size(x), x);
+  return reduce_fmax_size10(x);
 }
 
 INLINE float onto_N(struct trellis *t, float const S[restrict],
@@ -49,7 +49,7 @@ INLINE float onto_N(struct trellis *t, float const S[restrict],
       dp_get(N, 4) + NN + table_get(e, 4),
       dp_get(N, 5) + NN + table_get(e, 5),
   };
-  if (!t) return reduce_fmax(array_size(x), x);
+  if (!t) return reduce_fmax_size10(x);
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
@@ -83,7 +83,7 @@ INLINE float adjust_onto_B(struct trellis *t, float const B[restrict],
       dp_get(E, 0) + EB + 0,
       dp_get(J, 0) + JB + 0,
   };
-  if (!t) return reduce_fmax(array_size(x), x);
+  if (!t) return reduce_fmax_size3(x);
 
   int const src[] = {
     -1,
@@ -108,7 +108,7 @@ INLINE float onto_M0(struct trellis *t, float const B[restrict], float const BM,
       dp_get(B, 4) + BM + table_get(e, 4),
       dp_get(B, 5) + BM + table_get(e, 5),
   };
-  if (!t) return reduce_fmax(array_size(x), x);
+  if (!t) return reduce_fmax_size5(x);
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
@@ -134,7 +134,7 @@ INLINE float onto_I(struct trellis *t, float const M[restrict],
       dp_get(I, 4) + II + table_get(e, 4),
       dp_get(I, 5) + II + table_get(e, 5),
   };
-  if (!t) return reduce_fmax(array_size(x), x);
+  if (!t) return reduce_fmax_size10(x);
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
@@ -173,7 +173,7 @@ INLINE float onto_M(struct trellis *t, float const B[restrict],
       dp_get(D, 4) + DM + table_get(e, 4),
       dp_get(D, 5) + DM + table_get(e, 5),
   };
-  if (!t) return reduce_fmax(array_size(x), x);
+  if (!t) return reduce_fmax_size20(x);
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
@@ -245,7 +245,7 @@ INLINE float onto_J(struct trellis *t, float const E[restrict],
       dp_get(J, 4) + JJ + table_get(e, 4),
       dp_get(J, 5) + JJ + table_get(e, 5),
   };
-  if (!t) return reduce_fmax(array_size(x), x);
+  if (!t) return reduce_fmax_size10(x);
   // clang-format on
 
   int i = find_fmax(array_size(x), x);
@@ -271,7 +271,7 @@ INLINE float onto_C(struct trellis *t, float const E[restrict],
       dp_get(C, 4) + CC + table_get(e, 4),
       dp_get(C, 5) + CC + table_get(e, 5),
   };
-  if (!t) return reduce_fmax(array_size(x), x);
+  if (!t) return reduce_fmax_size10(x);
   // clang-format on
 
   int i = find_fmax(array_size(x), x);

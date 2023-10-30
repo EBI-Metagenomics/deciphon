@@ -144,9 +144,9 @@ INLINE void alternative(struct viterbi *x, int row_start, int row_end,
       if (tr) trellis_next_node(tr);
       if (tr) trellis_clear_node(tr);
 
+      table_prefetch(x->protein->nodes[n + 1].emission, ix);
       // [BM(n), M(k), I(k), D(k)] -> M(n)
       float Mn = onto_M(tr, x->B, Mk, Ik, Dk, BM, MM, IM, DM, match);
-      table_prefetch(x->protein->nodes[k + 2].emission, ix);
 
       // [M(k), D(k)] -> D(n)
       float Dn = onto_D(tr, Mk, Dk, MD, DD);
