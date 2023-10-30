@@ -42,6 +42,9 @@ class Scan:
 
         snap.make_archive()
 
+    def progress(self) -> int:
+        return lib.scan_progress(self._cscan)
+
     def __enter__(self):
         self.open()
         return self

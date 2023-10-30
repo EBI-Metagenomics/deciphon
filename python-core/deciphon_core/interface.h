@@ -18,6 +18,7 @@ int           press_open(struct press *, char const *hmm, char const *db);
 long          press_nproteins(struct press const *);
 int           press_next(struct press *);
 bool          press_end(struct press const *);
+int           scan_progress(struct scan const *);
 int           press_close(struct press *);
 void          press_del(struct press const *);
 
