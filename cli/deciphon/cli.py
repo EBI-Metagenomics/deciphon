@@ -18,6 +18,7 @@ from deciphon.catch_validation import catch_validation
 from deciphon.gencode import gencodes
 from deciphon.h3daemon import H3Daemon
 from deciphon.hmmer_press import hmmer_press
+from deciphon.progress import Progress
 from deciphon.read_sequences import read_sequences
 from deciphon.service_exit import service_exit
 
@@ -127,10 +128,13 @@ def scan(
             params = Params(num_threads, multi_hits, hmmer3_compat)
             scan = Scan(params, db)
             with scan:
+                bar = Progress(scan, disabled=not progress)
+                bar.start()
                 scan.dial(daemon.port)
                 for seq in sequences:
                     scan.add(seq)
                 scan.run(snap)
+                bar.stop()
                 echo(
                     "Scan has finished successfully and "
                     f"results stored in '{snap.path}'."
