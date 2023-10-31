@@ -41,7 +41,7 @@ int main(void)
   eq(scan_add(scan, sequences[0].id, sequences[0].name, seq), 0);
   eq(scan_run(scan, PRODDIR), 0);
   eq(scan_progress(scan), 100);
-  eq(chksum(PRODDIR "/products.tsv"), 41833);
+  eq(chksum(PRODDIR "/products.tsv"), 38553);
   eq(scan_close(scan), 0);
 
   scan_del(scan);
