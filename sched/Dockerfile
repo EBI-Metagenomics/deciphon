@@ -1,4 +1,4 @@
 FROM python:3.11 AS sched
 WORKDIR /app
 COPY . .
-RUN pip install --no-cache-dir --upgrade -e .
+RUN pip install --use-pep517 --no-cache-dir --upgrade -e .
