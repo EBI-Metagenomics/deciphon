@@ -139,6 +139,7 @@ static int process_window(struct thread *x, int protein_idx,
     if ((rc = hmmer_stage(&x->protein, x->product, &x->hmmer, &x->amino, seq,
                           protein_idx, &x->path)))
       return rc;
+    if (x->product->line.evalue == 1.0) return rc;
   }
 
   struct match match = match_init(&x->protein);
