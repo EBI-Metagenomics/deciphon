@@ -1,1 +1,0 @@
-- `def hits(self) -> list[Hit]:` should return HitList instead
