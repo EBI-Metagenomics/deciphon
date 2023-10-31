@@ -169,10 +169,6 @@ def view_alignment(prod: Prod):
         if x.hmmer is not None:
             amino_pos.append(x.hmmer.amino_pos)
 
-    # hmm_left, hmm_right = h.state_bounds
-    # query_left, query_right = h.query_bounds
-    # amino_left, amino_right = h.amino_bounds
-
     table = []
     n = len(hmm_cs)
     COLS = 96
