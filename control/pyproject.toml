@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deciphonctl"
-version = "0.3.3"
+version = "0.3.4"
 description = "Control Deciphon server."
 authors = ["Danilo Horta <horta@ebi.ac.uk>"]
 license = "MIT"
@@ -14,10 +14,10 @@ requests = "^2"
 pydantic = "^2"
 pydantic-settings = "^2"
 fasta-reader = "^3"
-deciphon = "^0"
-deciphon-core = "^0"
+deciphon = ">=0.10.2"
+deciphon-core = ">=0.18.5"
 loguru = "^0"
-deciphon-sched = "^0.4.1"
+deciphon-sched = ">=0.11.2"
 paho-mqtt = "^1.6.1"
 
 [tool.poetry.group.dev.dependencies]
