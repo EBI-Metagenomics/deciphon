@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deciphon-snap"
-version = "0.8.0"
+version = "0.8.1"
 description = "Reader for Deciphon snap files."
 authors = ["Danilo Horta <horta@ebi.ac.uk>"]
 license = "MIT"
@@ -12,7 +12,7 @@ fsspec = { version = ">=2023.6.0" }
 python = "^3.9"
 prettytable = "^3"
 pydantic = "^2"
-h3result = "^0"
+h3result = ">=0.3.1"
 hmmer-tables = "^0"
 tabulate = "^0"
 fasta-reader = "^3.0.2"
