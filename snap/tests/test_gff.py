@@ -3,8 +3,9 @@ from pathlib import Path
 from deciphon_snap.read_snap import read_snap
 
 desired = """##gff-version 3
-0	deciphon	CDS	454	738	9.9615623609338152e-07	+	0	Profile=PF00004.32;Alphabet=dna;ID=1
-0	deciphon	CDS	451	606	1.009051514531623e-07	+	0	Profile=PF03969.19;Alphabet=dna;ID=2
+2	deciphon	CDS	76	546	1.3e-37	+	0	Profile=PF00005.30;Alphabet=dna;ID=1
+17	deciphon	CDS	130	270	1.3e-20	+	0	Profile=PF00005.30;Alphabet=dna;ID=2
+17	deciphon	CDS	439	522	1.3e-20	+	0	Profile=PF00005.30;Alphabet=dna;ID=3
 """
 
 

@@ -12,6 +12,7 @@ from deciphon_snap.prod import Prod
 from deciphon_snap.prod import ProdList
 from deciphon_snap.shorten import shorten
 from deciphon_snap.stringify import stringify
+from deciphon_snap.interval import PyInterval
 
 __all__ = ["SnapFile"]
 
@@ -36,18 +37,22 @@ class SnapFile:
             prods: List[Prod] = []
             reader = csv.DictReader((stringify(x) for x in file), delimiter="\t")
             for idx, row in enumerate(reader):
-                seq_id = int(row["seq_id"])
+                seq_id = int(row["sequence"])
                 profile = str(row["profile"])
                 with fs.open(f"{hmmer_dir}/{seq_id}/{profile}.h3r", "rb") as f2:
                     h3r = H3Result(raw=read_h3result(fileno=f2.fileno()))
+                start = int(row["window_start"])
+                stop = int(row["window_stop"])
+                window_interval = PyInterval(start=start, stop=stop)
                 prods.append(
                     Prod(
                         id=idx,
                         seq_id=seq_id,
+                        window=int(row["window"]),
+                        window_interval=window_interval,
                         profile=profile,
-                        abc=str(row["abc"]),
-                        alt=float(row["alt"]),
-                        null=float(row["null"]),
+                        abc=row["abc"],
+                        lrt=float(row["lrt"]),
                         evalue=float(row["evalue"]),
                         match_list=LazyMatchList(raw=str(row["match"])),
                         h3result=h3r,

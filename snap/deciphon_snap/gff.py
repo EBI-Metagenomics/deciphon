@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import List, overload
 
 from pydantic import BaseModel, RootModel
-from math import exp
 
 
 __all__ = ["GFFItem", "GFFList"]
@@ -21,7 +20,7 @@ class GFFItem(BaseModel):
     attributes: str
 
     def format(self):
-        score = f"{exp(self.score):.17g}"
+        score = f"{self.score:.2g}"
         return (
             f"{self.seqid}\t{self.source}\t{self.type}\t{self.start}\t{self.end}\t"
             + f"{score}\t{self.strand}\t{self.phase}\t{self.attributes}"

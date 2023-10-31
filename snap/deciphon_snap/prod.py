@@ -6,8 +6,9 @@ from pydantic import BaseModel, RootModel
 
 from deciphon_snap.fasta import FASTAItem, FASTAList
 from deciphon_snap.gff import GFFItem, GFFList
-from deciphon_snap.hit import Hit, HitList
+from deciphon_snap.hit import HitList
 from deciphon_snap.hmmer import H3Result
+from deciphon_snap.interval import Interval
 from deciphon_snap.match import LazyMatchList, Match, MatchElemName, MatchList
 from deciphon_snap.query_interval import QueryIntervalBuilder
 
@@ -17,10 +18,11 @@ __all__ = ["Prod"]
 class Prod(BaseModel):
     id: int
     seq_id: int
+    window: int
+    window_interval: Interval
     profile: str
     abc: str
-    alt: float
-    null: float
+    lrt: float
     evalue: float
     match_list: LazyMatchList
     h3result: H3Result | None = None
@@ -47,14 +49,14 @@ class Prod(BaseModel):
         return gff_list
 
     @property
-    def hits(self) -> list[Hit]:
+    def hits(self):
         qibuilder = QueryIntervalBuilder(self.match_list.evaluate())
         hits = []
         for hit in HitList.make(self.match_list.evaluate()):
             hit.interval = qibuilder.make(hit.match_list_interval)
             hit.match_list = self.match_list.evaluate()
             hits.append(hit)
-        return hits
+        return HitList.model_validate(hits)
 
     @property
     def matches(self):
