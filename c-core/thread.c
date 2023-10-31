@@ -140,6 +140,8 @@ static int process_window(struct thread *x, int protein_idx,
                           protein_idx, &x->path)))
       return rc;
     if (x->product->line.evalue == 1.0) return rc;
+    if ((rc = product_thread_put_hmmer(x->product, &x->hmmer.result)))
+      return rc;
   }
 
   struct match match = match_init(&x->protein);
@@ -161,9 +163,9 @@ static int hmmer_stage(struct protein *protein, struct product_thread *product,
   if ((rc = infer_amino(amino, &match, &mit))) return rc;
 
   if ((rc = hmmer_get(hmmer, protein_idx, seq->name, amino->data))) return rc;
-  if (hmmer_result_num_hits(&hmmer->result) == 0)
-    product->line.evalue = 1.0;
-  else
-    product->line.evalue = hmmer_result_evalue(&hmmer->result);
-  return product_thread_put_hmmer(product, &hmmer->result);
+
+  product->line.evalue = hmmer_result_num_hits(&hmmer->result)
+                             ? hmmer_result_evalue(&hmmer->result)
+                             : 1.0;
+  return 0;
 }
