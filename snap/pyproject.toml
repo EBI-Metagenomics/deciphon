@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deciphon-snap"
-version = "0.7.1"
+version = "0.8.0"
 description = "Reader for Deciphon snap files."
 authors = ["Danilo Horta <horta@ebi.ac.uk>"]
 license = "MIT"
