@@ -1,7 +1,7 @@
 FROM python:3.11 AS base
 WORKDIR /app
 COPY . .
-RUN pip install --no-cache-dir --upgrade -e .
+RUN pip install --use-pep517 --no-cache-dir --upgrade -e .
 
 FROM base AS presser
 CMD [ "deciphonctl", "presser", "run" ]
