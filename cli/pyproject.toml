@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deciphon"
-version = "0.9.4"
+version = "0.10.0"
 description = "Individually annotate long, error-prone nucleotide sequences into proteins"
 authors = ["Danilo Horta <horta@ebi.ac.uk>"]
 license = "MIT"
@@ -10,7 +10,7 @@ packages = [{ include = "deciphon" }]
 [tool.poetry.dependencies]
 python = "^3.9"
 cffi = "^1.15.1"
-deciphon-core = ">=0.18"
+deciphon-core = ">=0.18.2"
 deciphon-snap = "^0"
 fasta-reader = "^3"
 h3daemon = "^0"

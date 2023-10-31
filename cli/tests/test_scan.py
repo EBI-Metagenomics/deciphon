@@ -36,7 +36,7 @@ def test_scan(tmp_path: Path, files_path: Path):
     assert snap.exists()
     shutil.unpack_archive(snap, format="zip")
     products = basedir(snap) / "products.tsv"
-    assert checksum(products)[:8] == "835d822b"
+    assert checksum(products)[:8] == "f3d82604"
 
 
 def checksum(filename: Path):
