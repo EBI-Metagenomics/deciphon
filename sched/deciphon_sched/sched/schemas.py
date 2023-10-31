@@ -174,8 +174,7 @@ class ProdRead(BaseModel):
     seq_id: int
     profile: str
     abc: str
-    alt: float
-    null: float
+    lrt: float
     evalue: float
 
     @classmethod
@@ -184,7 +183,6 @@ class ProdRead(BaseModel):
             seq_id=x.seq_id,
             profile=x.profile,
             abc=x.abc,
-            alt=x.alt,
-            null=x.null,
+            lrt=x.lrt,
             evalue=x.evalue,
         )
