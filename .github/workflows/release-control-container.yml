@@ -1,4 +1,4 @@
-name: Release control container
+name: 🐳 Control container release
 
 on:
   push:
