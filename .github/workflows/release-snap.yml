@@ -1,4 +1,4 @@
-name: Release snap
+name: 📦 Snap release
 
 on:
   push:

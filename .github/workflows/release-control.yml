@@ -1,4 +1,4 @@
-name: Release control
+name: 📦 Control release
 
 on:
   push:

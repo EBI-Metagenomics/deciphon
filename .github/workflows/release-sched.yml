@@ -1,4 +1,4 @@
-name: Release scheduler
+name: 📦 Scheduler release
 
 on:
   push:

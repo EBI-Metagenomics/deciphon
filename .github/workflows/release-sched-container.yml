@@ -1,4 +1,4 @@
-name: Release scheduler container
+name: 🐳 Scheduler container release
 
 on:
   push:

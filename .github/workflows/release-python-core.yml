@@ -1,4 +1,4 @@
-name: Release python-core
+name: 📦 Python-core release
 
 on:
   push:
