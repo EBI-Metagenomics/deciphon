@@ -46,7 +46,7 @@ class Sched:
         return response
 
     def post(self, url: str, data=None, json=None, params=None, headers=None):
-        logger.debug(f"POST url={url} data={data} json={json}")
+        logger.debug(f"POST url={url} data={data} json={json} headers={headers}")
         r = requests.post(url, data=data, json=json, params=params, headers=headers)
         self.handle_http_response(r)
         return r
