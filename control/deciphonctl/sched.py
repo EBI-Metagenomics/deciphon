@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from requests_toolbelt import MultipartEncoder
 import urllib.parse
 from pathlib import Path
 from typing import Any, Optional
@@ -44,11 +45,11 @@ class Sched:
         self.handle_http_response(response)
         return response
 
-    def post(self, url: str, data=None, json=None, params=None, files=None):
+    def post(self, url: str, data=None, json=None, params=None, headers=None):
         logger.debug(f"POST url={url} data={data} json={json}")
-        response = requests.post(url, data=data, json=json, params=params, files=files)
-        self.handle_http_response(response)
-        return response
+        r = requests.post(url, data=data, json=json, params=params, headers=headers)
+        self.handle_http_response(r)
+        return r
 
     def patch(self, url: str, data=None, json=None):
         logger.debug(f"PATCH url={url} data={data} json={json}")
@@ -66,8 +67,10 @@ class Sched:
     def upload(self, file: Path, post: UploadPost):
         logger.info(f"uploading {file} to {post.url_string}")
         with open(file, "rb") as f:
-            files = {"file": (file.name, f)}
-            self.post(post.url_string, data=post.fields, files=files)
+            fields = post.fields
+            fields["file"] = (file.name, f)
+            m = MultipartEncoder(fields=fields)
+            self.post(post.url_string, data=m, headers={"content-type": m.content_type})
 
     def hmm_post(self, file: HMMFile, gencode: Gencode, epsilon: float):
         self.post(
@@ -118,8 +121,8 @@ class Sched:
         return self.get(self.url("seqs")).json()
 
     def snap_post(self, scan_id: int, snap: FilePath):
-        files = {"file": open(snap, "rb")}
-        self.post(self.url(f"scans/{scan_id}/snap.dcs"), files=files)
+        post = UploadPost(url=HttpUrl(self.url(f"scans/{scan_id}/snap.dcs")), fields={})
+        self.upload(snap, post)
 
     def snap_get(self, scan_id: int):
         return self.get(self.url(f"scans/{scan_id}/snap.dcs")).content
