@@ -43,11 +43,11 @@ class Presser(Consumer):
         db = req.db
         with PressContext(hmm, gencode=db.gencode, epsilon=db.epsilon) as press:
             self._qout.put(JobUpdate.run(req.job_id, 0).model_dump_json())
-            with ProgressLogger(press.nproteins, str(hmmfile)) as progress:
-                for x in [press] * press.nproteins:
+            with ProgressLogger(str(hmmfile)) as progress:
+                for i, x in enumerate([press] * press.nproteins):
                     x.next()
-                    progress.consume()
-                    perc = int(round(progress.percent))
+                    progress.percent = (100 * (i + 1)) // press.nproteins
+                    perc = progress.percent
                     self._qout.put(JobUpdate.run(req.job_id, perc).model_dump_json())
         normalise_file_permissions(dcpfile)
         return dcpfile

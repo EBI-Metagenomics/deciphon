@@ -17,19 +17,11 @@ from deciphonctl.files import (
     unique_temporary_file,
 )
 from deciphonctl.models import ScanRequest
+from deciphonctl.progress import Progress
 from deciphonctl.progress_informer import ProgressInformer
 from deciphonctl.sched import Sched
 from deciphonctl.settings import Settings
 from deciphonctl.worker import worker_loop
-
-# def sequence_iterator(seqs: list[Sequence], job_id: int, desc: str, qout: JoinableQueue):
-#     qout.put(JobUpdate.run(job_id, 0).model_dump_json())
-#     with ProgressLogger(len(seqs), desc) as progress:
-#         for seq in seqs:
-#             yield seq
-#             progress.consume()
-#             perc = int(round(progress.percent))
-#             qout.put(JobUpdate.run(job_id, perc).model_dump_json())
 
 
 class Scanner(Consumer):
@@ -71,10 +63,13 @@ class Scanner(Consumer):
                 logger.info(f"scan parameters: {params}")
                 scan = Scan(params, db)
                 with scan:
+                    bar = Progress("scan", scan, self._sched, x.job_id)
+                    bar.start()
                     scan.dial(daemon.port)
                     for seq in x.seqs:
                         scan.add(Sequence(seq.id, seq.name, seq.data))
                     scan.run(snap)
+                    bar.stop()
                     logger.info(
                         "Scan has finished successfully and "
                         f"results stored in '{snap.path}'."
