@@ -84,7 +84,6 @@ def resolve_bin(bin: str):
     paths = [sysconfig.get_path("scripts", x) for x in sysconfig.get_scheme_names()]
     paths += os.path.expandvars(os.getenv("PATH", "")).split(os.pathsep)
     for x in paths:
-        print(x)
         y = Path(x) / bin
         if y.exists():
             return str(y)
