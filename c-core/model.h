@@ -10,11 +10,12 @@
 #include "rc.h"
 #include "state.h"
 #include "trans.h"
+#include "xlimits.h"
 #include "xtrans.h"
 
 enum
 {
-  DCP_MODEL_MAX = 4096,
+  DCP_MODEL_MAX = DCP_CORE_SIZE,
 };
 
 struct model

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20.2 FATAL_ERROR)
-project(deciphon VERSION 0.13.5 LANGUAGES C)
+project(deciphon VERSION 0.13.6 LANGUAGES C)
 
 include(cmake/warnings.cmake)
 include(cmake/sanitizers.cmake)
@@ -36,10 +36,8 @@ else()
 endif()
 message(STATUS "X86: ${X86}")
 
-cmake_host_system_information(RESULT HAS_SSE2 QUERY HAS_SSE2)
-if(HAS_SSE2 AND X86)
+if(X86)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mavx")
-  message(STATUS "Detected AVX extension.")
 endif()
 
 file(GLOB DECIPHON_SOURCES "*.c")
