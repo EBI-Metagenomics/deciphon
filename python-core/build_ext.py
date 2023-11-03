@@ -68,7 +68,7 @@ EXTS = [
     Ext(
         "EBI-Metagenomics",
         "deciphon",
-        "c-core-v0.13.5",
+        "c-core-v0.13.6",
         "./c-core",
         CMAKE_OPTS + CPM_OPTS,
     ),
@@ -82,8 +82,9 @@ def rm(folder: Path, pattern: str):
 
 def resolve_bin(bin: str):
     paths = [sysconfig.get_path("scripts", x) for x in sysconfig.get_scheme_names()]
-    paths += ["/usr/local/bin/"]
+    paths += os.path.expandvars(os.getenv("PATH", "")).split(os.pathsep)
     for x in paths:
+        print(x)
         y = Path(x) / bin
         if y.exists():
             return str(y)
@@ -127,6 +128,12 @@ if __name__ == "__main__":
     rm(PKG, "cffi.*")
     rm(PKG / "lib", "**/lib*")
     shutil.rmtree(TMP, ignore_errors=True)
+
+    if not os.environ.get("DECIPHON_CORE_DEVELOP", False):
+        if sys.platform == "linux":
+            patch = [resolve_bin("patchelf"), "--set-rpath", "$ORIGIN"]
+            for lib in LIB.glob("*.so*"):
+                check_call(patch + [str(lib)])
 
     if not os.environ.get("DECIPHON_CORE_DEVELOP", False):
         for ext in EXTS:
