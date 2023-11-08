@@ -5,14 +5,14 @@
 
 static void init_null_lprobs(float[IMM_AMINO_SIZE]);
 
-void hmm_reader_init(struct hmm_reader *reader, struct model_params params,
-                     FILE *fp)
+int hmm_reader_init(struct hmm_reader *reader, struct model_params params,
+                    FILE *fp)
 {
   hmr_init(&reader->hmr, fp);
   hmr_prof_init(&reader->protein, &reader->hmr);
   init_null_lprobs(reader->null_lprobs);
-  model_init(&reader->model, params, reader->null_lprobs);
   reader->end = false;
+  return model_init(&reader->model, params, reader->null_lprobs);
 }
 
 int hmm_reader_next(struct hmm_reader *h3r)
@@ -69,7 +69,7 @@ int hmm_reader_next(struct hmm_reader *h3r)
 
 bool hmm_reader_end(struct hmm_reader const *reader) { return reader->end; }
 
-void hmm_reader_cleanup(struct hmm_reader const *reader)
+void hmm_reader_cleanup(struct hmm_reader *reader)
 {
   model_cleanup(&reader->model);
 }

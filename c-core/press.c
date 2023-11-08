@@ -75,12 +75,17 @@ int press_open(struct press *x, char const *hmm, char const *db)
   if ((rc = database_writer_open(&x->writer.db, x->writer.fp)))
     defer_return(rc);
 
-  hmm_reader_init(&x->reader.h3, x->params, x->reader.fp);
+  if ((rc = hmm_reader_init(&x->reader.h3, x->params, x->reader.fp)))
+    defer_return(rc);
 
   protein_setup(&x->protein, x->params);
 
   char const *acc = x->reader.h3.protein.meta.acc;
-  if ((rc = protein_set_accession(&x->protein, acc))) defer_return(rc);
+  if ((rc = protein_set_accession(&x->protein, acc)))
+  {
+    hmm_reader_cleanup(&x->reader.h3);
+    defer_return(rc);
+  }
 
   return rc;
 

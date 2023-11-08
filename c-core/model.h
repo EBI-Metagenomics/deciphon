@@ -31,7 +31,7 @@ struct model
     float lprobs[IMM_AMINO_SIZE];
     struct nuclt_dist nuclt_dist;
     struct imm_frame_state state;
-    struct imm_hmm hmm;
+    struct imm_hmm *hmm;
   } null;
 
   struct
@@ -47,7 +47,7 @@ struct model
     float *locc;
     int trans_idx;
     struct trans *trans;
-    struct imm_hmm hmm;
+    struct imm_hmm *hmm;
 
     struct
     {
@@ -61,8 +61,8 @@ struct model
 // clang-format off
 int  model_add_node(struct model *, float const lprobs[], char consensus);
 int  model_add_trans(struct model *, struct trans);
-void model_cleanup(struct model const *);
-void model_init(struct model *, struct model_params, float const null_lprobs[]);
+void model_cleanup(struct model *);
+int  model_init(struct model *, struct model_params, float const null_lprobs[]);
 int  model_setup(struct model *, int core_size);
 void model_write_dot(struct model const *, FILE *);
 // clang-format on

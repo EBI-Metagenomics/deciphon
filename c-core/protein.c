@@ -150,9 +150,8 @@ int protein_sample(struct protein *x, int seed, int core_size)
   imm_lprob_normalize(IMM_AMINO_SIZE, lprobs);
 
   struct model model = {0};
-  model_init(&model, x->params, lprobs);
-
-  int rc = 0;
+  int rc = model_init(&model, x->params, lprobs);
+  if (rc) return rc;
 
   if ((rc = model_setup(&model, core_size))) goto cleanup;
 

@@ -38,7 +38,7 @@ int main(void)
       .entry_dist = ENTRY_DIST_OCCUPANCY,
       .epsilon = 0.01,
   };
-  model_init(&model, params, null_lprobs);
+  eq(model_init(&model, params, null_lprobs), 0);
 
   eq(model_setup(&model, core_size), 0);
 
