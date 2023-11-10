@@ -167,6 +167,7 @@ static int hmmer_stage(struct protein *protein, struct product_thread *product,
 
   if ((rc = infer_amino(amino, &match, &mit))) return rc;
 
+  debug("sending to hmmer sequence of size %zu", amino->size);
   if ((rc = hmmer_get(hmmer, protein_idx, seq->name, amino->data))) return rc;
 
   product->line.evalue = hmmer_result_num_hits(&hmmer->result)
