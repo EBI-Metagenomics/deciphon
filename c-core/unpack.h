@@ -13,7 +13,7 @@ static inline int unpack_mapsize(struct lip_file *file, unsigned size)
 {
   unsigned sz = 0;
   if (!lip_read_map_size(file, &sz)) return error(DCP_EFREAD);
-  return size == sz ? 0 : DCP_EFDATA;
+  return size == sz ? 0 : error(DCP_EFDATA);
 }
 
 static inline int unpack_key(struct lip_file *file, char const key[])
@@ -29,15 +29,17 @@ static inline int unpack_key(struct lip_file *file, char const key[])
 
   if (size != (unsigned)strlen(key)) return error(DCP_EFDATA);
 
-  return strncmp(key, buf, size) ? DCP_EFDATA : 0;
+  return strncmp(key, buf, size) ? error(DCP_EFDATA) : 0;
 }
 
-#define unpack_int(stream, ptr) (lip_read_int(stream, ptr) ? 0 : DCP_EFREAD)
-#define unpack_float(stream, ptr) (lip_read_float(stream, ptr) ? 0 : DCP_EFREAD)
+#define unpack_int(stream, ptr)                                                \
+  (lip_read_int(stream, ptr) ? 0 : error(DCP_EFREAD))
+#define unpack_float(stream, ptr)                                              \
+  (lip_read_float(stream, ptr) ? 0 : error(DCP_EFREAD))
 
 static inline int unpack_abc(struct lip_file *stream, struct imm_abc *abc)
 {
-  return imm_abc_unpack(abc, stream) ? DCP_EFREAD : 0;
+  return imm_abc_unpack(abc, stream) ? error(DCP_EFREAD) : 0;
 }
 
 static inline int unpack_f32array(struct lip_file *stream, unsigned size,
@@ -48,12 +50,12 @@ static inline int unpack_f32array(struct lip_file *stream, unsigned size,
   if (!lip_read_1darray_size_type(stream, &sz, &type)) return error(DCP_EFREAD);
   if (size != sz) return error(DCP_EFREAD);
   if (type != LIP_1DARRAY_F32) return error(DCP_EFREAD);
-  return lip_read_1darray_f32_data(stream, size, array) ? 0 : DCP_EFREAD;
+  return lip_read_1darray_f32_data(stream, size, array) ? 0 : error(DCP_EFREAD);
 }
 
 static inline int read_str(struct lip_file *file, unsigned size, char str[])
 {
-  return lip_read_cstr(file, size, str) ? 0 : DCP_EFREAD;
+  return lip_read_cstr(file, size, str) ? 0 : error(DCP_EFREAD);
 }
 
 #endif

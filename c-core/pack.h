@@ -9,22 +9,23 @@
 
 static inline int pack_key(struct lip_file *stream, char const key[])
 {
-  return lip_write_cstr(stream, key) ? 0 : DCP_EFWRITE;
+  return lip_write_cstr(stream, key) ? 0 : error(DCP_EFWRITE);
 }
 
 static inline int pack_mapsize(struct lip_file *stream, unsigned size)
 {
-  return lip_write_map_size(stream, size) ? 0 : DCP_EFWRITE;
+  return lip_write_map_size(stream, size) ? 0 : error(DCP_EFWRITE);
 }
 
-#define pack_int(stream, value) (lip_write_int(stream, value) ? 0 : DCP_EFWRITE)
+#define pack_int(stream, value)                                                \
+  (lip_write_int(stream, value) ? 0 : error(DCP_EFWRITE))
 
 #define pack_float(stream, value)                                              \
-  (lip_write_float(stream, value) ? 0 : DCP_EFWRITE)
+  (lip_write_float(stream, value) ? 0 : error(DCP_EFWRITE))
 
 static inline int pack_abc(struct lip_file *stream, struct imm_abc const *abc)
 {
-  return imm_abc_pack(abc, stream) ? DCP_EFWRITE : 0;
+  return imm_abc_pack(abc, stream) ? error(DCP_EFWRITE) : 0;
 }
 
 static inline int pack_f32array(struct lip_file *stream, unsigned size,
@@ -32,7 +33,8 @@ static inline int pack_f32array(struct lip_file *stream, unsigned size,
 {
   if (!lip_write_1darray_size_type(stream, size, LIP_1DARRAY_F32))
     return error(DCP_EFWRITE);
-  return lip_write_1darray_f32_data(stream, size, array) ? 0 : DCP_EFWRITE;
+  return lip_write_1darray_f32_data(stream, size, array) ? 0
+                                                         : error(DCP_EFWRITE);
 }
 
 #endif

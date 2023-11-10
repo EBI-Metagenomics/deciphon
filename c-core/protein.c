@@ -45,7 +45,7 @@ void protein_setup(struct protein *x, struct model_params params)
 int protein_set_accession(struct protein *x, char const *acc)
 {
   size_t n = array_size_field(struct protein, accession);
-  return xstrcpy(x->accession, acc, n) ? 0 : DCP_ELONGACCESSION;
+  return xstrcpy(x->accession, acc, n) ? 0 : error(DCP_ELONGACCESSION);
 }
 
 void protein_reset(struct protein *x, int seq_size, bool multi_hits,

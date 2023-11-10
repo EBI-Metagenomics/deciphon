@@ -60,7 +60,7 @@ int product_thread_put_match(struct product_thread *x, struct match *match,
 
   if (fputc('\n', fp) == EOF) defer_return(error(DCP_EWRITEPROD));
 
-  return fclose(fp) ? DCP_EFCLOSE : 0;
+  return fclose(fp) ? error(DCP_EFCLOSE) : 0;
 
 defer:
   fclose(fp);
@@ -90,7 +90,7 @@ int product_thread_put_hmmer(struct product_thread *x,
     return rc;
   }
 
-  return fclose(fp) ? DCP_EFCLOSE : 0;
+  return fclose(fp) ? error(DCP_EFCLOSE) : 0;
 }
 
 static int write_match(FILE *fp, struct match const *m)
@@ -120,5 +120,5 @@ static int write_match(FILE *fp, struct match const *m)
 
   *ptr = '\0';
 
-  return fputs(buff, fp) == EOF ? DCP_EFWRITE : 0;
+  return fputs(buff, fp) == EOF ? error(DCP_EFWRITE) : 0;
 }

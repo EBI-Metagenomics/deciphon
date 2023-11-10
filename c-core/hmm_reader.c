@@ -65,7 +65,7 @@ int hmm_reader_next(struct hmm_reader *h3r)
     };
     if ((rc = model_add_trans(&h3r->model, t))) return rc;
   }
-  return hmr_rc == HMR_END ? 0 : DCP_EENDOFNODES;
+  return hmr_rc == HMR_END ? 0 : error(DCP_EENDOFNODES);
 }
 
 bool hmm_reader_end(struct hmm_reader const *reader) { return reader->end; }

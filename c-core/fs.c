@@ -49,12 +49,12 @@
 
 int fs_tell(FILE *restrict fp, long *offset)
 {
-  return (*offset = ftello(fp)) < 0 ? DCP_EFTELL : 0;
+  return (*offset = ftello(fp)) < 0 ? error(DCP_EFTELL) : 0;
 }
 
 int fs_seek(FILE *restrict fp, long offset, int whence)
 {
-  return fseeko(fp, (off_t)offset, whence) < 0 ? DCP_EFSEEK : 0;
+  return fseeko(fp, (off_t)offset, whence) < 0 ? error(DCP_EFSEEK) : 0;
 }
 
 int fs_copy(FILE *restrict dst, FILE *restrict src)
@@ -79,7 +79,7 @@ int fs_refopen(FILE *restrict fp, char const *mode, FILE **out)
   char filepath[FILENAME_MAX] = {0};
   int rc = getpath(fp, sizeof filepath, filepath);
   if (rc) return rc;
-  return (*out = fopen(filepath, mode)) ? 0 : DCP_EREFOPEN;
+  return (*out = fopen(filepath, mode)) ? 0 : error(DCP_EREFOPEN);
 }
 
 int getpath(FILE *restrict fp, unsigned size, char *filepath)
@@ -105,7 +105,7 @@ int getpath(FILE *restrict fp, unsigned size, char *filepath)
   return 0;
 }
 
-int fs_close(FILE *restrict fp) { return fclose(fp) ? DCP_EFCLOSE : 0; }
+int fs_close(FILE *restrict fp) { return fclose(fp) ? error(DCP_EFCLOSE) : 0; }
 
 static int fletcher16(FILE *fp, uint8_t *buf, size_t bufsize, long *chk)
 {
@@ -140,19 +140,20 @@ int fs_chksum(char const *filepath, long *chk)
 
 int fs_mkdir(char const *x, bool exist_ok)
 {
-  return (mkdir(x, 0755) && !(errno == EEXIST && exist_ok)) ? DCP_EMKDIR : 0;
+  return (mkdir(x, 0755) && !(errno == EEXIST && exist_ok)) ? error(DCP_EMKDIR)
+                                                            : 0;
 }
 
-int fs_rmdir(char const *x) { return rmdir(x) < 0 ? DCP_ERMDIR : 0; }
+int fs_rmdir(char const *x) { return rmdir(x) < 0 ? error(DCP_ERMDIR) : 0; }
 
-int fs_rmfile(char const *x) { return unlink(x) < 0 ? DCP_ERMFILE : 0; }
+int fs_rmfile(char const *x) { return unlink(x) < 0 ? error(DCP_ERMFILE) : 0; }
 
 int fs_touch(char const *x)
 {
   if (access(x, F_OK) == 0) return 0;
   FILE *fp = fopen(x, "wb");
   if (!fp) return error(DCP_EFOPEN);
-  return fclose(fp) ? DCP_EFCLOSE : 0;
+  return fclose(fp) ? error(DCP_EFCLOSE) : 0;
 }
 
 static int unlink_callb(const char *path, const struct stat *stat, int flag,
@@ -188,5 +189,5 @@ int fs_mkstemp(FILE **fp, char const *template)
   int rc = fs_rmfile(path);
   if (rc) return rc;
 
-  return (*fp = fdopen(fd, "w+b")) ? 0 : DCP_EFDOPEN;
+  return (*fp = fdopen(fd, "w+b")) ? 0 : error(DCP_EFDOPEN);
 }

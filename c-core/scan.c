@@ -1,6 +1,7 @@
 #include "scan.h"
 #include "database_reader.h"
 #include "defer_return.h"
+#include "error.h"
 #include "hmmer_dialer.h"
 #include "product.h"
 #include "protein_reader.h"
@@ -92,7 +93,7 @@ int scan_open(struct scan *x, char const *dbfile)
 int scan_close(struct scan *x)
 {
   sequence_queue_cleanup(&x->sequences);
-  return database_reader_close(&x->db.reader) ? DCP_EFCLOSE : 0;
+  return database_reader_close(&x->db.reader) ? error(DCP_EFCLOSE) : 0;
 }
 
 int scan_add(struct scan *x, long id, char const *name, char const *data)

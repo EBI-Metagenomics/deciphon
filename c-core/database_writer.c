@@ -63,7 +63,7 @@ static int pack_header_protein_sizes(struct database_writer *db)
     if (!lip_write_1darray_u32_item(&db->file, size)) return error(DCP_EFWRITE);
   }
 
-  return feof(lip_file_ptr(&db->tmp.sizes)) ? 0 : DCP_EFWRITE;
+  return feof(lip_file_ptr(&db->tmp.sizes)) ? 0 : error(DCP_EFWRITE);
 }
 
 static int pack_header(struct database_writer *db)

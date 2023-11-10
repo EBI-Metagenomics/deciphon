@@ -37,7 +37,9 @@ int hmmer_warmup(struct hmmer *x)
     return error(DCP_EH3CWARMUP);
 
   h3client_stream_wait(x->stream);
-  return h3client_stream_pop(x->stream, x->result.handle) ? DCP_EH3CWARMUP : 0;
+  return h3client_stream_pop(x->stream, x->result.handle)
+             ? error(DCP_EH3CWARMUP)
+             : 0;
 }
 
 int hmmer_get(struct hmmer *x, int hmmidx, char const *name, char const *seq)

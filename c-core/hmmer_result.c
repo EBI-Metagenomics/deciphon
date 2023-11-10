@@ -1,4 +1,5 @@
 #include "hmmer_result.h"
+#include "error.h"
 #include "h3client/h3client.h"
 #include "rc.h"
 #include <math.h>
@@ -9,7 +10,7 @@ void hmmer_result_init(struct hmmer_result *x) { x->handle = NULL; }
 int hmmer_result_setup(struct hmmer_result *x)
 {
   if (x->handle) return 0;
-  return (x->handle = h3client_result_new()) ? 0 : DCP_ENOMEM;
+  return (x->handle = h3client_result_new()) ? 0 : error(DCP_ENOMEM);
 }
 
 void hmmer_result_cleanup(struct hmmer_result *x)
@@ -34,5 +35,5 @@ float hmmer_result_evalue(struct hmmer_result const *x)
 
 int hmmer_result_pack(struct hmmer_result const *x, FILE *fp)
 {
-  return h3client_result_pack(x->handle, fp) ? DCP_EH3CPACK : 0;
+  return h3client_result_pack(x->handle, fp) ? error(DCP_EH3CPACK) : 0;
 }

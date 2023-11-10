@@ -93,7 +93,7 @@ int product_close(struct product *x)
     if ((rc = fs_rmfile(file))) defer_return(rc);
   }
 
-  return fclose(fp) ? DCP_EFCLOSE : 0;
+  return fclose(fp) ? error(DCP_EFCLOSE) : 0;
 
 defer:
   fclose(fp);
