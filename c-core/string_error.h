@@ -3,6 +3,6 @@
 
 #include "api.h"
 
-API char const *string_error(int err);
+API char const *string_error(int error_code);
 
 #endif

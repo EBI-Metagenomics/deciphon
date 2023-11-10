@@ -1,6 +1,6 @@
+#include "string_error.h"
 #include "array_size.h"
 #include "rc.h"
-#include "string_error.h"
 #include <stdio.h>
 
 static char const *msg[] = {
@@ -72,11 +72,12 @@ static char const *msg[] = {
     [DCP_EENDOFNODES] = "unexpected end of nodes",
 };
 
-char const *string_error(int errno)
+char const *string_error(int error_code)
 {
-  if (errno > 0 && errno < (int)array_size(msg)) return msg[errno];
+  if (error_code > 0 && error_code < (int)array_size(msg))
+    return msg[error_code];
 
   static char unknown[32] = {0};
-  snprintf(unknown, sizeof unknown, "unknown error #%d", errno);
+  snprintf(unknown, sizeof unknown, "unknown error #%d", error_code);
   return unknown;
 }
