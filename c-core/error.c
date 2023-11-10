@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int error_debug(int error_code, int line, const char *src)
+int error_print(int error_code, int line, const char *src)
 {
   char const *s = getenv("DECIPHON_DEBUG");
   if (s && strcmp(s, "0"))
