@@ -8,6 +8,7 @@ app = Typer()
 
 RELOAD = Annotated[bool, Option(help="Enable auto-reload.")]
 
+
 @app.command()
 def main(reload: RELOAD = False):
     settings = Settings()
