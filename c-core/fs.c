@@ -15,8 +15,9 @@
 
 #include "fs.h"
 #include "array_size.h"
-#include "xlimits.h"
+#include "error.h"
 #include "rc.h"
+#include "xlimits.h"
 #include "xstrcpy.h"
 #include <assert.h>
 #include <errno.h>
@@ -62,11 +63,11 @@ int fs_copy(FILE *restrict dst, FILE *restrict src)
   size_t n = 0;
   while ((n = fread(buffer, sizeof(*buffer), BUFFSIZE, src)) > 0)
   {
-    if (n < BUFFSIZE && ferror(src)) return DCP_EFREAD;
+    if (n < BUFFSIZE && ferror(src)) return error(DCP_EFREAD);
 
-    if (fwrite(buffer, sizeof(*buffer), n, dst) < n) return DCP_EFWRITE;
+    if (fwrite(buffer, sizeof(*buffer), n, dst) < n) return error(DCP_EFWRITE);
   }
-  if (ferror(src)) return DCP_EFREAD;
+  if (ferror(src)) return error(DCP_EFREAD);
 
   return 0;
 }
@@ -84,20 +85,20 @@ int fs_refopen(FILE *restrict fp, char const *mode, FILE **out)
 int getpath(FILE *restrict fp, unsigned size, char *filepath)
 {
   int fd = fileno(fp);
-  if (fd < 0) return DCP_EGETPATH;
+  if (fd < 0) return error(DCP_EGETPATH);
 
 #ifdef __APPLE__
   (void)size;
   char pathbuf[MAXPATHLEN] = {0};
-  if (fcntl(fd, F_GETPATH, pathbuf) < 0) return DCP_EGETPATH;
-  if (strlen(pathbuf) >= size) return DCP_ETRUNCPATH;
+  if (fcntl(fd, F_GETPATH, pathbuf) < 0) return error(DCP_EGETPATH);
+  if (strlen(pathbuf) >= size) return error(DCP_ETRUNCPATH);
   strcpy(filepath, pathbuf);
 #else
   char pathbuf[FILENAME_MAX] = {0};
   sprintf(pathbuf, "/proc/self/fd/%d", fd);
   ssize_t n = readlink(pathbuf, filepath, size);
-  if (n < 0) return DCP_EGETPATH;
-  if (n >= size) return DCP_ETRUNCPATH;
+  if (n < 0) return error(DCP_EGETPATH);
+  if (n >= size) return error(DCP_ETRUNCPATH);
   filepath[n] = '\0';
 #endif
 
@@ -113,14 +114,14 @@ static int fletcher16(FILE *fp, uint8_t *buf, size_t bufsize, long *chk)
   uint16_t sum2 = 0;
   while ((n = fread(buf, 1, bufsize, fp)) > 0)
   {
-    if (n < bufsize && ferror(fp)) return DCP_EFREAD;
+    if (n < bufsize && ferror(fp)) return error(DCP_EFREAD);
     for (int i = 0; i < (int)n; ++i)
     {
       sum1 = (sum1 + buf[i]) % 255;
       sum2 = (sum2 + sum1) % 255;
     }
   }
-  if (ferror(fp)) return DCP_EFREAD;
+  if (ferror(fp)) return error(DCP_EFREAD);
 
   *chk = (sum2 << 8) | sum1;
   return 0;
@@ -130,7 +131,7 @@ int fs_chksum(char const *filepath, long *chk)
 {
   static _Thread_local uint8_t buffer[8 * 1024];
   FILE *fp = fopen(filepath, "rb");
-  if (!fp) return DCP_EFOPEN;
+  if (!fp) return error(DCP_EFOPEN);
 
   int rc = fletcher16(fp, buffer, sizeof(buffer), chk);
   fclose(fp);
@@ -150,7 +151,7 @@ int fs_touch(char const *x)
 {
   if (access(x, F_OK) == 0) return 0;
   FILE *fp = fopen(x, "wb");
-  if (!fp) return DCP_EFOPEN;
+  if (!fp) return error(DCP_EFOPEN);
   return fclose(fp) ? DCP_EFCLOSE : 0;
 }
 
@@ -171,7 +172,7 @@ int fs_rmtree(char const *dirpath)
 int fs_size(char const *filepath, long *size)
 {
   struct stat st = {};
-  if (stat(filepath, &st)) return DCP_EFSTAT;
+  if (stat(filepath, &st)) return error(DCP_EFSTAT);
   *size = (long)st.st_size;
   return 0;
 }
@@ -179,10 +180,10 @@ int fs_size(char const *filepath, long *size)
 int fs_mkstemp(FILE **fp, char const *template)
 {
   char path[DCP_PATH_MAX] = {0};
-  if (!xstrcpy(path, template, sizeof path)) return DCP_ENOMEM;
+  if (!xstrcpy(path, template, sizeof path)) return error(DCP_ENOMEM);
 
   int fd = mkstemp(path);
-  if (fd < 0) return DCP_EMKSTEMP;
+  if (fd < 0) return error(DCP_EMKSTEMP);
 
   int rc = fs_rmfile(path);
   if (rc) return rc;

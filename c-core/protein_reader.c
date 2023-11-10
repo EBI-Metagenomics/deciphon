@@ -2,6 +2,7 @@
 #include "array_size_field.h"
 #include "database_reader.h"
 #include "defer_return.h"
+#include "error.h"
 #include "fs.h"
 #include "imm/imm.h"
 #include "partition_size.h"
@@ -26,16 +27,16 @@ int protein_reader_setup(struct protein_reader *x, struct database_reader *db,
   int rc = 0;
   x->db = db;
 
-  if (num_partitions == 0) return DCP_EZEROPART;
-  if (num_partitions > DCP_NPARTITIONS_MAX) return DCP_EMANYPARTS;
+  if (num_partitions == 0) return error(DCP_EZEROPART);
+  if (num_partitions > DCP_NPARTITIONS_MAX) return error(DCP_EMANYPARTS);
   x->num_partitions = imm_min(num_partitions, db->num_proteins);
 
   if ((rc = unpack_key(&db->file, "proteins"))) return rc;
 
   unsigned num_proteins = 0;
-  if (!lip_read_array_size(&db->file, &num_proteins)) return DCP_EFREAD;
-  if (num_proteins > INT_MAX) return DCP_EFDATA;
-  if ((int)num_proteins != db->num_proteins) return DCP_EFDATA;
+  if (!lip_read_array_size(&db->file, &num_proteins)) return error(DCP_EFREAD);
+  if (num_proteins > INT_MAX) return error(DCP_EFDATA);
+  if ((int)num_proteins != db->num_proteins) return error(DCP_EFDATA);
 
   if ((rc = fs_tell(db->file.fp, &x->offset[0]))) return rc;
   partition_it(x);
@@ -62,7 +63,8 @@ int protein_reader_size(struct protein_reader const *x)
 int protein_reader_iter(struct protein_reader *x, int partition,
                         struct protein_iter *it)
 {
-  if (partition < 0 || x->num_partitions < partition) return DCP_EINVALPART;
+  if (partition < 0 || x->num_partitions < partition)
+    return error(DCP_EINVALPART);
 
   FILE *fp = lip_file_ptr(&x->db->file);
   FILE *newfp = NULL;

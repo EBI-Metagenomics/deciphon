@@ -1,6 +1,7 @@
 #ifndef PACK_H
 #define PACK_H
 
+#include "error.h"
 #include "imm/imm.h"
 #include "lip/1darray/1darray.h"
 #include "lip/lip.h"
@@ -30,7 +31,7 @@ static inline int pack_f32array(struct lip_file *stream, unsigned size,
                                 float const array[])
 {
   if (!lip_write_1darray_size_type(stream, size, LIP_1DARRAY_F32))
-    return DCP_EFWRITE;
+    return error(DCP_EFWRITE);
   return lip_write_1darray_f32_data(stream, size, array) ? 0 : DCP_EFWRITE;
 }
 

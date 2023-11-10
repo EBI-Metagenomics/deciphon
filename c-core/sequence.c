@@ -1,6 +1,7 @@
 #include "sequence.h"
 #include "defer_return.h"
 #include "disambiguate.h"
+#include "error.h"
 #include "imm/imm.h"
 #include "rc.h"
 #include "xstrdup.h"
@@ -16,20 +17,21 @@ int sequence_init(struct sequence *x, struct imm_code const *code, long id,
   x->data = xstrdup(data);
   imm_eseq_init(&x->imm.eseq, code);
 
-  if (!x->name || !x->data) defer_return(DCP_ENOMEM);
+  if (!x->name || !x->data) defer_return(error(DCP_ENOMEM));
 
   int abc = imm_eseq_abc(&x->imm.eseq)->typeid;
-  if (abc != IMM_DNA && abc == IMM_RNA) defer_return(DCP_ESEQABC);
+  if (abc != IMM_DNA && abc == IMM_RNA) defer_return(error(DCP_ESEQABC));
 
   char *tmp = (char *)x->data;
   if (abc == IMM_DNA) disambiguate_dna(strlen(tmp), tmp);
   if (abc == IMM_RNA) disambiguate_rna(strlen(tmp), tmp);
 
   if (imm_seq_init(&x->imm.seq, imm_str(x->data), imm_eseq_abc(&x->imm.eseq)))
-    defer_return(DCP_ESEQABC);
+    defer_return(error(DCP_ESEQABC));
 
   node_init(&x->node);
-  if (imm_eseq_setup(&x->imm.eseq, &x->imm.seq)) defer_return(DCP_ESEQABC);
+  if (imm_eseq_setup(&x->imm.eseq, &x->imm.seq))
+    defer_return(error(DCP_ESEQABC));
 
   return 0;
 

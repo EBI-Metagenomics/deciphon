@@ -1,6 +1,7 @@
 #include "database_writer.h"
 #include "defer_return.h"
 #include "entry_dist.h"
+#include "error.h"
 #include "fs.h"
 #include "lip/1darray/1darray.h"
 #include "magic_number.h"
@@ -52,14 +53,14 @@ static int pack_header_protein_sizes(struct database_writer *db)
   enum lip_1darray_type type = LIP_1DARRAY_UINT32;
 
   if (!lip_write_1darray_size_type(&db->file, db->nproteins, type))
-    return DCP_EFWRITE;
+    return error(DCP_EFWRITE);
 
   rewind(lip_file_ptr(&db->tmp.sizes));
 
   unsigned size = 0;
   while (lip_read_int(&db->tmp.sizes, &size))
   {
-    if (!lip_write_1darray_u32_item(&db->file, size)) return DCP_EFWRITE;
+    if (!lip_write_1darray_u32_item(&db->file, size)) return error(DCP_EFWRITE);
   }
 
   return feof(lip_file_ptr(&db->tmp.sizes)) ? 0 : DCP_EFWRITE;
@@ -84,9 +85,10 @@ static int pack_header(struct database_writer *db)
 
 static int pack_proteins(struct database_writer *db)
 {
-  if (!lip_write_cstr(&db->file, "proteins")) return DCP_EFWRITE;
+  if (!lip_write_cstr(&db->file, "proteins")) return error(DCP_EFWRITE);
 
-  if (!lip_write_array_size(&db->file, db->nproteins)) return DCP_EFWRITE;
+  if (!lip_write_array_size(&db->file, db->nproteins))
+    return error(DCP_EFWRITE);
 
   rewind(lip_file_ptr(&db->tmp.proteins));
   return fs_copy(lip_file_ptr(&db->file), lip_file_ptr(&db->tmp.proteins));
@@ -160,7 +162,7 @@ int database_writer_pack(struct database_writer *x,
   long end = 0;
   if ((rc = fs_tell(lip_file_ptr(&x->tmp.proteins), &end))) return rc;
 
-  if ((end - start) > UINT_MAX) return DCP_ELARGEPROTEIN;
+  if ((end - start) > UINT_MAX) return error(DCP_ELARGEPROTEIN);
 
   unsigned protein_size = (unsigned)(end - start);
   if ((rc = pack_int(&x->tmp.sizes, protein_size))) return rc;

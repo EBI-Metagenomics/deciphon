@@ -1,5 +1,6 @@
 #include "sequence_queue.h"
 #include "defer_return.h"
+#include "error.h"
 #include "queue.h"
 #include "rc.h"
 #include "sequence.h"
@@ -22,7 +23,7 @@ int sequence_queue_put(struct sequence_queue *x, long id, char const *name,
   int rc = 0;
   struct sequence *seq = malloc(sizeof(*seq));
 
-  if (!seq) defer_return(DCP_ENOMEM);
+  if (!seq) defer_return(error(DCP_ENOMEM));
   if ((rc = sequence_init(seq, x->code, id, name, data))) defer_return(rc);
 
   queue_put(&x->sequences, &seq->node);

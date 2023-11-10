@@ -1,5 +1,6 @@
 #include "database_reader.h"
 #include "defer_return.h"
+#include "error.h"
 #include "imm/imm.h"
 #include "lip/1darray/1darray.h"
 #include "magic_number.h"
@@ -19,7 +20,7 @@ static int unpack_header_protein_sizes(struct database_reader *x);
 int database_reader_open(struct database_reader *x, char const *filename)
 {
   int rc = 0;
-  if (!(x->fp = fopen(filename, "rb"))) defer_return(DCP_EOPENDB);
+  if (!(x->fp = fopen(filename, "rb"))) defer_return(error(DCP_EOPENDB));
 
   x->num_proteins = 0;
   x->protein_sizes = NULL;
@@ -33,15 +34,15 @@ int database_reader_open(struct database_reader *x, char const *filename)
   int magic_number = 0;
   if ((rc = unpack_key(&x->file, "magic_number"))) defer_return(rc);
   if ((rc = unpack_int(&x->file, &magic_number))) defer_return(rc);
-  if (magic_number != MAGIC_NUMBER) defer_return(DCP_EFDATA);
+  if (magic_number != MAGIC_NUMBER) defer_return(error(DCP_EFDATA));
 
   if ((rc = unpack_key(&x->file, "entry_dist"))) defer_return(rc);
   if ((rc = unpack_int(&x->file, &x->entry_dist))) defer_return(rc);
-  if (!entry_dist_valid(x->entry_dist)) defer_return(DCP_EFDATA);
+  if (!entry_dist_valid(x->entry_dist)) defer_return(error(DCP_EFDATA));
 
   if ((rc = unpack_key(&x->file, "epsilon"))) defer_return(rc);
   if ((rc = unpack_float(&x->file, &x->epsilon))) defer_return(rc);
-  if (x->epsilon < 0 || x->epsilon > 1) defer_return(DCP_EFDATA);
+  if (x->epsilon < 0 || x->epsilon > 1) defer_return(error(DCP_EFDATA));
 
   if ((rc = unpack_key(&x->file, "abc"))) defer_return(rc);
   if ((rc = unpack_abc(&x->file, &x->nuclt.super))) defer_return(rc);
@@ -75,20 +76,21 @@ static int unpack_header_protein_sizes(struct database_reader *x)
   enum lip_1darray_type type = 0;
 
   unsigned n = 0;
-  if (!lip_read_1darray_size_type(&x->file, &n, &type)) return DCP_EFREAD;
-  if (n > INT_MAX) return DCP_EFDATA;
+  if (!lip_read_1darray_size_type(&x->file, &n, &type))
+    return error(DCP_EFREAD);
+  if (n > INT_MAX) return error(DCP_EFDATA);
   x->num_proteins = (int)n;
 
-  if (type != LIP_1DARRAY_UINT32) return DCP_EFDATA;
+  if (type != LIP_1DARRAY_UINT32) return error(DCP_EFDATA);
 
   x->protein_sizes = malloc(sizeof(*x->protein_sizes) * x->num_proteins);
-  if (!x->protein_sizes) return DCP_ENOMEM;
+  if (!x->protein_sizes) return error(DCP_ENOMEM);
 
   if (!lip_read_1darray_u32_data(&x->file, x->num_proteins, x->protein_sizes))
   {
     free(x->protein_sizes);
     x->protein_sizes = NULL;
-    return DCP_EFREAD;
+    return error(DCP_EFREAD);
   }
 
   return 0;

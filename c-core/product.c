@@ -2,6 +2,7 @@
 #include "array_size.h"
 #include "array_size_field.h"
 #include "defer_return.h"
+#include "error.h"
 #include "format.h"
 #include "fs.h"
 #include "rc.h"
@@ -19,11 +20,11 @@ int product_open(struct product *x, int num_threads, char const *dir)
   int rc = 0;
 
   int size = (int)array_size_field(struct product, threads);
-  if (num_threads > size) defer_return(DCP_EMANYTHREADS);
+  if (num_threads > size) defer_return(error(DCP_EMANYTHREADS));
   x->num_threads = num_threads;
 
   size = (int)array_size_field(struct product, dirname);
-  if (!xstrcpy(x->dirname, dir, size)) defer_return(DCP_ELONGPATH);
+  if (!xstrcpy(x->dirname, dir, size)) defer_return(error(DCP_ELONGPATH));
 
   char hmmer_dir[DCP_PATH_MAX] = {0};
   if ((rc = format(hmmer_dir, DCP_PATH_MAX, "%s/hmmer", x->dirname))) return rc;
@@ -58,7 +59,7 @@ int product_close(struct product *x)
   if ((rc = format(filename, DCP_PATH_MAX, "%s/products.tsv", dir))) return rc;
 
   FILE *fp = fopen(filename, "wb");
-  if (!fp) return DCP_EFOPEN;
+  if (!fp) return error(DCP_EFOPEN);
 
   bool ok = true;
   ok &= fputs("sequence\t", fp) >= 0;
@@ -70,7 +71,7 @@ int product_close(struct product *x)
   ok &= fputs("lrt\t", fp) >= 0;
   ok &= fputs("evalue\t", fp) >= 0;
   ok &= fputs("match\n", fp) >= 0;
-  if (!ok) defer_return(DCP_EWRITEPROD);
+  if (!ok) defer_return(error(DCP_EWRITEPROD));
 
   for (int i = 0; i < x->num_threads; ++i)
   {
@@ -87,7 +88,7 @@ int product_close(struct product *x)
       defer_return(rc);
     }
 
-    if (fclose(tmp)) defer_return(DCP_EFCLOSE);
+    if (fclose(tmp)) defer_return(error(DCP_EFCLOSE));
 
     if ((rc = fs_rmfile(file))) defer_return(rc);
   }

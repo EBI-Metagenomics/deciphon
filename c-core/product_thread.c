@@ -1,6 +1,7 @@
 #include "product_thread.h"
 #include "array_size_field.h"
 #include "defer_return.h"
+#include "error.h"
 #include "format.h"
 #include "fs.h"
 #include "hmmer_result.h"
@@ -33,25 +34,31 @@ int product_thread_put_match(struct product_thread *x, struct match *match,
   struct product_line *line = &x->line;
 
   FILE *fp = fopen(x->filename, "ab");
-  if (!fp) return DCP_EFOPEN;
+  if (!fp) return error(DCP_EFOPEN);
 
-  if (fprintf(fp, "%ld\t", line->sequence) < 0) defer_return(DCP_EWRITEPROD);
-  if (fprintf(fp, "%d\t", line->window) < 0) defer_return(DCP_EWRITEPROD);
-  if (fprintf(fp, "%d\t", line->window_start) < 0) defer_return(DCP_EWRITEPROD);
-  if (fprintf(fp, "%d\t", line->window_stop) < 0) defer_return(DCP_EWRITEPROD);
-  if (fprintf(fp, "%s\t", line->protein) < 0) defer_return(DCP_EWRITEPROD);
-  if (fprintf(fp, "%s\t", line->abc) < 0) defer_return(DCP_EWRITEPROD);
-  if (fprintf(fp, "%.1f\t", line->lrt) < 0) defer_return(DCP_EWRITEPROD);
-  if (fprintf(fp, "%.2g\t", line->evalue) < 0) defer_return(DCP_EWRITEPROD);
+  if (fprintf(fp, "%ld\t", line->sequence) < 0)
+    defer_return(error(DCP_EWRITEPROD));
+  if (fprintf(fp, "%d\t", line->window) < 0)
+    defer_return(error(DCP_EWRITEPROD));
+  if (fprintf(fp, "%d\t", line->window_start) < 0)
+    defer_return(error(DCP_EWRITEPROD));
+  if (fprintf(fp, "%d\t", line->window_stop) < 0)
+    defer_return(error(DCP_EWRITEPROD));
+  if (fprintf(fp, "%s\t", line->protein) < 0)
+    defer_return(error(DCP_EWRITEPROD));
+  if (fprintf(fp, "%s\t", line->abc) < 0) defer_return(error(DCP_EWRITEPROD));
+  if (fprintf(fp, "%.1f\t", line->lrt) < 0) defer_return(error(DCP_EWRITEPROD));
+  if (fprintf(fp, "%.2g\t", line->evalue) < 0)
+    defer_return(error(DCP_EWRITEPROD));
 
   int i = 0;
   while (!(rc = match_iter_next(it, match)) && !match_iter_end(it))
   {
-    if (i++ && fputc(';', fp) == EOF) defer_return(DCP_EWRITEPROD);
+    if (i++ && fputc(';', fp) == EOF) defer_return(error(DCP_EWRITEPROD));
     if ((rc = write_match(fp, match))) defer_return(rc);
   }
 
-  if (fputc('\n', fp) == EOF) defer_return(DCP_EWRITEPROD);
+  if (fputc('\n', fp) == EOF) defer_return(error(DCP_EWRITEPROD));
 
   return fclose(fp) ? DCP_EFCLOSE : 0;
 
@@ -75,7 +82,7 @@ int product_thread_put_hmmer(struct product_thread *x,
     return rc;
 
   FILE *fp = fopen(file, "wb");
-  if (!fp) return DCP_EFOPEN;
+  if (!fp) return error(DCP_EFOPEN);
 
   if ((rc = hmmer_result_pack(result, fp)))
   {

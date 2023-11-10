@@ -1,4 +1,5 @@
 #include "hmmer_dialer.h"
+#include "error.h"
 #include "h3client/h3client.h"
 #include "hmmer.h"
 #include "rc.h"
@@ -24,7 +25,7 @@ void hmmer_dialer_cleanup(struct hmmer_dialer *x)
 int hmmer_dialer_dial(struct hmmer_dialer *x, struct hmmer *y)
 {
   if (h3client_dialer_dial(x->dialer, h3client_deadline(DIAL_DEADLINE)))
-    return DCP_EH3CDIAL;
+    return error(DCP_EH3CDIAL);
   y->stream = h3client_dialer_stream(x->dialer);
   return 0;
 }

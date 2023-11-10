@@ -2,6 +2,7 @@
 #include "array_size_field.h"
 #include "database_writer.h"
 #include "defer_return.h"
+#include "error.h"
 #include "fs.h"
 #include "hmm_reader.h"
 #include "protein.h"
@@ -50,7 +51,7 @@ struct press *press_new(void)
 int press_setup(struct press *x, int gencode_id, float epsilon)
 {
   x->params.gencode = imm_gencode_get(gencode_id);
-  if (!x->params.gencode) return DCP_EGENCODEID;
+  if (!x->params.gencode) return error(DCP_EGENCODEID);
   x->params.amino = &imm_amino_iupac;
   imm_nuclt_code_init(&x->code, &imm_dna_iupac.super);
   x->params.code = &x->code;
@@ -66,8 +67,8 @@ int press_open(struct press *x, char const *hmm, char const *db)
 
   int rc = 0;
 
-  if (!(x->reader.fp = fopen(hmm, "rb"))) defer_return(DCP_EOPENHMM);
-  if (!(x->writer.fp = fopen(db, "wb"))) defer_return(DCP_EOPENDB);
+  if (!(x->reader.fp = fopen(hmm, "rb"))) defer_return(error(DCP_EOPENHMM));
+  if (!(x->writer.fp = fopen(db, "wb"))) defer_return(error(DCP_EOPENDB));
 
   if ((rc = count_proteins(x))) defer_return(rc);
 
@@ -110,7 +111,7 @@ static int count_proteins(struct press *press)
     if (!strncmp(press->buffer, HMMER3, strlen(HMMER3))) ++count;
   }
 
-  if (!feof(press->reader.fp)) return DCP_EFREAD;
+  if (!feof(press->reader.fp)) return error(DCP_EFREAD);
 
   press->count = count;
   rewind(press->reader.fp);
@@ -175,7 +176,7 @@ static int protein_write(struct press *x)
 
   size_t n = array_size_field(struct protein, accession);
   if (!xstrcpy(x->protein.accession, x->reader.h3.protein.meta.acc, n))
-    return DCP_ELONGACCESSION;
+    return error(DCP_ELONGACCESSION);
 
   return database_writer_pack(&x->writer.db, &x->protein);
 }

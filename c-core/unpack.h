@@ -2,6 +2,7 @@
 #define UNPACK_H
 
 #include "array_size.h"
+#include "error.h"
 #include "imm/imm.h"
 #include "lip/1darray/1darray.h"
 #include "lip/lip.h"
@@ -11,7 +12,7 @@
 static inline int unpack_mapsize(struct lip_file *file, unsigned size)
 {
   unsigned sz = 0;
-  if (!lip_read_map_size(file, &sz)) return DCP_EFREAD;
+  if (!lip_read_map_size(file, &sz)) return error(DCP_EFREAD);
   return size == sz ? 0 : DCP_EFDATA;
 }
 
@@ -20,13 +21,13 @@ static inline int unpack_key(struct lip_file *file, char const key[])
   unsigned size = 0;
   char buf[32] = {0};
 
-  if (!lip_read_str_size(file, &size)) return DCP_EFREAD;
+  if (!lip_read_str_size(file, &size)) return error(DCP_EFREAD);
 
-  if (size > array_size(buf)) return DCP_EFDATA;
+  if (size > array_size(buf)) return error(DCP_EFDATA);
 
-  if (!lip_read_str_data(file, size, buf)) return DCP_EFREAD;
+  if (!lip_read_str_data(file, size, buf)) return error(DCP_EFREAD);
 
-  if (size != (unsigned)strlen(key)) return DCP_EFDATA;
+  if (size != (unsigned)strlen(key)) return error(DCP_EFDATA);
 
   return strncmp(key, buf, size) ? DCP_EFDATA : 0;
 }
@@ -44,9 +45,9 @@ static inline int unpack_f32array(struct lip_file *stream, unsigned size,
 {
   unsigned sz = 0;
   enum lip_1darray_type type = 0;
-  if (!lip_read_1darray_size_type(stream, &sz, &type)) return DCP_EFREAD;
-  if (size != sz) return DCP_EFREAD;
-  if (type != LIP_1DARRAY_F32) return DCP_EFREAD;
+  if (!lip_read_1darray_size_type(stream, &sz, &type)) return error(DCP_EFREAD);
+  if (size != sz) return error(DCP_EFREAD);
+  if (type != LIP_1DARRAY_F32) return error(DCP_EFREAD);
   return lip_read_1darray_f32_data(stream, size, array) ? 0 : DCP_EFREAD;
 }
 

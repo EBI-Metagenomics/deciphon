@@ -1,4 +1,5 @@
 #include "trellis.h"
+#include "error.h"
 #include "rc.h"
 #include "xrealloc.h"
 #include <stdlib.h>
@@ -32,7 +33,7 @@ int trellis_setup(struct trellis *x, int core_size, int seq_size)
     free(x->nodes);
     x->xnodes = NULL;
     x->nodes = NULL;
-    return DCP_ENOMEM;
+    return error(DCP_ENOMEM);
   }
 
   return 0;

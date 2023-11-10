@@ -1,5 +1,6 @@
 #include "hmm_reader.h"
 #include "compiler.h"
+#include "error.h"
 #include "model.h"
 #include "rc.h"
 
@@ -24,14 +25,14 @@ int hmm_reader_next(struct hmm_reader *h3r)
     return 0;
   }
 
-  if (hmr_rc) return DCP_EREADHMMER3;
+  if (hmr_rc) return error(DCP_EREADHMMER3);
 
   int core_size = (int)hmr_prof_length(&h3r->protein);
   int rc = 0;
   if ((rc = model_setup(&h3r->model, core_size))) return rc;
 
   hmr_rc = hmr_next_node(&h3r->hmr, &h3r->protein);
-  if (hmr_rc == HMR_EOF) return DCP_EENDOFFILE;
+  if (hmr_rc == HMR_EOF) return error(DCP_EENDOFFILE);
 
   struct trans t = {
       .MM = (float)h3r->protein.node.trans[HMR_TRANS_MM],

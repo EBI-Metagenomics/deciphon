@@ -1,4 +1,5 @@
 #include "hmmer.h"
+#include "error.h"
 #include "h3client/h3client.h"
 #include "hmmer_dialer.h"
 #include "hmmer_result.h"
@@ -33,7 +34,7 @@ int hmmer_warmup(struct hmmer *x)
   long deadline = h3client_deadline(DEADLINE);
 
   if (h3client_stream_put(x->stream, cmd, "warmup", "", deadline))
-    return DCP_EH3CWARMUP;
+    return error(DCP_EH3CWARMUP);
 
   h3client_stream_wait(x->stream);
   return h3client_stream_pop(x->stream, x->result.handle) ? DCP_EH3CWARMUP : 0;
@@ -51,15 +52,15 @@ int hmmer_get(struct hmmer *x, int hmmidx, char const *name, char const *seq)
 
     int rc = h3client_stream_put(x->stream, cmd, name, seq, deadline);
     if (rc == H3CLIENT_ETIMEDOUT) continue;
-    if (rc) return DCP_EH3CPUT;
+    if (rc) return error(DCP_EH3CPUT);
 
     h3client_stream_wait(x->stream);
     rc = h3client_stream_pop(x->stream, x->result.handle);
     if (rc == H3CLIENT_ETIMEDOUT) continue;
-    if (rc) return DCP_EH3CPOP;
+    if (rc) return error(DCP_EH3CPOP);
 
     return 0;
   }
 
-  return DCP_EH3CMAXRETRY;
+  return error(DCP_EH3CMAXRETRY);
 }

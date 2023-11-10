@@ -34,8 +34,7 @@ bool match_state_is_mute(struct match const *x)
 bool match_state_is_core(struct match const *x)
 {
   return state_is_match(x->step.state_id) ||
-         state_is_insert(x->step.state_id) ||
-         state_is_delete(x->step.state_id);
+         state_is_insert(x->step.state_id) || state_is_delete(x->step.state_id);
 }
 
 char match_amino(struct match const *x)
