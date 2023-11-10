@@ -30,41 +30,37 @@ static int write_match(FILE *, struct match const *);
 int product_thread_put_match(struct product_thread *x, struct match *match,
                              struct match_iter *it)
 {
+#define defer_error(x) defer_return(error(x))
   int rc = 0;
   struct product_line *line = &x->line;
 
   FILE *fp = fopen(x->filename, "ab");
   if (!fp) return error(DCP_EFOPEN);
 
-  if (fprintf(fp, "%ld\t", line->sequence) < 0)
-    defer_return(error(DCP_EWRITEPROD));
-  if (fprintf(fp, "%d\t", line->window) < 0)
-    defer_return(error(DCP_EWRITEPROD));
-  if (fprintf(fp, "%d\t", line->window_start) < 0)
-    defer_return(error(DCP_EWRITEPROD));
-  if (fprintf(fp, "%d\t", line->window_stop) < 0)
-    defer_return(error(DCP_EWRITEPROD));
-  if (fprintf(fp, "%s\t", line->protein) < 0)
-    defer_return(error(DCP_EWRITEPROD));
-  if (fprintf(fp, "%s\t", line->abc) < 0) defer_return(error(DCP_EWRITEPROD));
-  if (fprintf(fp, "%.1f\t", line->lrt) < 0) defer_return(error(DCP_EWRITEPROD));
-  if (fprintf(fp, "%.2g\t", line->evalue) < 0)
-    defer_return(error(DCP_EWRITEPROD));
+  if (fprintf(fp, "%ld\t", line->sequence) < 0) defer_error(DCP_EWRITEPROD);
+  if (fprintf(fp, "%d\t", line->window) < 0) defer_error(DCP_EWRITEPROD);
+  if (fprintf(fp, "%d\t", line->window_start) < 0) defer_error(DCP_EWRITEPROD);
+  if (fprintf(fp, "%d\t", line->window_stop) < 0) defer_error(DCP_EWRITEPROD);
+  if (fprintf(fp, "%s\t", line->protein) < 0) defer_error(DCP_EWRITEPROD);
+  if (fprintf(fp, "%s\t", line->abc) < 0) defer_error(DCP_EWRITEPROD);
+  if (fprintf(fp, "%.1f\t", line->lrt) < 0) defer_error(DCP_EWRITEPROD);
+  if (fprintf(fp, "%.2g\t", line->evalue) < 0) defer_error(DCP_EWRITEPROD);
 
   int i = 0;
   while (!(rc = match_iter_next(it, match)) && !match_iter_end(it))
   {
-    if (i++ && fputc(';', fp) == EOF) defer_return(error(DCP_EWRITEPROD));
+    if (i++ && fputc(';', fp) == EOF) defer_error(DCP_EWRITEPROD);
     if ((rc = write_match(fp, match))) defer_return(rc);
   }
 
-  if (fputc('\n', fp) == EOF) defer_return(error(DCP_EWRITEPROD));
+  if (fputc('\n', fp) == EOF) defer_error(DCP_EWRITEPROD);
 
   return fclose(fp) ? error(DCP_EFCLOSE) : 0;
 
 defer:
   fclose(fp);
   return rc;
+#undef defer_error
 }
 
 int product_thread_put_hmmer(struct product_thread *x,

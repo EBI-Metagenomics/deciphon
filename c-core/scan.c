@@ -1,5 +1,6 @@
 #include "scan.h"
 #include "database_reader.h"
+#include "debug.h"
 #include "defer_return.h"
 #include "error.h"
 #include "hmmer_dialer.h"
@@ -105,6 +106,7 @@ int scan_run(struct scan *x, char const *product_dir)
 {
   int rc = 0;
   int num_threads = x->params.num_threads;
+  debug("%d thread(s)", num_threads);
 
   if ((rc = product_open(&x->product, num_threads, product_dir)))
     defer_return(rc);

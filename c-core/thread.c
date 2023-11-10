@@ -1,6 +1,7 @@
 #include "thread.h"
 #include "chararray.h"
 #include "database_reader.h"
+#include "debug.h"
 #include "defer_return.h"
 #include "hmmer_dialer.h"
 #include "infer_amino.h"
@@ -27,6 +28,7 @@ void thread_init(struct thread *x)
 
   viterbi_init(&x->viterbi);
   x->product = NULL;
+  x->partition = -1;
   chararray_init(&x->amino);
   hmmer_init(&x->hmmer);
   x->path = imm_path();
@@ -42,6 +44,7 @@ int thread_setup(struct thread *x, struct thread_params params)
     return rc;
 
   x->product = params.product_thread;
+  x->partition = params.partition;
   char const *abc = imm_abc_typeid_name(db->nuclt.super.typeid);
   if ((rc = product_line_set_abc(&x->product->line, abc))) return rc;
 
@@ -60,6 +63,7 @@ int thread_setup(struct thread *x, struct thread_params params)
 
 void thread_cleanup(struct thread *x)
 {
+  x->partition = -1;
   protein_cleanup(&x->protein);
   viterbi_cleanup(&x->viterbi);
   chararray_cleanup(&x->amino);
@@ -87,6 +91,7 @@ int thread_run(struct thread *x, struct sequence_queue const *sequences,
     struct iter seq_iter = sequence_queue_iter(sequences);
     iter_for_each_entry(seq, &seq_iter, node)
     {
+      debug("%d:%s:%s", x->partition, x->protein.accession, seq->name);
       struct window w = window_setup(seq, x->protein.core_size);
       int last_hit_pos = -1;
       while (window_next(&w, last_hit_pos))

@@ -24,6 +24,7 @@ struct thread
 
   struct viterbi viterbi;
   struct product_thread *product;
+  int partition;
   struct chararray amino;
   struct hmmer hmmer;
   struct imm_path path;
