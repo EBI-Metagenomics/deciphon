@@ -112,6 +112,7 @@ int protein_absorb(struct protein *x, struct model *m)
   x->emission = xrealloc(x->emission, n);
   if (!x->emission) defer_return(error(DCP_ENOMEM));
 
+#pragma omp parallel for
   for (int i = 0; i <= core_size; ++i)
   {
     float *e = x->emission + i * PROTEIN_NODE_SIZE;
