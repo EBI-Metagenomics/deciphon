@@ -18,7 +18,7 @@ PURE float reduce_fmax(int const size, float const array[restrict])
 {
   float max = -INFINITY;
   int i = 0;
-  float *restrict x = ASSUME_ALIGNED(array);
+  float const *restrict x = ASSUME_ALIGNED(array);
 
 #if __ARM_NEON
   float32x4_t r = vdupq_n_f32(-INFINITY);
