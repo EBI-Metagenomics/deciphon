@@ -30,7 +30,13 @@
 #if HAS_BUILTIN(__builtin_prefetch)
 #define PREFETCH(addr, rw, locality) __builtin_prefetch(addr, rw, locality)
 #else
-#define PREFETCH(addr, rw, locality) (void)(0)
+#define PREFETCH(addr, rw, locality)                                           \
+  do                                                                           \
+  {                                                                            \
+    (void)(addr);                                                              \
+    (void)(rw);                                                                \
+    (void)(locality);                                                          \
+  } while (0)
 #endif
 
 #if HAS_ATTRIBUTE(always_inline)
