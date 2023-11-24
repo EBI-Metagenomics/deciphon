@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         build_type: [Release, Debug]
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-13]
 
     steps:
       - uses: actions/checkout@v3
