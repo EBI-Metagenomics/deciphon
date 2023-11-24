@@ -37,7 +37,7 @@ endif()
 message(STATUS "X86: ${X86}")
 
 if(X86)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mavx")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mavx2")
 endif()
 
 file(GLOB DECIPHON_SOURCES "*.c")

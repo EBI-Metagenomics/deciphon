@@ -162,8 +162,8 @@ INLINE void alternative(struct viterbi *x, int row_start, int row_end,
       Dk = coredp_next(Dk);
       dp_set(Dk, 0, Dn);
 
-      Emax = float_maximum(Emax, Mn + xt.ME + 0);
-      Emax = float_maximum(Emax, Dn + xt.DE + 0);
+      Emax = maximum(Emax, Mn + xt.ME + 0);
+      Emax = maximum(Emax, Dn + xt.DE + 0);
     }
     // Skip transition into Ik1 state (does not exist)
     if (tr) trellis_next_node(tr);

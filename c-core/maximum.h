@@ -1,10 +1,10 @@
-#ifndef FLOAT_MAXIMUM_H
-#define FLOAT_MAXIMUM_H
+#ifndef MAXIMUM_H
+#define MAXIMUM_H
 
 #include "compiler.h"
 #include <math.h>
 
-CONST float float_maximum(float a, float b)
+CONST float maximum(float const a, float const b)
 {
 #if __aarch64__
   return fmax(a, b);
