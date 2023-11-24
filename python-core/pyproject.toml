@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deciphon-core"
-version = "0.18.11"
+version = "0.18.12"
 description = "Python wrapper around the Deciphon C library"
 authors = ["Danilo Horta <horta@ebi.ac.uk>"]
 license = "MIT"
