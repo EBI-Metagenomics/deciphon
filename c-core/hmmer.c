@@ -10,11 +10,16 @@
 
 void hmmer_init(struct hmmer *x)
 {
+  x->cut_ga = true;
   x->stream = NULL;
   hmmer_result_init(&x->result);
 }
 
-int hmmer_setup(struct hmmer *x) { return hmmer_result_setup(&x->result); }
+int hmmer_setup(struct hmmer *x, bool cut_ga)
+{
+  x->cut_ga = cut_ga;
+  return hmmer_result_setup(&x->result);
+}
 
 bool hmmer_online(struct hmmer const *x) { return x->stream; }
 
@@ -30,7 +35,7 @@ void hmmer_cleanup(struct hmmer *x)
 
 int hmmer_warmup(struct hmmer *x)
 {
-  char cmd[] = "--hmmdb 1 --hmmdb_range 0..0 --acc --cut_ga";
+  char cmd[] = "--hmmdb 1 --hmmdb_range 0..0 --acc";
   long deadline = h3client_deadline(DEADLINE);
 
   if (h3client_stream_put(x->stream, cmd, "warmup", "", deadline))
@@ -45,8 +50,13 @@ int hmmer_warmup(struct hmmer *x)
 int hmmer_get(struct hmmer *x, int hmmidx, char const *name, char const *seq)
 {
   char cmd[128] = {0};
-  snprintf(cmd, sizeof(cmd), "--hmmdb 1 --hmmdb_range %d..%d --acc --cut_ga",
-           hmmidx, hmmidx);
+  if (x->cut_ga)
+    snprintf(cmd, sizeof(cmd), "--hmmdb 1 --hmmdb_range %d..%d --acc --cut_ga",
+             hmmidx, hmmidx);
+  else
+    snprintf(cmd, sizeof(cmd),
+             "--hmmdb 1 --hmmdb_range %d..%d --acc --incdomE 5 --incE 5",
+             hmmidx, hmmidx);
 
   for (int i = 0; i < NUM_RETRIES; ++i)
   {

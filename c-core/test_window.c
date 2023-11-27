@@ -35,7 +35,7 @@ int main(void)
   struct params params = {};
   struct scan *scan = NULL;
 
-  eq(params_setup(&params, 1, true, false), 0);
+  eq(params_setup(&params, 1, true, false, true), 0);
   ok(scan = scan_new(params));
   eq(scan_open(scan, DBFILE), 0);
   eq(scan_add(scan, sequences[0].id, sequences[0].name, seq), 0);

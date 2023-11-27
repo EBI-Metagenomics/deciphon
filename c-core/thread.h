@@ -21,6 +21,7 @@ struct thread
 
   bool multi_hits;
   bool hmmer3_compat;
+  bool cut_ga;
 
   struct viterbi viterbi;
   struct product_thread *product;

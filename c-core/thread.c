@@ -25,6 +25,7 @@ void thread_init(struct thread *x)
 
   x->multi_hits = false;
   x->hmmer3_compat = false;
+  x->cut_ga = true;
 
   viterbi_init(&x->viterbi);
   x->product = NULL;
@@ -50,8 +51,9 @@ int thread_setup(struct thread *x, struct thread_params params)
 
   x->multi_hits = params.multi_hits;
   x->hmmer3_compat = params.hmmer3_compat;
+  x->cut_ga = params.cut_ga;
 
-  if ((rc = hmmer_setup(&x->hmmer))) return rc;
+  if ((rc = hmmer_setup(&x->hmmer, x->cut_ga))) return rc;
   if (hmmer_dialer_online(params.dialer))
   {
     if ((rc = hmmer_dialer_dial(params.dialer, &x->hmmer))) return rc;
