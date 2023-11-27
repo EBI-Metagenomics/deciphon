@@ -34,7 +34,7 @@ def test_scan(tmp_path, files_path: Path):
 
     hmmfile = H3File(hmm)
     hmmfile.ensure_pressed()
-    params = Params(num_threads=1, multi_hits=True, hmmer3_compat=False)
+    params = Params(num_threads=1, multi_hits=True, hmmer3_compat=False, cut_ga=True)
     snapfile = NewSnapFile(path=Path("snap.dcs").absolute())
 
     with SchedContext(hmmfile) as sched:

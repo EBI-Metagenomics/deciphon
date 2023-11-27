@@ -8,8 +8,9 @@ struct params
   int  num_threads;
   bool multi_hits;
   bool hmmer3_compat;
+  bool cut_ga;
 };
-int params_setup(struct params *, int num_threads, bool multi_hits, bool hmmer3_compat);
+int params_setup(struct params *, int num_threads, bool multi_hits, bool hmmer3_compat, bool cut_ga);
 
 // Press
 struct press *press_new(void);

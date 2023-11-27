@@ -5,12 +5,16 @@ __all__ = ["Params"]
 
 
 class Params:
-    def __init__(self, num_threads: int, multi_hits: bool, hmmer3_compat: bool):
+    def __init__(
+        self, num_threads: int, multi_hits: bool, hmmer3_compat: bool, cut_ga: bool
+    ):
         self._cptr = ffi.new("struct params *")
         if self._cptr == ffi.NULL:
             raise MemoryError()
 
-        if rc := lib.params_setup(self._cptr, num_threads, multi_hits, hmmer3_compat):
+        if rc := lib.params_setup(
+            self._cptr, num_threads, multi_hits, hmmer3_compat, cut_ga
+        ):
             raise DeciphonError(rc)
 
     @property
