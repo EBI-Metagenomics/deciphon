@@ -121,6 +121,7 @@ int model_init(struct model *x, struct model_params params,
 {
   x->params = params;
   x->core_size = 0;
+  x->has_ga = false;
   x->consensus[0] = '\0';
   x->BMk = NULL;
   x->alt.hmm = NULL;

@@ -27,6 +27,7 @@ struct press
   } reader;
 
   int count;
+  bool has_ga;
   struct protein protein;
   struct imm_nuclt_code code;
   struct model_params params;
@@ -44,6 +45,7 @@ struct press *press_new(void)
 
   x->writer.fp = NULL;
   x->reader.fp = NULL;
+  x->has_ga = true;
   protein_init(&x->protein);
   return x;
 }
@@ -159,6 +161,7 @@ static int finish_writer(struct press *press)
 {
   if (!press->writer.fp) return 0;
 
+  database_writer_set_has_ga(&press->writer.db, press->has_ga);
   int rc = database_writer_close(&press->writer.db);
   if (rc) defer_return(rc);
 
@@ -174,6 +177,7 @@ static int protein_write(struct press *x)
   int rc = protein_absorb(&x->protein, &x->reader.h3.model);
   if (rc) return rc;
 
+  if (!x->protein.has_ga) x->has_ga = false;
   size_t n = array_size_field(struct protein, accession);
   if (!xstrcpy(x->protein.accession, x->reader.h3.protein.meta.acc, n))
     return error(DCP_ELONGACCESSION);

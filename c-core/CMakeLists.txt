@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20.2 FATAL_ERROR)
-project(deciphon VERSION 0.13.12 LANGUAGES C)
+project(deciphon VERSION 0.14.0 LANGUAGES C)
 
 include(cmake/warnings.cmake)
 include(cmake/sanitizers.cmake)
@@ -8,8 +8,8 @@ include(cmake/CPM.cmake)
 cpmaddpackage(
   NAME hmmer_reader
   GITHUB_REPOSITORY EBI-Metagenomics/hmmer3
-  GIT_TAG hmmer-reader-v0.7.4
-  VERSION 0.7.4
+  GIT_TAG hmmer-reader-v0.7.5
+  VERSION 0.7.5
   SOURCE_SUBDIR hmmer-reader)
 cpmaddpackage(
   NAME h3client

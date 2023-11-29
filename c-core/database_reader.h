@@ -18,6 +18,7 @@ struct database_reader
   struct imm_nuclt_code code;
   enum entry_dist entry_dist;
   float epsilon;
+  bool has_ga;
 };
 
 // clang-format off

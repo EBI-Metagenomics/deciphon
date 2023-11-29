@@ -20,6 +20,7 @@ void protein_init(struct protein *x)
 {
   memset(x, 0, sizeof(*x));
   x->params.code = NULL;
+  x->has_ga = false;
   x->nodes = NULL;
   x->emission = NULL;
   x->BMk = NULL;
@@ -90,6 +91,7 @@ int protein_absorb(struct protein *x, struct model *m)
   int rc = 0;
 
   x->params.gencode = m->params.gencode;
+  x->has_ga = m->has_ga;
 
   if (x->params.amino != m->params.amino) defer_return(error(DCP_EDIFFABC));
   if (x->params.code->nuclt != m->params.code->nuclt)

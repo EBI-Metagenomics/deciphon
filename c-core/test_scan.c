@@ -12,9 +12,8 @@
 #define PRODDIR "test_scan"
 
 static struct params params_list[] = {
-    {1, false, false, true}, {1, false, false, true}, {1, false, true, true},
-    {1, false, true, true},  {1, true, false, true},  {1, true, false, true},
-    {1, true, true, true},   {1, true, true, true}};
+    {1, false, false}, {1, false, false}, {1, false, true}, {1, false, true},
+    {1, true, false},  {1, true, false},  {1, true, true},  {1, true, true}};
 static bool dial_list[] = {true, false, true, false, true, false, true, false};
 static long chksum_list[] = {57990, 57990, 52229, 52229,
                              56555, 56555, 56555, 56555};

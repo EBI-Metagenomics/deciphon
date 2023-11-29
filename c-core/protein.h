@@ -16,6 +16,7 @@ struct protein
   char consensus[DCP_MODEL_MAX + 1];
 
   int core_size;
+  bool has_ga;
   struct protein_null null;
   struct protein_background bg;
   struct protein_node *nodes;

@@ -23,6 +23,9 @@ static inline int pack_mapsize(struct lip_file *stream, unsigned size)
 #define pack_float(stream, value)                                              \
   (lip_write_float(stream, value) ? 0 : error(DCP_EFWRITE))
 
+#define pack_bool(stream, value)                                               \
+  (lip_write_bool(stream, value) ? 0 : error(DCP_EFWRITE))
+
 static inline int pack_abc(struct lip_file *stream, struct imm_abc const *abc)
 {
   return imm_abc_pack(abc, stream) ? error(DCP_EFWRITE) : 0;

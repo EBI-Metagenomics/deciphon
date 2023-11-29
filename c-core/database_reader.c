@@ -13,6 +13,7 @@ void database_reader_init(struct database_reader *x)
   x->num_proteins = 0;
   x->protein_sizes = NULL;
   x->fp = NULL;
+  x->has_ga = false;
 }
 
 static int unpack_header_protein_sizes(struct database_reader *x);
@@ -29,7 +30,7 @@ int database_reader_open(struct database_reader *x, char const *filename)
   if ((rc = unpack_mapsize(&x->file, 2))) defer_return(rc);
 
   if ((rc = unpack_key(&x->file, "header"))) defer_return(rc);
-  if ((rc = unpack_mapsize(&x->file, 6))) defer_return(rc);
+  if ((rc = unpack_mapsize(&x->file, 7))) defer_return(rc);
 
   int magic_number = 0;
   if ((rc = unpack_key(&x->file, "magic_number"))) defer_return(rc);
@@ -49,6 +50,9 @@ int database_reader_open(struct database_reader *x, char const *filename)
 
   if ((rc = unpack_key(&x->file, "amino"))) defer_return(rc);
   if ((rc = unpack_abc(&x->file, &x->amino.super))) defer_return(rc);
+
+  if ((rc = unpack_key(&x->file, "has_ga"))) defer_return(rc);
+  if ((rc = unpack_bool(&x->file, &x->has_ga))) defer_return(rc);
 
   imm_nuclt_code_init(&x->code, &x->nuclt);
   if ((rc = unpack_key(&x->file, "protein_sizes"))) defer_return(rc);

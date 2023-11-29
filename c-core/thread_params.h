@@ -16,7 +16,6 @@ struct thread_params
   struct hmmer_dialer *dialer;
   bool multi_hits;
   bool hmmer3_compat;
-  bool cut_ga;
 };
 
 #endif

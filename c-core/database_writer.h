@@ -23,6 +23,7 @@ struct database_writer
 
   struct model_params params;
   struct imm_nuclt_code code;
+  bool has_ga;
 };
 
 struct protein;
@@ -31,6 +32,7 @@ struct protein;
 void database_writer_init(struct database_writer *, struct model_params);
 int  database_writer_open(struct database_writer *, FILE *restrict);
 int  database_writer_pack(struct database_writer *, struct protein const *);
+void database_writer_set_has_ga(struct database_writer *, bool has_ga);
 int  database_writer_close(struct database_writer *);
 // clang-format on
 

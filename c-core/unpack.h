@@ -34,8 +34,12 @@ static inline int unpack_key(struct lip_file *file, char const key[])
 
 #define unpack_int(stream, ptr)                                                \
   (lip_read_int(stream, ptr) ? 0 : error(DCP_EFREAD))
+
 #define unpack_float(stream, ptr)                                              \
   (lip_read_float(stream, ptr) ? 0 : error(DCP_EFREAD))
+
+#define unpack_bool(stream, ptr)                                               \
+  (lip_read_bool(stream, ptr) ? 0 : error(DCP_EFREAD))
 
 static inline int unpack_abc(struct lip_file *stream, struct imm_abc *abc)
 {

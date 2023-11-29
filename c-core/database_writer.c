@@ -72,12 +72,15 @@ static int pack_header(struct database_writer *db)
   struct lip_file *stream = &db->file;
 
   if ((rc = pack_key(stream, "header"))) return rc;
-  if ((rc = pack_mapsize(stream, 6))) return rc;
+  if ((rc = pack_mapsize(stream, 7))) return rc;
 
   FILE *src = lip_file_ptr(&db->tmp.header);
   FILE *dst = lip_file_ptr(stream);
   rewind(src);
   if ((rc = fs_copy(dst, src))) return rc;
+
+  if ((rc = pack_key(stream, "has_ga"))) return rc;
+  if ((rc = pack_bool(stream, db->has_ga))) return rc;
 
   if ((rc = pack_key(stream, "protein_sizes"))) return rc;
   return pack_header_protein_sizes(db);
@@ -113,6 +116,7 @@ void database_writer_init(struct database_writer *x, struct model_params params)
 {
   x->nproteins = 0;
   x->params = params;
+  x->has_ga = false;
 }
 
 int database_writer_open(struct database_writer *x, FILE *restrict fp)
@@ -169,4 +173,9 @@ int database_writer_pack(struct database_writer *x,
 
   x->nproteins++;
   return rc;
+}
+
+void database_writer_set_has_ga(struct database_writer *x, bool has_ga)
+{
+  x->has_ga = has_ga;
 }

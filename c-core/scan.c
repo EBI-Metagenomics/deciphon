@@ -118,8 +118,7 @@ int scan_run(struct scan *x, char const *product_dir)
                                    product_thread(&x->product, i),
                                    &x->dialer,
                                    x->params.multi_hits,
-                                   x->params.hmmer3_compat,
-                                   x->params.cut_ga};
+                                   x->params.hmmer3_compat};
     if ((rc = thread_setup(x->threads + i, params))) defer_return(rc);
   }
 

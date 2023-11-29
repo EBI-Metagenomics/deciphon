@@ -22,6 +22,7 @@ struct model
 {
   struct model_params params;
   int core_size;
+  bool has_ga;
   struct model_xnode xnode;
   struct xtrans xtrans;
   char consensus[DCP_MODEL_MAX + 1];

@@ -4,12 +4,11 @@
 #include "xlimits.h"
 
 int params_setup(struct params *x, int num_threads, bool multi_hits,
-                 bool hmmer3_compat, bool cut_ga)
+                 bool hmmer3_compat)
 {
   if (num_threads > DCP_NTHREADS_MAX) return error(DCP_EMANYTHREADS);
   x->num_threads = num_threads;
   x->multi_hits = multi_hits;
   x->hmmer3_compat = hmmer3_compat;
-  x->cut_ga = cut_ga;
   return 0;
 }
