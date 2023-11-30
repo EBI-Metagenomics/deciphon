@@ -71,6 +71,8 @@ enum rc
   DCP_EINVALSIZE     = 65,
   DCP_EENDOFFILE     = 66,
   DCP_EENDOFNODES    = 67,
+  DCP_EDBVERSION     = 68,
+  DCP_ENOTDBFILE     = 69,
 };
 // clang-format on
 

@@ -1,6 +1,6 @@
 #include "database_writer.h"
+#include "database_version.h"
 #include "defer_return.h"
-#include "entry_dist.h"
 #include "error.h"
 #include "fs.h"
 #include "lip/1darray/1darray.h"
@@ -72,7 +72,7 @@ static int pack_header(struct database_writer *db)
   struct lip_file *stream = &db->file;
 
   if ((rc = pack_key(stream, "header"))) return rc;
-  if ((rc = pack_mapsize(stream, 7))) return rc;
+  if ((rc = pack_mapsize(stream, 8))) return rc;
 
   FILE *src = lip_file_ptr(&db->tmp.header);
   FILE *dst = lip_file_ptr(stream);
@@ -133,6 +133,9 @@ int database_writer_open(struct database_writer *x, FILE *restrict fp)
 
   if ((rc = pack_key(stream, "magic_number"))) defer_return(rc);
   if ((rc = pack_int(stream, MAGIC_NUMBER))) defer_return(rc);
+
+  if ((rc = pack_key(stream, "version"))) defer_return(rc);
+  if ((rc = pack_int(stream, DATABASE_VERSION))) defer_return(rc);
 
   if ((rc = pack_key(stream, "entry_dist"))) defer_return(rc);
   if ((rc = pack_int(stream, p->entry_dist))) defer_return(rc);

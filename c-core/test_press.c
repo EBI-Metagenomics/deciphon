@@ -22,7 +22,7 @@ int main(void)
   eq(press_close(press), 0);
   press_del(press);
 
-  eq(filesize(DBFILE), 3536720);
+  eq(filesize(DBFILE), 3536729);
 
   fs_rmfile(DBFILE);
   return lfails;

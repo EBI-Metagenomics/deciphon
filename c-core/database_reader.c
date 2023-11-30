@@ -1,7 +1,7 @@
 #include "database_reader.h"
+#include "database_version.h"
 #include "defer_return.h"
 #include "error.h"
-#include "imm/imm.h"
 #include "lip/1darray/1darray.h"
 #include "magic_number.h"
 #include "rc.h"
@@ -30,12 +30,17 @@ int database_reader_open(struct database_reader *x, char const *filename)
   if ((rc = unpack_mapsize(&x->file, 2))) defer_return(rc);
 
   if ((rc = unpack_key(&x->file, "header"))) defer_return(rc);
-  if ((rc = unpack_mapsize(&x->file, 7))) defer_return(rc);
+  if ((rc = unpack_mapsize(&x->file, 8))) defer_return(rc);
 
   int magic_number = 0;
   if ((rc = unpack_key(&x->file, "magic_number"))) defer_return(rc);
   if ((rc = unpack_int(&x->file, &magic_number))) defer_return(rc);
-  if (magic_number != MAGIC_NUMBER) defer_return(error(DCP_EFDATA));
+  if (magic_number != MAGIC_NUMBER) defer_return(error(DCP_ENOTDBFILE));
+
+  int version = 0;
+  if ((rc = unpack_key(&x->file, "version"))) defer_return(rc);
+  if ((rc = unpack_int(&x->file, &version))) defer_return(rc);
+  if (version != DATABASE_VERSION) defer_return(error(DCP_EDBVERSION));
 
   if ((rc = unpack_key(&x->file, "entry_dist"))) defer_return(rc);
   if ((rc = unpack_int(&x->file, &x->entry_dist))) defer_return(rc);

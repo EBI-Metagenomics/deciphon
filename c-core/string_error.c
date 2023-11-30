@@ -70,6 +70,8 @@ static char const *msg[] = {
     [DCP_EINVALSIZE] = "invalid size",
     [DCP_EENDOFFILE] = "unexpected end of file",
     [DCP_EENDOFNODES] = "unexpected end of nodes",
+    [DCP_EDBVERSION] = "unsupported database version",
+    [DCP_ENOTDBFILE] = "not a database file",
 };
 
 char const *string_error(int error_code)
