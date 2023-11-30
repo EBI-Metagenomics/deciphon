@@ -37,9 +37,6 @@ O_MULTI_HITS = Option(True, "--multi-hits/--no-multi-hits", help="Set multi-hits
 O_HMMER3_COMPAT = Option(
     False, "--hmmer3-compat/--no-hmmer3-compat", help="Set hmmer3 compatibility."
 )
-O_CUT_GA = Option(
-    True, "--cut-ga/--no-cut-ga", help="Enable profile's GA gathering cutoffs."
-)
 H_HMMER = "HMMER profile file."
 
 
@@ -117,7 +114,6 @@ def scan(
     multi_hits: bool = O_MULTI_HITS,
     hmmer3_compat: bool = O_HMMER3_COMPAT,
     progress: bool = O_PROGRESS,
-    cut_ga: bool = O_CUT_GA,
 ):
     """
     Scan nucleotide sequences against protein database.
@@ -129,7 +125,7 @@ def scan(
 
         sequences = read_sequences(seqfile)
         with H3Daemon(hmm, stdout=DEVNULL) as daemon:
-            params = Params(num_threads, multi_hits, hmmer3_compat, cut_ga)
+            params = Params(num_threads, multi_hits, hmmer3_compat)
             scan = Scan(params, db)
             with scan:
                 bar = Progress(scan, disabled=not progress)
