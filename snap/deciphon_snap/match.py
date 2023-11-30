@@ -1,10 +1,11 @@
 from __future__ import annotations
-from enum import Enum
 
+from dataclasses import dataclass
+from enum import Enum
 from functools import lru_cache
 from typing import List, overload
 
-from pydantic import BaseModel, ConfigDict, RootModel
+from pydantic import BaseModel, ConfigDict
 
 from deciphon_snap.amino import AminoInterval
 from deciphon_snap.interval import PyInterval
@@ -19,26 +20,69 @@ class MatchElemName(Enum):
     AMINO = 4
 
 
-class Match(BaseModel):
-    query: str
-    state: str
-    codon: str
-    amino: str
-    _position: int | None = None
+@dataclass(slots=True, frozen=True)
+class Match:
+    raw: str
+    start: int
+    end: int
+    position: int = -1
 
     @classmethod
     def from_string(cls, x: str):
-        y = x.split(",", 3)
-        return cls(query=y[0], state=y[1], codon=y[2], amino=y[3])
+        return cls(raw=x, start=0, end=len(x))
 
     @property
-    def position(self):
-        assert self._position is not None
-        return self._position
+    def query(self):
+        start = self.start
+        return self.raw[start : self.raw.find(",", start, self.end)]
 
-    @position.setter
-    def position(self, x: int):
-        self._position = x
+    @property
+    def state(self):
+        i = self.start
+        i = self.raw.find(",", i, self.end) + 1
+        return self.raw[i : self.raw.find(",", i, self.end)]
+
+    @property
+    def codon(self):
+        i = self.start
+        i = self.raw.find(",", i, self.end) + 1
+        i = self.raw.find(",", i, self.end) + 1
+        return self.raw[i : self.raw.find(",", i, self.end)]
+
+    @property
+    def amino(self):
+        i = self.start
+        i = self.raw.find(",", i, self.end) + 1
+        i = self.raw.find(",", i, self.end) + 1
+        i = self.raw.find(",", i, self.end) + 1
+        return self.raw[i : self.end]
+
+    @property
+    def query_size(self) -> int:
+        return self.raw.find(",", self.start, self.end) - self.start
+
+    @property
+    def _state_symbol(self):
+        i = self.start
+        i = self.raw.find(",", i, self.end) + 1
+        return self.raw[i]
+
+    @property
+    def is_insert_state(self):
+        return self._state_symbol == "I"
+
+    @property
+    def is_match_state(self):
+        return self._state_symbol == "M"
+
+    @property
+    def is_delete_state(self):
+        return self._state_symbol == "D"
+
+    @property
+    def is_core_state(self):
+        x = self._state_symbol
+        return x == "I" or x == "M" or x == "D"
 
     def __str__(self):
         query = self.query if len(self.query) > 0 else "∅"
@@ -48,12 +92,14 @@ class Match(BaseModel):
         return f"({query},{state},{codon},{amino})"
 
 
-class MatchList(RootModel):
+@dataclass(slots=True, frozen=True)
+class MatchList:
     root: List[Match]
 
     @classmethod
     def from_string(cls, x: str):
-        return cls.model_validate([Match.from_string(i) for i in x.split(";")])
+        y = [i for i in ifind(x, ";")]
+        return cls([Match(raw=x, start=i[0], end=i[1]) for i in y])
 
     def __len__(self):
         return len(self.root)
@@ -68,7 +114,7 @@ class MatchList(RootModel):
 
     def __getitem__(self, i: int | slice):
         if isinstance(i, slice):
-            return MatchList.model_validate(self.root[i])
+            return MatchList(self.root[i])
         match = self.root[i]
         assert isinstance(match, Match)
         return match
@@ -150,3 +196,13 @@ class LazyMatchList(BaseModel):
     @property
     def amino(self):
         return self.evaluate().amino
+
+
+def ifind(x: str, delim: str):
+    start = 0
+    end = x.find(delim, start)
+    while end != -1:
+        yield (start, end)
+        start = end + 1
+        end = x.find(delim, start)
+    yield (start, len(x))

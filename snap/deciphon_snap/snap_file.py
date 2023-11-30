@@ -1,22 +1,18 @@
 from __future__ import annotations
 
-import csv
 from typing import List
 
 import prettytable as pt
 from h3result.read_h3result import read_h3result
 
 from deciphon_snap.hmmer import H3Result
+from deciphon_snap.interval import PyInterval
 from deciphon_snap.match import LazyMatchList
-from deciphon_snap.prod import Prod
-from deciphon_snap.prod import ProdList
+from deciphon_snap.prod import Prod, ProdList
 from deciphon_snap.shorten import shorten
 from deciphon_snap.stringify import stringify
-from deciphon_snap.interval import PyInterval
 
 __all__ = ["SnapFile"]
-
-csv.field_size_limit(8388608)
 
 
 class SnapFile:
@@ -35,8 +31,9 @@ class SnapFile:
 
         with fs.open(prod_file, "rb") as file:
             prods: List[Prod] = []
-            reader = csv.DictReader((stringify(x) for x in file), delimiter="\t")
-            for idx, row in enumerate(reader):
+            rows = [stringify(x) for x in file]
+            fieldnames = csv_fieldnames(rows[0])
+            for idx, row in enumerate((csv_parse(fieldnames, r) for r in rows[1:])):
                 seq_id = int(row["sequence"])
                 profile = str(row["profile"])
                 with fs.open(f"{hmmer_dir}/{seq_id}/{profile}.h3r", "rb") as f2:
@@ -82,3 +79,11 @@ class SnapFile:
 
         header = f"shape: ({num_products}, {num_fields})"
         return header + "\n" + x.get_string()
+
+
+def csv_fieldnames(row: str):
+    return row.strip().split("\t")
+
+
+def csv_parse(fieldnames: list[str], row: str):
+    return {name: field for name, field in zip(fieldnames, row.strip().split("\t"))}

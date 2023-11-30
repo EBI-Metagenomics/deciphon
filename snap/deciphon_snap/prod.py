@@ -60,13 +60,12 @@ class Prod(BaseModel):
 
     @property
     def matches(self):
-        matches = []
+        matches: list[Match] = []
         i = 0
         for x in self.match_list:
-            match = Match.model_validate(x)
-            match.position = i
+            match = Match(raw=x.raw, start=x.start, end=x.end, position=i)
             matches.append(match)
-            i += len(match.query)
+            i += match.query_size
         return MatchList(root=matches)
 
     @property

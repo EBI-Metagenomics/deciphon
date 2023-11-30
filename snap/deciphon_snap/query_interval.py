@@ -14,7 +14,7 @@ class QueryIntervalBuilder:
         offset = 0
         for x in match_list:
             self._offset.append(offset)
-            offset += len(x.query)
+            offset += x.query_size
         self._offset.append(offset)
 
     def make(self, match_list_interval: MatchListInterval) -> QueryInterval:

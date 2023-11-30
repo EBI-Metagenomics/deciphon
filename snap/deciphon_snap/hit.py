@@ -41,12 +41,10 @@ class Hit(BaseModel):
         matches: list[Match] = []
         offset = self._interval.pyinterval.start
         for x in self._match_list[self.match_list_interval.slice]:
-            x.position = offset
-            if x.state.startswith("I"):
-                offset += len(x.query)
-            if x.state.startswith("M"):
-                offset += len(x.query)
-            matches.append(x)
+            y = Match(raw=x.raw, start=x.start, end=x.end, position=offset)
+            if y.is_match_state or y.is_insert_state:
+                offset += y.query_size
+            matches.append(y)
         return matches
 
 
@@ -91,11 +89,11 @@ class HitList(RootModel):
         match_stop = 0
 
         for i, x in enumerate(match_list):
-            if not hit_start_found and is_core_state(x.state):
+            if not hit_start_found and x.is_core_state:
                 match_start = i
                 hit_start_found = True
 
-            if hit_start_found and not is_core_state(x.state):
+            if hit_start_found and not x.is_core_state:
                 hit_end_found = True
 
             if hit_end_found:
@@ -107,10 +105,6 @@ class HitList(RootModel):
                 hit_start_found = False
                 hit_end_found = False
 
-            offset += len(x.query)
+            offset += x.query_size
 
         return cls.model_validate(hits)
-
-
-def is_core_state(state: str):
-    return state.startswith("M") or state.startswith("I") or state.startswith("D")

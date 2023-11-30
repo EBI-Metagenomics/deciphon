@@ -42,16 +42,16 @@ def test_hits():
 
     x = match_list[hits[0].match_list_interval.slice]
     assert len(x) == 5
-    assert repr(x[0]) == repr(Match.from_string("GTG,M1,GTT,V"))
-    assert repr(x[1]) == repr(Match.from_string("AAA,I2,AAA,K"))
-    assert repr(x[2]) == repr(Match.from_string("ACC,M3,ACC,T"))
-    assert repr(x[3]) == repr(Match.from_string(",D4,,"))
-    assert repr(x[4]) == repr(Match.from_string(",D5,,"))
+    assert str(x[0]) == str(Match.from_string("GTG,M1,GTT,V"))
+    assert str(x[1]) == str(Match.from_string("AAA,I2,AAA,K"))
+    assert str(x[2]) == str(Match.from_string("ACC,M3,ACC,T"))
+    assert str(x[3]) == str(Match.from_string(",D4,,"))
+    assert str(x[4]) == str(Match.from_string(",D5,,"))
 
     x = match_list[hits[1].match_list_interval.slice]
     assert len(x) == 2
-    assert repr(x[0]) == repr(Match.from_string("AAA,M258,AAA,K"))
-    assert repr(x[1]) == repr(Match.from_string("CCG,M259,CCG,P"))
+    assert str(x[0]) == str(Match.from_string("AAA,M258,AAA,K"))
+    assert str(x[1]) == str(Match.from_string("CCG,M259,CCG,P"))
 
     assert match_list[hits[0].match_list_interval.slice].query == "GTGAAAACC"
     assert match_list[hits[1].match_list_interval.slice].query == "AAACCG"
