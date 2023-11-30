@@ -1,3 +1,4 @@
+// clang-format off
 struct press;
 struct scan;
 struct h3client_result;
@@ -51,3 +52,4 @@ void                    h3client_result_print_domains_table(struct h3client_resu
 FILE *fopen(char const *filename, char const *mode);
 FILE *fdopen(int, char const *);
 int   fclose(FILE *);
+// clang-format off
