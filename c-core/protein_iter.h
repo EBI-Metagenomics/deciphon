@@ -1,7 +1,7 @@
 #ifndef PROTEIN_ITER_H
 #define PROTEIN_ITER_H
 
-#include "lip/lip.h"
+#include "lip/file/file.h"
 #include "protein.h"
 #include <stdbool.h>
 

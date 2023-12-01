@@ -1,4 +1,5 @@
-#include "imm/imm.h"
+#include "imm/lprob.h"
+#include "imm/path.h"
 #include "protein.h"
 #include "protein_node.h"
 #include "viterbi_dp.h"

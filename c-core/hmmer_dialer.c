@@ -1,6 +1,7 @@
 #include "hmmer_dialer.h"
 #include "error.h"
-#include "h3client/h3client.h"
+#include "h3client/deadline.h"
+#include "h3client/dialer.h"
 #include "hmmer.h"
 #include "rc.h"
 #include <stdlib.h>

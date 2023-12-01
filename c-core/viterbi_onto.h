@@ -1,8 +1,14 @@
 #ifndef VITERBI_ONTO_H
 #define VITERBI_ONTO_H
 
-#include "argmax.h"
-#include "array_size.h"
+#if __ARM_NEON
+#include "argmax_neon.h"
+#elif __AVX__
+#include "argmax_avx.h"
+#else
+#include "argmax_generic.h"
+#endif
+
 #include "compiler.h"
 #include "trellis.h"
 #include "viterbi_coredp.h"

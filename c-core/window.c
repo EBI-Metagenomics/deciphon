@@ -1,5 +1,7 @@
 #include "window.h"
 #include "compiler.h"
+#include "imm/max.h"
+#include "imm/min.h"
 #include "sequence.h"
 
 // We are respecting HMMER's limit on sequence size:

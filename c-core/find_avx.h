@@ -1,9 +1,9 @@
 #ifndef FIND_AVX_H
 #define FIND_AVX_H
 
+#if __AVX__
 #include "asint.h"
 #include "compiler.h"
-#include "find_generic.h"
 #include <immintrin.h>
 
 PURE int find2(float const needle, float const stack[restrict])
@@ -76,5 +76,6 @@ PURE int find20(float const needle, float const stack[restrict])
   int mask = _mm_movemask_ps(_mm_castsi128_ps(_mm_cmpeq_epi32(zi, ki)));
   return __builtin_ctz(mask << 16);
 }
+#endif
 
 #endif

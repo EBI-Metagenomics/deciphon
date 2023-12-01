@@ -1,7 +1,6 @@
 #ifndef VITERBI_STRUCT_H
 #define VITERBI_STRUCT_H
 
-#include "imm/imm.h"
 #include "trellis.h"
 #include "viterbi_coredp.h"
 #include "viterbi_dp.h"

@@ -1,7 +1,8 @@
 #ifndef MATCH_H
 #define MATCH_H
 
-#include "imm/imm.h"
+#include "imm/codon.h"
+#include "imm/step.h"
 #include <stdbool.h>
 
 struct protein;

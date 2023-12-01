@@ -1,5 +1,4 @@
 #include "product.h"
-#include "array_size.h"
 #include "array_size_field.h"
 #include "defer_return.h"
 #include "error.h"

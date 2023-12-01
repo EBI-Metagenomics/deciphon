@@ -1,10 +1,11 @@
 #ifndef ARGMAX_NEON_H
 #define ARGMAX_NEON_H
 
+#if __ARM_NEON
 #include "argmax_generic.h"
 #include "compiler.h"
-#include "find.h"
-#include "vmax.h"
+#include "find_neon.h"
+#include "vmax_neon.h"
 
 PURE int argmax2(float *dval, float const x[restrict])
 {
@@ -42,5 +43,6 @@ PURE int argmax20(float *dval, float const x[restrict])
   *dval = val;
   return i;
 }
+#endif
 
 #endif

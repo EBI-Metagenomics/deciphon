@@ -14,6 +14,7 @@ struct protein_null
 struct imm_score_table;
 struct xtrans;
 struct model;
+struct imm_state;
 
 // clang-format off
 void protein_null_init(struct protein_null *, struct imm_nuclt const *);

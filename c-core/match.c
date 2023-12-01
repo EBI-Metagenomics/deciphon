@@ -1,7 +1,8 @@
 #include "match.h"
+#include "imm/gencode.h"
+#include "imm/nuclt_code.h"
 #include "protein.h"
 #include "state.h"
-#include <string.h>
 
 struct match match_init(struct protein const *protein)
 {

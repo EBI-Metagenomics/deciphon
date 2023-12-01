@@ -2,7 +2,7 @@
 #define VITERBI_INDEX_H
 
 #include "compiler.h"
-#include "imm/imm.h"
+#include "imm/eseq.h"
 #include "xlimits.h"
 #include <stdbool.h>
 

@@ -3,9 +3,9 @@
 
 #include "chararray.h"
 #include "hmmer.h"
+#include "imm/path.h"
 #include "protein.h"
 #include "protein_iter.h"
-#include "queue.h"
 #include "thread_params.h"
 #include "viterbi.h"
 #include "viterbi_struct.h"

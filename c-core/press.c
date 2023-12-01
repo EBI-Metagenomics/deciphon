@@ -5,6 +5,7 @@
 #include "error.h"
 #include "fs.h"
 #include "hmm_reader.h"
+#include "imm/gencode.h"
 #include "protein.h"
 #include "rc.h"
 #include "sizeof_field.h"

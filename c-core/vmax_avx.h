@@ -1,6 +1,7 @@
 #ifndef VMAX_AVX_H
 #define VMAX_AVX_H
 
+#if __AVX__
 #include "compiler.h"
 #include "maximum.h"
 #include <immintrin.h>
@@ -55,5 +56,6 @@ PURE float vmax20(float const x[restrict])
   __m256 r3 = _mm256_set_m128(_mm_load_ps(x + 16), _mm_load_ps(x + 16));
   return m256max(_mm256_max_ps(_mm256_max_ps(r1, r2), r3));
 }
+#endif
 
 #endif

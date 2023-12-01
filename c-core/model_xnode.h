@@ -1,7 +1,8 @@
 #ifndef MODEL_XNODE_H
 #define MODEL_XNODE_H
 
-#include "imm/imm.h"
+#include "imm/frame_state.h"
+#include "imm/mute_state.h"
 
 struct model_xnode_null
 {

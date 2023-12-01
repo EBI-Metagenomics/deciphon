@@ -2,7 +2,7 @@
 #include "defer_return.h"
 #include "disambiguate.h"
 #include "error.h"
-#include "imm/imm.h"
+#include "imm/abc.h"
 #include "rc.h"
 #include "xstrdup.h"
 #include <stdlib.h>

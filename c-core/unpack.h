@@ -3,9 +3,11 @@
 
 #include "array_size.h"
 #include "error.h"
-#include "imm/imm.h"
+#include "imm/abc.h"
 #include "lip/1darray/1darray.h"
-#include "lip/lip.h"
+#include "lip/file/read_cstr.h"
+#include "lip/file/read_map.h"
+#include "lip/file/read_str.h"
 #include "rc.h"
 #include <string.h>
 

@@ -1,6 +1,7 @@
 #include "protein_null.h"
 #include "array_size.h"
-#include "imm/imm.h"
+#include "imm/lprob.h"
+#include "imm/score_table.h"
 #include "xtrans.h"
 
 void protein_null_init(struct protein_null *x, struct imm_nuclt const *nuclt)

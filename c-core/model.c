@@ -2,14 +2,20 @@
 #include "defer_return.h"
 #include "entry_dist.h"
 #include "error.h"
-#include "imm/imm.h"
+#include "imm/amino_lprob.h"
+#include "imm/codon_lprob.h"
+#include "imm/gencode.h"
+#include "imm/hmm.h"
+#include "imm/lprob.h"
+#include "imm/nuclt_code.h"
 #include "model.h"
-#include "node.h"
 #include "nuclt_dist.h"
 #include "rc.h"
+#include "state.h"
 #include "xrealloc.h"
 #include <assert.h>
 #include <limits.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 

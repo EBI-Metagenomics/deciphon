@@ -1,9 +1,7 @@
 #ifndef HMM_READER_H
 #define HMM_READER_H
 
-#include "entry_dist.h"
 #include "hmmer_reader/hmmer_reader.h"
-#include "imm/imm.h"
 #include "model.h"
 #include "model_params.h"
 #include <stdio.h>

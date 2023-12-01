@@ -14,15 +14,12 @@
 #endif
 
 #include "fs.h"
-#include "array_size.h"
 #include "error.h"
 #include "rc.h"
 #include "xlimits.h"
 #include "xstrcpy.h"
-#include <assert.h>
 #include <errno.h>
 #include <ftw.h>
-#include <limits.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>

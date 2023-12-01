@@ -2,7 +2,6 @@
 #define PRODUCT_THREAD_H
 
 #include "product_line.h"
-#include <stdio.h>
 
 struct match;
 struct match_iter;

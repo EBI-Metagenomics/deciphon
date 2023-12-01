@@ -1,6 +1,6 @@
 #include "state.h"
-#include "model.h"
 #include "xu16toa.h"
+#include <assert.h>
 
 static inline int id_msb(int id) { return id & (3 << (STATE_ID_BITS - 2)); }
 

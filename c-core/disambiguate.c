@@ -1,8 +1,6 @@
 #include "array_size.h"
 #include "compiler.h"
-#include <assert.h>
 #include <stddef.h>
-#include <stdio.h>
 
 // clang-format off
 #define ix(x)                                                                  \

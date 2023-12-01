@@ -1,4 +1,5 @@
 #include "match_iter.h"
+#include "imm/path.h"
 #include "match.h"
 
 void match_iter_init(struct match_iter *x, struct imm_seq const *seq,

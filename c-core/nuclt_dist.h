@@ -1,7 +1,9 @@
 #ifndef NUCLT_DIST_H
 #define NUCLT_DIST_H
 
-#include "imm/imm.h"
+#include "imm/codon_marg.h"
+#include "imm/nuclt_lprob.h"
+#include <stdio.h>
 
 struct nuclt_dist
 {
@@ -10,6 +12,7 @@ struct nuclt_dist
 };
 
 struct lip_file;
+struct imm_nuclt;
 
 // clang-format off
 void nuclt_dist_init(struct nuclt_dist *, struct imm_nuclt const *);

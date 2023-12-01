@@ -1,10 +1,11 @@
 #ifndef ARGMAX_AVX_H
 #define ARGMAX_AVX_H
 
+#if __AVX__
 #include "argmax_generic.h"
 #include "compiler.h"
-#include "find.h"
-#include "vmax.h"
+#include "find_avx.h"
+#include "vmax_avx.h"
 
 PURE int argmax2(float *dval, float const x[restrict])
 {
@@ -42,5 +43,6 @@ PURE int argmax20(float *dval, float const x[restrict])
   *dval = val;
   return i;
 }
+#endif
 
 #endif

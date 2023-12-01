@@ -1,8 +1,8 @@
 #include "hmm_reader.h"
-#include "compiler.h"
 #include "error.h"
 #include "model.h"
 #include "rc.h"
+#include <math.h>
 
 static void init_null_lprobs(float[IMM_AMINO_SIZE]);
 

@@ -1,14 +1,11 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-#include "entry_dist.h"
-#include "imm/imm.h"
+#include "imm/amino.h"
 #include "model_node.h"
 #include "model_params.h"
 #include "model_xnode.h"
 #include "nuclt_dist.h"
-#include "rc.h"
-#include "state.h"
 #include "trans.h"
 #include "xlimits.h"
 #include "xtrans.h"

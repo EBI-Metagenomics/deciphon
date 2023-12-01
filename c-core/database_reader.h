@@ -2,9 +2,13 @@
 #define DATABASE_READER_H
 
 #include "entry_dist.h"
-#include "imm/imm.h"
-#include "lip/lip.h"
+#include "imm/amino.h"
+#include "imm/nuclt.h"
+#include "imm/nuclt_code.h"
+#include "lip/file/file.h"
 #include "model_params.h"
+#include <stdint.h>
+#include <stdio.h>
 
 struct database_reader
 {

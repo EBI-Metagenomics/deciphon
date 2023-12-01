@@ -2,9 +2,10 @@
 #define PACK_H
 
 #include "error.h"
-#include "imm/imm.h"
+#include "imm/abc.h"
 #include "lip/1darray/1darray.h"
-#include "lip/lip.h"
+#include "lip/file/write_cstr.h"
+#include "lip/file/write_map.h"
 #include "rc.h"
 
 static inline int pack_key(struct lip_file *stream, char const key[])

@@ -1,5 +1,6 @@
 #include "protein_background.h"
 #include "array_size.h"
+#include "imm/lprob.h"
 #include "imm/score_table.h"
 
 void protein_background_init(struct protein_background *x,

@@ -1,7 +1,6 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
-#include "imm/imm.h"
 #include "sequence.h"
 #include <stdbool.h>
 

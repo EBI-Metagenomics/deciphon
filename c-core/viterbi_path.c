@@ -1,11 +1,10 @@
 #include "viterbi_path.h"
 #include "error.h"
-#include "imm/imm.h"
+#include "imm/path.h"
 #include "rc.h"
 #include "state.h"
 #include "trellis.h"
 #include <assert.h>
-#include <limits.h>
 
 int unzip_path(struct trellis *x, int seq_size, struct imm_path *path)
 {

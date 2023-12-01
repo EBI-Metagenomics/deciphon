@@ -1,6 +1,7 @@
 #include "nuclt_dist.h"
 #include "error.h"
-#include "lip/lip.h"
+#include "lip/file/read_array.h"
+#include "lip/file/write_array.h"
 #include "rc.h"
 
 void nuclt_dist_init(struct nuclt_dist *x, struct imm_nuclt const *nuclt)

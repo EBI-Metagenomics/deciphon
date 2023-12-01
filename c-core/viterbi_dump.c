@@ -1,5 +1,8 @@
 #include "viterbi_dump.h"
 #include "array_size_field.h"
+#include "imm/dump.h"
+#include "imm/fmt.h"
+#include "imm/lprob.h"
 #include "protein.h"
 #include "protein_node.h"
 #include "viterbi_xtrans.h"

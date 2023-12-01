@@ -1,8 +1,8 @@
 #ifndef DATABASE_WRITER_H
 #define DATABASE_WRITER_H
 
-#include "imm/imm.h"
-#include "lip/lip.h"
+#include "imm/nuclt_code.h"
+#include "lip/file/file.h"
 #include "model_params.h"
 #include "xlimits.h"
 #include <stdio.h>

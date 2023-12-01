@@ -1,10 +1,9 @@
 #ifndef FIND_NEON_H
 #define FIND_NEON_H
 
+#if __ARM_NEON
 #include "compiler.h"
-#include "find_generic.h"
 #include <arm_neon.h>
-#include <stdio.h>
 
 PURE uint64_t neon_mask64(int32x2_t const needle, float const stack[restrict])
 {
@@ -75,5 +74,6 @@ PURE int find20(float const needle, float const stack[restrict])
   f = neon_mask128(x, stack + 16);
   return (__builtin_ctzll(f) >> 4) + 16;
 }
+#endif
 
 #endif

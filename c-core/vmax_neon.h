@@ -1,10 +1,10 @@
 #ifndef VMAX_NEON_H
 #define VMAX_NEON_H
 
+#if __ARM_NEON
 #include "compiler.h"
 #include "maximum.h"
 #include <arm_neon.h>
-#include <stdio.h>
 
 PURE float vmax2(float const x[restrict]) { return maximum(x[0], x[1]); }
 
@@ -42,5 +42,6 @@ PURE float vmax20(float const x[restrict])
   r = vmaxq_f32(t5, r);
   return vmaxvq_f32(r);
 }
+#endif
 
 #endif

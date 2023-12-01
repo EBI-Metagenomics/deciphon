@@ -1,7 +1,7 @@
 #ifndef PROTEIN_H
 #define PROTEIN_H
 
-#include "imm/imm.h"
+#include "imm/score_table.h"
 #include "model.h"
 #include "protein_background.h"
 #include "protein_null.h"

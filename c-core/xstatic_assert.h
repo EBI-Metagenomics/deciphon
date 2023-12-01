@@ -1,8 +1,6 @@
 #ifndef XSTATIC_ASSERT_H
 #define XSTATIC_ASSERT_H
 
-#include <assert.h>
-
 #define XSTATIC_ASSERT_XSTR(x) XSTATIC_ASSERT_STR(x)
 #define XSTATIC_ASSERT_STR(x) #x
 

@@ -1,6 +1,7 @@
 #include "xtrans.h"
 #include "array_size.h"
-#include "imm/imm.h"
+#include "imm/dump.h"
+#include "imm/lprob.h"
 
 void xtrans_init(struct xtrans *t)
 {
