@@ -55,7 +55,7 @@ pipx install deciphon
 ## Usage
 
 ```
- Usage: dcp [OPTIONS] COMMAND [ARGS]...
+ Usage: deci [OPTIONS] COMMAND [ARGS]...
 
 ╭─ Options ────────────────────────────────────────────────────────────────────╮
 │ --version                                                                    │
@@ -72,29 +72,31 @@ pipx install deciphon
 Download the `minifam.hmm` protein database:
 
 ```sh
-pipx run blx get \
-  fe305d9c09e123f987f49b9056e34c374e085d8831f815cc73d8ea4cdec84960 \
-  minifam.hmm
+curl -O https://raw.githubusercontent.com/EBI-Metagenomics/deciphon/main/cli/tests/files/minifam.hmm
 ```
 
-Download the `consensus.json` file of sequences:
+Download the `consensus.fna` file of sequences:
 
 ```sh
-pipx run blx get \
-  af483ed5aa42010e8f6c950c42d81bac69f995876bf78a5965f319e83dc3923e \
-  consensus.hmm
+curl -O https://raw.githubusercontent.com/EBI-Metagenomics/deciphon/main/cli/tests/files/sequences.fna
 ```
 
-Press it:
+Press it (using The Standard Code):
 
 ```sh
-dcp press minifam.hmm
+deci press minifam.hmm 1
 ```
 
 Scan it:
 
 ```sh
-dcp scan minifam.hmm consensus.json
+deci scan minifam.hmm sequences.fna
+```
+
+Show it:
+
+```sh
+deci see sequences.dcs
 ```
 
 ## 👤 Author
