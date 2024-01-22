@@ -39,6 +39,8 @@ message(STATUS "X86: ${X86}")
 if(X86)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mavx2")
 endif()
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-trapping-math -fno-math-errno")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-signed-zeros")
 
 file(GLOB DECIPHON_SOURCES "*.c")
 file(GLOB DECIPHON_HEADERS "*.h")
