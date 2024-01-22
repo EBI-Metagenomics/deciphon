@@ -1,6 +1,7 @@
 #include "partition_size.h"
-#include <assert.h>
 #include "imm/max.h"
+#include <assert.h>
+#include <limits.h>
 
 static inline long ceildiv(long x, long y)
 {
