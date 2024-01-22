@@ -1,4 +1,6 @@
+#include "tictoc.h"
 #include "imm/lprob.h"
+#include "vitfast.h"
 #include "imm/path.h"
 #include "protein.h"
 #include "protein_node.h"
@@ -201,6 +203,12 @@ static inline int row_mid(int end)
   return end < (DCP_PAST_SIZE - 1) ? end : (DCP_PAST_SIZE - 1);
 }
 
+static int code_fn(int pos, int len, void *arg)
+{
+  struct imm_eseq const *seq = arg;
+  return imm_eseq_get(seq, pos, len, 1);
+}
+
 float viterbi_alt_loglik(struct viterbi *x)
 {
   assert(imm_eseq_size(x->seq) < INT_MAX);
@@ -208,8 +216,71 @@ float viterbi_alt_loglik(struct viterbi *x)
   int end = seq_size + 1;
 
   dp_set(x->S, 0, 0);
+  tic();
   alternative(x, 0, row_mid(end), false, NULL);
   alternative(x, row_mid(end), end, true, NULL);
+  toc("slow");
+  float slow = dp_get(x->T, 1);
+
+  struct vitfast *vit = vitfast_new();
+  int K = x->protein->core_size;
+  vitfast_setup(vit, K);
+
+  struct viterbi_xtrans const xt = viterbi_xtrans_init(x->protein->xtrans);
+  vitfast_set_extr_trans(vit, EXTR_TRANS_SN, -xt.SN);
+  vitfast_set_extr_trans(vit, EXTR_TRANS_NN, -xt.NN);
+  vitfast_set_extr_trans(vit, EXTR_TRANS_SB, -xt.SB);
+  vitfast_set_extr_trans(vit, EXTR_TRANS_NB, -xt.NB);
+  vitfast_set_extr_trans(vit, EXTR_TRANS_EB, -xt.EB);
+  vitfast_set_extr_trans(vit, EXTR_TRANS_JB, -xt.JB);
+  vitfast_set_extr_trans(vit, EXTR_TRANS_EJ, -xt.EJ);
+  vitfast_set_extr_trans(vit, EXTR_TRANS_JJ, -xt.JJ);
+  vitfast_set_extr_trans(vit, EXTR_TRANS_EC, -xt.EC);
+  vitfast_set_extr_trans(vit, EXTR_TRANS_CC, -xt.CC);
+  vitfast_set_extr_trans(vit, EXTR_TRANS_ET, -xt.ET);
+  vitfast_set_extr_trans(vit, EXTR_TRANS_CT, -xt.CT);
+
+  for (int k = 0; k < K; ++k)
+  {
+    struct protein const *p = x->protein;
+    vitfast_set_core_trans(vit, CORE_TRANS_BM, -p->BMk[k], k);
+  }
+
+  vitfast_set_core_trans(vit, CORE_TRANS_MM, INFINITY, 0);
+  vitfast_set_core_trans(vit, CORE_TRANS_MD, INFINITY, 0);
+  vitfast_set_core_trans(vit, CORE_TRANS_IM, INFINITY, 0);
+  vitfast_set_core_trans(vit, CORE_TRANS_DM, INFINITY, 0);
+  vitfast_set_core_trans(vit, CORE_TRANS_DD, INFINITY, 0);
+  for (int k = 0; k < K - 1; ++k)
+  {
+    struct protein const *p = x->protein;
+    vitfast_set_core_trans(vit, CORE_TRANS_MM, -p->nodes[k].trans.MM, k + 1);
+    vitfast_set_core_trans(vit, CORE_TRANS_MI, -p->nodes[k].trans.MI, k + 0);
+    vitfast_set_core_trans(vit, CORE_TRANS_MD, -p->nodes[k].trans.MD, k + 1);
+    vitfast_set_core_trans(vit, CORE_TRANS_IM, -p->nodes[k].trans.IM, k + 1);
+    vitfast_set_core_trans(vit, CORE_TRANS_II, -p->nodes[k].trans.II, k + 0);
+    vitfast_set_core_trans(vit, CORE_TRANS_DM, -p->nodes[k].trans.DM, k + 1);
+    vitfast_set_core_trans(vit, CORE_TRANS_DD, -p->nodes[k].trans.DD, k + 1);
+  }
+  vitfast_set_core_trans(vit, CORE_TRANS_MI, INFINITY, K - 1);
+  vitfast_set_core_trans(vit, CORE_TRANS_II, INFINITY, K - 1);
+
+  for (size_t i = 0; i < VITFAST_TABLE_SIZE; ++i)
+  {
+    vitfast_set_null(vit, -x->protein->null.emission[i], i);
+    vitfast_set_background(vit, -x->protein->bg.emission[i], i);
+
+    for (int k = 0; k < K; ++k)
+      vitfast_set_match(vit, -x->protein->nodes[k].emission[i], k, i);
+  }
+
+  tic();
+  float fast = -vitfast_cost(vit, seq_size, code_fn, (void *)x->seq);
+  toc("fast");
+  if (fabsf(slow - fast) > 1e-7) {printf("%g %g: %g\n", slow, fast, slow-fast);exit(1);}
+
+  vitfast_del(vit);
+
   return dp_get(x->T, 1);
 }
 
