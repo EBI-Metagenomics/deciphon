@@ -97,7 +97,7 @@ struct vitfast
 
 struct vitfast *vitfast_new(void)
 {
-  struct vitfast *x = malloc(sizeof(struct vitfast));
+  struct vitfast *x = aligned_alloc(ALIGNMENT, sizeof(struct vitfast));
   if (!x) return x;
 
   x->Q = x->maxQ = 0;
