@@ -5,9 +5,11 @@
 #include "imm/nuclt_code.h"
 #include "imm/path.h"
 #include "protein.h"
+#include "setup_viterbi.h"
+#include "state.h"
+#include "trellis.h"
 #include "vendor/minctest.h"
-#include "viterbi.h"
-#include "viterbi_struct.h"
+#include "vit.h"
 
 static void test_protein_uniform(void);
 static void test_protein_occupancy(void);
@@ -17,6 +19,12 @@ int main(void)
   test_protein_uniform();
   test_protein_occupancy();
   return lfails;
+}
+
+static int code_fn(int pos, int len, void *arg)
+{
+  struct imm_eseq const *seq = arg;
+  return imm_eseq_get(seq, pos, len, 1);
 }
 
 static void test_protein_uniform(void)
@@ -55,13 +63,14 @@ static void test_protein_uniform(void)
 
   eq(imm_eseq_setup(&eseq, &seq), 0);
 
-  struct viterbi task = {};
-  viterbi_init(&task);
-  viterbi_setup(&task, &protein, &eseq);
-  close(viterbi_null_loglik(&task), -48.9272687711);
-  float score = 0;
-  close(viterbi_alt_path(&task, &path, &score), 0);
-  close(score, -55.59428153448);
+  struct vit *task = vit_new();
+  eq(vit_setup(task, protein.core_size), 0);
+  eq(setup_viterbi(task, &protein), 0);
+  close(vit_null(task, imm_eseq_size(&eseq), code_fn, (void *)&eseq),  48.9272687711);
+  close(vit_cost(task, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 55.59428153448);
+  eq(vit_path(task, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 0);
+  imm_path_reset(&path);
+  eq(trellis_unzip(vit_trellis(task), imm_eseq_size(&eseq), &path), 0);
 
   eq(imm_path_nsteps(&path), 14);
 
@@ -100,7 +109,7 @@ static void test_protein_uniform(void)
   eq(i, 10);
 
   imm_eseq_cleanup(&eseq);
-  viterbi_cleanup(&task);
+  vit_del(task);
   protein_cleanup(&protein);
   imm_path_cleanup(&path);
 }
@@ -141,13 +150,14 @@ static void test_protein_occupancy(void)
 
   eq(imm_eseq_setup(&eseq, &seq), 0);
 
-  struct viterbi task = {};
-  viterbi_init(&task);
-  viterbi_setup(&task, &protein, &eseq);
-  close(viterbi_null_loglik(&task), -48.9272687711);
-  float score = 0;
-  close(viterbi_alt_path(&task, &path, &score), 0);
-  close(score, -54.35543421312);
+  struct vit *task = vit_new();
+  eq(vit_setup(task, protein.core_size), 0);
+  eq(setup_viterbi(task, &protein), 0);
+  close(vit_null(task, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 48.9272687711);
+  close(vit_cost(task, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 54.35543421312);
+  eq(vit_path(task, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 0);
+  imm_path_reset(&path);
+  eq(trellis_unzip(vit_trellis(task), imm_eseq_size(&eseq), &path), 0);
 
   eq(imm_path_nsteps(&path), 14);
 
@@ -186,7 +196,7 @@ static void test_protein_occupancy(void)
   eq(i, 10);
 
   imm_eseq_cleanup(&eseq);
-  viterbi_cleanup(&task);
+  vit_del(task);
   protein_cleanup(&protein);
   imm_path_cleanup(&path);
 }

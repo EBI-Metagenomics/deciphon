@@ -7,8 +7,6 @@
 #include "protein.h"
 #include "protein_iter.h"
 #include "thread_params.h"
-#include "viterbi.h"
-#include "viterbi_struct.h"
 
 struct chararray;
 struct product_thread;
@@ -22,7 +20,7 @@ struct thread
   bool multi_hits;
   bool hmmer3_compat;
 
-  struct viterbi viterbi;
+  struct vit *viterbi;
   struct product_thread *product;
   int partition;
   struct chararray amino;

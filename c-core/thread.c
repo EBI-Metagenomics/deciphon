@@ -12,10 +12,12 @@
 #include "product_thread.h"
 #include "protein_iter.h"
 #include "protein_reader.h"
+#include "rc.h"
 #include "sequence.h"
 #include "sequence_queue.h"
-#include "viterbi.h"
-#include "viterbi_struct.h"
+#include "setup_viterbi.h"
+#include "trellis.h"
+#include "vit.h"
 #include "window.h"
 
 void thread_init(struct thread *x)
@@ -25,7 +27,7 @@ void thread_init(struct thread *x)
   x->multi_hits = false;
   x->hmmer3_compat = false;
 
-  viterbi_init(&x->viterbi);
+  x->viterbi = NULL;
   x->product = NULL;
   x->partition = -1;
   chararray_init(&x->amino);
@@ -35,6 +37,7 @@ void thread_init(struct thread *x)
 
 int thread_setup(struct thread *x, struct thread_params params)
 {
+  if (!(x->viterbi = vit_new())) return DCP_ENOMEM;
   struct database_reader const *db = params.reader->db;
   protein_setup(&x->protein, database_reader_params(db, NULL));
   int rc = 0;
@@ -64,7 +67,11 @@ void thread_cleanup(struct thread *x)
 {
   x->partition = -1;
   protein_cleanup(&x->protein);
-  viterbi_cleanup(&x->viterbi);
+  if (x->viterbi)
+  {
+    vit_del(x->viterbi);
+    x->viterbi = NULL;
+  }
   chararray_cleanup(&x->amino);
   hmmer_cleanup(&x->hmmer);
   imm_path_cleanup(&x->path);
@@ -114,6 +121,12 @@ static int hmmer_stage(struct protein *, struct product_thread *,
                        struct sequence const *, int protein_idx,
                        struct imm_path const *);
 
+static int code_fn(int pos, int len, void *arg)
+{
+  struct imm_eseq const *seq = arg;
+  return imm_eseq_get(seq, pos, len, 1);
+}
+
 static int process_window(struct thread *x, int protein_idx,
                           struct window const *w)
 {
@@ -128,15 +141,19 @@ static int process_window(struct thread *x, int protein_idx,
   bool hmmer3_compat = x->hmmer3_compat;
 
   protein_reset(&x->protein, sequence_size(seq), multi_hits, hmmer3_compat);
-  if ((rc = viterbi_setup(&x->viterbi, &x->protein, &seq->imm.eseq))) return rc;
+  if ((rc = setup_viterbi(x->viterbi, &x->protein))) return rc;
 
-  float null = viterbi_null_loglik(&x->viterbi);
-  float alt = viterbi_alt_loglik(&x->viterbi);
+  int L = sequence_size(seq);
+  float null = -vit_null(x->viterbi, sequence_size(seq), code_fn, (void *)&seq->imm.eseq);
+  float alt = -vit_cost(x->viterbi, sequence_size(seq), code_fn, (void *)&seq->imm.eseq);
+
   line->lrt = lrt(null, alt);
   if (!imm_lprob_is_finite(line->lrt) || line->lrt < 0) return rc;
 
   if ((rc = product_line_set_protein(line, x->protein.accession))) return rc;
-  if ((rc = viterbi_alt_path(&x->viterbi, &x->path, NULL))) return rc;
+  if ((rc = vit_path(x->viterbi, L, code_fn, (void *)&seq->imm.eseq))) return rc;
+  imm_path_reset(&x->path);
+  if ((rc = trellis_unzip(vit_trellis(x->viterbi), L, &x->path))) return rc;
 
   if (hmmer_online(&x->hmmer))
   {

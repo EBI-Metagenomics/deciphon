@@ -6,6 +6,8 @@
 #include "state.h"
 #include "trellis_bits.h"
 
+struct imm_path;
+
 struct trellis
 {
   int core_size;
@@ -29,11 +31,27 @@ void        trellis_seek_xnode(struct trellis *x, int stage);
 void        trellis_seek_node(struct trellis *x, int stage, int core_idx);
 INLINE void trellis_clear_xnode(struct trellis *x) { *x->xnode = 0; }
 INLINE void trellis_clear_node(struct trellis *x) { *x->node = 0; }
+int         trellis_unzip(struct trellis *, int seq_size, struct imm_path *);
 // clang-format on
 
 // clang-format off
 INLINE void trellis_set(struct trellis *x, int id, int value)
 {
+  /* long sz = x->node - x->nodes; */
+  /* long stage = sz / x->core_size; */
+  /* long k = sz - stage * x->core_size; */
+  /* if      (id == STATE_S) printf("S: %d\n", value); */
+  /* else if (id == STATE_N) printf("N: %d\n", value); */
+  /* else if (id == STATE_B) printf("B: %d\n", value); */
+  /* else if (id == STATE_E) printf("E: %d\n", value); */
+  /* else if (id == STATE_C) printf("C: %d\n", value); */
+  /* else if (id == STATE_T) printf("T: %d\n", value); */
+  /* else if (id == STATE_J) printf("J: %d\n", value); */
+  /* else if (state_is_match(id))  printf("M%ld: %d\n", k, value); */
+  /* else if (state_is_delete(id)) printf("D%ld: %d\n", k, value); */
+  /* else if (state_is_insert(id)) printf("I%ld: %d\n", k, value); */
+  /* else UNREACHABLE(); */
+
   unsigned v = *(unsigned *)&value;
   if      (id == STATE_S) *x->xnode |= v << (0);
   else if (id == STATE_N) *x->xnode |= v << (0 + SBITS);

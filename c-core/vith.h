@@ -1,8 +1,10 @@
-#ifndef VITERBI_IDS_H
-#define VITERBI_IDS_H
+#ifndef VITERBI_COMMON_H
+#define VITERBI_COMMON_H
 
 enum extr_trans_id
 {
+  EXTR_TRANS_RR,
+
   EXTR_TRANS_SN,
   EXTR_TRANS_NN,
   EXTR_TRANS_SB,
@@ -28,5 +30,12 @@ enum core_trans_id
   CORE_TRANS_DM,
   CORE_TRANS_DD,
 };
+
+typedef int (*viterbi_code_fn)(int pos, int len, void *arg);
+
+#define VITERBI_TABLE_SIZE 1364
+#define VITERBI_TIME_FRAME 6
+
+#define VITERBI_DEBUG 0
 
 #endif
