@@ -15,7 +15,6 @@
 #include "rc.h"
 #include "sequence.h"
 #include "sequence_queue.h"
-#include "setup_viterbi.h"
 #include "trellis.h"
 #include "viterbi.h"
 #include "window.h"
@@ -141,7 +140,7 @@ static int process_window(struct thread *x, int protein_idx,
   bool hmmer3_compat = x->hmmer3_compat;
 
   protein_reset(&x->protein, sequence_size(seq), multi_hits, hmmer3_compat);
-  if ((rc = setup_viterbi(x->viterbi, &x->protein))) return rc;
+  if ((rc = protein_setup_viterbi(&x->protein, x->viterbi))) return rc;
 
   int L = sequence_size(seq);
   float null = -viterbi_null(x->viterbi, sequence_size(seq), code_fn, (void *)&seq->imm.eseq);

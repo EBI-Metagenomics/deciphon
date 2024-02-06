@@ -25,7 +25,8 @@ struct protein
   float *BMk;
 };
 
-// clang-format off
+struct viterbi;
+
 void protein_init(struct protein *);
 void protein_setup(struct protein *, struct model_params params);
 int  protein_set_accession(struct protein *, char const *accession);
@@ -37,6 +38,6 @@ void protein_dump(struct protein const *, FILE *);
 int  protein_pack(struct protein const *, struct lip_file *);
 int  protein_unpack(struct protein *, struct lip_file *);
 int  protein_decode(struct protein const *, struct imm_seq const *, int state_id, struct imm_codon *);
-// clang-format on
+int  protein_setup_viterbi(struct protein const *, struct viterbi *);
 
 #endif

@@ -1,4 +1,5 @@
 #include "protein.h"
+#include "viterbi.h"
 #include "array_size_field.h"
 #include "defer_return.h"
 #include "error.h"
@@ -402,5 +403,61 @@ int protein_decode(struct protein const *x, struct imm_seq const *seq,
   if (imm_lprob_is_nan(imm_frame_cond_decode(&cond, seq, codon)))
     return error(DCP_EDECODON);
 
+  return 0;
+}
+
+int protein_setup_viterbi(struct protein const *x, struct viterbi *v)
+{
+  int K = x->core_size;
+  int rc = viterbi_setup(v, K);
+  if (rc) return rc;
+
+  struct xtrans xt = x->xtrans;
+  viterbi_set_extr_trans(v, EXTR_TRANS_RR, -x->null.RR);
+  viterbi_set_extr_trans(v, EXTR_TRANS_SN, -xt.NN);
+  viterbi_set_extr_trans(v, EXTR_TRANS_NN, -xt.NN);
+  viterbi_set_extr_trans(v, EXTR_TRANS_SB, -xt.NB);
+  viterbi_set_extr_trans(v, EXTR_TRANS_NB, -xt.NB);
+  viterbi_set_extr_trans(v, EXTR_TRANS_EB, -xt.EJ - xt.JB);
+  viterbi_set_extr_trans(v, EXTR_TRANS_JB, -xt.JB);
+  viterbi_set_extr_trans(v, EXTR_TRANS_EJ, -xt.EJ - xt.JJ);
+  viterbi_set_extr_trans(v, EXTR_TRANS_JJ, -xt.JJ);
+  viterbi_set_extr_trans(v, EXTR_TRANS_EC, -xt.EC - xt.CC);
+  viterbi_set_extr_trans(v, EXTR_TRANS_CC, -xt.CC);
+  viterbi_set_extr_trans(v, EXTR_TRANS_ET, -xt.EC - xt.CT);
+  viterbi_set_extr_trans(v, EXTR_TRANS_CT, -xt.CT);
+
+  for (int k = 0; k < K; ++k)
+  {
+    viterbi_set_core_trans(v, CORE_TRANS_BM, -x->BMk[k], k);
+  }
+
+  viterbi_set_core_trans(v, CORE_TRANS_MM, INFINITY, 0);
+  viterbi_set_core_trans(v, CORE_TRANS_MD, INFINITY, 0);
+  viterbi_set_core_trans(v, CORE_TRANS_IM, INFINITY, 0);
+  viterbi_set_core_trans(v, CORE_TRANS_DM, INFINITY, 0);
+  viterbi_set_core_trans(v, CORE_TRANS_DD, INFINITY, 0);
+  struct protein_node *nodes = x->nodes;
+  for (int k = 0; k < K - 1; ++k)
+  {
+    viterbi_set_core_trans(v, CORE_TRANS_MM, -nodes[k].trans.MM, k + 1);
+    viterbi_set_core_trans(v, CORE_TRANS_MI, -nodes[k].trans.MI, k + 0);
+    viterbi_set_core_trans(v, CORE_TRANS_MD, -nodes[k].trans.MD, k + 1);
+    viterbi_set_core_trans(v, CORE_TRANS_IM, -nodes[k].trans.IM, k + 1);
+    viterbi_set_core_trans(v, CORE_TRANS_II, -nodes[k].trans.II, k + 0);
+    viterbi_set_core_trans(v, CORE_TRANS_DM, -nodes[k].trans.DM, k + 1);
+    viterbi_set_core_trans(v, CORE_TRANS_DD, -nodes[k].trans.DD, k + 1);
+  }
+  viterbi_set_core_trans(v, CORE_TRANS_MI, INFINITY, K - 1);
+  viterbi_set_core_trans(v, CORE_TRANS_II, INFINITY, K - 1);
+
+  for (size_t i = 0; i < DCP_ABC_TABLE_SIZE; ++i)
+  {
+    viterbi_set_null(v, -x->null.emission[i], i);
+    viterbi_set_background(v, -x->bg.emission[i], i);
+
+    for (int k = 0; k < K; ++k)
+      viterbi_set_match(v, -x->nodes[k].emission[i], k, i);
+  }
   return 0;
 }
