@@ -753,7 +753,7 @@ static void before(struct trellis *tr, int K)
 
   trellis_clear_xnode(tr);
   trellis_set(tr, STATE_N, 0);
-  trellis_set(tr, STATE_B, 0); // SB
+  trellis_set(tr, STATE_B, 0);
   trellis_clear_node(tr);
   trellis_set(tr, STATE_M, 0);
   for (int k = 0; k + 1 < K; ++k)
