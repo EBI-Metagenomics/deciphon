@@ -209,7 +209,7 @@ struct viterbi
 #if __AVX__
 #define add(a, b)                     _mm256_add_ps(a, b)
 #define and(a, b)                     _mm256_and_si256(a, b)
-#define blendf(m, a, b)               _mm256_blendv_ps(b, a, m)
+#define blendf(m, a, b)               _mm256_blendv_ps(b, a, castf(m))
 #define blendu(m, a, b)               _mm256_blendv_epi8(b, a, m)
 #define castf(x)                      _mm256_castsi256_ps(x)
 #define castu(x)                      _mm256_castps_si256(x)
@@ -282,7 +282,7 @@ INLINE void setf(packf *x, f32 v, int e)
   int32_t m[2 * NUM_LANES] = {0};
   m[NUM_LANES] = -1;
   packu mask = loadu((void const *)(m + NUM_LANES - (e & (NUM_LANES - 1))));
-  *x = blendf(castf(mask), broad, *x);
+  *x = blendf(mask, broad, *x);
 }
 
 __attribute__((unused)) INLINE void setu(packu *x, u32 v, int e)
