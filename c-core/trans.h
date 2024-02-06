@@ -1,10 +1,9 @@
 #ifndef TRANS_H
 #define TRANS_H
 
-enum
-{
-  TRANS_SIZE = 7
-};
+#include "compiler_attributes.h"
+
+#define TRANS_SIZE 7
 
 struct trans
 {
@@ -19,7 +18,7 @@ struct trans
       float II;
       float DM;
       float DD;
-    } __attribute__((packed));
+    } __attribute_packed;
     struct
     {
       float data[TRANS_SIZE];
