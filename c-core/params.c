@@ -1,6 +1,5 @@
 #include "params.h"
 #include "error.h"
-#include "rc.h"
 #include "thread.h"
 
 int params_setup(struct params *x, int num_threads, bool multi_hits,

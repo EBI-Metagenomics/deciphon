@@ -1,6 +1,5 @@
 #include "format.h"
 #include "error.h"
-#include "rc.h"
 #include <limits.h>
 #include <stdarg.h>
 #include <stdio.h>

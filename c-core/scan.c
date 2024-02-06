@@ -6,7 +6,6 @@
 #include "hmmer_dialer.h"
 #include "product.h"
 #include "protein_reader.h"
-#include "rc.h"
 #include "sequence_queue.h"
 #include "thread.h"
 #include "thread_params.h"

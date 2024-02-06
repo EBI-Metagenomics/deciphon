@@ -10,7 +10,6 @@
 #include "imm/nuclt_code.h"
 #include "model.h"
 #include "nuclt_dist.h"
-#include "rc.h"
 #include "state.h"
 #include "xrealloc.h"
 #include <assert.h>

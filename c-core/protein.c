@@ -17,7 +17,6 @@
 #include "pack.h"
 #include "protein_background.h"
 #include "protein_node.h"
-#include "rc.h"
 #include "state.h"
 #include "unpack.h"
 #include "viterbi.h"

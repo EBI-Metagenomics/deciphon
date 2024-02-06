@@ -4,7 +4,6 @@
 #include "error.h"
 #include "format.h"
 #include "fs.h"
-#include "rc.h"
 #include "xstrcpy.h"
 
 void product_init(struct product *x)

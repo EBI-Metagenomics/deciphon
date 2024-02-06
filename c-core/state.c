@@ -1,4 +1,3 @@
-#include "rc.h"
 #include "error.h"
 #include "state.h"
 #include <stdint.h>

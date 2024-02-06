@@ -7,7 +7,6 @@
 #include "lip/file/read_array.h"
 #include "partition_size.h"
 #include "protein_iter.h"
-#include "rc.h"
 #include "sizeof_field.h"
 #include "unpack.h"
 #include <limits.h>

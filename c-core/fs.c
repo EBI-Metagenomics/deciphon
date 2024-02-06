@@ -15,7 +15,6 @@
 
 #include "fs.h"
 #include "error.h"
-#include "rc.h"
 #include "xstrcpy.h"
 #include <errno.h>
 #include <ftw.h>

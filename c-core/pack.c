@@ -4,7 +4,6 @@
 #include "lip/1darray/1darray.h"
 #include "lip/file/write_cstr.h"
 #include "lip/file/write_map.h"
-#include "rc.h"
 
 int pack_key(struct lip_file *file, char const key[])
 {

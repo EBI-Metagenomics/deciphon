@@ -3,7 +3,6 @@
 #include "h3client/deadline.h"
 #include "h3client/dialer.h"
 #include "hmmer.h"
-#include "rc.h"
 #include <stdlib.h>
 
 #define DIAL_DEADLINE 15000

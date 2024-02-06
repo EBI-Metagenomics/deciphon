@@ -7,7 +7,6 @@
 #include "hmmer_result.h"
 #include "match.h"
 #include "match_iter.h"
-#include "rc.h"
 #include <string.h>
 
 int product_thread_init(struct product_thread *x, int tid, char const *dir)

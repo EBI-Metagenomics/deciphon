@@ -3,7 +3,6 @@
 #include "bug.h"
 #include "error.h"
 #include "imm/path.h"
-#include "rc.h"
 #include "xrealloc.h"
 #include <stdlib.h>
 

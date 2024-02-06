@@ -7,7 +7,6 @@
 #include "lip/file/read_float.h"
 #include "lip/file/read_int.h"
 #include "magic_number.h"
-#include "rc.h"
 #include "unpack.h"
 #include <stdlib.h>
 

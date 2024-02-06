@@ -1,7 +1,6 @@
 #include "hmmer_result.h"
 #include "error.h"
 #include "h3client/result.h"
-#include "rc.h"
 #include <math.h>
 #include <stddef.h>
 

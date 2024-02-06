@@ -5,7 +5,6 @@
 #include "h3client/stream.h"
 #include "hmmer_dialer.h"
 #include "hmmer_result.h"
-#include "rc.h"
 
 #define NUM_RETRIES 30
 #define DEADLINE 30000

@@ -2,7 +2,6 @@
 #include "defer_return.h"
 #include "error.h"
 #include "queue.h"
-#include "rc.h"
 #include "sequence.h"
 #include <stdlib.h>
 

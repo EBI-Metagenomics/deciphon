@@ -3,7 +3,6 @@
 #include "disambiguate.h"
 #include "error.h"
 #include "imm/abc.h"
-#include "rc.h"
 #include "xstrdup.h"
 #include <stdlib.h>
 #include <string.h>

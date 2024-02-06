@@ -13,7 +13,6 @@
 #include "magic_number.h"
 #include "pack.h"
 #include "protein.h"
-#include "rc.h"
 
 static void nullify_tempfiles(struct database_writer *x)
 {

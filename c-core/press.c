@@ -7,7 +7,6 @@
 #include "hmm_reader.h"
 #include "imm/gencode.h"
 #include "protein.h"
-#include "rc.h"
 #include "sizeof_field.h"
 #include "xstrcpy.h"
 #include <stdlib.h>

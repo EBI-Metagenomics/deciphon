@@ -6,7 +6,6 @@
 #include "lip/file/read_cstr.h"
 #include "lip/file/read_map.h"
 #include "lip/file/read_str.h"
-#include "rc.h"
 #include <string.h>
 
 int unpack_mapsize(struct lip_file *file, unsigned size)

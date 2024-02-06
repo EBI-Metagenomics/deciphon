@@ -8,9 +8,8 @@ extern "C" {
 #include "api.h"
 #include "params.h"
 #include "press.h"
-#include "rc.h"
 #include "scan.h"
-#include "string_error.h"
+#include "error.h"
 
 #ifdef __cplusplus
 }
