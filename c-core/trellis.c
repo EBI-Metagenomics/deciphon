@@ -26,9 +26,6 @@ int trellis_setup(struct trellis *x, int core_size, int seq_size)
   x->xnodes = xrealloc(x->xnodes, sizeof(*x->xnodes) * num_stages);
   x->nodes = xrealloc(x->nodes, sizeof(*x->nodes) * (num_stages * core_size));
 
-  static_assert(CHAR_BIT * sizeof(*x->xnodes) >= SPECIAL_BITS);
-  static_assert(CHAR_BIT * sizeof(*x->nodes) >= CORE_BITS);
-
   if (!x->xnodes || !x->nodes)
   {
     free(x->xnodes);
@@ -126,22 +123,22 @@ void trellis_seek_node(struct trellis *x, int stage, int core_idx)
 
 CONST unsigned xnode_get_field(uint32_t x, int state)
 {
-  if (state == STATE_S) return bit_extract(x, 0                                                , SBITS);
-  if (state == STATE_N) return bit_extract(x, 0 + SBITS                                        , NBITS);
-  if (state == STATE_B) return bit_extract(x, 0 + SBITS + NBITS                                , BBITS);
-  if (state == STATE_E) return bit_extract(x, 0 + SBITS + NBITS + BBITS                        , EBITS);
-  if (state == STATE_C) return bit_extract(x, 0 + SBITS + NBITS + BBITS + EBITS                , CBITS);
-  if (state == STATE_T) return bit_extract(x, 0 + SBITS + NBITS + BBITS + EBITS + CBITS        , TBITS);
-  if (state == STATE_J) return bit_extract(x, 0 + SBITS + NBITS + BBITS + EBITS + CBITS + TBITS, JBITS);
+  if (state == STATE_S) return bit_extract(x, 0, STATE_S_BITS);
+  if (state == STATE_N) return bit_extract(x, 0 + STATE_S_BITS, STATE_N_BITS);
+  if (state == STATE_B) return bit_extract(x, 0 + STATE_S_BITS + STATE_N_BITS, STATE_B_BITS);
+  if (state == STATE_E) return bit_extract(x, 0 + STATE_S_BITS + STATE_N_BITS + STATE_B_BITS, STATE_E_BITS);
+  if (state == STATE_C) return bit_extract(x, 0 + STATE_S_BITS + STATE_N_BITS + STATE_B_BITS + STATE_E_BITS, STATE_C_BITS);
+  if (state == STATE_T) return bit_extract(x, 0 + STATE_S_BITS + STATE_N_BITS + STATE_B_BITS + STATE_E_BITS + STATE_C_BITS, STATE_T_BITS);
+  if (state == STATE_J) return bit_extract(x, 0 + STATE_S_BITS + STATE_N_BITS + STATE_B_BITS + STATE_E_BITS + STATE_C_BITS + STATE_T_BITS, STATE_J_BITS);
   unreachable();
   return 0;
 }
 
 CONST unsigned node_get_field(uint16_t x, int state)
 {
-  if (state_is_match(state))  return bit_extract(x, 0                , MBITS);
-  if (state_is_delete(state)) return bit_extract(x, 0 + MBITS        , DBITS);
-  if (state_is_insert(state)) return bit_extract(x, 0 + MBITS + DBITS, IBITS);
+  if (state_is_match(state))  return bit_extract(x, 0, STATE_M_BITS);
+  if (state_is_delete(state)) return bit_extract(x, 0 + STATE_M_BITS, STATE_D_BITS);
+  if (state_is_insert(state)) return bit_extract(x, 0 + STATE_M_BITS + STATE_D_BITS, STATE_I_BITS);
   unreachable();
   return 0;
 }

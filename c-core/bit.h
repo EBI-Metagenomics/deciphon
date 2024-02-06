@@ -4,12 +4,14 @@
 #include "compiler_attributes.h"
 #include <limits.h>
 
-__attribute_const unsigned bit_lowset(int n)
+__always_inline __attribute_const
+static unsigned bit_lowset(int n)
 {
   return (n >= (int)sizeof(unsigned) * CHAR_BIT) ? (unsigned)-1 : (1U << n) - 1;
 }
 
-__attribute_const unsigned bit_extract(unsigned x, int low, int size)
+__always_inline __attribute_const
+static unsigned bit_extract(unsigned x, int low, int size)
 {
   return (x >> low) & bit_lowset(size);
 }

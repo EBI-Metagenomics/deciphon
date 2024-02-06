@@ -2,8 +2,6 @@
 #include "state.h"
 #include <stdint.h>
 
-static inline int id_msb(int id) { return id & (3 << (STATE_ID_BITS - 2)); }
-
 int state_make_end(void) { return STATE_T; }
 
 bool state_is_start(int id) { return id == STATE_S; }
@@ -15,15 +13,9 @@ bool state_is_core(int id)
   return state_is_match(id) || state_is_delete(id) || state_is_insert(id);
 }
 
-bool state_is_match(int id) { return id_msb(id) == STATE_M; }
-
-bool state_is_insert(int id) { return id_msb(id) == STATE_I; }
-
-bool state_is_delete(int id) { return id_msb(id) == STATE_D; }
-
 bool state_is_mute(int id)
 {
-  int msb = id_msb(id);
+  int msb = state_id_msb(id);
   return (msb == STATE_X) ? ((id == STATE_S || id == STATE_B || id == STATE_E ||
                               id == STATE_T))
                           : msb == STATE_D;
@@ -53,7 +45,7 @@ static void u16toa(char *str, uint16_t num)
 
 int state_name(int id, char *name)
 {
-  int msb = id_msb(id);
+  int msb = state_id_msb(id);
   if (msb == STATE_X)
   {
     if (id == STATE_F)
