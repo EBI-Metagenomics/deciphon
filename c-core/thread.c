@@ -36,7 +36,6 @@ void thread_init(struct thread *x)
 
 int thread_setup(struct thread *x, struct thread_params params)
 {
-  if (!(x->viterbi = viterbi_new())) return DCP_ENOMEM;
   struct database_reader const *db = params.reader->db;
   protein_setup(&x->protein, database_reader_params(db, NULL));
   int rc = 0;
@@ -59,18 +58,15 @@ int thread_setup(struct thread *x, struct thread_params params)
     if ((rc = hmmer_warmup(&x->hmmer))) return rc;
   }
 
-  return rc;
+  return (x->viterbi = viterbi_new()) ? 0 : DCP_ENOMEM;
 }
 
 void thread_cleanup(struct thread *x)
 {
   x->partition = -1;
   protein_cleanup(&x->protein);
-  if (x->viterbi)
-  {
-    viterbi_del(x->viterbi);
-    x->viterbi = NULL;
-  }
+  viterbi_del(x->viterbi);
+  x->viterbi = NULL;
   chararray_cleanup(&x->amino);
   hmmer_cleanup(&x->hmmer);
   imm_path_cleanup(&x->path);

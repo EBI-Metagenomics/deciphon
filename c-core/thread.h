@@ -10,9 +10,9 @@
 
 #define THREAD_MAX 128
 
-struct chararray;
 struct product_thread;
 struct sequence_queue;
+struct viterbi;
 
 struct thread
 {
@@ -30,14 +30,9 @@ struct thread
   struct imm_path path;
 };
 
-struct hmmer_dialer;
-struct sequence;
-
-// clang-format off
 void thread_init(struct thread *);
 int  thread_setup(struct thread *, struct thread_params);
 void thread_cleanup(struct thread *);
 int  thread_run(struct thread *, struct sequence_queue const *, int *done_proteins);
-// clang-format on
 
 #endif
