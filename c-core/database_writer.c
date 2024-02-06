@@ -7,6 +7,7 @@
 #include "lip/file/read_int.h"
 #include "lip/file/write_array.h"
 #include "lip/file/write_bool.h"
+#include "lip/file/write_cstr.h"
 #include "lip/file/write_float.h"
 #include "lip/file/write_int.h"
 #include "magic_number.h"
