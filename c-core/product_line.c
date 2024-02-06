@@ -24,11 +24,11 @@ void product_line_init(struct product_line *x)
 int product_line_set_protein(struct product_line *x, char const *accession)
 {
   size_t size = array_size_field(struct product_line, protein);
-  return xstrcpy(x->protein, accession, size) ? 0 : error(DCP_ELONGACCESSION);
+  return xstrcpy(x->protein, accession, size) ? error(DCP_ELONGACCESSION) : 0;
 }
 
 int product_line_set_abc(struct product_line *x, char const *abc)
 {
   size_t size = array_size_field(struct product_line, abc);
-  return xstrcpy(x->abc, abc, size) ? 0 : error(DCP_ELONGABC);
+  return xstrcpy(x->abc, abc, size) ? error(DCP_ELONGABC) : 0;
 }

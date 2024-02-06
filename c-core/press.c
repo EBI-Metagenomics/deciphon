@@ -180,7 +180,7 @@ static int protein_write(struct press *x)
 
   if (!x->protein.has_ga) x->has_ga = false;
   size_t n = array_size_field(struct protein, accession);
-  if (!xstrcpy(x->protein.accession, x->reader.h3.protein.meta.acc, n))
+  if (xstrcpy(x->protein.accession, x->reader.h3.protein.meta.acc, n))
     return error(DCP_ELONGACCESSION);
 
   return database_writer_pack(&x->writer.db, &x->protein);

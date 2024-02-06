@@ -10,7 +10,7 @@
 //   9acd8b6758a0ca5d21db6d167e0277484341929b/src/p7_pipeline.c#L714
 static int const WINDOW_SIZE = 3 * (100000 - 5000);
 
-__attribute_const__ int max_size(int core_size) { return core_size * 3 * 3; }
+__attribute_const int max_size(int core_size) { return core_size * 3 * 3; }
 
 struct window window_setup(struct sequence const *x, int core_size)
 {

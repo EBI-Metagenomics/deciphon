@@ -1,6 +1,6 @@
 #include "xstrcpy.h"
 
-static inline size_t bsd_strlcpy(char *dst, char const *src, size_t dsize)
+int xstrcpy(char *dst, char const *src, size_t dsize)
 {
   char const *osrc = src;
   size_t nleft = dsize;
@@ -20,10 +20,5 @@ static inline size_t bsd_strlcpy(char *dst, char const *src, size_t dsize)
       ;
   }
 
-  return (size_t)(src - osrc - 1);
-}
-
-bool xstrcpy(char *dst, char const *src, size_t dsize)
-{
-  return bsd_strlcpy(dst, src, dsize) < dsize;
+  return (size_t)(src - osrc - 1) >= dsize;
 }

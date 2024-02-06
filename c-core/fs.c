@@ -177,7 +177,7 @@ int fs_size(char const *filepath, long *size)
 int fs_mkstemp(FILE **fp, char const *template)
 {
   char path[FS_PATH_MAX] = {0};
-  if (!xstrcpy(path, template, sizeof path)) return error(DCP_ENOMEM);
+  if (xstrcpy(path, template, sizeof path)) return error(DCP_ENOMEM);
 
   int fd = mkstemp(path);
   if (fd < 0) return error(DCP_EMKSTEMP);
