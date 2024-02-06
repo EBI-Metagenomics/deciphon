@@ -6,7 +6,7 @@
 #include "imm/frame_cond.h"
 #include "imm/gencode.h"
 #include "imm/lprob.h"
-#include "imm/min.h"
+#include "min.h"
 #include "imm/nuclt_code.h"
 #include "imm/rnd.h"
 #include "lip/file/file.h"
@@ -125,10 +125,10 @@ int protein_absorb(struct protein *x, struct model *m)
   for (int i = 0; i <= core_size; ++i)
   {
     float *e = x->emission + i * PROTEIN_NODE_SIZE;
-    struct model_node const *node = &m->alt.nodes[imm_min(i, core_size - 1)];
+    struct model_node const *node = &m->alt.nodes[min(i, core_size - 1)];
     imm_score_table_scores(&x->score_table, &node->match.state.super, e);
     x->nodes[i].nuclt_dist = node->match.nucltd;
-    x->nodes[i].trans = m->alt.trans[imm_min(i + 1, core_size)];
+    x->nodes[i].trans = m->alt.trans[min(i + 1, core_size)];
     x->nodes[i].emission = e;
   }
 

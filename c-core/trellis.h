@@ -1,10 +1,33 @@
 #ifndef TRELLIS_H
 #define TRELLIS_H
 
-#include "bit.h"
 #include "compiler.h"
 #include "state.h"
-#include "trellis_bits.h"
+#include "build_bug.h"
+#include <limits.h>
+#include <stdint.h>
+
+// Number of bits used by each special state
+#define SBITS 0  // starting state
+#define NBITS 4  // (S, N)        -> N: 1bit + (emis_size=5): 3bits
+#define BBITS 2  // (S, N, E, J)  -> B: 2bits
+#define EBITS 15 // (Mk, Dk)      -> E: 1bit + (core_size=16,384): 14bits
+#define CBITS 4  // (E, C)        -> C: 1bit + (emis_size=5): 3bits
+#define TBITS 1  // (E, C)        -> T: 1bit
+#define JBITS 4  // (E, J)        -> J: 1bit + (emis_size=5): 3bits
+
+// Total number of bits used by special states
+#define SPECIAL_BITS (SBITS + NBITS + BBITS + EBITS + CBITS + TBITS + JBITS)
+static_assert(SPECIAL_BITS <= sizeof(uint32_t) * CHAR_BIT);
+
+// Number of bits used by each core state
+#define MBITS 5 // (B, Mk, Ik, Dk) -> Mn: 2bits + (emis_size=5): 3bits
+#define DBITS 1 // (Mk, Dk)        -> Dn: 1bit
+#define IBITS 4 // (Mk, Ik)        -> Ik: 1bits + (emis_size=5): 3bits
+
+// Total number of bits used by core states
+#define CORE_BITS (MBITS + DBITS + IBITS)
+static_assert(CORE_BITS <= sizeof(uint16_t) * CHAR_BIT);
 
 struct imm_path;
 
@@ -19,12 +42,9 @@ struct trellis
   uint16_t *node;
 };
 
-// clang-format off
 void        trellis_init(struct trellis *);
 int         trellis_setup(struct trellis *, int core_size, int seq_size);
 void        trellis_cleanup(struct trellis *);
-int         trellis_previous_state(struct trellis const *, int id);
-int         trellis_emission_size(struct trellis const *, int id);
 INLINE void trellis_next_xnode(struct trellis *x) { x->xnode++; }
 INLINE void trellis_next_node(struct trellis *x) { x->node++; }
 void        trellis_seek_xnode(struct trellis *x, int stage);
@@ -32,26 +52,9 @@ void        trellis_seek_node(struct trellis *x, int stage, int core_idx);
 INLINE void trellis_clear_xnode(struct trellis *x) { *x->xnode = 0; }
 INLINE void trellis_clear_node(struct trellis *x) { *x->node = 0; }
 int         trellis_unzip(struct trellis *, int seq_size, struct imm_path *);
-// clang-format on
 
-// clang-format off
 INLINE void trellis_set(struct trellis *x, int id, int value)
 {
-  /* long sz = x->node - x->nodes; */
-  /* long stage = sz / x->core_size; */
-  /* long k = sz - stage * x->core_size; */
-  /* if      (id == STATE_S) printf("S: %d\n", value); */
-  /* else if (id == STATE_N) printf("N: %d\n", value); */
-  /* else if (id == STATE_B) printf("B: %d\n", value); */
-  /* else if (id == STATE_E) printf("E: %d\n", value); */
-  /* else if (id == STATE_C) printf("C: %d\n", value); */
-  /* else if (id == STATE_T) printf("T: %d\n", value); */
-  /* else if (id == STATE_J) printf("J: %d\n", value); */
-  /* else if (state_is_match(id))  printf("M%ld: %d\n", k, value); */
-  /* else if (state_is_delete(id)) printf("D%ld: %d\n", k, value); */
-  /* else if (state_is_insert(id)) printf("I%ld: %d\n", k, value); */
-  /* else UNREACHABLE(); */
-
   unsigned v = *(unsigned *)&value;
   if      (id == STATE_S) *x->xnode |= v << (0);
   else if (id == STATE_N) *x->xnode |= v << (0 + SBITS);
@@ -65,13 +68,5 @@ INLINE void trellis_set(struct trellis *x, int id, int value)
   else if (state_is_insert(id)) *x->node |= v << (0 + MBITS + DBITS);
   else UNREACHABLE();
 }
-
-INLINE void trellis_replace(struct trellis *x, int id, int value)
-{
-  assert(id == STATE_B);
-  *x->xnode &= ~bit_rangeset(SBITS + NBITS, BBITS);
-  trellis_set(x, id, value);
-}
-// clang-format on
 
 #endif

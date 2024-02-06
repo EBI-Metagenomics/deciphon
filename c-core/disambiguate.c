@@ -1,21 +1,19 @@
 #include "array_size.h"
-#include "compiler.h"
+#include "build_bug.h"
 #include <stddef.h>
 
-// clang-format off
 #define ix(x)                                                                  \
   (x == 'A' ? 0 :                                                              \
    x == 'C' ? 1 :                                                              \
    x == 'G' ? 2 :                                                              \
    x == 'T' ? 3 :                                                              \
-   bug_on_reach())
+   BUILD_BUG_ON_ZERO(0))
 #define ch(x)                                                                  \
   (x == 0 ? 'A' :                                                              \
    x == 1 ? 'C' :                                                              \
    x == 2 ? 'G' :                                                              \
    x == 3 ? 'T' :                                                              \
-   bug_on_reach())
-// clang-format on
+   BUILD_BUG_ON_ZERO(0))
 
 static int R[] = {ix('A'), ix('G')};
 static int Y[] = {ix('C'), ix('T')};

@@ -1,7 +1,8 @@
 #ifndef COMPILER_H
 #define COMPILER_H
 
-#include <assert.h>
+#define unlikely(x) __builtin_expect(!!(x), 0)
+#define unreachable() __builtin_unreachable()
 
 #ifdef __has_builtin
 #define HAS_BUILTIN(x) __has_builtin(x)
@@ -76,11 +77,5 @@
 #define ALIGNED __attribute__((aligned(16)))
 #define ASSUME_ALIGNED(x) __builtin_assume_aligned(x, 16)
 #endif
-
-UNUSED CONST int bug_on_reach(void)
-{
-  assert(0);
-  return 0;
-}
 
 #endif

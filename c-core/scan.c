@@ -128,7 +128,6 @@ int scan_run(struct scan *x, char const *product_dir)
 #pragma omp critical
     if (r && !rc) rc = r;
   }
-  assert(x->done_proteins == x->total_proteins);
 
 defer:
   for (int i = 0; i < num_threads; ++i)

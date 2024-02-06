@@ -1,6 +1,6 @@
 #include "state.h"
+#include "bug.h"
 #include "xu16toa.h"
-#include <assert.h>
 
 static inline int id_msb(int id) { return id & (3 << (STATE_ID_BITS - 2)); }
 
@@ -57,7 +57,7 @@ char *state_name(int id, char *name)
     else if (id == STATE_T)
       name[0] = 'T';
     else
-      assert(0);
+      BUG();
     name[1] = '\0';
     return name;
   }
@@ -70,7 +70,7 @@ char *state_name(int id, char *name)
     else if (msb == STATE_D)
       name[0] = 'D';
     else
-      assert(0);
+      BUG();
     xu16toa(name + 1, (uint16_t)(state_core_idx(id) + 1));
     return name;
   }

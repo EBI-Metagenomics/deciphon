@@ -3,13 +3,14 @@
 #include "defer_return.h"
 #include "error.h"
 #include "fs.h"
-#include "imm/min.h"
+#include "min.h"
 #include "lip/file/read_array.h"
 #include "partition_size.h"
 #include "protein_iter.h"
 #include "rc.h"
 #include "sizeof_field.h"
 #include "unpack.h"
+#include <limits.h>
 #include <string.h>
 
 void protein_reader_init(struct protein_reader *x)
@@ -30,7 +31,7 @@ int protein_reader_setup(struct protein_reader *x, struct database_reader *db,
 
   if (num_partitions == 0) return error(DCP_EZEROPART);
   if (num_partitions > DCP_NPARTITIONS_MAX) return error(DCP_EMANYPARTS);
-  x->num_partitions = imm_min(num_partitions, db->num_proteins);
+  x->num_partitions = min(num_partitions, db->num_proteins);
 
   if ((rc = unpack_key(&db->file, "proteins"))) return rc;
 
