@@ -64,15 +64,15 @@ defer:
 int product_thread_put_hmmer(struct product_thread *x,
                              struct hmmer_result const *result)
 {
-  char file[DCP_PATH_MAX] = {0};
+  char file[FS_PATH_MAX] = {0};
   int rc = 0;
   char const *dir = x->dirname;
   long seq = x->line.sequence;
   char *prot = x->line.protein;
 
-  if ((rc = format(file, DCP_PATH_MAX, "%s/hmmer/%ld", dir, seq))) return rc;
+  if ((rc = format(file, FS_PATH_MAX, "%s/hmmer/%ld", dir, seq))) return rc;
   if ((rc = fs_mkdir(file, true))) return rc;
-  if ((rc = format(file, DCP_PATH_MAX, "%s/hmmer/%ld/%s.h3r", dir, seq, prot)))
+  if ((rc = format(file, FS_PATH_MAX, "%s/hmmer/%ld/%s.h3r", dir, seq, prot)))
     return rc;
 
   FILE *fp = fopen(file, "wb");

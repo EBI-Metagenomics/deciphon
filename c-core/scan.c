@@ -15,7 +15,7 @@
 struct scan
 {
   struct params params;
-  struct thread threads[DCP_NTHREADS_MAX];
+  struct thread threads[THREAD_MAX];
 
   struct product product;
   struct sequence_queue sequences;

@@ -16,7 +16,6 @@
 #include "fs.h"
 #include "error.h"
 #include "rc.h"
-#include "xlimits.h"
 #include "xstrcpy.h"
 #include <errno.h>
 #include <ftw.h>
@@ -177,7 +176,7 @@ int fs_size(char const *filepath, long *size)
 
 int fs_mkstemp(FILE **fp, char const *template)
 {
-  char path[DCP_PATH_MAX] = {0};
+  char path[FS_PATH_MAX] = {0};
   if (!xstrcpy(path, template, sizeof path)) return error(DCP_ENOMEM);
 
   int fd = mkstemp(path);

@@ -1,7 +1,7 @@
 #ifndef PROTEIN_READER_H
 #define PROTEIN_READER_H
 
-#include "xlimits.h"
+#define PROTEIN_READER_MAX_PARTITIONS 128
 
 struct database_reader;
 struct protein_iter;
@@ -9,8 +9,8 @@ struct protein_iter;
 struct protein_reader
 {
   int num_partitions;
-  int size_cumsum[DCP_NPARTITIONS_MAX + 1];
-  long offset[DCP_NPARTITIONS_MAX + 1];
+  int size_cumsum[PROTEIN_READER_MAX_PARTITIONS + 1];
+  long offset[PROTEIN_READER_MAX_PARTITIONS + 1];
   struct database_reader *db;
 };
 

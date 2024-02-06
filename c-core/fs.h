@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#define FS_PATH_MAX 512
+
 int fs_tell(FILE *restrict, long *offset);
 int fs_seek(FILE *restrict, long offset, int whence);
 int fs_copy(FILE *restrict dst, FILE *restrict src);

@@ -188,7 +188,7 @@ int model_setup(struct model *x, int core_size)
   int rc = 0;
   if (core_size == 0) return error(DCP_EZEROMODEL);
 
-  if (core_size > DCP_MODEL_MAX) return error(DCP_ELARGEMODEL);
+  if (core_size > MODEL_MAX) return error(DCP_ELARGEMODEL);
 
   x->core_size = core_size;
   x->consensus[core_size] = '\0';

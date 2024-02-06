@@ -4,7 +4,6 @@
 enum extr_trans_id
 {
   EXTR_TRANS_RR,
-
   EXTR_TRANS_SN,
   EXTR_TRANS_NN,
   EXTR_TRANS_SB,
@@ -50,5 +49,6 @@ float viterbi_cost(struct viterbi *, int L, viterbi_code_fn, void *);
 int   viterbi_path(struct viterbi *, int L, viterbi_code_fn, void *);
 
 struct trellis *viterbi_trellis(struct viterbi *);
+int             viterbi_table_size(void);
 
 #endif

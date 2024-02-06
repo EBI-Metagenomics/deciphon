@@ -5,15 +5,14 @@
 #include "model.h"
 #include "protein_background.h"
 #include "protein_null.h"
-#include "xlimits.h"
 
 struct protein
 {
   struct model_params params;
 
-  char accession[DCP_ACCESSION_SIZE];
+  char accession[32];
   struct imm_score_table score_table;
-  char consensus[DCP_MODEL_MAX + 1];
+  char consensus[MODEL_MAX + 1];
 
   int core_size;
   bool has_ga;

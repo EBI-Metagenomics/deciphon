@@ -1,6 +1,5 @@
 #include "viterbi.h"
 #include "trellis.h"
-#include "xlimits.h"
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -21,6 +20,9 @@
 #else
   #error "We require either AVX or NEON feature."
 #endif
+
+#define TIME_FRAME 6
+#define TABLE_SIZE 1364
 
 #define INLINE static inline __attribute__((always_inline))
 
@@ -83,8 +85,8 @@ INLINE int step_data(u32 x)
 
 struct emission
 {
-  f32 null[DCP_ABC_TABLE_SIZE];
-  packf background[DCP_ABC_TABLE_SIZE];
+  f32 null[TABLE_SIZE];
+  packf background[TABLE_SIZE];
   packf *match;
 };
 
@@ -170,7 +172,7 @@ struct viterbi
   int K;
   int Q;
   int maxQ;
-  struct extr_state extr_state[DCP_PAST_SIZE];
+  struct extr_state extr_state[TIME_FRAME];
   struct core_state *core_state;
 
   struct emission emission;
@@ -391,13 +393,13 @@ static inline void core_trans_init(struct core_trans *x)
 
 static inline void emission_init(struct emission *x, int Q)
 {
-  for (int i = 0; i < DCP_ABC_TABLE_SIZE; ++i)
+  for (int i = 0; i < TABLE_SIZE; ++i)
   {
     x->null[i] = INFINITY;
     x->background[i] = dupf(INFINITY);
   }
 
-  for (int i = 0; i < DCP_ABC_TABLE_SIZE * Q; ++i)
+  for (int i = 0; i < TABLE_SIZE * Q; ++i)
     x->match[i] = dupf(INFINITY);
 }
 
@@ -483,19 +485,19 @@ int viterbi_setup(struct viterbi *x, int K)
   x->K = K;
   int Q = x->Q = num_packs(K);
 
-  for (int t = 0; t < DCP_PAST_SIZE; ++t)
+  for (int t = 0; t < TIME_FRAME; ++t)
     extr_state_init(x->extr_state, t);
 
   if (Q > x->maxQ)
   {
     free(x->core_state);
     x->core_state = aligned_alloc(
-        ALIGNMENT, sizeof(struct core_state[DCP_PAST_SIZE][Q]));
+        ALIGNMENT, sizeof(struct core_state[TIME_FRAME][Q]));
     if (!x->core_state) return 1;
 
     free(x->emission.match);
     x->emission.match =
-        aligned_alloc(ALIGNMENT, sizeof(packf[DCP_ABC_TABLE_SIZE][Q]));
+        aligned_alloc(ALIGNMENT, sizeof(packf[TABLE_SIZE][Q]));
     if (!x->emission.match) return 1;
 
     free(x->core_trans);
@@ -516,7 +518,7 @@ int viterbi_setup(struct viterbi *x, int K)
 
   for (int q = 0; q < Q; ++q)
   {
-    for (int t = 0; t < DCP_PAST_SIZE; ++t)
+    for (int t = 0; t < TIME_FRAME; ++t)
       core_state_init(x->core_state, t, q, Q);
   }
 
@@ -619,15 +621,15 @@ INLINE f32 cost(struct viterbi *x, int L, int path, viterbi_code_fn code_fn,
   if (path) before(&x->trellis, x->K);
   for (int l = 1; l <= L; ++l)
   {
-    extr_state_init(xs, imin(DCP_PAST_SIZE - 1, l));
+    extr_state_init(xs, imin(TIME_FRAME - 1, l));
     prev_extr_state_init(px);
     for (int q = 0; q < Q; ++q)
     {
-      core_state_init(cs, imin(DCP_PAST_SIZE - 1, l), q, Q);
+      core_state_init(cs, imin(TIME_FRAME - 1, l), q, Q);
       prev_core_state_init(&pc[q]);
     }
 
-    for (int t = imin(DCP_PAST_SIZE - 1, l); t > 0; --t)
+    for (int t = imin(TIME_FRAME - 1, l); t > 0; --t)
     {
       int code = code_fn(l - t, t, code_arg);
       f32 nil = em.null[code];
@@ -842,14 +844,14 @@ float viterbi_null(struct viterbi *x, int L, viterbi_code_fn fn, void *arg)
 {
   float RR = x->extr_trans.RR;
   struct emission const em = x->emission;
-  float R[DCP_PAST_SIZE] = {};
-  for (int i = 0; i < DCP_PAST_SIZE; ++i)
+  float R[TIME_FRAME] = {};
+  for (int i = 0; i < TIME_FRAME; ++i)
     R[i] = INFINITY;
   R[0] = -RR;
   for (int l = 1; l <= L; ++l)
   {
-    R[imin(DCP_PAST_SIZE - 1, l)] = INFINITY;
-    for (int t = imin(DCP_PAST_SIZE - 1, l); t > 0; --t)
+    R[imin(TIME_FRAME - 1, l)] = INFINITY;
+    for (int t = imin(TIME_FRAME - 1, l); t > 0; --t)
     {
       int code = fn(l - t, t, arg);
       f32 nil = em.null[code];
@@ -880,6 +882,8 @@ struct trellis *viterbi_trellis(struct viterbi *x)
 {
   return &x->trellis;
 }
+
+int viterbi_table_size(void) { return TABLE_SIZE; }
 
 __attribute__((unused)) static void dump_trellis(struct viterbi const *x, int l)
 {

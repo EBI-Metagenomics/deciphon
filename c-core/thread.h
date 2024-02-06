@@ -8,6 +8,8 @@
 #include "protein_iter.h"
 #include "thread_params.h"
 
+#define THREAD_MAX 128
+
 struct chararray;
 struct product_thread;
 struct sequence_queue;

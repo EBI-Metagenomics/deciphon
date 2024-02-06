@@ -110,7 +110,7 @@ int protein_absorb(struct protein *x, struct model *m)
     defer_return(error(DCP_ELONGCONSENSUS));
 
   int core_size = x->core_size = m->core_size;
-  if (core_size > DCP_CORE_SIZE) defer_return(error(DCP_ELARGECORESIZE));
+  if (core_size > MODEL_MAX) defer_return(error(DCP_ELARGECORESIZE));
   protein_null_absorb(&x->null, &x->score_table, &m->null.nuclt_dist,
                       &m->null.state.super);
   protein_background_absorb(&x->bg, m, &x->score_table);
@@ -414,9 +414,9 @@ int protein_setup_viterbi(struct protein const *x, struct viterbi *v)
 
   struct xtrans xt = x->xtrans;
   viterbi_set_extr_trans(v, EXTR_TRANS_RR, -x->null.RR);
-  viterbi_set_extr_trans(v, EXTR_TRANS_SN, -xt.NN);
+  viterbi_set_extr_trans(v, EXTR_TRANS_SN, -0 - xt.NN);
   viterbi_set_extr_trans(v, EXTR_TRANS_NN, -xt.NN);
-  viterbi_set_extr_trans(v, EXTR_TRANS_SB, -xt.NB);
+  viterbi_set_extr_trans(v, EXTR_TRANS_SB, -0 - xt.NB);
   viterbi_set_extr_trans(v, EXTR_TRANS_NB, -xt.NB);
   viterbi_set_extr_trans(v, EXTR_TRANS_EB, -xt.EJ - xt.JB);
   viterbi_set_extr_trans(v, EXTR_TRANS_JB, -xt.JB);
@@ -451,7 +451,7 @@ int protein_setup_viterbi(struct protein const *x, struct viterbi *v)
   viterbi_set_core_trans(v, CORE_TRANS_MI, INFINITY, K - 1);
   viterbi_set_core_trans(v, CORE_TRANS_II, INFINITY, K - 1);
 
-  for (size_t i = 0; i < DCP_ABC_TABLE_SIZE; ++i)
+  for (int i = 0; i < viterbi_table_size(); ++i)
   {
     viterbi_set_null(v, -x->null.emission[i], i);
     viterbi_set_background(v, -x->bg.emission[i], i);

@@ -30,7 +30,8 @@ int protein_reader_setup(struct protein_reader *x, struct database_reader *db,
   x->db = db;
 
   if (num_partitions == 0) return error(DCP_EZEROPART);
-  if (num_partitions > DCP_NPARTITIONS_MAX) return error(DCP_EMANYPARTS);
+  if (num_partitions > PROTEIN_READER_MAX_PARTITIONS)
+    return error(DCP_EMANYPARTS);
   x->num_partitions = min(num_partitions, db->num_proteins);
 
   if ((rc = unpack_key(&db->file, "proteins"))) return rc;
