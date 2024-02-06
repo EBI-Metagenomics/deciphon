@@ -34,7 +34,7 @@ int          scan_run(struct scan *, char const *product_dir);
 
 
 // Strerror
-char const *string_error(int err);
+char const *error_string(int error_code);
 
 // H3client
 struct h3client_result *h3client_result_new(void);
