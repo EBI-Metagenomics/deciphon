@@ -1,6 +1,7 @@
+#include "rc.h"
+#include "error.h"
 #include "state.h"
-#include "bug.h"
-#include "xu16toa.h"
+#include <stdint.h>
 
 static inline int id_msb(int id) { return id & (3 << (STATE_ID_BITS - 2)); }
 
@@ -31,7 +32,27 @@ bool state_is_mute(int id)
 
 int state_core_idx(int id) { return (id & (0xFFFF >> 2)) - 1; }
 
-char *state_name(int id, char *name)
+/* Convert uint16_t to null-terminated string.
+ * Return the string length. */
+static void u16toa(char *str, uint16_t num)
+{
+  *str = '0';
+
+  unsigned denom = 10000;
+  while (denom > 1 && !(num / denom))
+    denom /= 10;
+
+  while (denom)
+  {
+    *str = (char)('0' + (num / denom));
+    num %= denom;
+    ++str;
+    denom /= 10;
+  }
+  *str = 0;
+}
+
+int state_name(int id, char *name)
 {
   int msb = id_msb(id);
   if (msb == STATE_X)
@@ -57,9 +78,9 @@ char *state_name(int id, char *name)
     else if (id == STATE_T)
       name[0] = 'T';
     else
-      BUG();
+      return error(DCP_EINVALSTATEID);
     name[1] = '\0';
-    return name;
+    return 0;
   }
   else
   {
@@ -70,9 +91,9 @@ char *state_name(int id, char *name)
     else if (msb == STATE_D)
       name[0] = 'D';
     else
-      BUG();
-    xu16toa(name + 1, (uint16_t)(state_core_idx(id) + 1));
-    return name;
+      return error(DCP_EINVALSTATEID);
+    u16toa(name + 1, (uint16_t)(state_core_idx(id) + 1));
+    return 0;
   }
 }
 

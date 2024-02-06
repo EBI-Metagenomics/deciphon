@@ -73,6 +73,7 @@ enum rc
   DCP_EENDOFNODES    = 67,
   DCP_EDBVERSION     = 68,
   DCP_ENOTDBFILE     = 69,
+  DCP_EINVALSTATEID  = 70,
 };
 // clang-format on
 

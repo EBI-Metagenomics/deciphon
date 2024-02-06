@@ -96,7 +96,8 @@ static int write_match(FILE *fp, struct match const *m)
   ptr += imm_seq_size(&m->seq);
   *ptr++ = ',';
 
-  match_state_name(m, ptr);
+  int rc = match_state_name(m, ptr);
+  if (rc) return rc;
   ptr += strlen(ptr);
   *ptr++ = ',';
 

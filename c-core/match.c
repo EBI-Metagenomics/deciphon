@@ -22,9 +22,9 @@ int match_setup(struct match *x, struct imm_step step, struct imm_seq seq)
   return 0;
 }
 
-void match_state_name(struct match const *x, char *dst)
+int match_state_name(struct match const *x, char *dst)
 {
-  state_name(x->step.state_id, dst);
+  return state_name(x->step.state_id, dst);
 }
 
 bool match_state_is_mute(struct match const *x)

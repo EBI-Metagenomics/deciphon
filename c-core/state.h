@@ -3,10 +3,7 @@
 
 #include <stdbool.h>
 
-enum
-{
-  STATE_ID_BITS = 16
-};
+#define STATE_ID_BITS 16
 
 enum state_id
 {
@@ -26,20 +23,18 @@ enum state_id
   STATE_T = (STATE_X | 9),
 };
 
-// clang-format off
-int   state_make_end(void);
-bool  state_is_start(int id);
-bool  state_is_end(int id);
-bool  state_is_core(int id);
-bool  state_is_match(int id);
-bool  state_is_insert(int id);
-bool  state_is_delete(int id);
-bool  state_is_mute(int id);
-int   state_core_idx(int id);
-char *state_name(int id, char *name);
-int   state_make_match_id(int idx);
-int   state_make_insert_id(int idx);
-int   state_make_delete_id(int idx);
-// clang-format on
+int  state_make_end(void);
+bool state_is_start(int id);
+bool state_is_end(int id);
+bool state_is_core(int id);
+bool state_is_match(int id);
+bool state_is_insert(int id);
+bool state_is_delete(int id);
+bool state_is_mute(int id);
+int  state_core_idx(int id);
+int  state_name(int id, char *name);
+int  state_make_match_id(int idx);
+int  state_make_insert_id(int idx);
+int  state_make_delete_id(int idx);
 
 #endif

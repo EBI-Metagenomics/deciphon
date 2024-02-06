@@ -223,9 +223,14 @@ defer:
   return rc;
 }
 
+char *state_name_wrap(int id, char *name)
+{
+  return state_name(id, name) ? NULL : name;
+}
+
 void model_write_dot(struct model const *x, FILE *fp)
 {
-  imm_hmm_dump(x->alt.hmm, state_name, fp);
+  imm_hmm_dump(x->alt.hmm, state_name_wrap, fp);
 }
 
 int add_xnodes(struct model *x)

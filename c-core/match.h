@@ -18,7 +18,7 @@ struct match
 // clang-format off
 struct match     match_init(struct protein const *);
 int              match_setup(struct match *, struct imm_step, struct imm_seq);
-void             match_state_name(struct match const *, char *dst);
+int              match_state_name(struct match const *, char *dst);
 bool             match_state_is_mute(struct match const *);
 bool             match_state_is_core(struct match const *);
 char             match_amino(struct match const *);

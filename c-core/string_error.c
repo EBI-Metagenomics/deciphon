@@ -72,6 +72,7 @@ static char const *msg[] = {
     [DCP_EENDOFNODES] = "unexpected end of nodes",
     [DCP_EDBVERSION] = "unsupported database version",
     [DCP_ENOTDBFILE] = "not a database file",
+    [DCP_EINVALSTATEID] = "invalid state id",
 };
 
 char const *string_error(int error_code)
