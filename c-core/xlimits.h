@@ -11,6 +11,7 @@ enum
   DCP_ACCESSION_SIZE = 32,
   DCP_CORE_SIZE = 16384,
   DCP_PAST_SIZE = 6,
+  DCP_ABC_TABLE_SIZE = 1364,
 };
 
 #endif

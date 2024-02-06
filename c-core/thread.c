@@ -17,7 +17,7 @@
 #include "sequence_queue.h"
 #include "setup_viterbi.h"
 #include "trellis.h"
-#include "vit.h"
+#include "viterbi.h"
 #include "window.h"
 
 void thread_init(struct thread *x)
@@ -37,7 +37,7 @@ void thread_init(struct thread *x)
 
 int thread_setup(struct thread *x, struct thread_params params)
 {
-  if (!(x->viterbi = vit_new())) return DCP_ENOMEM;
+  if (!(x->viterbi = viterbi_new())) return DCP_ENOMEM;
   struct database_reader const *db = params.reader->db;
   protein_setup(&x->protein, database_reader_params(db, NULL));
   int rc = 0;
@@ -69,7 +69,7 @@ void thread_cleanup(struct thread *x)
   protein_cleanup(&x->protein);
   if (x->viterbi)
   {
-    vit_del(x->viterbi);
+    viterbi_del(x->viterbi);
     x->viterbi = NULL;
   }
   chararray_cleanup(&x->amino);
@@ -144,16 +144,16 @@ static int process_window(struct thread *x, int protein_idx,
   if ((rc = setup_viterbi(x->viterbi, &x->protein))) return rc;
 
   int L = sequence_size(seq);
-  float null = -vit_null(x->viterbi, sequence_size(seq), code_fn, (void *)&seq->imm.eseq);
-  float alt = -vit_cost(x->viterbi, sequence_size(seq), code_fn, (void *)&seq->imm.eseq);
+  float null = -viterbi_null(x->viterbi, sequence_size(seq), code_fn, (void *)&seq->imm.eseq);
+  float alt = -viterbi_cost(x->viterbi, sequence_size(seq), code_fn, (void *)&seq->imm.eseq);
 
   line->lrt = lrt(null, alt);
   if (!imm_lprob_is_finite(line->lrt) || line->lrt < 0) return rc;
 
   if ((rc = product_line_set_protein(line, x->protein.accession))) return rc;
-  if ((rc = vit_path(x->viterbi, L, code_fn, (void *)&seq->imm.eseq))) return rc;
+  if ((rc = viterbi_path(x->viterbi, L, code_fn, (void *)&seq->imm.eseq))) return rc;
   imm_path_reset(&x->path);
-  if ((rc = trellis_unzip(vit_trellis(x->viterbi), L, &x->path))) return rc;
+  if ((rc = trellis_unzip(viterbi_trellis(x->viterbi), L, &x->path))) return rc;
 
   if (hmmer_online(&x->hmmer))
   {

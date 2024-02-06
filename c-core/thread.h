@@ -20,7 +20,7 @@ struct thread
   bool multi_hits;
   bool hmmer3_compat;
 
-  struct vit *viterbi;
+  struct viterbi *viterbi;
   struct product_thread *product;
   int partition;
   struct chararray amino;

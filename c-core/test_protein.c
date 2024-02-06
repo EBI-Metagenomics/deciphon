@@ -9,7 +9,7 @@
 #include "state.h"
 #include "trellis.h"
 #include "vendor/minctest.h"
-#include "vit.h"
+#include "viterbi.h"
 
 static void test_protein_uniform(void);
 static void test_protein_occupancy(void);
@@ -63,14 +63,14 @@ static void test_protein_uniform(void)
 
   eq(imm_eseq_setup(&eseq, &seq), 0);
 
-  struct vit *task = vit_new();
-  eq(vit_setup(task, protein.core_size), 0);
+  struct viterbi *task = viterbi_new();
+  eq(viterbi_setup(task, protein.core_size), 0);
   eq(setup_viterbi(task, &protein), 0);
-  close(vit_null(task, imm_eseq_size(&eseq), code_fn, (void *)&eseq),  48.9272687711);
-  close(vit_cost(task, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 55.59428153448);
-  eq(vit_path(task, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 0);
+  close(viterbi_null(task, imm_eseq_size(&eseq), code_fn, (void *)&eseq),  48.9272687711);
+  close(viterbi_cost(task, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 55.59428153448);
+  eq(viterbi_path(task, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 0);
   imm_path_reset(&path);
-  eq(trellis_unzip(vit_trellis(task), imm_eseq_size(&eseq), &path), 0);
+  eq(trellis_unzip(viterbi_trellis(task), imm_eseq_size(&eseq), &path), 0);
 
   eq(imm_path_nsteps(&path), 14);
 
@@ -109,7 +109,7 @@ static void test_protein_uniform(void)
   eq(i, 10);
 
   imm_eseq_cleanup(&eseq);
-  vit_del(task);
+  viterbi_del(task);
   protein_cleanup(&protein);
   imm_path_cleanup(&path);
 }
@@ -150,14 +150,14 @@ static void test_protein_occupancy(void)
 
   eq(imm_eseq_setup(&eseq, &seq), 0);
 
-  struct vit *task = vit_new();
-  eq(vit_setup(task, protein.core_size), 0);
+  struct viterbi *task = viterbi_new();
+  eq(viterbi_setup(task, protein.core_size), 0);
   eq(setup_viterbi(task, &protein), 0);
-  close(vit_null(task, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 48.9272687711);
-  close(vit_cost(task, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 54.35543421312);
-  eq(vit_path(task, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 0);
+  close(viterbi_null(task, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 48.9272687711);
+  close(viterbi_cost(task, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 54.35543421312);
+  eq(viterbi_path(task, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 0);
   imm_path_reset(&path);
-  eq(trellis_unzip(vit_trellis(task), imm_eseq_size(&eseq), &path), 0);
+  eq(trellis_unzip(viterbi_trellis(task), imm_eseq_size(&eseq), &path), 0);
 
   eq(imm_path_nsteps(&path), 14);
 
@@ -196,7 +196,7 @@ static void test_protein_occupancy(void)
   eq(i, 10);
 
   imm_eseq_cleanup(&eseq);
-  vit_del(task);
+  viterbi_del(task);
   protein_cleanup(&protein);
   imm_path_cleanup(&path);
 }

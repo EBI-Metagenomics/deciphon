@@ -1,5 +1,6 @@
-#include "vit.h"
+#include "viterbi.h"
 #include "trellis.h"
+#include "xlimits.h"
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -82,8 +83,8 @@ INLINE int step_data(u32 x)
 
 struct emission
 {
-  f32 null[VITERBI_TABLE_SIZE];
-  packf background[VITERBI_TABLE_SIZE];
+  f32 null[DCP_ABC_TABLE_SIZE];
+  packf background[DCP_ABC_TABLE_SIZE];
   packf *match;
 };
 
@@ -164,12 +165,12 @@ struct prev_core_state
   packu I;
 };
 
-struct vit
+struct viterbi
 {
   int K;
   int Q;
   int maxQ;
-  struct extr_state extr_state[VITERBI_TIME_FRAME];
+  struct extr_state extr_state[DCP_PAST_SIZE];
   struct core_state *core_state;
 
   struct emission emission;
@@ -390,13 +391,13 @@ static inline void core_trans_init(struct core_trans *x)
 
 static inline void emission_init(struct emission *x, int Q)
 {
-  for (int i = 0; i < VITERBI_TABLE_SIZE; ++i)
+  for (int i = 0; i < DCP_ABC_TABLE_SIZE; ++i)
   {
     x->null[i] = INFINITY;
     x->background[i] = dupf(INFINITY);
   }
 
-  for (int i = 0; i < VITERBI_TABLE_SIZE * Q; ++i)
+  for (int i = 0; i < DCP_ABC_TABLE_SIZE * Q; ++i)
     x->match[i] = dupf(INFINITY);
 }
 
@@ -449,9 +450,9 @@ static inline void prev_extr_state_init(struct prev_extr_state *x)
   x->T = step(STEP_ET, 0);
 }
 
-struct vit *vit_new(void)
+struct viterbi *viterbi_new(void)
 {
-  struct vit *x = aligned_alloc(ALIGNMENT, sizeof(struct vit));
+  struct viterbi *x = aligned_alloc(ALIGNMENT, sizeof(struct viterbi));
   if (!x) return x;
 
   x->Q = x->maxQ = 0;
@@ -464,7 +465,7 @@ struct vit *vit_new(void)
   return x;
 }
 
-void vit_del(struct vit const *x)
+void viterbi_del(struct viterbi const *x)
 {
   if (x)
   {
@@ -477,24 +478,24 @@ void vit_del(struct vit const *x)
   }
 }
 
-int vit_setup(struct vit *x, int K)
+int viterbi_setup(struct viterbi *x, int K)
 {
   x->K = K;
   int Q = x->Q = num_packs(K);
 
-  for (int t = 0; t < VITERBI_TIME_FRAME; ++t)
+  for (int t = 0; t < DCP_PAST_SIZE; ++t)
     extr_state_init(x->extr_state, t);
 
   if (Q > x->maxQ)
   {
     free(x->core_state);
     x->core_state = aligned_alloc(
-        ALIGNMENT, sizeof(struct core_state[VITERBI_TIME_FRAME][Q]));
+        ALIGNMENT, sizeof(struct core_state[DCP_PAST_SIZE][Q]));
     if (!x->core_state) return 1;
 
     free(x->emission.match);
     x->emission.match =
-        aligned_alloc(ALIGNMENT, sizeof(packf[VITERBI_TABLE_SIZE][Q]));
+        aligned_alloc(ALIGNMENT, sizeof(packf[DCP_ABC_TABLE_SIZE][Q]));
     if (!x->emission.match) return 1;
 
     free(x->core_trans);
@@ -515,7 +516,7 @@ int vit_setup(struct vit *x, int K)
 
   for (int q = 0; q < Q; ++q)
   {
-    for (int t = 0; t < VITERBI_TIME_FRAME; ++t)
+    for (int t = 0; t < DCP_PAST_SIZE; ++t)
       core_state_init(x->core_state, t, q, Q);
   }
 
@@ -524,7 +525,7 @@ int vit_setup(struct vit *x, int K)
   return 0;
 }
 
-void vit_set_extr_trans(struct vit *x, enum extr_trans_id id,
+void viterbi_set_extr_trans(struct viterbi *x, enum extr_trans_id id,
                             f32 scalar)
 {
   switch (id)
@@ -548,7 +549,7 @@ void vit_set_extr_trans(struct vit *x, enum extr_trans_id id,
   }
 }
 
-void vit_set_core_trans(struct vit *x, enum core_trans_id id,
+void viterbi_set_core_trans(struct viterbi *x, enum core_trans_id id,
                             f32 scalar, int k)
 {
   int q = core_pack(k, x->Q);
@@ -570,17 +571,17 @@ void vit_set_core_trans(struct vit *x, enum core_trans_id id,
   }
 }
 
-void vit_set_null(struct vit *x, f32 scalar, int code)
+void viterbi_set_null(struct viterbi *x, f32 scalar, int code)
 {
   x->emission.null[code] = scalar;
 }
 
-void vit_set_background(struct vit *x, f32 scalar, int code)
+void viterbi_set_background(struct viterbi *x, f32 scalar, int code)
 {
   x->emission.background[code] = dupf(scalar);
 }
 
-void vit_set_match(struct vit *x, f32 scalar, int k, int code)
+void viterbi_set_match(struct viterbi *x, f32 scalar, int k, int code)
 {
   int q = core_pack(k, x->Q);
   int e = core_lane(k, x->Q);
@@ -590,9 +591,9 @@ void vit_set_match(struct vit *x, f32 scalar, int k, int code)
 static void before(struct trellis *, int K);
 static void after(struct trellis *, int Q, int K, struct prev_extr_state *,
                   struct prev_core_state *);
-static void dump_trellis(struct vit const *, int l);
+static void dump_trellis(struct viterbi const *, int l);
 
-INLINE f32 cost(struct vit *x, int L, int path, viterbi_code_fn code_fn,
+INLINE f32 cost(struct viterbi *x, int L, int path, viterbi_code_fn code_fn,
                 void *code_arg)
 {
   struct emission const em = x->emission;
@@ -618,15 +619,15 @@ INLINE f32 cost(struct vit *x, int L, int path, viterbi_code_fn code_fn,
   if (path) before(&x->trellis, x->K);
   for (int l = 1; l <= L; ++l)
   {
-    extr_state_init(xs, imin(VITERBI_TIME_FRAME - 1, l));
+    extr_state_init(xs, imin(DCP_PAST_SIZE - 1, l));
     prev_extr_state_init(px);
     for (int q = 0; q < Q; ++q)
     {
-      core_state_init(cs, imin(VITERBI_TIME_FRAME - 1, l), q, Q);
+      core_state_init(cs, imin(DCP_PAST_SIZE - 1, l), q, Q);
       prev_core_state_init(&pc[q]);
     }
 
-    for (int t = imin(VITERBI_TIME_FRAME - 1, l); t > 0; --t)
+    for (int t = imin(DCP_PAST_SIZE - 1, l); t > 0; --t)
     {
       int code = code_fn(l - t, t, code_arg);
       f32 nil = em.null[code];
@@ -837,18 +838,18 @@ static void after(struct trellis *tr, int Q, int K, struct prev_extr_state *px,
   // if (path) dump_trellis(x, l);
 }
 
-float vit_null(struct vit *x, int L, viterbi_code_fn fn, void *arg)
+float viterbi_null(struct viterbi *x, int L, viterbi_code_fn fn, void *arg)
 {
   float RR = x->extr_trans.RR;
   struct emission const em = x->emission;
-  float R[VITERBI_TIME_FRAME] = {};
-  for (int i = 0; i < VITERBI_TIME_FRAME; ++i)
+  float R[DCP_PAST_SIZE] = {};
+  for (int i = 0; i < DCP_PAST_SIZE; ++i)
     R[i] = INFINITY;
   R[0] = -RR;
   for (int l = 1; l <= L; ++l)
   {
-    R[imin(VITERBI_TIME_FRAME - 1, l)] = INFINITY;
-    for (int t = imin(VITERBI_TIME_FRAME - 1, l); t > 0; --t)
+    R[imin(DCP_PAST_SIZE - 1, l)] = INFINITY;
+    for (int t = imin(DCP_PAST_SIZE - 1, l); t > 0; --t)
     {
       int code = fn(l - t, t, arg);
       f32 nil = em.null[code];
@@ -862,12 +863,12 @@ float vit_null(struct vit *x, int L, viterbi_code_fn fn, void *arg)
   return R[0];
 }
 
-f32 vit_cost(struct vit *x, int L, viterbi_code_fn fn, void *arg)
+f32 viterbi_cost(struct viterbi *x, int L, viterbi_code_fn fn, void *arg)
 {
   return cost(x, L, 0, fn, arg);
 }
 
-int vit_path(struct vit *x, int L, viterbi_code_fn fn, void *arg)
+int viterbi_path(struct viterbi *x, int L, viterbi_code_fn fn, void *arg)
 {
   int rc = trellis_setup(&x->trellis, x->K, L);
   if (rc) return rc;
@@ -875,12 +876,12 @@ int vit_path(struct vit *x, int L, viterbi_code_fn fn, void *arg)
   return 0;
 }
 
-struct trellis *vit_trellis(struct vit *x)
+struct trellis *viterbi_trellis(struct viterbi *x)
 {
   return &x->trellis;
 }
 
-__attribute__((unused)) static void dump_trellis(struct vit const *x, int l)
+__attribute__((unused)) static void dump_trellis(struct viterbi const *x, int l)
 {
   struct prev_extr_state const *px = &x->prev_extr_state;
   struct prev_core_state const *pc = x->prev_core_state;
