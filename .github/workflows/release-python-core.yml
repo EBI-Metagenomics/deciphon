@@ -41,7 +41,7 @@ jobs:
           - {os: ubuntu-latest, arch: aarch64, build: "*1-musllinux*"}
     steps:
       - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
         if: matrix.os == 'ubuntu-latest'
