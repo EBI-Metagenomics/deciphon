@@ -24,7 +24,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: cibw-sdist
-          path: python-core/dist/*.tar.gz
+          path: ./python-core/dist/*.tar.gz
 
   make_wheels:
     runs-on: ${{ matrix.os }}
@@ -47,21 +47,25 @@ jobs:
           platforms: arm64
         if: matrix.os == 'ubuntu-latest'
       - name: Build wheels
-        run: pipx run cibuildwheel==2.16.2
+        run: pipx run cibuildwheel==2.16.5
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_BUILD: ${{ matrix.build }}
       - uses: actions/upload-artifact@v4
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
-          path: python-core/wheelhouse/*.whl
+          path: ./python-core/wheelhouse/*.whl
 
-  upload_all:
+  upload_pypi:
     needs: [make_wheels, make_sdist]
     runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
     steps:
       - uses: actions/download-artifact@v4
         with:
+          # unpacks all CIBW artifacts into dist/
           pattern: cibw-*
           path: dist
           merge-multiple: true
