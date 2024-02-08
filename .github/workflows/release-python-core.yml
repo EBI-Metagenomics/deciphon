@@ -16,7 +16,7 @@ jobs:
   make_sdist:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Build SDist
         run: pipx run build --sdist
@@ -30,9 +30,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - {os: macos-13, arch: x86_64, build: "*"}
-          - {os: macos-13, arch: arm64, build: "*"}
-          - {os: ubuntu-latest, arch: x86_64, build: "*"}
+          - {os: macos-13,      arch: x86_64,  build: "*"}
+          - {os: macos-13,      arch: arm64,   build: "*"}
+          - {os: ubuntu-latest, arch: x86_64,  build: "*"}
           - {os: ubuntu-latest, arch: aarch64, build: "*9-manylinux*"}
           - {os: ubuntu-latest, arch: aarch64, build: "*0-manylinux*"}
           - {os: ubuntu-latest, arch: aarch64, build: "*1-manylinux*"}
@@ -40,8 +40,8 @@ jobs:
           - {os: ubuntu-latest, arch: aarch64, build: "*0-musllinux*"}
           - {os: ubuntu-latest, arch: aarch64, build: "*1-musllinux*"}
     steps:
-      - uses: actions/checkout@v3
-      - uses: docker/setup-qemu-action@v3
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v4
         with:
           platforms: arm64
         if: matrix.os == 'ubuntu-latest'
