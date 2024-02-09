@@ -1,4 +1,5 @@
 #include "array_size.h"
+#include "error.h"
 #include "fs.h"
 #include "params.h"
 #include "scan.h"
@@ -16,7 +17,36 @@ static struct params params_list[] = {
 static bool dial_list[] = {true, false, true, false, true, false, true, false};
 static long chksum_list[] = {57990, 57990, 52229, 52229,
                              56555, 56555, 56555, 56555};
+
+static void test_invalid_sequence();
+static void test_normal_scan(void);
+
 int main(void)
+{
+  test_invalid_sequence();
+  test_normal_scan();
+  return lfails;
+}
+
+static void test_invalid_sequence()
+{
+  setup_database(1, 0.01, HMMFILE, DBFILE);
+  struct scan *scan = NULL;
+
+  struct params params = {
+      .num_threads = 1, .multi_hits = true, .hmmer3_compat = false};
+  ok(scan = scan_new(params));
+  eq(scan_open(scan, DBFILE), 0);
+  long id = 1;
+  eq(scan_add(scan, id, "damanged-dna", "ACGTMNZ"), DCP_ESEQABC);
+  eq(scan_add(scan, id, "rna", "ACGU"), DCP_EDBDNASEQRNA);
+  eq(scan_close(scan), 0);
+  scan_del(scan);
+
+  cleanup_database(DBFILE);
+}
+
+static void test_normal_scan(void)
 {
   setup_database(1, 0.01, HMMFILE, DBFILE);
   struct scan *scan = NULL;
@@ -41,5 +71,4 @@ int main(void)
   }
 
   cleanup_database(DBFILE);
-  return lfails;
 }

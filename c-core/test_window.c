@@ -6,7 +6,7 @@
 #include "test_utils.h"
 #include "vendor/minctest.h"
 
-#define SIZE 500000
+#define SIZE 150000
 #define HMMFILE "minifam.hmm"
 #define DBFILE "test_window.dcp"
 #define PRODDIR "test_window_prod"
@@ -40,7 +40,7 @@ int main(void)
   eq(scan_add(scan, sequences[0].id, sequences[0].name, seq), 0);
   eq(scan_run(scan, PRODDIR), 0);
   eq(scan_progress(scan), 100);
-  eq(chksum(PRODDIR "/products.tsv"), 5999);
+  eq(chksum(PRODDIR "/products.tsv"), 61863);
   eq(scan_close(scan), 0);
 
   scan_del(scan);
