@@ -132,10 +132,9 @@ def scan(
                 for seq in sequences:
                     scan.add(seq)
                 scan.run(snap)
-        echo(
-            "Scan has finished successfully and "
-            f"results stored in '{snap.path}'."
-        )
+        if scan.interrupted():
+            raise Exit(1)
+        echo("Scan has finished successfully and " f"results stored in '{snap.path}'.")
 
 
 @app.command()
