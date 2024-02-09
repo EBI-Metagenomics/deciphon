@@ -1,5 +1,5 @@
 #include "array_size.h"
-#include "build_bug.h"
+#include "error.h"
 #include <stddef.h>
 
 #define ix(x)                                                                  \
@@ -7,26 +7,16 @@
    x == 'C' ? 1 :                                                              \
    x == 'G' ? 2 :                                                              \
    x == 'T' ? 3 :                                                              \
-   BUILD_BUG_ON_ZERO(0))
+   x == 'U' ? 4 :                                                              \
+   0)
 #define ch(x)                                                                  \
   (x == 0 ? 'A' :                                                              \
    x == 1 ? 'C' :                                                              \
    x == 2 ? 'G' :                                                              \
    x == 3 ? 'T' :                                                              \
-   BUILD_BUG_ON_ZERO(0))
+   x == 4 ? 'U' :                                                              \
+   0)
 
-static int R[] = {ix('A'), ix('G')};
-static int Y[] = {ix('C'), ix('T')};
-static int M[] = {ix('A'), ix('C')};
-static int K[] = {ix('G'), ix('T')};
-static int S[] = {ix('C'), ix('G')};
-static int W[] = {ix('A'), ix('T')};
-static int H[] = {ix('A'), ix('C'), ix('T')};
-static int B[] = {ix('C'), ix('G'), ix('T')};
-static int V[] = {ix('A'), ix('C'), ix('G')};
-static int D[] = {ix('A'), ix('G'), ix('T')};
-static int N[] = {ix('A'), ix('C'), ix('G'), ix('T')};
-static int X[] = {ix('A'), ix('C'), ix('G'), ix('T')};
 
 static inline int max_idx(int size, int const indices[], size_t const count[])
 {
@@ -43,9 +33,13 @@ static inline int max_idx(int size, int const indices[], size_t const count[])
   return max_index;
 }
 
-void disambiguate_dna(int size, char *seq)
+int disambiguate(int size, char *seq)
 {
-  size_t count[] = {[ix('A')] = 0, [ix('C')] = 0, [ix('G')] = 0, [ix('T')] = 0};
+  size_t count[] = {[ix('A')] = 0,
+                    [ix('C')] = 0,
+                    [ix('G')] = 0,
+                    [ix('T')] = 0,
+                    [ix('U')] = 0};
 
   for (int i = 0; i < size; ++i)
   {
@@ -53,7 +47,23 @@ void disambiguate_dna(int size, char *seq)
     if (seq[i] == 'C') count[ix('C')] += 1;
     if (seq[i] == 'G') count[ix('G')] += 1;
     if (seq[i] == 'T') count[ix('T')] += 1;
+    if (seq[i] == 'U') count[ix('U')] += 1;
   }
+
+  if (count[ix('T')] > 0 && count[ix('U')] > 0) return error(DCP_ENUCLTSEQTU);
+
+  int R[] = {ix('A'), ix('G')};
+  int Y[] = {ix('C'), ix('T')};
+  int M[] = {ix('A'), ix('C')};
+  int K[] = {ix('G'), ix('T')};
+  int S[] = {ix('C'), ix('G')};
+  int W[] = {ix('A'), ix('T')};
+  int H[] = {ix('A'), ix('C'), ix('T')};
+  int B[] = {ix('C'), ix('G'), ix('T')};
+  int V[] = {ix('A'), ix('C'), ix('G')};
+  int D[] = {ix('A'), ix('G'), ix('T')};
+  int N[] = {ix('A'), ix('C'), ix('G'), ix('T')};
+  int X[] = {ix('A'), ix('C'), ix('G'), ix('T')};
 
   for (int i = 0; i < size; ++i)
   {
@@ -70,19 +80,6 @@ void disambiguate_dna(int size, char *seq)
     if (seq[i] == 'N') seq[i] = ch(max_idx(array_size(N), N, count));
     if (seq[i] == 'X') seq[i] = ch(max_idx(array_size(X), X, count));
   }
-}
 
-void disambiguate_rna(int size, char *seq)
-{
-  for (int i = 0; i < size; ++i)
-  {
-    if (seq[i] == 'U') seq[i] = 'T';
-  }
-
-  disambiguate_dna(size, seq);
-
-  for (int i = 0; i < size; ++i)
-  {
-    if (seq[i] == 'T') seq[i] = 'U';
-  }
+  return 0;
 }
