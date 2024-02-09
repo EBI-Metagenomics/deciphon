@@ -3,6 +3,9 @@
 #include "disambiguate.h"
 #include "error.h"
 #include "imm/abc.h"
+#include "imm/dna.h"
+#include "imm/rc.h"
+#include "imm/rna.h"
 #include "xstrdup.h"
 #include <ctype.h>
 #include <stdlib.h>
@@ -11,32 +14,48 @@
 int sequence_init(struct sequence *x, struct imm_code const *code, long id,
                   char const *name, char const *data)
 {
+  int db_abc = code->abc->typeid;
+  if (!(db_abc == IMM_DNA || db_abc == IMM_RNA))
+    return error(DCP_ENUCLTNOSUPPORT);
+
+  char *new_name = xstrdup(name);
   char *new_data = xstrdup(data);
-  if (!new_data) return error(DCP_ENOMEM);
+
+  if (!new_name || !new_data)
+  {
+    free(new_name);
+    free(new_data);
+    return error(DCP_ENOMEM);
+  }
+
   for (size_t i = 0; i < strlen(new_data); ++i)
     new_data[i] = toupper(new_data[i]);
 
   int rc = 0;
   x->id = id;
-  x->name = xstrdup(name);
+  x->name = new_name;
   x->data = new_data;
   imm_eseq_init(&x->imm.eseq, code);
 
-  if (!x->name || !x->data) defer_return(error(DCP_ENOMEM));
-
-  int abc = imm_eseq_abc(&x->imm.eseq)->typeid;
-  if (abc != IMM_DNA && abc != IMM_RNA) defer_return(error(DCP_ESEQABC));
-
-  char *tmp = (char *)x->data;
-  if (abc == IMM_DNA) disambiguate_dna(strlen(tmp), tmp);
-  if (abc == IMM_RNA) disambiguate_rna(strlen(tmp), tmp);
+  rc = disambiguate(strlen(x->data), x->data);
+  if (rc) defer_return(rc);
 
   if (imm_seq_init(&x->imm.seq, imm_str(x->data), imm_eseq_abc(&x->imm.eseq)))
+  {
+    struct imm_abc const *rna = &imm_rna_iupac.super.super;
+    if (db_abc == IMM_DNA && !imm_seq_init(&x->imm.seq, imm_str(x->data), rna))
+      defer_return(error(DCP_EDBDNASEQRNA));
+
+    struct imm_abc const *dna = &imm_dna_iupac.super.super;
+    if (db_abc == IMM_RNA && !imm_seq_init(&x->imm.seq, imm_str(x->data), dna))
+      defer_return(error(DCP_EDBRNASEQDNA));
+
     defer_return(error(DCP_ESEQABC));
+  }
 
   node_init(&x->node);
-  if (imm_eseq_setup(&x->imm.eseq, &x->imm.seq))
-    defer_return(error(DCP_ESEQABC));
+  if (imm_eseq_setup(&x->imm.eseq, &x->imm.seq) == IMM_ENOMEM)
+    defer_return(error(DCP_ENOMEM));
 
   return 0;
 

@@ -10,7 +10,7 @@ struct sequence
 {
   long id;
   char const *name;
-  char const *data;
+  char *data;
   struct
   {
     struct imm_seq seq;

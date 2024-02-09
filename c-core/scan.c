@@ -82,6 +82,9 @@ int scan_open(struct scan *x, char const *dbfile)
 
   if ((rc = database_reader_open(&x->db.reader, dbfile))) return rc;
   if ((rc = protein_reader_setup(&x->db.protein, &x->db.reader, n))) return rc;
+
+  int abc = x->db.reader.code.super.abc->typeid;
+  if (!(abc == IMM_DNA || abc == IMM_RNA)) return error(DCP_ENUCLTNOSUPPORT);
   sequence_queue_setup(&x->sequences, &x->db.reader.code.super);
 
   x->total_proteins = protein_reader_size(&x->db.protein);
