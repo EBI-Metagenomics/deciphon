@@ -32,7 +32,7 @@ void thread_init(struct thread *x)
   chararray_init(&x->amino);
   hmmer_init(&x->hmmer);
   x->path = imm_path();
-  x->signal_mask = 0;
+  sigemptyset(&x->signal_mask);
   x->interrupted = false;
 }
 
@@ -84,7 +84,8 @@ int thread_run(struct thread *x, struct sequence_queue const *sequences,
                int *done_proteins)
 {
   int rc = 0;
-  sigset_t sigpend = 0;
+  sigset_t sigpend;
+  sigemptyset(&sigpend);
   int signal = 0;
 
   struct protein_iter *protein_iter = &x->iter;

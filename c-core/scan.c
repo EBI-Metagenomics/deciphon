@@ -116,8 +116,8 @@ int scan_run(struct scan *x, char const *product_dir)
   if ((rc = product_open(&x->product, num_threads, product_dir)))
     defer_return(rc);
 
-  sigset_t old_mask = 0;
-  sigset_t new_mask = 0;
+  sigset_t old_mask;
+  sigset_t new_mask;
   sigemptyset(&new_mask);
   sigaddset(&new_mask, SIGINT);
   sigaddset(&new_mask, SIGTERM);
