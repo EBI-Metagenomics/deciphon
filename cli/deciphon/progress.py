@@ -27,3 +27,10 @@ class Progress:
         if not self._disabled:
             self._continue.set()
             self._thread.join()
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, *_):
+        self.stop()
