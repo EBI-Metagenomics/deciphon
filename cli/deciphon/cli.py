@@ -132,10 +132,10 @@ def scan(
                 for seq in sequences:
                     scan.add(seq)
                 scan.run(snap)
-                echo(
-                    "Scan has finished successfully and "
-                    f"results stored in '{snap.path}'."
-                )
+        echo(
+            "Scan has finished successfully and "
+            f"results stored in '{snap.path}'."
+        )
 
 
 @app.command()
