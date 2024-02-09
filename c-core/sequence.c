@@ -6,8 +6,8 @@
 #include "imm/dna.h"
 #include "imm/rc.h"
 #include "imm/rna.h"
+#include "uppercase.h"
 #include "xstrdup.h"
-#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -28,8 +28,7 @@ int sequence_init(struct sequence *x, struct imm_code const *code, long id,
     return error(DCP_ENOMEM);
   }
 
-  for (size_t i = 0; i < strlen(new_data); ++i)
-    new_data[i] = toupper(new_data[i]);
+  uppercase(strlen(new_data), new_data);
 
   int rc = 0;
   x->id = id;
