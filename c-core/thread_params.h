@@ -1,6 +1,11 @@
 #ifndef THREAD_PARAMS_H
 #define THREAD_PARAMS_H
 
+#if !defined(_POSIX_C_SOURCE) || _POSIX_C_SOURCE < 200809L
+#undef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200809L
+#endif
+
 #include <signal.h>
 #include <stdbool.h>
 

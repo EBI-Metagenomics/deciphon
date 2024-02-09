@@ -10,7 +10,6 @@
 #include "thread.h"
 #include "thread_params.h"
 #include <stdlib.h>
-#include <signal.h>
 
 struct scan
 {
