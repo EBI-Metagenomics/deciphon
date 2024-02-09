@@ -19,7 +19,6 @@ int           press_open(struct press *, char const *hmm, char const *db);
 long          press_nproteins(struct press const *);
 int           press_next(struct press *);
 bool          press_end(struct press const *);
-int           scan_progress(struct scan const *);
 int           press_close(struct press *);
 void          press_del(struct press const *);
 
@@ -31,6 +30,8 @@ int          scan_open(struct scan *, char const *dbfile);
 int          scan_close(struct scan *);
 int          scan_add(struct scan *, long id, char const *name, char const *data);
 int          scan_run(struct scan *, char const *product_dir);
+bool         scan_interrupted(struct scan const *);
+int          scan_progress(struct scan const *);
 
 
 // Strerror
