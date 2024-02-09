@@ -61,7 +61,7 @@ static char const *msg[] = {
     [DCP_EH3CPACK] = "failed to pack hmmer result",
     [DCP_EH3CMAXRETRY] = "reached maximum number of retries on hmmer daemon",
     [DCP_EH3CWARMUP] = "failed to warmup hmmer daemon",
-    [DCP_ESEQABC] = "failed to set sequence alphabet",
+    [DCP_ESEQABC] = "invalid sequence letter (neither DNA nor RNA alphabet)",
     [DCP_EFDOPEN] = "failed to open file descriptor",
     [DCP_EMKSTEMP] = "failed to make temporary file",
     [DCP_ELONGABC] = "abc string is too long",
@@ -74,6 +74,10 @@ static char const *msg[] = {
     [DCP_EDBVERSION] = "unsupported database version",
     [DCP_ENOTDBFILE] = "not a database file",
     [DCP_EINVALSTATEID] = "invalid state id",
+    [DCP_ENUCLTNOSUPPORT] = "unsupported nucleotide (must be either DNA or RNA)",
+    [DCP_EDBDNASEQRNA] = "database is DNA but sequence is RNA",
+    [DCP_EDBRNASEQDNA] = "database is RNA but sequence is DNA",
+    [DCP_ENUCLTSEQTU] = "nucleotide sequence cannot have both U and T",
 };
 
 char const *error_string(int error_code)
