@@ -4,22 +4,28 @@
 #include "error.h"
 #include "imm/abc.h"
 #include "xstrdup.h"
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
 int sequence_init(struct sequence *x, struct imm_code const *code, long id,
                   char const *name, char const *data)
 {
+  char *new_data = xstrdup(data);
+  if (!new_data) return error(DCP_ENOMEM);
+  for (size_t i = 0; i < strlen(new_data); ++i)
+    new_data[i] = toupper(new_data[i]);
+
   int rc = 0;
   x->id = id;
   x->name = xstrdup(name);
-  x->data = xstrdup(data);
+  x->data = new_data;
   imm_eseq_init(&x->imm.eseq, code);
 
   if (!x->name || !x->data) defer_return(error(DCP_ENOMEM));
 
   int abc = imm_eseq_abc(&x->imm.eseq)->typeid;
-  if (abc != IMM_DNA && abc == IMM_RNA) defer_return(error(DCP_ESEQABC));
+  if (abc != IMM_DNA && abc != IMM_RNA) defer_return(error(DCP_ESEQABC));
 
   char *tmp = (char *)x->data;
   if (abc == IMM_DNA) disambiguate_dna(strlen(tmp), tmp);
