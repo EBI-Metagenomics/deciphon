@@ -28,7 +28,6 @@ struct thread
   struct chararray amino;
   struct hmmer hmmer;
   struct imm_path path;
-  sigset_t signal_mask;
   bool interrupted;
 };
 

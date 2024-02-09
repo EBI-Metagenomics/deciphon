@@ -1,3 +1,9 @@
+#if !defined(_POSIX_C_SOURCE) || _POSIX_C_SOURCE < 200809L
+#undef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200809L
+#endif
+#include <signal.h>
+
 #include "scan.h"
 #include "database_reader.h"
 #include "debug.h"
@@ -115,12 +121,8 @@ int scan_run(struct scan *x, char const *product_dir)
   if ((rc = product_open(&x->product, num_threads, product_dir)))
     defer_return(rc);
 
-  sigset_t old_mask;
-  sigset_t new_mask;
-  sigemptyset(&new_mask);
-  sigaddset(&new_mask, SIGINT);
-  sigaddset(&new_mask, SIGTERM);
-  sigprocmask(SIG_BLOCK, &new_mask, &old_mask);
+  sigset_t signal_mask;
+  sigprocmask(SIG_BLOCK, NULL, &signal_mask);
 
   for (int i = 0; i < num_threads; ++i)
   {
@@ -129,8 +131,7 @@ int scan_run(struct scan *x, char const *product_dir)
                                    product_thread(&x->product, i),
                                    &x->dialer,
                                    x->params.multi_hits,
-                                   x->params.hmmer3_compat,
-                                   new_mask};
+                                   x->params.hmmer3_compat};
     if ((rc = thread_setup(x->threads + i, params))) defer_return(rc);
   }
 
@@ -144,7 +145,7 @@ int scan_run(struct scan *x, char const *product_dir)
   }
 
 defer:
-  sigprocmask(SIG_SETMASK, &old_mask, NULL);
+  sigprocmask(SIG_SETMASK, &signal_mask, NULL);
 
   for (int i = 0; i < num_threads; ++i)
   {

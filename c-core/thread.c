@@ -1,3 +1,9 @@
+#if !defined(_POSIX_C_SOURCE) || _POSIX_C_SOURCE < 200809L
+#undef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200809L
+#endif
+#include <signal.h>
+
 #include "thread.h"
 #include "chararray.h"
 #include "database_reader.h"
@@ -32,7 +38,6 @@ void thread_init(struct thread *x)
   chararray_init(&x->amino);
   hmmer_init(&x->hmmer);
   x->path = imm_path();
-  sigemptyset(&x->signal_mask);
   x->interrupted = false;
 }
 
@@ -60,7 +65,6 @@ int thread_setup(struct thread *x, struct thread_params params)
     if ((rc = hmmer_warmup(&x->hmmer))) return rc;
   }
 
-  x->signal_mask = params.signal_mask;
   x->interrupted = false;
 
   return (x->viterbi = viterbi_new()) ? 0 : DCP_ENOMEM;
@@ -84,6 +88,13 @@ int thread_run(struct thread *x, struct sequence_queue const *sequences,
                int *done_proteins)
 {
   int rc = 0;
+
+  sigset_t sigmask;
+  sigemptyset(&sigmask);
+  sigaddset(&sigmask, SIGINT);
+  sigaddset(&sigmask, SIGTERM);
+  sigprocmask(SIG_BLOCK, &sigmask, NULL);
+
   sigset_t sigpend;
   sigemptyset(&sigpend);
   int signal = 0;
@@ -111,7 +122,7 @@ int thread_run(struct thread *x, struct sequence_queue const *sequences,
         sigpending(&sigpend);
         if (sigismember(&sigpend, SIGINT) || sigismember(&sigpend, SIGTERM))
         {
-          if (sigwait(&x->signal_mask, &signal) == 0)
+          if (sigwait(&sigmask, &signal) == 0)
           {
             x->interrupted = true;
             goto cleanup;
