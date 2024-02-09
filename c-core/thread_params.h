@@ -1,6 +1,7 @@
 #ifndef THREAD_PARAMS_H
 #define THREAD_PARAMS_H
 
+#include <signal.h>
 #include <stdbool.h>
 
 struct protein_reader;
@@ -16,6 +17,7 @@ struct thread_params
   struct hmmer_dialer *dialer;
   bool multi_hits;
   bool hmmer3_compat;
+  sigset_t signal_mask;
 };
 
 #endif

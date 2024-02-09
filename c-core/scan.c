@@ -10,6 +10,7 @@
 #include "thread.h"
 #include "thread_params.h"
 #include <stdlib.h>
+#include <signal.h>
 
 struct scan
 {
@@ -29,6 +30,7 @@ struct scan
 
   int total_proteins;
   int done_proteins;
+  bool interrupted;
 };
 
 struct scan *scan_new(struct params params)
@@ -50,6 +52,7 @@ struct scan *scan_new(struct params params)
 
   x->total_proteins = 0;
   x->done_proteins = 0;
+  x->interrupted = false;
 
   return x;
 }
@@ -107,10 +110,18 @@ int scan_run(struct scan *x, char const *product_dir)
 {
   int rc = 0;
   int num_threads = x->params.num_threads;
+  x->interrupted = false;
   debug("%d thread(s)", num_threads);
 
   if ((rc = product_open(&x->product, num_threads, product_dir)))
     defer_return(rc);
+
+  sigset_t old_mask = 0;
+  sigset_t new_mask = 0;
+  sigemptyset(&new_mask);
+  sigaddset(&new_mask, SIGINT);
+  sigaddset(&new_mask, SIGTERM);
+  sigprocmask(SIG_BLOCK, &new_mask, &old_mask);
 
   for (int i = 0; i < num_threads; ++i)
   {
@@ -119,7 +130,8 @@ int scan_run(struct scan *x, char const *product_dir)
                                    product_thread(&x->product, i),
                                    &x->dialer,
                                    x->params.multi_hits,
-                                   x->params.hmmer3_compat};
+                                   x->params.hmmer3_compat,
+                                   new_mask};
     if ((rc = thread_setup(x->threads + i, params))) defer_return(rc);
   }
 
@@ -127,17 +139,25 @@ int scan_run(struct scan *x, char const *product_dir)
   for (int i = 0; i < num_threads; ++i)
   {
     int r = thread_run(x->threads + i, &x->sequences, &x->done_proteins);
+
 #pragma omp critical
     if (r && !rc) rc = r;
   }
 
 defer:
+  sigprocmask(SIG_SETMASK, &old_mask, NULL);
+
   for (int i = 0; i < num_threads; ++i)
+  {
+    x->interrupted |= thread_interrupted(x->threads + i);
     thread_cleanup(x->threads + i);
+  }
 
   int product_rc = product_close(&x->product);
   return rc ? rc : product_rc;
 }
+
+bool scan_interrupted(struct scan const *x) { return x->interrupted; }
 
 int scan_progress(struct scan const *x)
 {

@@ -32,6 +32,8 @@ void thread_init(struct thread *x)
   chararray_init(&x->amino);
   hmmer_init(&x->hmmer);
   x->path = imm_path();
+  x->signal_mask = 0;
+  x->interrupted = false;
 }
 
 int thread_setup(struct thread *x, struct thread_params params)
@@ -58,6 +60,9 @@ int thread_setup(struct thread *x, struct thread_params params)
     if ((rc = hmmer_warmup(&x->hmmer))) return rc;
   }
 
+  x->signal_mask = params.signal_mask;
+  x->interrupted = false;
+
   return (x->viterbi = viterbi_new()) ? 0 : DCP_ENOMEM;
 }
 
@@ -79,6 +84,8 @@ int thread_run(struct thread *x, struct sequence_queue const *sequences,
                int *done_proteins)
 {
   int rc = 0;
+  sigset_t sigpend = 0;
+  int signal = 0;
 
   struct protein_iter *protein_iter = &x->iter;
 
@@ -99,6 +106,16 @@ int thread_run(struct thread *x, struct sequence_queue const *sequences,
       {
         int protein_idx = protein_iter_idx(protein_iter);
         if ((rc = process_window(x, protein_idx, &w))) break;
+
+        sigpending(&sigpend);
+        if (sigismember(&sigpend, SIGINT) || sigismember(&sigpend, SIGTERM))
+        {
+          if (sigwait(&x->signal_mask, &signal) == 0)
+          {
+            x->interrupted = true;
+            goto cleanup;
+          }
+        }
       }
     }
 
@@ -110,6 +127,8 @@ cleanup:
   protein_cleanup(&x->protein);
   return rc;
 }
+
+bool thread_interrupted(struct thread const *x) { return x->interrupted; }
 
 static int hmmer_stage(struct protein *, struct product_thread *,
                        struct hmmer *, struct chararray *,

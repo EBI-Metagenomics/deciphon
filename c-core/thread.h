@@ -28,11 +28,14 @@ struct thread
   struct chararray amino;
   struct hmmer hmmer;
   struct imm_path path;
+  sigset_t signal_mask;
+  bool interrupted;
 };
 
 void thread_init(struct thread *);
 int  thread_setup(struct thread *, struct thread_params);
 void thread_cleanup(struct thread *);
 int  thread_run(struct thread *, struct sequence_queue const *, int *done_proteins);
+bool thread_interrupted(struct thread const *);
 
 #endif
