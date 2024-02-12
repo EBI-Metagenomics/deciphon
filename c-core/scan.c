@@ -141,10 +141,10 @@ int scan_run(struct scan *x, char const *product_dir)
     struct xsignal *signal = omp_get_thread_num() == 0 ? xsignal : NULL;
     int *proteins = &x->done_proteins;
     int r = thread_run(x->threads + i, &x->sequences, proteins, signal);
-    if (!r)
+    if (r)
     {
       for (int i = 0; i < num_threads; ++i)
-        x->threads[i].interrupted = true;
+        thread_interrupt(&x->threads[i]);
     }
 
 #pragma omp critical

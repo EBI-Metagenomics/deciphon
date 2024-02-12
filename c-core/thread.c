@@ -118,6 +118,8 @@ cleanup:
   return rc;
 }
 
+void thread_interrupt(struct thread *x) { x->interrupted = true; }
+
 bool thread_interrupted(struct thread const *x) { return x->interrupted; }
 
 static int hmmer_stage(struct protein *, struct product_thread *,
