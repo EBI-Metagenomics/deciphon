@@ -1,9 +1,3 @@
-#if !defined(_POSIX_C_SOURCE) || _POSIX_C_SOURCE < 200809L
-#undef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 200809L
-#endif
-#include <signal.h>
-
 #include "scan.h"
 #include "database_reader.h"
 #include "debug.h"
@@ -15,6 +9,8 @@
 #include "sequence_queue.h"
 #include "thread.h"
 #include "thread_params.h"
+#include "xsignal.h"
+#include <omp.h>
 #include <stdlib.h>
 
 struct scan
@@ -116,13 +112,12 @@ int scan_run(struct scan *x, char const *product_dir)
   int rc = 0;
   int num_threads = x->params.num_threads;
   x->interrupted = false;
+  struct xsignal *xsignal = xsignal_new();
+
   debug("%d thread(s)", num_threads);
 
   if ((rc = product_open(&x->product, num_threads, product_dir)))
     defer_return(rc);
-
-  sigset_t signal_mask;
-  sigprocmask(SIG_BLOCK, NULL, &signal_mask);
 
   for (int i = 0; i < num_threads; ++i)
   {
@@ -135,17 +130,24 @@ int scan_run(struct scan *x, char const *product_dir)
     if ((rc = thread_setup(x->threads + i, params))) defer_return(rc);
   }
 
-#pragma omp parallel for default(none) shared(x, num_threads, rc)
+#pragma omp parallel for default(none) shared(x, num_threads, rc, xsignal)
   for (int i = 0; i < num_threads; ++i)
   {
-    int r = thread_run(x->threads + i, &x->sequences, &x->done_proteins);
+    struct xsignal *signal = omp_get_thread_num() == 0 ? xsignal : NULL;
+    int *proteins = &x->done_proteins;
+    int r = thread_run(x->threads + i, &x->sequences, proteins, signal);
+    if (!r)
+    {
+      for (int i = 0; i < num_threads; ++i)
+        x->threads[i].interrupted = true;
+    }
 
 #pragma omp critical
     if (r && !rc) rc = r;
   }
 
 defer:
-  sigprocmask(SIG_SETMASK, &signal_mask, NULL);
+  xsignal_del(xsignal);
 
   for (int i = 0; i < num_threads; ++i)
   {

@@ -1,9 +1,3 @@
-#if !defined(_POSIX_C_SOURCE) || _POSIX_C_SOURCE < 200809L
-#undef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 200809L
-#endif
-#include <signal.h>
-
 #include "thread.h"
 #include "chararray.h"
 #include "database_reader.h"
@@ -24,6 +18,7 @@
 #include "trellis.h"
 #include "viterbi.h"
 #include "window.h"
+#include "xsignal.h"
 
 void thread_init(struct thread *x)
 {
@@ -85,19 +80,9 @@ static int process_window(struct thread *, int protein_idx,
                           struct window const *);
 
 int thread_run(struct thread *x, struct sequence_queue const *sequences,
-               int *done_proteins)
+               int *done_proteins, struct xsignal *xsignal)
 {
   int rc = 0;
-
-  sigset_t sigmask;
-  sigemptyset(&sigmask);
-  sigaddset(&sigmask, SIGINT);
-  sigaddset(&sigmask, SIGTERM);
-  sigprocmask(SIG_BLOCK, &sigmask, NULL);
-
-  sigset_t sigpend;
-  sigemptyset(&sigpend);
-  int signal = 0;
 
   struct protein_iter *protein_iter = &x->iter;
 
@@ -116,18 +101,11 @@ int thread_run(struct thread *x, struct sequence_queue const *sequences,
       int last_hit_pos = -1;
       while (window_next(&w, last_hit_pos))
       {
+        if (x->interrupted) goto cleanup;
         int protein_idx = protein_iter_idx(protein_iter);
         if ((rc = process_window(x, protein_idx, &w))) break;
 
-        sigpending(&sigpend);
-        if (sigismember(&sigpend, SIGINT) || sigismember(&sigpend, SIGTERM))
-        {
-          if (sigwait(&sigmask, &signal) == 0)
-          {
-            x->interrupted = true;
-            goto cleanup;
-          }
-        }
+        if (xsignal && xsignal_interrupted(xsignal)) x->interrupted = true;
       }
     }
 
