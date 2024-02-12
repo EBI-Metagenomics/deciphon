@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20.2 FATAL_ERROR)
-project(deciphon VERSION 0.15.9 LANGUAGES C)
+project(deciphon VERSION 0.15.10 LANGUAGES C)
 
 include(cmake/warnings.cmake)
 include(cmake/sanitizers.cmake)

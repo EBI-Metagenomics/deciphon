@@ -15,6 +15,7 @@ from rich.progress import track
 from typer import Argument, BadParameter, Exit, Option, Typer, echo
 
 from deciphon.catch_validation import catch_validation
+from deciphon.default_signalling import default_signalling
 from deciphon.gencode import gencodes
 from deciphon.h3daemon import H3Daemon
 from deciphon.hmmer_press import hmmer_press
@@ -131,7 +132,8 @@ def scan(
                 scan.dial(daemon.port)
                 for seq in sequences:
                     scan.add(seq)
-                scan.run(snap)
+                with default_signalling():
+                    scan.run(snap)
         if scan.interrupted():
             raise Exit(1)
         echo("Scan has finished successfully and " f"results stored in '{snap.path}'.")
