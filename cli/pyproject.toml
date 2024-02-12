@@ -10,7 +10,7 @@ packages = [{ include = "deciphon" }]
 [tool.poetry.dependencies]
 python = "^3.9"
 cffi = "^1.15.1"
-deciphon-core = ">=0.20.14"
+deciphon-core = ">=0.20.16"
 deciphon-snap = ">=0.8.2"
 fasta-reader = "^3"
 h3daemon = ">=0.13.8"
