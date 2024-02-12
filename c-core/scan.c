@@ -10,8 +10,13 @@
 #include "thread.h"
 #include "thread_params.h"
 #include "xsignal.h"
-#include <omp.h>
 #include <stdlib.h>
+
+#ifdef _OPENMP
+#include <omp.h>
+#else
+static inline int omp_get_thread_num() { return 0; }
+#endif
 
 struct scan
 {
