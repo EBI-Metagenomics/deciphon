@@ -10,6 +10,11 @@ from deciphon_core.sequence import Sequence
 __all__ = ["Scan"]
 
 
+@ffi.def_extern()
+def handover(_):
+    pass
+
+
 class Scan:
     def __init__(self, params: Params, dbfile: DBFile):
         self._cscan = lib.scan_new(params.cparams)
@@ -37,7 +42,7 @@ class Scan:
             raise DeciphonError(rc)
 
     def run(self, snap: NewSnapFile):
-        if rc := lib.scan_run(self._cscan, str(snap.basename).encode()):
+        if rc := lib.scan_run(self._cscan, str(snap.basename).encode(), lib.handover, ffi.NULL):
             raise DeciphonError(rc)
 
     def interrupted(self) -> bool:

@@ -29,7 +29,7 @@ int          scan_dial(struct scan *, int port);
 int          scan_open(struct scan *, char const *dbfile);
 int          scan_close(struct scan *);
 int          scan_add(struct scan *, long id, char const *name, char const *data);
-int          scan_run(struct scan *, char const *product_dir);
+int          scan_run(struct scan *, char const *product_dir, void(*handover)(void *), void *userdata);
 bool         scan_interrupted(struct scan const *);
 int          scan_progress(struct scan const *);
 
@@ -53,3 +53,5 @@ FILE *fopen(char const *filename, char const *mode);
 FILE *fdopen(int, char const *);
 int   fclose(FILE *);
 // clang-format off
+
+extern "Python" void handover(void *);
