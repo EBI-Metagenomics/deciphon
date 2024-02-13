@@ -55,9 +55,10 @@ int hmmer_get(struct hmmer *x, int hmmidx, char const *name, char const *seq)
     snprintf(cmd, sizeof(cmd), "--hmmdb 1 --hmmdb_range %d..%d --acc --cut_ga",
              hmmidx, hmmidx);
   else
-    snprintf(cmd, sizeof(cmd),
-             "--hmmdb 1 --hmmdb_range %d..%d --acc --incdomE 5 --incE 5",
-             hmmidx, hmmidx);
+    snprintf(
+        cmd, sizeof(cmd),
+        "--hmmdb 1 --hmmdb_range %d..%d --acc --incdomE e10-5 --incE e10-5",
+        hmmidx, hmmidx);
 
   for (int i = 0; i < NUM_RETRIES; ++i)
   {
