@@ -20,8 +20,14 @@ class Progress:
             task = progress.add_task("Scanning", total=100)
             while not self._continue.is_set():
                 progress.update(task, completed=self._scan.progress())
-                sleep(0.35)
+                if not progress.console.is_interactive:
+                    progress.print(progress)
+                    sleep(1.15)
+                else:
+                    sleep(0.35)
             progress.update(task, completed=self._scan.progress())
+            if not progress.console.is_interactive:
+                progress.print(progress)
 
     def stop(self):
         if not self._disabled:

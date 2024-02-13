@@ -15,7 +15,6 @@ from rich.progress import track
 from typer import Argument, BadParameter, Exit, Option, Typer, echo
 
 from deciphon.catch_validation import catch_validation
-from deciphon.default_signalling import default_signalling
 from deciphon.gencode import gencodes
 from deciphon.h3daemon import H3Daemon
 from deciphon.hmmer_press import hmmer_press
@@ -122,7 +121,10 @@ def scan(
     with service_exit(), catch_validation():
         hmm = HMMFile(path=hmmfile)
         db = hmm.dbfile
-        snap = NewSnapFile(path=snapfile if snapfile else seqfile.with_suffix(".dcs"))
+        if snapfile:
+            snap = NewSnapFile(path=snapfile)
+        else:
+            snap = NewSnapFile.create_from_prefix(seqfile.with_suffix("").name)
 
         sequences = read_sequences(seqfile)
         with H3Daemon(hmm, stdout=DEVNULL) as daemon:
@@ -132,10 +134,10 @@ def scan(
                 scan.dial(daemon.port)
                 for seq in sequences:
                     scan.add(seq)
-                with default_signalling():
-                    scan.run(snap)
+                scan.run(snap)
         if scan.interrupted():
             raise Exit(1)
+        snap.make_archive()
         echo("Scan has finished successfully and " f"results stored in '{snap.path}'.")
 
 
