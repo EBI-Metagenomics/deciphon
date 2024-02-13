@@ -120,6 +120,24 @@ class SnapFile(BaseModel):
 class NewSnapFile(BaseModel):
     path: Path
 
+    @classmethod
+    def create_from_prefix(cls, prefix: str):
+        try:
+            x = cls(path=Path(f"{prefix}.dcs").absolute())
+        except ValueError:
+            for i in range(1, 1001):
+                try:
+                    x = cls(path=Path(f"{prefix}.{i}.dcs").absolute())
+                except ValueError:
+                    continue
+                else:
+                    break
+            else:
+                raise ValueError(
+                    f"failed to find a noncolliding filename for prefix {prefix}"
+                )
+        return x
+
     @field_validator("path")
     def must_have_extension(cls, x: Path):
         if x.suffix != ".dcs":

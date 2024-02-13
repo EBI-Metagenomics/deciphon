@@ -40,8 +40,6 @@ class Scan:
         if rc := lib.scan_run(self._cscan, str(snap.basename).encode()):
             raise DeciphonError(rc)
 
-        snap.make_archive()
-
     def interrupted(self) -> bool:
         return lib.scan_interrupted(self._cscan)
 

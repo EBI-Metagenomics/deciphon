@@ -46,6 +46,8 @@ def test_scan(tmp_path, files_path: Path):
             for seq in sequences:
                 scan.add(seq)
             scan.run(snapfile)
+            assert not scan.interrupted()
+            snapfile.make_archive()
             assert scan.progress() == 100
 
     shutil.unpack_archive(snapfile.path, format="zip")
