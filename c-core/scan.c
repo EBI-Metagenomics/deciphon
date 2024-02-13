@@ -140,12 +140,13 @@ int scan_run(struct scan *x, char const *product_dir, void(*handover)(void *),
   for (int i = 0; i < num_threads; ++i)
   {
     int *proteins = &x->done_proteins;
-    struct xsignal *signal = omp_get_thread_num() == 0 ? xsignal : NULL;
-    void (*callb)(void *) = omp_get_thread_num() == 0 ? handover : NULL;
-    void (*args)(void *) = omp_get_thread_num() == 0 ? userdata : NULL;
+    int rank = omp_get_thread_num();
+    struct xsignal *signal = rank == 0 ? xsignal : NULL;
+    void (*callb)(void *) = rank == 0 ? handover : NULL;
+    void (*args)(void *) = rank == 0 ? userdata : NULL;
     int r = thread_run(x->threads + i, &x->sequences, proteins, signal, callb,
                        args);
-    if (r)
+    if (r || (rank == 0 && thread_interrupted(&x->threads[i])))
     {
       for (int i = 0; i < num_threads; ++i)
         thread_interrupt(&x->threads[i]);

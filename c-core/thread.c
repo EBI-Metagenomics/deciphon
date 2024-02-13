@@ -102,12 +102,12 @@ int thread_run(struct thread *x, struct sequence_queue const *sequences,
       int last_hit_pos = -1;
       while (window_next(&w, last_hit_pos))
       {
-        if (x->interrupted) goto cleanup;
         int protein_idx = protein_iter_idx(protein_iter);
         if ((rc = process_window(x, protein_idx, &w))) break;
 
         if (handover) (*handover)(userdata);
         if (xsignal && xsignal_interrupted(xsignal)) x->interrupted = true;
+        if (x->interrupted) goto cleanup;
       }
     }
 
