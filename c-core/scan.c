@@ -4,6 +4,7 @@
 #include "defer_return.h"
 #include "error.h"
 #include "hmmer_dialer.h"
+#include "min.h"
 #include "product.h"
 #include "protein_reader.h"
 #include "sequence_queue.h"
@@ -116,16 +117,17 @@ int scan_run(struct scan *x, char const *product_dir, void(*handover)(void *),
              void *userdata)
 {
   int rc = 0;
-  int num_threads = x->params.num_threads;
+  int n = x->params.num_threads;
+  n = min(n, protein_reader_num_partitions(&x->db.protein));
   x->interrupted = false;
   struct xsignal *xsignal = xsignal_new();
 
-  debug("%d thread(s)", num_threads);
+  debug("%d thread(s)", n);
 
-  if ((rc = product_open(&x->product, num_threads, product_dir)))
+  if ((rc = product_open(&x->product, n, product_dir)))
     defer_return(rc);
 
-  for (int i = 0; i < num_threads; ++i)
+  for (int i = 0; i < n; ++i)
   {
     struct thread_params params = {&x->db.protein,
                                    i,
@@ -136,8 +138,8 @@ int scan_run(struct scan *x, char const *product_dir, void(*handover)(void *),
     if ((rc = thread_setup(x->threads + i, params))) defer_return(rc);
   }
 
-#pragma omp parallel for default(none) shared(x, num_threads, rc, xsignal, handover, userdata)
-  for (int i = 0; i < num_threads; ++i)
+#pragma omp parallel for default(none) shared(x, n, rc, xsignal, handover, userdata)
+  for (int i = 0; i < n; ++i)
   {
     int *proteins = &x->done_proteins;
     int rank = omp_get_thread_num();
@@ -148,7 +150,7 @@ int scan_run(struct scan *x, char const *product_dir, void(*handover)(void *),
                        args);
     if (r || (rank == 0 && thread_interrupted(&x->threads[i])))
     {
-      for (int i = 0; i < num_threads; ++i)
+      for (int i = 0; i < n; ++i)
         thread_interrupt(&x->threads[i]);
     }
 
@@ -159,7 +161,7 @@ int scan_run(struct scan *x, char const *product_dir, void(*handover)(void *),
 defer:
   xsignal_del(xsignal);
 
-  for (int i = 0; i < num_threads; ++i)
+  for (int i = 0; i < x->params.num_threads; ++i)
   {
     x->interrupted |= thread_interrupted(x->threads + i);
     thread_cleanup(x->threads + i);
