@@ -29,7 +29,7 @@ int main(void)
     snprintf(name, sizeof(name), "name%d", i);
     eq(scan_add(scan, i, name, random_sequence_next()), 0);
   }
-  eq(scan_run(scan, PRODDIR), 0);
+  eq(scan_run(scan, PRODDIR, NULL, NULL), 0);
   eq(scan_progress(scan), 100);
   eq(chksum(PRODDIR "/products.tsv"), 27703);
   eq(scan_close(scan), 0);

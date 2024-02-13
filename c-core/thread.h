@@ -35,7 +35,9 @@ struct thread
 void thread_init(struct thread *);
 int  thread_setup(struct thread *, struct thread_params);
 void thread_cleanup(struct thread *);
-int  thread_run(struct thread *, struct sequence_queue const *, int *done_proteins, struct xsignal *);
+int  thread_run(struct thread *, struct sequence_queue const *,
+                int *done_proteins, struct xsignal *, void (*handover)(void *),
+                void (*userdata)(void *));
 void thread_interrupt(struct thread *);
 bool thread_interrupted(struct thread const *);
 

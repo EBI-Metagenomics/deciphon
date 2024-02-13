@@ -38,7 +38,7 @@ int main(void)
   ok(scan = scan_new(params));
   eq(scan_open(scan, DBFILE), 0);
   eq(scan_add(scan, sequences[0].id, sequences[0].name, seq), 0);
-  eq(scan_run(scan, PRODDIR), 0);
+  eq(scan_run(scan, PRODDIR, NULL, NULL), 0);
   eq(scan_progress(scan), 100);
   eq(chksum(PRODDIR "/products.tsv"), 61863);
   eq(scan_close(scan), 0);

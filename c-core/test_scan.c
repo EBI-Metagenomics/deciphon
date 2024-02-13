@@ -62,7 +62,7 @@ static void test_normal_scan(void)
       long id = sequences[j].id;
       eq(scan_add(scan, id, sequences[j].name, sequences[j].data), 0);
     }
-    eq(scan_run(scan, PRODDIR), 0);
+    eq(scan_run(scan, PRODDIR, NULL, NULL), 0);
     eq(scan_progress(scan), 100);
     eq(scan_close(scan), 0);
     scan_del(scan);

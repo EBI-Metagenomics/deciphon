@@ -80,7 +80,8 @@ static int process_window(struct thread *, int protein_idx,
                           struct window const *);
 
 int thread_run(struct thread *x, struct sequence_queue const *sequences,
-               int *done_proteins, struct xsignal *xsignal)
+               int *done_proteins, struct xsignal *xsignal,
+               void (*handover)(void *), void (*userdata)(void *))
 {
   int rc = 0;
 
@@ -105,6 +106,7 @@ int thread_run(struct thread *x, struct sequence_queue const *sequences,
         int protein_idx = protein_iter_idx(protein_iter);
         if ((rc = process_window(x, protein_idx, &w))) break;
 
+        if (handover) (*handover)(userdata);
         if (xsignal && xsignal_interrupted(xsignal)) x->interrupted = true;
       }
     }

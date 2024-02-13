@@ -112,7 +112,8 @@ int scan_add(struct scan *x, long id, char const *name, char const *data)
   return sequence_queue_put(&x->sequences, id, name, data);
 }
 
-int scan_run(struct scan *x, char const *product_dir)
+int scan_run(struct scan *x, char const *product_dir, void(*handover)(void *),
+             void *userdata)
 {
   int rc = 0;
   int num_threads = x->params.num_threads;
@@ -135,12 +136,15 @@ int scan_run(struct scan *x, char const *product_dir)
     if ((rc = thread_setup(x->threads + i, params))) defer_return(rc);
   }
 
-#pragma omp parallel for default(none) shared(x, num_threads, rc, xsignal)
+#pragma omp parallel for default(none) shared(x, num_threads, rc, xsignal, handover, userdata)
   for (int i = 0; i < num_threads; ++i)
   {
-    struct xsignal *signal = omp_get_thread_num() == 0 ? xsignal : NULL;
     int *proteins = &x->done_proteins;
-    int r = thread_run(x->threads + i, &x->sequences, proteins, signal);
+    struct xsignal *signal = omp_get_thread_num() == 0 ? xsignal : NULL;
+    void (*callb)(void *) = omp_get_thread_num() == 0 ? handover : NULL;
+    void (*args)(void *) = omp_get_thread_num() == 0 ? userdata : NULL;
+    int r = thread_run(x->threads + i, &x->sequences, proteins, signal, callb,
+                       args);
     if (r)
     {
       for (int i = 0; i < num_threads; ++i)
