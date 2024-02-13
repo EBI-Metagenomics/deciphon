@@ -16,18 +16,19 @@ class Progress:
             self._thread.start()
 
     def progress_entry(self):
+        scan = self._scan
+        last_progress = scan.progress()
         with rich.progress.Progress() as progress:
             task = progress.add_task("Scanning", total=100)
+            console = progress.console
             while not self._continue.is_set():
-                progress.update(task, completed=self._scan.progress())
-                if not progress.console.is_interactive:
+                new_progress = scan.progress()
+                progress.update(task, completed=new_progress)
+                if not console.is_interactive and last_progress < new_progress:
                     progress.print(progress)
-                    sleep(1.15)
-                else:
-                    sleep(0.35)
-            progress.update(task, completed=self._scan.progress())
-            if not progress.console.is_interactive:
-                progress.print(progress)
+                sleep(0.35)
+                last_progress = new_progress
+            progress.update(task, completed=scan.progress())
 
     def stop(self):
         if not self._disabled:

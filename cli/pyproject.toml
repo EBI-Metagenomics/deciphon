@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deciphon"
-version = "0.11.10"
+version = "0.11.11"
 description = "Individually annotate long, error-prone nucleotide sequences into proteins"
 authors = ["Danilo Horta <horta@ebi.ac.uk>"]
 license = "MIT"
