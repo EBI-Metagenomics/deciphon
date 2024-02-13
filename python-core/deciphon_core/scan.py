@@ -10,9 +10,13 @@ from deciphon_core.sequence import Sequence
 __all__ = ["Scan"]
 
 
-@ffi.def_extern()
-def handover(_):
-    pass
+def check_exception(*_):
+    return True
+
+
+@ffi.def_extern(onerror=check_exception)
+def interrupt(_):
+    return False
 
 
 class Scan:
@@ -42,7 +46,7 @@ class Scan:
             raise DeciphonError(rc)
 
     def run(self, snap: NewSnapFile):
-        if rc := lib.scan_run(self._cscan, str(snap.basename).encode(), lib.handover, ffi.NULL):
+        if rc := lib.scan_run(self._cscan, str(snap.basename).encode(), lib.interrupt, ffi.NULL):
             raise DeciphonError(rc)
 
     def interrupted(self) -> bool:
