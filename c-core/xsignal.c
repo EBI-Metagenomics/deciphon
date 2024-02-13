@@ -41,6 +41,6 @@ bool xsignal_interrupted(struct xsignal *x)
 
 void xsignal_del(struct xsignal *x)
 {
-  sigprocmask(SIG_SETMASK, &x->old_mask, NULL);
+  if (x) sigprocmask(SIG_SETMASK, &x->old_mask, NULL);
   free(x);
 }

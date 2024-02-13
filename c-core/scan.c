@@ -113,14 +113,15 @@ int scan_add(struct scan *x, long id, char const *name, char const *data)
   return sequence_queue_put(&x->sequences, id, name, data);
 }
 
-int scan_run(struct scan *x, char const *product_dir, void(*handover)(void *),
+int scan_run(struct scan *x, char const *product_dir, bool (*interrupt)(void *),
              void *userdata)
 {
   int rc = 0;
   int n = x->params.num_threads;
   n = min(n, protein_reader_num_partitions(&x->db.protein));
   x->interrupted = false;
-  struct xsignal *xsignal = xsignal_new();
+  struct xsignal *xsignal = NULL;
+  if (!interrupt && !(xsignal = xsignal_new())) defer_return(error(DCP_ENOMEM));
 
   debug("%d thread(s)", n);
 
@@ -138,14 +139,14 @@ int scan_run(struct scan *x, char const *product_dir, void(*handover)(void *),
     if ((rc = thread_setup(x->threads + i, params))) defer_return(rc);
   }
 
-#pragma omp parallel for default(none) shared(x, n, rc, xsignal, handover, userdata)
+#pragma omp parallel for default(none) shared(x, n, rc, xsignal, interrupt, userdata)
   for (int i = 0; i < n; ++i)
   {
     int *proteins = &x->done_proteins;
     int rank = omp_get_thread_num();
     struct xsignal *signal = rank == 0 ? xsignal : NULL;
-    void (*callb)(void *) = rank == 0 ? handover : NULL;
-    void (*args)(void *) = rank == 0 ? userdata : NULL;
+    bool (*callb)(void *) = rank == 0 ? interrupt : NULL;
+    void *args = rank == 0 ? userdata : NULL;
     int r = thread_run(x->threads + i, &x->sequences, proteins, signal, callb,
                        args);
     if (r || (rank == 0 && thread_interrupted(&x->threads[i])))
