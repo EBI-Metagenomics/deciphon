@@ -19,6 +19,9 @@
 #include "viterbi.h"
 #include "window.h"
 #include "xsignal.h"
+#include <imm/seq.h>
+#include <stdlib.h>
+#include <string.h>
 
 void thread_init(struct thread *x)
 {
@@ -130,6 +133,9 @@ static int code_fn(int pos, int len, void *arg)
   return imm_eseq_get(seq, pos, len, 1);
 }
 
+static int trim_path(struct protein *, struct imm_seq const *,
+                     struct imm_path *, struct imm_seq *);
+
 static int process_window(struct thread *x, int protein_idx,
                           struct window const *w)
 {
@@ -158,11 +164,25 @@ static int process_window(struct thread *x, int protein_idx,
   imm_path_reset(&x->path);
   if ((rc = trellis_unzip(viterbi_trellis(x->viterbi), L, &x->path))) return rc;
 
+  struct imm_seq subseq = {0};
+  struct imm_path *subpath = &x->path;
+
+  // Temporary flag for internal testing
+  // We want to always trim instead!
+  char const *s = getenv("DECIPHON_NOTRIM");
+  if (s && strcmp(s, "0"))
+    subseq = seq->imm.seq;
+  else
+  {
+    if ((rc = trim_path(&x->protein, &seq->imm.seq, subpath, &subseq)))
+      return rc;
+  }
+
   if (hmmer_online(&x->hmmer))
   {
     struct match match = match_init(&x->protein);
     struct match_iter mit = {0};
-    match_iter_init(&mit, &seq->imm.seq, &x->path);
+    match_iter_init(&mit, &subseq, subpath);
 
     if ((rc = infer_amino(&x->amino, &match, &mit))) return rc;
 
@@ -181,6 +201,46 @@ static int process_window(struct thread *x, int protein_idx,
 
   struct match match = match_init(&x->protein);
   struct match_iter mit = {0};
-  match_iter_init(&mit, &seq->imm.seq, &x->path);
+  match_iter_init(&mit, &subseq, subpath);
   return product_thread_put_match(x->product, &match, &mit);
+}
+
+static int trim_path(struct protein *protein, struct imm_seq const *seq,
+                     struct imm_path *path, struct imm_seq *subseq)
+{
+  int rc = 0;
+
+  struct match match = match_init(protein);
+  struct match_iter it = {0};
+  match_iter_init(&it, seq, path);
+
+  int start = 0;
+  int stop = INT_MAX;
+
+  match_iter_rewind(&it);
+  while (!(rc = match_iter_next(&it, &match)))
+  {
+    if (match_iter_end(&it)) return error(DCP_ENOHIT);
+    if (match_state_is_core(&match)) break;
+  }
+  if (rc) return rc;
+  start = match_iter_tell(&it) - 1;
+  int seqstart = match_iter_seqtell(&it) - match.step.seqsize;
+
+  if ((rc = match_iter_seek(&it, &match, INT_MAX))) return rc;
+  while (!(rc = match_iter_prev(&it, &match)))
+  {
+    if (match_iter_begin(&it)) return error(DCP_ENOHIT);
+    if (match_state_is_core(&match)) break;
+  }
+  if (rc) return rc;
+  stop = match_iter_tell(&it) + 1;
+  int seqstop = match_iter_seqtell(&it) +  match.step.seqsize;
+
+  match_iter_seek(&it, &match, start);
+
+  *subseq = imm_seq_slice(seq, imm_range(seqstart, seqstop));
+  imm_path_cut(path, start, stop - start);
+
+  return 0;
 }

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20.2 FATAL_ERROR)
-project(deciphon VERSION 0.17.1 LANGUAGES C)
+project(deciphon VERSION 0.17.2 LANGUAGES C)
 
 include(cmake/warnings.cmake)
 include(cmake/sanitizers.cmake)
@@ -17,7 +17,7 @@ cpmaddpackage(
   GIT_TAG h3client-v0.12.6
   VERSION 0.12.6
   SOURCE_SUBDIR h3client)
-cpmaddpackage("gh:EBI-Metagenomics/imm@5.4.4")
+cpmaddpackage("gh:EBI-Metagenomics/imm@5.5.0")
 cpmaddpackage("gh:EBI-Metagenomics/lip@0.5.4")
 find_package(OpenMP)
 

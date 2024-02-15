@@ -65,6 +65,8 @@ void match_iter_rewind(struct match_iter *x)
 
 int match_iter_tell(struct match_iter const *x) { return x->offset; }
 
+int match_iter_seqtell(struct match_iter const *x) { return x->seqoffset; }
+
 int match_iter_seek(struct match_iter *x, struct match *match, int offset)
 {
   int rc = 0;
