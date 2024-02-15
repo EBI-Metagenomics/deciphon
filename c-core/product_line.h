@@ -6,8 +6,13 @@ struct product_line
   long sequence;
 
   int window;
+  // [window_start, window_stop)
   int window_start;
   int window_stop;
+
+  // [hit_start, hit_stop)
+  int hit_start;
+  int hit_stop;
 
   char protein[64];
   char abc[16];

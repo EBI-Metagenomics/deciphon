@@ -13,6 +13,9 @@ void product_line_init(struct product_line *x)
   x->window_start = 0;
   x->window_stop = 0;
 
+  x->hit_start = 0;
+  x->hit_stop = 0;
+
   memset(x->protein, 0, sizeof_field(struct product_line, protein));
   memset(x->abc, 0, sizeof_field(struct product_line, abc));
 

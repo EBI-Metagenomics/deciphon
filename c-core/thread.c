@@ -134,7 +134,7 @@ static int code_fn(int pos, int len, void *arg)
 }
 
 static int trim_path(struct protein *, struct imm_seq const *,
-                     struct imm_path *, struct imm_seq *);
+                     struct imm_path *, struct imm_seq *, int *seqstart);
 
 static int process_window(struct thread *x, int protein_idx,
                           struct window const *w)
@@ -174,8 +174,11 @@ static int process_window(struct thread *x, int protein_idx,
     subseq = seq->imm.seq;
   else
   {
-    if ((rc = trim_path(&x->protein, &seq->imm.seq, subpath, &subseq)))
+    line->hit_start = 0;
+    if ((rc = trim_path(&x->protein, &seq->imm.seq, subpath, &subseq,
+                        &line->hit_start)))
       return rc;
+    line->hit_stop = line->hit_start + imm_seq_size(&subseq);
   }
 
   if (hmmer_online(&x->hmmer))
@@ -206,7 +209,7 @@ static int process_window(struct thread *x, int protein_idx,
 }
 
 static int trim_path(struct protein *protein, struct imm_seq const *seq,
-                     struct imm_path *path, struct imm_seq *subseq)
+                     struct imm_path *path, struct imm_seq *subseq, int *seqstart)
 {
   int rc = 0;
 
@@ -225,7 +228,7 @@ static int trim_path(struct protein *protein, struct imm_seq const *seq,
   }
   if (rc) return rc;
   start = match_iter_tell(&it) - 1;
-  int seqstart = match_iter_seqtell(&it) - match.step.seqsize;
+  *seqstart = match_iter_seqtell(&it) - match.step.seqsize;
 
   if ((rc = match_iter_seek(&it, &match, INT_MAX))) return rc;
   while (!(rc = match_iter_prev(&it, &match)))
@@ -239,7 +242,7 @@ static int trim_path(struct protein *protein, struct imm_seq const *seq,
 
   match_iter_seek(&it, &match, start);
 
-  *subseq = imm_seq_slice(seq, imm_range(seqstart, seqstop));
+  *subseq = imm_seq_slice(seq, imm_range(*seqstart, seqstop));
   imm_path_cut(path, start, stop - start);
 
   return 0;
