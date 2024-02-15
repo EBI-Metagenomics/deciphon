@@ -124,11 +124,6 @@ void thread_interrupt(struct thread *x) { x->interrupted = true; }
 
 bool thread_interrupted(struct thread const *x) { return x->interrupted; }
 
-static int hmmer_stage(struct protein *, struct product_thread *,
-                       struct hmmer *, struct chararray *,
-                       struct sequence const *, int protein_idx,
-                       struct imm_path const *);
-
 static int code_fn(int pos, int len, void *arg)
 {
   struct imm_eseq const *seq = arg;
@@ -165,9 +160,20 @@ static int process_window(struct thread *x, int protein_idx,
 
   if (hmmer_online(&x->hmmer))
   {
-    if ((rc = hmmer_stage(&x->protein, x->product, &x->hmmer, &x->amino, seq,
-                          protein_idx, &x->path)))
+    struct match match = match_init(&x->protein);
+    struct match_iter mit = {0};
+    match_iter_init(&mit, &seq->imm.seq, &x->path);
+
+    if ((rc = infer_amino(&x->amino, &match, &mit))) return rc;
+
+    debug("sending to hmmer sequence of size %zu", x->amino.size);
+    if ((rc = hmmer_get(&x->hmmer, protein_idx, seq->name, x->amino.data)))
       return rc;
+
+    x->product->line.evalue = hmmer_result_num_hits(&x->hmmer.result)
+                                  ? hmmer_result_evalue(&x->hmmer.result)
+                                  : 1.0;
+
     if (x->product->line.evalue == 1.0) return rc;
     if ((rc = product_thread_put_hmmer(x->product, &x->hmmer.result)))
       return rc;
@@ -177,25 +183,4 @@ static int process_window(struct thread *x, int protein_idx,
   struct match_iter mit = {0};
   match_iter_init(&mit, &seq->imm.seq, &x->path);
   return product_thread_put_match(x->product, &match, &mit);
-}
-
-static int hmmer_stage(struct protein *protein, struct product_thread *product,
-                       struct hmmer *hmmer, struct chararray *amino,
-                       struct sequence const *seq, int protein_idx,
-                       struct imm_path const *path)
-{
-  int rc = 0;
-  struct match match = match_init(protein);
-  struct match_iter mit = {0};
-  match_iter_init(&mit, &seq->imm.seq, path);
-
-  if ((rc = infer_amino(amino, &match, &mit))) return rc;
-
-  debug("sending to hmmer sequence of size %zu", amino->size);
-  if ((rc = hmmer_get(hmmer, protein_idx, seq->name, amino->data))) return rc;
-
-  product->line.evalue = hmmer_result_num_hits(&hmmer->result)
-                             ? hmmer_result_evalue(&hmmer->result)
-                             : 1.0;
-  return 0;
 }

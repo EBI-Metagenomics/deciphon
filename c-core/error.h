@@ -81,6 +81,7 @@ enum
   DCP_EDBDNASEQRNA    = 72,
   DCP_EDBRNASEQDNA    = 73,
   DCP_ENUCLTSEQTU     = 74,
+  DCP_ENOHIT          = 75,
 };
 
 #define error(x) error_print((x), __LINE__, __FILE__)

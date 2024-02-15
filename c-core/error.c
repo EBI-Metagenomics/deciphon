@@ -78,6 +78,7 @@ static char const *msg[] = {
     [DCP_EDBDNASEQRNA] = "database is DNA but sequence is RNA",
     [DCP_EDBRNASEQDNA] = "database is RNA but sequence is DNA",
     [DCP_ENUCLTSEQTU] = "nucleotide sequence cannot have both U and T",
+    [DCP_ENOHIT] = "failed to find hit",
 };
 
 char const *error_string(int error_code)
