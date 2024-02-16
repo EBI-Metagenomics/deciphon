@@ -21,6 +21,7 @@ int              match_setup(struct match *, struct imm_step, struct imm_seq);
 int              match_state_name(struct match const *, char *dst);
 bool             match_state_is_mute(struct match const *);
 bool             match_state_is_core(struct match const *);
+int              match_state_state_id(struct match const *);
 char             match_amino(struct match const *);
 struct imm_codon match_codon(struct match const *);
 // clang-format on

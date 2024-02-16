@@ -38,6 +38,8 @@ bool match_state_is_core(struct match const *x)
          state_is_insert(x->step.state_id) || state_is_delete(x->step.state_id);
 }
 
+int match_state_state_id(struct match const *x) { return x->step.state_id; }
+
 char match_amino(struct match const *x)
 {
   return imm_gencode_decode(x->protein->params.gencode, x->codon);

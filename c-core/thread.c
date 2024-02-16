@@ -224,7 +224,7 @@ static int trim_path(struct protein *protein, struct imm_seq const *seq,
   while (!(rc = match_iter_next(&it, &match)))
   {
     if (match_iter_end(&it)) return error(DCP_ENOHIT);
-    if (match_state_is_core(&match)) break;
+    if (match_state_state_id(&match) == STATE_B) break;
   }
   if (rc) return rc;
   start = match_iter_tell(&it) - 1;
@@ -234,7 +234,7 @@ static int trim_path(struct protein *protein, struct imm_seq const *seq,
   while (!(rc = match_iter_prev(&it, &match)))
   {
     if (match_iter_begin(&it)) return error(DCP_ENOHIT);
-    if (match_state_is_core(&match)) break;
+    if (match_state_state_id(&match) == STATE_E) break;
   }
   if (rc) return rc;
   stop = match_iter_tell(&it) + 1;
