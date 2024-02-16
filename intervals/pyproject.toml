@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "deciphon-intervals"
+version = "0.1.0"
+description = "It helps to model the Python and R intervals seamlessly."
+authors = ["Danilo Horta <danilo.horta@pm.me>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pydantic = "^2.6.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
