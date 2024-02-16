@@ -20,6 +20,7 @@ class Prod(BaseModel):
     seq_id: int
     window: int
     window_interval: Interval
+    hit_interval: Interval
     profile: str
     abc: str
     lrt: float
@@ -31,8 +32,16 @@ class Prod(BaseModel):
     def gffs(self):
         gff_list = GFFList(root=[])
         for hit in self.hits:
-            start = hit.interval.rinterval.start
-            stop = hit.interval.rinterval.stop
+            start = (
+                self.window_interval.pyinterval.start
+                + self.hit_interval.pyinterval.start
+                + hit.interval.rinterval.start
+            )
+            stop = (
+                self.window_interval.pyinterval.start
+                + self.hit_interval.pyinterval.start
+                + hit.interval.rinterval.stop
+            )
             attr = f"Profile={self.profile};Alphabet={self.abc}"
             gff = GFFItem(
                 seqid=str(self.seq_id),
@@ -61,7 +70,7 @@ class Prod(BaseModel):
     @property
     def matches(self):
         matches: list[Match] = []
-        i = 0
+        i = self.window_interval.pyinterval.start + self.hit_interval.pyinterval.start
         for x in self.match_list:
             match = Match(raw=x.raw, start=x.start, end=x.end, position=i)
             matches.append(match)

@@ -12,6 +12,7 @@ desired = """##gff-version 3
 def test_gff(files_path: Path):
     snap_file = read_snap(files_path / "example.dcs")
     prod = snap_file.products[0:2]
+    print(prod.gff_list().format())
     assert prod.gff_list().format() == desired
 
 

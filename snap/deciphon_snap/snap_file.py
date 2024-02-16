@@ -38,15 +38,19 @@ class SnapFile:
                 profile = str(row["profile"])
                 with fs.open(f"{hmmer_dir}/{seq_id}/{profile}.h3r", "rb") as f2:
                     h3r = H3Result(raw=read_h3result(fileno=f2.fileno()))
-                start = int(row["window_start"])
-                stop = int(row["window_stop"])
-                window_interval = PyInterval(start=start, stop=stop)
+                window_start = int(row["window_start"])
+                window_stop = int(row["window_stop"])
+                hit_start = int(row["hit_start"])
+                hit_stop = int(row["hit_stop"])
+                window_interval = PyInterval(start=window_start, stop=window_stop)
+                hit_interval = PyInterval(start=hit_start, stop=hit_stop)
                 prods.append(
                     Prod(
                         id=idx,
                         seq_id=seq_id,
                         window=int(row["window"]),
                         window_interval=window_interval,
+                        hit_interval=hit_interval,
                         profile=profile,
                         abc=row["abc"],
                         lrt=float(row["lrt"]),
