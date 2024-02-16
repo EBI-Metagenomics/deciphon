@@ -1,4 +1,4 @@
-from deciphon_snap.interval import PyInterval
+from deciphon_intervals import PyInterval
 from hmmer_tables.domtbl import DomTBLCoord
 
 __all__ = ["AminoInterval", "make_amino_interval"]

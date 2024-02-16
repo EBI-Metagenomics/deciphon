@@ -5,10 +5,10 @@ from enum import Enum
 from functools import lru_cache
 from typing import List, overload
 
+from deciphon_intervals import PyInterval
 from pydantic import BaseModel, ConfigDict
 
 from deciphon_snap.amino import AminoInterval
-from deciphon_snap.interval import PyInterval
 
 __all__ = ["Match", "MatchList", "LazyMatchList", "MatchListInterval", "MatchElemName"]
 

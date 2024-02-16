@@ -1,4 +1,5 @@
-from deciphon_snap.interval import PyInterval
+from deciphon_intervals import PyInterval
+
 from deciphon_snap.match import MatchList, MatchListInterval
 
 __all__ = ["QueryInterval", "QueryIntervalBuilder"]
@@ -19,6 +20,6 @@ class QueryIntervalBuilder:
 
     def make(self, match_list_interval: MatchListInterval) -> QueryInterval:
         i = match_list_interval
-        start = self._offset[i.pyinterval.start]
-        stop = self._offset[i.pyinterval.stop]
+        start = self._offset[i.py.start]
+        stop = self._offset[i.py.stop]
         return QueryInterval(start=start, stop=stop)

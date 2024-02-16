@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from typing import List, overload
 
+from deciphon_intervals import Interval
 from pydantic import BaseModel, RootModel
 
 from deciphon_snap.fasta import FASTAItem, FASTAList
 from deciphon_snap.gff import GFFItem, GFFList
 from deciphon_snap.hit import HitList
 from deciphon_snap.hmmer import H3Result
-from deciphon_snap.interval import Interval
 from deciphon_snap.match import LazyMatchList, Match, MatchElemName, MatchList
 from deciphon_snap.query_interval import QueryIntervalBuilder
 
@@ -33,14 +33,14 @@ class Prod(BaseModel):
         gff_list = GFFList(root=[])
         for hit in self.hits:
             start = (
-                self.window_interval.pyinterval.start
-                + self.hit_interval.pyinterval.start
-                + hit.interval.rinterval.start
+                self.window_interval.py.start
+                + self.hit_interval.py.start
+                + hit.interval.r.start
             )
             stop = (
-                self.window_interval.pyinterval.start
-                + self.hit_interval.pyinterval.start
-                + hit.interval.rinterval.stop
+                self.window_interval.py.start
+                + self.hit_interval.py.start
+                + hit.interval.r.stop
             )
             attr = f"Profile={self.profile};Alphabet={self.abc}"
             gff = GFFItem(
@@ -70,7 +70,7 @@ class Prod(BaseModel):
     @property
     def matches(self):
         matches: list[Match] = []
-        i = self.window_interval.pyinterval.start + self.hit_interval.pyinterval.start
+        i = self.window_interval.py.start + self.hit_interval.py.start
         for x in self.match_list:
             match = Match(raw=x.raw, start=x.start, end=x.end, position=i)
             matches.append(match)

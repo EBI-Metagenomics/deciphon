@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import List
 
 import prettytable as pt
+from deciphon_intervals import PyInterval
 from h3result.read_h3result import read_h3result
 
 from deciphon_snap.hmmer import H3Result
-from deciphon_snap.interval import PyInterval
 from deciphon_snap.match import LazyMatchList
 from deciphon_snap.prod import Prod, ProdList
 from deciphon_snap.shorten import shorten

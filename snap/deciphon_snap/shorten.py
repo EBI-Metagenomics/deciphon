@@ -1,5 +1,5 @@
-from deciphon_snap.match import MatchList, LazyMatchList
 from deciphon_snap.hmmer import H3Result
+from deciphon_snap.match import LazyMatchList, MatchList
 
 __all__ = ["shorten"]
 
