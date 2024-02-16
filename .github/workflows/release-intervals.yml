@@ -1,0 +1,26 @@
+name: 📦 Intervals release
+
+on:
+  push:
+    tags:
+      - intervals-v*
+
+defaults:
+  run:
+    working-directory: intervals
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: pipx run build
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{secrets.PYPI_API_TOKEN}}
+          packages-dir: intervals/dist
+          skip-existing: true
