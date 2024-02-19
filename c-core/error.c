@@ -1,8 +1,7 @@
 #include "error.h"
+#include "env.h"
 #include "array_size.h"
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 static char const *msg[] = {
     [DCP_EDIFFABC] = "different alphabets",
@@ -93,8 +92,7 @@ char const *error_string(int error_code)
 
 int error_print(int error_code, int line, const char *src)
 {
-  char const *s = getenv("DECIPHON_DEBUG");
-  if (s && strcmp(s, "0"))
+  if (env_as_bool("DECIPHON_DEBUG"))
     fprintf(stderr, "%s:%d: %s\n", src, line, error_string(error_code));
   return error_code;
 }

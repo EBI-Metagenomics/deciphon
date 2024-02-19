@@ -167,19 +167,11 @@ static int process_window(struct thread *x, int protein_idx,
   struct imm_seq subseq = {0};
   struct imm_path *subpath = &x->path;
 
-  // Temporary flag for internal testing
-  // We want to always trim instead!
-  char const *s = getenv("DECIPHON_NOTRIM");
-  if (s && strcmp(s, "0"))
-    subseq = seq->imm.seq;
-  else
-  {
-    line->hit_start = 0;
-    if ((rc = trim_path(&x->protein, &seq->imm.seq, subpath, &subseq,
-                        &line->hit_start)))
-      return rc;
-    line->hit_stop = line->hit_start + imm_seq_size(&subseq);
-  }
+  line->hit_start = 0;
+  if ((rc = trim_path(&x->protein, &seq->imm.seq, subpath, &subseq,
+                      &line->hit_start)))
+    return rc;
+  line->hit_stop = line->hit_start + imm_seq_size(&subseq);
 
   if (hmmer_online(&x->hmmer))
   {

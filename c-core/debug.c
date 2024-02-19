@@ -1,15 +1,13 @@
 #include "debug.h"
+#include "env.h"
 #include <stdarg.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 void debug_print(int line, const char *src, char const *fmt, ...)
 {
   va_list arg;
   va_start(arg, fmt);
-  char const *s = getenv("DECIPHON_DEBUG");
-  if (s && strcmp(s, "0"))
+  if (env_as_bool("DECIPHON_DEBUG"))
   {
     char location[256] = {0};
     snprintf(location, 256, "%s:%d", src, line);
