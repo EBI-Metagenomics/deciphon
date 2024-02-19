@@ -149,4 +149,4 @@ def see(
     Display scan results.
     """
     with service_exit():
-        echo(view_alignments(read_snap(snapfile)))
+        echo(view_alignments(read_snap(snapfile)).rstrip("\n"))
