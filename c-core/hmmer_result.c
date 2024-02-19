@@ -28,7 +28,7 @@ int hmmer_result_num_hits(struct hmmer_result const *x)
 
 float hmmer_result_evalue(struct hmmer_result const *x)
 {
-  if (hmmer_result_num_hits(x) == 0) return -INFINITY;
+  if (hmmer_result_num_hits(x) == 0) return 1.0;
   return (float)exp(h3client_result_hit_evalue_ln(x->handle, 0));
 }
 
