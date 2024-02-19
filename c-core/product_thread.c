@@ -69,11 +69,14 @@ int product_thread_put_hmmer(struct product_thread *x,
   int rc = 0;
   char const *dir = x->dirname;
   long seq = x->line.sequence;
+  int win = x->line.window;
   char *prot = x->line.protein;
 
-  if ((rc = format(file, FS_PATH_MAX, "%s/hmmer/%ld", dir, seq))) return rc;
+  if ((rc = format(file, FS_PATH_MAX, "%s/hmmer/%ld/%d", dir, seq, win)))
+    return rc;
   if ((rc = fs_mkdir(file, true))) return rc;
-  if ((rc = format(file, FS_PATH_MAX, "%s/hmmer/%ld/%s.h3r", dir, seq, prot)))
+  if ((rc = format(file, FS_PATH_MAX, "%s/hmmer/%ld/%d/%s.h3r", dir, seq, win,
+                   prot)))
     return rc;
 
   FILE *fp = fopen(file, "wb");
