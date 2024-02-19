@@ -72,6 +72,9 @@ int product_thread_put_hmmer(struct product_thread *x,
   int win = x->line.window;
   char *prot = x->line.protein;
 
+  if ((rc = format(file, FS_PATH_MAX, "%s/hmmer/%ld", dir, seq)))
+    return rc;
+  if ((rc = fs_mkdir(file, true))) return rc;
   if ((rc = format(file, FS_PATH_MAX, "%s/hmmer/%ld/%d", dir, seq, win)))
     return rc;
   if ((rc = fs_mkdir(file, true))) return rc;

@@ -106,7 +106,7 @@ int thread_run(struct thread *x, struct sequence_queue const *sequences,
       while (window_next(&w, last_hit_pos))
       {
         int protein_idx = protein_iter_idx(protein_iter);
-        if ((rc = process_window(x, protein_idx, &w))) break;
+        if ((rc = process_window(x, protein_idx, &w))) goto cleanup;
 
         if (interrupt) x->interrupted = (*interrupt)(userdata);
         if (xsignal && xsignal_interrupted(xsignal)) x->interrupted = true;
