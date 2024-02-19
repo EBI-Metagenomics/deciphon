@@ -91,7 +91,7 @@ class RInterval(Interval):
 
     @model_validator(mode="before")
     def pre_root(cls, values: dict[str, Any]) -> dict[str, Any]:
-        assert values["start"] <= values["stop"]
+        assert values["start"] <= values["stop"] + 1
         return values
 
     @property
