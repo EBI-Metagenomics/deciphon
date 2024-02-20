@@ -10,9 +10,8 @@ class QueryInterval(PyInterval):
 
 
 class QueryIntervalBuilder:
-    def __init__(self, match_list: MatchList):
+    def __init__(self, match_list: MatchList, offset: int):
         self._offset = []
-        offset = 0
         for x in match_list:
             self._offset.append(offset)
             offset += x.query_size

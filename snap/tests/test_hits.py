@@ -35,7 +35,7 @@ def test_hits():
     assert hits[0].id == 0
     assert hits[1].id == 1
 
-    qibuilder = QueryIntervalBuilder(match_list)
+    qibuilder = QueryIntervalBuilder(match_list, offset=0)
 
     assert query[qibuilder.make(hits[0].match_list_interval).slice] == "GTGAAAACC"
     assert query[qibuilder.make(hits[1].match_list_interval).slice] == "AAACCG"

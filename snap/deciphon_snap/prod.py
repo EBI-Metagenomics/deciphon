@@ -32,23 +32,13 @@ class Prod(BaseModel):
     def gffs(self):
         gff_list = GFFList(root=[])
         for hit in self.hits:
-            start = (
-                self.window_interval.py.start
-                + self.hit_interval.py.start
-                + hit.interval.r.start
-            )
-            stop = (
-                self.window_interval.py.start
-                + self.hit_interval.py.start
-                + hit.interval.r.stop
-            )
             attr = f"Profile={self.profile};Alphabet={self.abc}"
             gff = GFFItem(
                 seqid=str(self.seq_id),
                 source="deciphon",
                 type="CDS",
-                start=start,
-                end=stop,
+                start=hit.interval.r.start,
+                end=hit.interval.r.stop,
                 score=self.evalue,
                 strand="+",
                 phase="0",
@@ -59,7 +49,8 @@ class Prod(BaseModel):
 
     @property
     def hits(self):
-        qibuilder = QueryIntervalBuilder(self.match_list.evaluate())
+        offset = self.window_interval.py.start + self.hit_interval.py.start
+        qibuilder = QueryIntervalBuilder(self.match_list.evaluate(), offset)
         hits = []
         for hit in HitList.make(self.match_list.evaluate()):
             hit.interval = qibuilder.make(hit.match_list_interval)
@@ -70,11 +61,11 @@ class Prod(BaseModel):
     @property
     def matches(self):
         matches: list[Match] = []
-        i = self.window_interval.py.start + self.hit_interval.py.start
+        offset = self.window_interval.py.start + self.hit_interval.py.start
         for x in self.match_list:
-            match = Match(raw=x.raw, start=x.start, end=x.end, position=i)
+            match = Match(raw=x.raw, start=x.start, end=x.end, position=offset)
             matches.append(match)
-            i += match.query_size
+            offset += match.query_size
         return MatchList(root=matches)
 
     @property
