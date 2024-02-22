@@ -46,6 +46,7 @@ def make_hmmer_steps(annot: DomAnnot):
     hmmer: list[tuple[int, HMMERStep]] = []
     for x in annot.aligns:
         a = x.align
+        core_positions = a.core_positions
         core_positions = list(range(a.core_interval.start, a.core_interval.stop + 1))
         start = a.query_interval.to_pyinterval().start
         stop = a.query_interval.to_pyinterval().stop
