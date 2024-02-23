@@ -30,7 +30,7 @@ bool window_next(struct window *x, int last_hit_pos)
   int start_miss = max(x->range.start + 1, x->range.start + last_hit_pos + 1);
   // Lets shorten that interval by assuming that the largest hit
   // would have size max_size(x->core_size).
-  start_miss = max(start_miss, stop_miss - 3 * max_size(x->core_size));
+  start_miss = max(start_miss, stop_miss - max_size(x->core_size));
   // We cannot go over the sequence size.
   BUG_ON(stop_miss > sequence_size(x->seq));
 
