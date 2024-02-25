@@ -48,8 +48,8 @@ def make_hmmer_steps(annot: DomAnnot):
         a = x.align
         core_positions = a.core_positions
         core_positions = list(range(a.core_interval.start, a.core_interval.stop + 1))
-        start = a.query_interval.to_pyinterval().start
-        stop = a.query_interval.to_pyinterval().stop
+        start = a.query_interval.py.start
+        stop = a.query_interval.py.stop
         offset = start - 1
         amino_pos = [offset + i for i in accumulate([int(i != "-") for i in a.query])]
         assert amino_pos[0] == start
