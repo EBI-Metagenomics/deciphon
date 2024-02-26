@@ -96,6 +96,7 @@ int main(void)
   }
 
   imm_path_cleanup(&path);
+  protein_cleanup(&protein);
 
   return lfails;
 }
