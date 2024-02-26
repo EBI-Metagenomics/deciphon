@@ -159,12 +159,6 @@ static int process_window(struct thread *x, int protein_idx,
   imm_path_reset(&x->path);
   if ((rc = trellis_unzip(viterbi_trellis(x->viterbi), L, &x->path))) return rc;
 
-  // line->hit_start = 0;
-  // if ((rc = trim_path(&x->protein, &seq->imm.seq, subpath, &subseq,
-  //                     &line->hit_start)))
-  //   return rc;
-  // line->hit_stop = line->hit_start + imm_seq_size(&subseq);
-
   struct match begin = match_end();
   struct match end = match_begin(&x->path, &seq->imm.seq, &x->protein);
   line->hit = 0;
@@ -203,6 +197,7 @@ static int process_window(struct thread *x, int protein_idx,
         if ((rc = match_amino(&it, &amino))) return rc;
         if ((rc = chararray_append(&x->amino, amino))) return rc;
       }
+      chararray_append(&x->amino, '\0');
       it = match_next(&it);
     }
 
