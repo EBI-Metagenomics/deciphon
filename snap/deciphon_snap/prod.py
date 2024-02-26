@@ -20,6 +20,7 @@ class Prod(BaseModel):
     seq_id: int
     window: int
     window_interval: Interval
+    hit: int
     hit_interval: Interval
     profile: str
     abc: str

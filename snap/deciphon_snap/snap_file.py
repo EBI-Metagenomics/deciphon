@@ -36,8 +36,9 @@ class SnapFile:
             for idx, row in enumerate((csv_parse(fieldnames, r) for r in rows[1:])):
                 seq_id = int(row["sequence"])
                 window = int(row["window"])
+                hit = int(row["hit"])
                 profile = str(row["profile"])
-                with fs.open(f"{hmmer_dir}/{seq_id}/{window}/{profile}.h3r", "rb") as f2:
+                with fs.open(f"{hmmer_dir}/{seq_id}/{window}/{hit}/{profile}.h3r", "rb") as f2:
                     h3r = H3Result(raw=read_h3result(fileno=f2.fileno()))
                 window_start = int(row["window_start"])
                 window_stop = int(row["window_stop"])
@@ -51,6 +52,7 @@ class SnapFile:
                         seq_id=seq_id,
                         window=window,
                         window_interval=window_interval,
+                        hit=hit,
                         hit_interval=hit_interval,
                         profile=profile,
                         abc=row["abc"],
