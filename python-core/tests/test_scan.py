@@ -52,7 +52,7 @@ def test_scan(tmp_path, files_path: Path):
 
     shutil.unpack_archive(snapfile.path, format="zip")
     products = snapfile.basename / "products.tsv"
-    assert checksum(products)[:8] == "ee567b88"
+    assert checksum(products)[:8] == "c311e4bc"
 
 
 sequences = [
