@@ -113,7 +113,7 @@ static int write_match(FILE *fp, struct match const *m)
   *ptr = ',';
   ptr += 1;
 
-  if (!match_state_is_mutet(m))
+  if (!match_state_is_mute(m))
   {
     struct imm_codon codon = {0};
     if ((rc = match_codon(m, &codon))) return rc;
@@ -123,7 +123,7 @@ static int write_match(FILE *fp, struct match const *m)
   }
   *ptr++ = ',';
 
-  if (!match_state_is_mutet(m))
+  if (!match_state_is_mute(m))
   {
     char amino = 0;
     if ((rc = match_amino(m, &amino))) return rc;

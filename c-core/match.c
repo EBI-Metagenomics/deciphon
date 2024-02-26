@@ -44,7 +44,7 @@ int match_state_name(struct match const *x, char *dst)
   return state_name(match_state_id(x), dst);
 }
 
-bool match_state_is_mutet(struct match const *x)
+bool match_state_is_mute(struct match const *x)
 {
   return state_is_mute(match_state_id(x));
 }

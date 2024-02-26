@@ -23,7 +23,7 @@ struct match match_end(void);
 bool         match_equal(struct match, struct match);
 struct match match_next(struct match const *);
 int          match_state_name(struct match const *, char *dst);
-bool         match_state_is_mutet(struct match const *);
+bool         match_state_is_mute(struct match const *);
 bool         match_state_is_core(struct match const *);
 int          match_state_id(struct match const *);
 int          match_amino(struct match const *, char *amino);

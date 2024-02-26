@@ -15,8 +15,8 @@ static struct params params_list[] = {
     {1, false, false}, {1, false, false}, {1, false, true}, {1, false, true},
     {1, true, false},  {1, true, false},  {1, true, true},  {1, true, true}};
 static bool dial_list[] = {true, false, true, false, true, false, true, false};
-static long chksum_list[] = {48347, 21953, 48347, 17434,
-                             48347, 58895, 48347, 58895};
+static long chksum_list[] = {21953, 21953, 17434, 17434,
+                             58895, 58895, 58895, 58895};
 
 static void test_invalid_sequence();
 static void test_normal_scan(void);

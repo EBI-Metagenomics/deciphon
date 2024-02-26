@@ -191,15 +191,15 @@ static int process_window(struct thread *x, int protein_idx,
     it = begin;
     while (!match_equal(it, end))
     {
-      if (!match_state_is_mutet(&it))
+      if (!match_state_is_mute(&it))
       {
         char amino = 0;
         if ((rc = match_amino(&it, &amino))) return rc;
         if ((rc = chararray_append(&x->amino, amino))) return rc;
       }
-      chararray_append(&x->amino, '\0');
       it = match_next(&it);
     }
+    chararray_append(&x->amino, '\0');
 
     if (hmmer_online(&x->hmmer))
     {
