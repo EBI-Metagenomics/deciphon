@@ -1,29 +1,35 @@
 #ifndef MATCH_H
 #define MATCH_H
 
-#include "imm/codon.h"
-#include "imm/step.h"
 #include <stdbool.h>
+#include "imm/step.h"
 
+struct imm_codon;
+struct imm_path;
+struct imm_seq;
 struct protein;
 
 struct match
 {
+  struct imm_path const *path;
+  struct imm_seq const *sequence;
   struct protein const *protein;
-  struct imm_step step;
-  struct imm_seq seq;
-  struct imm_codon codon;
+  int step;
+  int sequence_position;
 };
 
-// clang-format off
-struct match     match_init(struct protein const *);
-int              match_setup(struct match *, struct imm_step, struct imm_seq);
-int              match_state_name(struct match const *, char *dst);
-bool             match_state_is_mute(struct match const *);
-bool             match_state_is_core(struct match const *);
-int              match_state_state_id(struct match const *);
-char             match_amino(struct match const *);
-struct imm_codon match_codon(struct match const *);
-// clang-format on
+struct match match_begin(struct imm_path const *, struct imm_seq const *, struct protein const *);
+struct match match_end(void);
+bool         match_equal(struct match, struct match);
+struct match match_next(struct match const *);
+int          match_state_name(struct match const *, char *dst);
+bool         match_state_is_mutet(struct match const *);
+bool         match_state_is_core(struct match const *);
+int          match_state_id(struct match const *);
+int          match_amino(struct match const *, char *amino);
+int          match_codon(struct match const *, struct imm_codon *);
+
+struct imm_seq         match_subsequence(struct match const *);
+struct imm_step const *match_step(struct match const *);
 
 #endif

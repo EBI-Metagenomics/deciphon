@@ -64,6 +64,7 @@ int product_close(struct product *x)
   ok &= fputs("window\t", fp) >= 0;
   ok &= fputs("window_start\t", fp) >= 0;
   ok &= fputs("window_stop\t", fp) >= 0;
+  ok &= fputs("hit\t", fp) >= 0;
   ok &= fputs("hit_start\t", fp) >= 0;
   ok &= fputs("hit_stop\t", fp) >= 0;
   ok &= fputs("profile\t", fp) >= 0;

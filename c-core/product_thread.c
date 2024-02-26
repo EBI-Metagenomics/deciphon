@@ -5,8 +5,8 @@
 #include "format.h"
 #include "fs.h"
 #include "hmmer_result.h"
+#include "imm/codon.h"
 #include "match.h"
-#include "match_iter.h"
 #include <string.h>
 
 int product_thread_init(struct product_thread *x, int tid, char const *dir)
@@ -24,8 +24,8 @@ int product_thread_init(struct product_thread *x, int tid, char const *dir)
 
 static int write_match(FILE *, struct match const *);
 
-int product_thread_put_match(struct product_thread *x, struct match *match,
-                             struct match_iter *it)
+int product_thread_put_match(struct product_thread *x, struct match begin,
+                             struct match end)
 {
 #define defer_error(x) defer_return(error(x))
   int rc = 0;
@@ -38,6 +38,7 @@ int product_thread_put_match(struct product_thread *x, struct match *match,
   if (fprintf(fp, "%d\t", line->window) < 0) defer_error(DCP_EWRITEPROD);
   if (fprintf(fp, "%d\t", line->window_start) < 0) defer_error(DCP_EWRITEPROD);
   if (fprintf(fp, "%d\t", line->window_stop) < 0) defer_error(DCP_EWRITEPROD);
+  if (fprintf(fp, "%d\t", line->hit) < 0) defer_error(DCP_EWRITEPROD);
   if (fprintf(fp, "%d\t", line->hit_start) < 0) defer_error(DCP_EWRITEPROD);
   if (fprintf(fp, "%d\t", line->hit_stop) < 0) defer_error(DCP_EWRITEPROD);
   if (fprintf(fp, "%s\t", line->protein) < 0) defer_error(DCP_EWRITEPROD);
@@ -46,10 +47,12 @@ int product_thread_put_match(struct product_thread *x, struct match *match,
   if (fprintf(fp, "%.2g\t", line->evalue) < 0) defer_error(DCP_EWRITEPROD);
 
   int i = 0;
-  while (!(rc = match_iter_next(it, match)) && !match_iter_end(it))
+  struct match it = begin;
+  while (!match_equal(it, end))
   {
     if (i++ && fputc(';', fp) == EOF) defer_error(DCP_EWRITEPROD);
-    if ((rc = write_match(fp, match))) defer_return(rc);
+    if ((rc = write_match(fp, &it))) defer_return(rc);
+    it = match_next(&it);
   }
 
   if (fputc('\n', fp) == EOF) defer_error(DCP_EWRITEPROD);
@@ -70,17 +73,16 @@ int product_thread_put_hmmer(struct product_thread *x,
   char const *dir = x->dirname;
   long seq = x->line.sequence;
   int win = x->line.window;
+  int hit = x->line.hit;
   char *prot = x->line.protein;
 
-  if ((rc = format(file, FS_PATH_MAX, "%s/hmmer/%ld", dir, seq)))
-    return rc;
-  if ((rc = fs_mkdir(file, true))) return rc;
-  if ((rc = format(file, FS_PATH_MAX, "%s/hmmer/%ld/%d", dir, seq, win)))
-    return rc;
-  if ((rc = fs_mkdir(file, true))) return rc;
-  if ((rc = format(file, FS_PATH_MAX, "%s/hmmer/%ld/%d/%s.h3r", dir, seq, win,
-                   prot)))
-    return rc;
+  if ((rc = format(file, FS_PATH_MAX, "%s/hmmer/%ld", dir, seq)))                              return rc;
+  if ((rc = fs_mkdir(file, true)))                                                             return rc;
+  if ((rc = format(file, FS_PATH_MAX, "%s/hmmer/%ld/%d", dir, seq, win)))                      return rc;
+  if ((rc = fs_mkdir(file, true)))                                                             return rc;
+  if ((rc = format(file, FS_PATH_MAX, "%s/hmmer/%ld/%d/%d", dir, seq, win, hit)))              return rc;
+  if ((rc = fs_mkdir(file, true)))                                                             return rc;
+  if ((rc = format(file, FS_PATH_MAX, "%s/hmmer/%ld/%d/%d/%s.h3r", dir, seq, win, hit, prot))) return rc;
 
   FILE *fp = fopen(file, "wb");
   if (!fp) return error(DCP_EFOPEN);
@@ -99,27 +101,34 @@ static int write_match(FILE *fp, struct match const *m)
   char buff[IMM_STATE_NAME_SIZE + 20] = {0};
 
   char *ptr = buff;
-  memcpy(ptr, imm_seq_data(&m->seq), (unsigned)imm_seq_size(&m->seq));
-  ptr += imm_seq_size(&m->seq);
-  *ptr++ = ',';
+  struct imm_seq seq = match_subsequence(m);
+  memcpy(ptr, imm_seq_data(&seq), (unsigned)imm_seq_size(&seq));
+  ptr += imm_seq_size(&seq);
+  *ptr = ',';
+  ptr += 1;
 
   int rc = match_state_name(m, ptr);
   if (rc) return rc;
   ptr += strlen(ptr);
-  *ptr++ = ',';
+  *ptr = ',';
+  ptr += 1;
 
-  if (!match_state_is_mute(m))
+  if (!match_state_is_mutet(m))
   {
-    struct imm_codon codon = match_codon(m);
+    struct imm_codon codon = {0};
+    if ((rc = match_codon(m, &codon))) return rc;
     *ptr++ = imm_codon_asym(&codon);
     *ptr++ = imm_codon_bsym(&codon);
     *ptr++ = imm_codon_csym(&codon);
   }
-
   *ptr++ = ',';
 
-  if (!match_state_is_mute(m)) *ptr++ = match_amino(m);
-
+  if (!match_state_is_mutet(m))
+  {
+    char amino = 0;
+    if ((rc = match_amino(m, &amino))) return rc;
+    *ptr++ = amino;
+  }
   *ptr = '\0';
 
   return fputs(buff, fp) == EOF ? error(DCP_EFWRITE) : 0;

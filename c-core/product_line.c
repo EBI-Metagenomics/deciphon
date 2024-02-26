@@ -13,6 +13,7 @@ void product_line_init(struct product_line *x)
   x->window_start = 0;
   x->window_stop = 0;
 
+  x->hit = 0;
   x->hit_start = 0;
   x->hit_stop = 0;
 

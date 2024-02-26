@@ -10,6 +10,7 @@ struct product_line
   int window_start;
   int window_stop;
 
+  int hit;
   // [hit_start, hit_stop)
   int hit_start;
   int hit_stop;

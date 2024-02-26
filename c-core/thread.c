@@ -1,14 +1,12 @@
 #include "thread.h"
+#include "match.h"
 #include "chararray.h"
 #include "database_reader.h"
 #include "debug.h"
 #include "error.h"
 #include "hmmer_dialer.h"
 #include "imm/lprob.h"
-#include "infer_amino.h"
 #include "lrt.h"
-#include "match.h"
-#include "match_iter.h"
 #include "product_line.h"
 #include "product_thread.h"
 #include "protein_iter.h"
@@ -133,9 +131,6 @@ static int code_fn(int pos, int len, void *arg)
   return imm_eseq_get(seq, pos, len, 1);
 }
 
-static int trim_path(struct protein *, struct imm_seq const *,
-                     struct imm_path *, struct imm_seq *, int *seqstart);
-
 static int process_window(struct thread *x, int protein_idx,
                           struct window const *w)
 {
@@ -164,81 +159,72 @@ static int process_window(struct thread *x, int protein_idx,
   imm_path_reset(&x->path);
   if ((rc = trellis_unzip(viterbi_trellis(x->viterbi), L, &x->path))) return rc;
 
-  struct imm_seq subseq = {0};
-  struct imm_path *subpath = &x->path;
+  // line->hit_start = 0;
+  // if ((rc = trim_path(&x->protein, &seq->imm.seq, subpath, &subseq,
+  //                     &line->hit_start)))
+  //   return rc;
+  // line->hit_stop = line->hit_start + imm_seq_size(&subseq);
 
+  struct match begin = match_end();
+  struct match end = match_begin(&x->path, &seq->imm.seq, &x->protein);
+  line->hit = 0;
   line->hit_start = 0;
-  if ((rc = trim_path(&x->protein, &seq->imm.seq, subpath, &subseq,
-                      &line->hit_start)))
-    return rc;
-  line->hit_stop = line->hit_start + imm_seq_size(&subseq);
+  line->hit_stop = 0;
 
-  if (hmmer_online(&x->hmmer))
+  struct match it = {0};
+  while (!match_equal(begin, end))
   {
-    struct match match = match_init(&x->protein);
-    struct match_iter mit = {0};
-    match_iter_init(&mit, &subseq, subpath);
+    line->hit_start = line->hit_stop;
+    it = end;
+    while (!match_equal(it, match_end()) && match_state_id(&it) != STATE_B)
+    {
+      line->hit_start += match_step(&it)->seqsize;
+      it = match_next(&it);
+    }
 
-    if ((rc = infer_amino(&x->amino, &match, &mit))) return rc;
+    line->hit_stop = line->hit_start;
+    begin = it;
+    while (!match_equal(it, match_end()) && match_state_id(&it) != STATE_E)
+    {
+      line->hit_stop += match_step(&it)->seqsize;
+      it = match_next(&it);
+    }
+    end = match_next(&it);
 
-    debug("sending to hmmer sequence of size %zu", x->amino.size);
-    if ((rc = hmmer_get(&x->hmmer, protein_idx, seq->name, x->amino.data)))
-      return rc;
+    if (match_equal(begin, end)) continue;
 
-    x->product->line.evalue = hmmer_result_num_hits(&x->hmmer.result)
-                                  ? hmmer_result_evalue(&x->hmmer.result)
-                                  : 1.0;
-    // We apparently can have num_hits > 0 but without alignment. It seems
-    // to happen with evalue is above 1. So lets ignore those hits.
-    if (x->product->line.evalue > 1.0) x->product->line.evalue = 1.0;
+    chararray_reset(&x->amino);
+    it = begin;
+    while (!match_equal(it, end))
+    {
+      if (!match_state_is_mutet(&it))
+      {
+        char amino = 0;
+        if ((rc = match_amino(&it, &amino))) return rc;
+        if ((rc = chararray_append(&x->amino, amino))) return rc;
+      }
+      it = match_next(&it);
+    }
 
-    if (x->product->line.evalue == 1.0) return rc;
-    if ((rc = product_thread_put_hmmer(x->product, &x->hmmer.result)))
-      return rc;
+    if (hmmer_online(&x->hmmer))
+    {
+      debug("sending to hmmer sequence of size %zu", x->amino.size);
+      if ((rc = hmmer_get(&x->hmmer, protein_idx, seq->name, x->amino.data)))
+        return rc;
+
+      x->product->line.evalue = hmmer_result_num_hits(&x->hmmer.result)
+                                    ? hmmer_result_evalue(&x->hmmer.result)
+                                    : 1.0;
+      // We apparently can have num_hits > 0 but without alignment. It seems
+      // to happen with evalue is above 1. So lets ignore those hits.
+      if (x->product->line.evalue > 1.0) x->product->line.evalue = 1.0;
+
+      if (x->product->line.evalue == 1.0) return rc;
+      if ((rc = product_thread_put_hmmer(x->product, &x->hmmer.result)))
+        return rc;
+    }
+    if ((rc = product_thread_put_match(x->product, begin, end))) return rc;
+    line->hit += 1;
   }
-
-  struct match match = match_init(&x->protein);
-  struct match_iter mit = {0};
-  match_iter_init(&mit, &subseq, subpath);
-  return product_thread_put_match(x->product, &match, &mit);
-}
-
-static int trim_path(struct protein *protein, struct imm_seq const *seq,
-                     struct imm_path *path, struct imm_seq *subseq, int *seqstart)
-{
-  int rc = 0;
-
-  struct match match = match_init(protein);
-  struct match_iter it = {0};
-  match_iter_init(&it, seq, path);
-
-  int start = 0;
-  int stop = INT_MAX;
-
-  match_iter_rewind(&it);
-  while (!(rc = match_iter_next(&it, &match)))
-  {
-    if (match_iter_end(&it)) return error(DCP_ENOHIT);
-    if (match_state_state_id(&match) == STATE_B) break;
-  }
-  if (rc) return rc;
-  start = match_iter_tell(&it) - 1;
-  *seqstart = match_iter_seqtell(&it) - match.step.seqsize;
-
-  if ((rc = match_iter_seek(&it, &match, INT_MAX))) return rc;
-  while (!(rc = match_iter_prev(&it, &match)))
-  {
-    if (match_iter_begin(&it)) return error(DCP_ENOHIT);
-    if (match_state_state_id(&match) == STATE_E) break;
-  }
-  if (rc) return rc;
-  stop = match_iter_tell(&it) + 1;
-  int seqstop = match_iter_seqtell(&it) +  match.step.seqsize;
-
-  match_iter_seek(&it, &match, start);
-
-  *subseq = imm_seq_slice(seq, imm_range(*seqstart, seqstop));
-  imm_path_cut(path, start, stop - start);
-
   return 0;
 }
