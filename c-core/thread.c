@@ -1,4 +1,5 @@
 #include "thread.h"
+#include "max.h"
 #include "match.h"
 #include "chararray.h"
 #include "database_reader.h"
@@ -145,7 +146,7 @@ static int process_window(struct thread *x, int protein_idx,
   bool hmmer3_compat = x->hmmer3_compat;
 
   int L = sequence_size(seq);
-  protein_reset(&x->protein, L / 3, multi_hits, hmmer3_compat);
+  protein_reset(&x->protein, max(L / 3, 1), multi_hits, hmmer3_compat);
   if ((rc = protein_setup_viterbi(&x->protein, x->viterbi))) return rc;
 
   float null = -viterbi_null(x->viterbi, sequence_size(seq), code_fn, (void *)&seq->imm.eseq);
