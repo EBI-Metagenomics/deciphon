@@ -78,8 +78,7 @@ void thread_cleanup(struct thread *x)
   imm_path_cleanup(&x->path);
 }
 
-static int process_window(struct thread *, int protein_idx,
-                          struct window const *);
+static int process_window(struct thread *, int protein_idx, struct window *);
 
 int thread_run(struct thread *x, struct sequence_queue const *sequences,
                int *done_proteins, struct xsignal *xsignal,
@@ -101,8 +100,7 @@ int thread_run(struct thread *x, struct sequence_queue const *sequences,
     {
       debug("%d:%s:%s", x->partition, x->protein.accession, seq->name);
       struct window w = window_setup(seq, x->protein.core_size);
-      int last_hit_pos = -1;
-      while (window_next(&w, last_hit_pos))
+      while (window_next(&w))
       {
         int protein_idx = protein_iter_idx(protein_iter);
         if ((rc = process_window(x, protein_idx, &w))) goto cleanup;
@@ -132,8 +130,7 @@ static int code_fn(int pos, int len, void *arg)
   return imm_eseq_get(seq, pos, len, 1);
 }
 
-static int process_window(struct thread *x, int protein_idx,
-                          struct window const *w)
+static int process_window(struct thread *x, int protein_idx, struct window *w)
 {
   int rc = 0;
   struct sequence const *seq = window_sequence(w);
@@ -185,6 +182,7 @@ static int process_window(struct thread *x, int protein_idx,
       it = match_next(&it);
     }
     end = match_next(&it);
+    window_set_last_hit_position(w, line->hit_stop - 1);
 
     if (match_equal(begin, end)) continue;
 
