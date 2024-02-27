@@ -201,7 +201,11 @@ static int process_window(struct thread *x, int protein_idx,
     }
     chararray_append(&x->amino, '\0');
 
-    if (hmmer_online(&x->hmmer))
+    // HMMER3 (2024) cannot handle sequences longer than 100000 letters.
+    // https://github.com/EddyRivasLab/hmmer/blob/9acd8b6758a0ca5d21db6d167e0277484341929b/src/p7_pipeline.c#L714
+    if (x->amino.size > 100000)
+      debug("Amino-acid sequence is too long for HMMER3: %d", x->amino.size);
+    if (hmmer_online(&x->hmmer) && x->amino.size <= 100000)
     {
       debug("sending to hmmer sequence of size %zu", x->amino.size);
       if ((rc = hmmer_get(&x->hmmer, protein_idx, seq->name, x->amino.data)))
