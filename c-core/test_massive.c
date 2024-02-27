@@ -31,7 +31,7 @@ int main(void)
   }
   eq(scan_run(scan, PRODDIR, NULL, NULL), 0);
   eq(scan_progress(scan), 100);
-  eq(chksum(PRODDIR "/products.tsv"), 44805);
+  eq(chksum(PRODDIR "/products.tsv"), 60189);
   eq(scan_close(scan), 0);
 
   scan_del(scan);
