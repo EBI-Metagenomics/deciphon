@@ -144,10 +144,10 @@ static int process_window(struct thread *x, int protein_idx,
   bool multi_hits = x->multi_hits;
   bool hmmer3_compat = x->hmmer3_compat;
 
-  protein_reset(&x->protein, sequence_size(seq), multi_hits, hmmer3_compat);
+  int L = sequence_size(seq);
+  protein_reset(&x->protein, L / 3, multi_hits, hmmer3_compat);
   if ((rc = protein_setup_viterbi(&x->protein, x->viterbi))) return rc;
 
-  int L = sequence_size(seq);
   float null = -viterbi_null(x->viterbi, sequence_size(seq), code_fn, (void *)&seq->imm.eseq);
   float alt = -viterbi_cost(x->viterbi, sequence_size(seq), code_fn, (void *)&seq->imm.eseq);
 

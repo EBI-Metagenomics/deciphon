@@ -1,16 +1,8 @@
 #include "window.h"
 #include "bug.h"
-#include "compiler_attributes.h"
 #include "max.h"
 #include "min.h"
 #include "sequence.h"
-
-// We are respecting HMMER's limit on sequence size:
-//   https://github.com/EddyRivasLab/hmmer/blob/
-//   9acd8b6758a0ca5d21db6d167e0277484341929b/src/p7_pipeline.c#L714
-static int const WINDOW_SIZE = 3 * (100000 - 5000);
-
-__attribute_const int max_size(int core_size) { return core_size * 3 * 3; }
 
 struct window window_setup(struct sequence const *x, int core_size)
 {
@@ -29,13 +21,13 @@ bool window_next(struct window *x, int last_hit_pos)
   int stop_miss = x->range.stop + 1;
   int start_miss = max(x->range.start + 1, x->range.start + last_hit_pos + 1);
   // Lets shorten that interval by assuming that the largest hit
-  // would have size max_size(x->core_size).
-  start_miss = max(start_miss, stop_miss - max_size(x->core_size));
+  // would have size x->core_size * 4.
+  start_miss = max(start_miss, stop_miss - x->core_size * 4);
   // We cannot go over the sequence size.
   BUG_ON(stop_miss > sequence_size(x->seq));
 
   x->range.start = start_miss;
-  x->range.stop = min(start_miss + WINDOW_SIZE, sequence_size(x->seq));
+  x->range.stop = min(start_miss + x->core_size * 10, sequence_size(x->seq));
 
   x->iter = sequence_slice(x->seq, x->range);
   x->idx += 1;
