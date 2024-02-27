@@ -27,7 +27,7 @@ bool window_next(struct window *x)
   BUG_ON(stop_miss > sequence_size(x->seq));
 
   x->range.start = start_miss;
-  x->range.stop = min(start_miss + x->core_size * 10, sequence_size(x->seq));
+  x->range.stop = min(start_miss + x->core_size * 50, sequence_size(x->seq));
 
   x->iter = sequence_slice(x->seq, x->range);
   x->idx += 1;
