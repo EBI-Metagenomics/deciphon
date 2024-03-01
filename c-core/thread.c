@@ -141,6 +141,8 @@ static int process_window(struct thread *x, int protein_idx, struct window *w)
   line->window_stop = window_range(w).stop;
   bool multi_hits = x->multi_hits;
   bool hmmer3_compat = x->hmmer3_compat;
+  debug("running on window [%d,%d]", window_range(w).start,
+        window_range(w).stop);
 
   int L = sequence_size(seq);
   protein_reset(&x->protein, max(L / 3, 1), multi_hits, hmmer3_compat);
@@ -151,6 +153,8 @@ static int process_window(struct thread *x, int protein_idx, struct window *w)
 
   line->lrt = lrt(null, alt);
   if (!imm_lprob_is_finite(line->lrt) || line->lrt < 0) return rc;
+  debug("passed lrt threshold for window [%d,%d]", window_range(w).start,
+        window_range(w).stop);
 
   if ((rc = product_line_set_protein(line, x->protein.accession))) return rc;
   if ((rc = viterbi_path(x->viterbi, L, code_fn, (void *)&seq->imm.eseq))) return rc;
