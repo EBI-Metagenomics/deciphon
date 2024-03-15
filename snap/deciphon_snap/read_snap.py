@@ -1,4 +1,4 @@
-from fsspec.implementations.cached import SimpleCacheFileSystem
+from fsspec.implementations.memory import MemoryFile
 from fsspec.implementations.zip import ZipFileSystem
 
 from deciphon_snap.path_like import PathLike
@@ -9,4 +9,6 @@ __all__ = ["read_snap"]
 
 def read_snap(filename: PathLike):
     fo = filename.decode() if isinstance(filename, bytes) else str(filename)
-    return SnapFile(SimpleCacheFileSystem(fs=ZipFileSystem(fo)))
+    with open(fo, "rb") as f:
+        fs = ZipFileSystem(fo=MemoryFile(data=f.read()))
+        return SnapFile(fs)
