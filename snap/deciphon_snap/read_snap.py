@@ -1,3 +1,4 @@
+from fsspec.implementations.cached import SimpleCacheFileSystem
 from fsspec.implementations.memory import MemoryFile
 from fsspec.implementations.zip import ZipFileSystem
 
@@ -11,4 +12,4 @@ def read_snap(filename: PathLike):
     fo = filename.decode() if isinstance(filename, bytes) else str(filename)
     with open(fo, "rb") as f:
         fs = ZipFileSystem(fo=MemoryFile(data=f.read()))
-        return SnapFile(fs)
+        return SnapFile(SimpleCacheFileSystem(fs=fs))
