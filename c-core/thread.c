@@ -224,7 +224,7 @@ static int process_window(struct thread *x, int protein_idx, struct window *w)
       // to happen with evalue is above 1. So lets ignore those hits.
       if (x->product->line.evalue > 1.0) x->product->line.evalue = 1.0;
 
-      if (x->product->line.evalue == 1.0) return rc;
+      if (x->product->line.evalue == 1.0) continue;
       if ((rc = product_thread_put_hmmer(x->product, &x->hmmer.result)))
         return rc;
     }
