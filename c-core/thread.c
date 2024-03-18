@@ -157,7 +157,6 @@ static int process_window(struct thread *x, int protein_idx, struct window *w)
   if (!imm_lprob_is_finite(line->lrt) || line->lrt < 0) return rc;
   debug("passed lrt threshold for window [%d,%d]", window_range(w).start,
         window_range(w).stop);
-  fprintf(stderr, "lrt: %g\n", line->lrt);
 
   if ((rc = product_line_set_protein(line, x->protein.accession))) return rc;
   if ((rc = viterbi_path(x->viterbi, L, code_fn, (void *)&seq->imm.eseq)))
