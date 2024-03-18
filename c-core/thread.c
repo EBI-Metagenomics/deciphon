@@ -1,6 +1,4 @@
 #include "thread.h"
-#include "max.h"
-#include "match.h"
 #include "chararray.h"
 #include "database_reader.h"
 #include "debug.h"
@@ -8,6 +6,8 @@
 #include "hmmer_dialer.h"
 #include "imm/lprob.h"
 #include "lrt.h"
+#include "match.h"
+#include "max.h"
 #include "product_line.h"
 #include "product_thread.h"
 #include "protein_iter.h"
@@ -55,7 +55,7 @@ int thread_setup(struct thread *x, struct thread_params params)
   x->multi_hits = params.multi_hits;
   x->hmmer3_compat = params.hmmer3_compat;
 
-  if ((rc = hmmer_setup(&x->hmmer, db->has_ga))) return rc;
+  if ((rc = hmmer_setup(&x->hmmer, db->has_ga, db->num_proteins))) return rc;
   if (hmmer_dialer_online(params.dialer))
   {
     if ((rc = hmmer_dialer_dial(params.dialer, &x->hmmer))) return rc;
@@ -148,16 +148,20 @@ static int process_window(struct thread *x, int protein_idx, struct window *w)
   protein_reset(&x->protein, max(L / 3, 1), multi_hits, hmmer3_compat);
   if ((rc = protein_setup_viterbi(&x->protein, x->viterbi))) return rc;
 
-  float null = -viterbi_null(x->viterbi, sequence_size(seq), code_fn, (void *)&seq->imm.eseq);
-  float alt = -viterbi_cost(x->viterbi, sequence_size(seq), code_fn, (void *)&seq->imm.eseq);
+  float null = -viterbi_null(x->viterbi, sequence_size(seq), code_fn,
+                             (void *)&seq->imm.eseq);
+  float alt = -viterbi_cost(x->viterbi, sequence_size(seq), code_fn,
+                            (void *)&seq->imm.eseq);
 
   line->lrt = lrt(null, alt);
   if (!imm_lprob_is_finite(line->lrt) || line->lrt < 0) return rc;
   debug("passed lrt threshold for window [%d,%d]", window_range(w).start,
         window_range(w).stop);
+  fprintf(stderr, "lrt: %g\n", line->lrt);
 
   if ((rc = product_line_set_protein(line, x->protein.accession))) return rc;
-  if ((rc = viterbi_path(x->viterbi, L, code_fn, (void *)&seq->imm.eseq))) return rc;
+  if ((rc = viterbi_path(x->viterbi, L, code_fn, (void *)&seq->imm.eseq)))
+    return rc;
   imm_path_reset(&x->path);
   if ((rc = trellis_unzip(viterbi_trellis(x->viterbi), L, &x->path))) return rc;
 

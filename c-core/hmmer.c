@@ -16,9 +16,10 @@ void hmmer_init(struct hmmer *x)
   hmmer_result_init(&x->result);
 }
 
-int hmmer_setup(struct hmmer *x, bool cut_ga)
+int hmmer_setup(struct hmmer *x, bool cut_ga, int num_proteins)
 {
   x->cut_ga = cut_ga;
+  x->num_proteins = num_proteins;
   return hmmer_result_setup(&x->result);
 }
 
@@ -56,8 +57,8 @@ int hmmer_get(struct hmmer *x, int hmmidx, char const *name, char const *seq)
              hmmidx, hmmidx);
   else
     snprintf(cmd, sizeof(cmd),
-             "--hmmdb 1 --hmmdb_range %d..%d --acc --incdomE 1e-5 --incE 1e-5",
-             hmmidx, hmmidx);
+             "--hmmdb 1 --hmmdb_range %d..%d --acc -Z %d -E 1e-10", hmmidx,
+             hmmidx, x->num_proteins);
 
   for (int i = 0; i < NUM_RETRIES; ++i)
   {
