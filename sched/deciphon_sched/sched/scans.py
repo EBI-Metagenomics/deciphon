@@ -182,7 +182,8 @@ async def read_gff(request: Request, scan_id: int):
 @router.get("/scans/{scan_id}/snap.dcs/view", status_code=HTTP_200_OK)
 async def view_snap(request: Request, scan_id: int):
     x = get_snap_file(request, scan_id)
-    return PlainTextResponse(strip_empty_lines(view_alignments(x)))
+    txt = "\n".join(view_alignments(x))
+    return PlainTextResponse(strip_empty_lines(txt))
 
 
 def strip_empty_lines(s):

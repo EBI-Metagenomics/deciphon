@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import paho.mqtt.client
+import paho.mqtt.client as mqtt
 from testcontainers.core.container import DockerContainer
 from testcontainers.core.waiting_utils import wait_container_is_ready
 from testcontainers.minio import MinioContainer
@@ -41,7 +41,7 @@ class MosquittoContainer(DockerContainer):
     def _healthcheck(self):
         host = self.get_container_host_ip()
         port = int(self.get_exposed_port(self.port))
-        x = paho.mqtt.client.Client()
+        x = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
         x.connect(host, port, 1)
         if x.loop() != 0:
             raise ConnectionError()
