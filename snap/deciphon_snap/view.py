@@ -1,10 +1,11 @@
 from functools import partial
+from io import StringIO
 from itertools import accumulate, chain
 from typing import Optional
 
-import tabulate
 from hmmer_tables.query import DomAnnot, read_query
 from pydantic import BaseModel
+from tabulate import simple_separated_format, tabulate
 
 from deciphon_snap.match import Match, MatchList
 from deciphon_snap.prod import H3Result, Prod
@@ -37,7 +38,7 @@ def make_deciphon_steps(match_list: MatchList):
 
 
 def make_hmmer_annot(h3result: H3Result):
-    hmmer_query = read_query(stream=h3result.domains.splitlines())
+    hmmer_query = read_query(stream=StringIO(h3result.domains))
     assert len(hmmer_query.domains) == 1
     return hmmer_query.domains[0]
 
@@ -196,11 +197,9 @@ def view_alignment(prod: Prod):
             [None, None, "".join(score[sl]) + pad, "PP"],
         ]
         table += row + [[None, None, None, None]]
-    tablefmt = tabulate.simple_separated_format(" ")
-    txt += str(
-        tabulate.tabulate(
-            table, tablefmt=tablefmt, colalign=("right", "right", "left", "left")
-        )
+    tablefmt = simple_separated_format(" ")
+    txt += tabulate(
+        table, tablefmt=tablefmt, colalign=("right", "right", "left", "left")
     )
     txt = txt.replace("&", "") + "\n"
     return txt

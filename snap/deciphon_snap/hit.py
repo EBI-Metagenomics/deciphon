@@ -39,7 +39,7 @@ class Hit(BaseModel):
         assert self._interval is not None
         assert self._match_list is not None
         matches: list[Match] = []
-        offset = self._interval.pyinterval.start
+        offset = self._interval.py.start
         for x in self._match_list[self.match_list_interval.slice]:
             y = Match(raw=x.raw, start=x.start, end=x.end, position=offset)
             if y.is_match_state or y.is_insert_state:
@@ -58,12 +58,10 @@ class HitList(RootModel):
         return len(self.root)
 
     @overload
-    def __getitem__(self, i: int) -> Hit:
-        ...
+    def __getitem__(self, i: int) -> Hit: ...
 
     @overload
-    def __getitem__(self, i: slice) -> HitList:
-        ...
+    def __getitem__(self, i: slice) -> HitList: ...
 
     def __getitem__(self, i: int | slice):
         if isinstance(i, slice):

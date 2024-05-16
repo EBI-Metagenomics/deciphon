@@ -5,8 +5,7 @@ from deciphon_snap.match import MatchList, MatchListInterval
 __all__ = ["QueryInterval", "QueryIntervalBuilder"]
 
 
-class QueryInterval(PyInterval):
-    ...
+class QueryInterval(PyInterval): ...
 
 
 class QueryIntervalBuilder:

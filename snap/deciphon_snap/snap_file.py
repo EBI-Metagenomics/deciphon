@@ -38,7 +38,9 @@ class SnapFile:
                 window = int(row["window"])
                 hit = int(row["hit"])
                 profile = str(row["profile"])
-                with fs.open(f"{hmmer_dir}/{seq_id}/{window}/{hit}/{profile}.h3r", "rb") as f2:
+                with fs.open(
+                    f"{hmmer_dir}/{seq_id}/{window}/{hit}/{profile}.h3r", "rb"
+                ) as f2:
                     h3r = H3Result(raw=read_h3result(fileno=f2.fileno()))
                 window_start = int(row["window_start"])
                 window_stop = int(row["window_stop"])

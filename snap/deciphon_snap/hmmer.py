@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import os
+from io import StringIO
 from tempfile import NamedTemporaryFile
 
 from h3result.h3result import H3Result as H3ResultRaw
-from hmmer_tables.domtbl import read_domtbl, DomTBL
-from hmmer_tables.tbl import read_tbl, TBL
+from hmmer_tables.domtbl import DomTBL, read_domtbl
+from hmmer_tables.tbl import TBL, read_tbl
 from pydantic import BaseModel, ConfigDict
 
 __all__ = ["H3Result"]
@@ -45,11 +46,11 @@ class H3Result(BaseModel):
 
     @property
     def tbl(self) -> TBL:
-        return read_tbl(stream=self.targets_table.split("\n"))
+        return read_tbl(stream=StringIO(self.targets_table))
 
     @property
     def domtbl(self) -> DomTBL:
-        return read_domtbl(stream=self.domains_table.split("\n"))
+        return read_domtbl(stream=StringIO(self.domains_table))
 
     def __str__(self):
         items = []

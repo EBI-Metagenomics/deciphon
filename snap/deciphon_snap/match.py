@@ -105,12 +105,10 @@ class MatchList:
         return len(self.root)
 
     @overload
-    def __getitem__(self, i: int) -> Match:
-        ...
+    def __getitem__(self, i: int) -> Match: ...
 
     @overload
-    def __getitem__(self, i: slice) -> MatchList:
-        ...
+    def __getitem__(self, i: slice) -> MatchList: ...
 
     def __getitem__(self, i: int | slice):
         if isinstance(i, slice):
@@ -142,8 +140,7 @@ class MatchList:
         return "".join(x.amino for x in iter(self))
 
 
-class MatchListInterval(PyInterval):
-    ...
+class MatchListInterval(PyInterval): ...
 
 
 class MatchListIntervalBuilder:

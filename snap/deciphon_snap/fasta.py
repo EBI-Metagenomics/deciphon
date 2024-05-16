@@ -21,12 +21,10 @@ class FASTAList(RootModel):
         return len(self.root)
 
     @overload
-    def __getitem__(self, i: int) -> FASTAItem:
-        ...
+    def __getitem__(self, i: int) -> FASTAItem: ...
 
     @overload
-    def __getitem__(self, i: slice) -> FASTAList:
-        ...
+    def __getitem__(self, i: slice) -> FASTAList: ...
 
     def __getitem__(self, i: int | slice):
         if isinstance(i, slice):

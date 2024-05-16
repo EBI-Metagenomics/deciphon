@@ -4,7 +4,6 @@ from typing import List, overload
 
 from pydantic import BaseModel, RootModel
 
-
 __all__ = ["GFFItem", "GFFList"]
 
 
@@ -34,12 +33,10 @@ class GFFList(RootModel):
         return len(self.root)
 
     @overload
-    def __getitem__(self, i: int) -> GFFItem:
-        ...
+    def __getitem__(self, i: int) -> GFFItem: ...
 
     @overload
-    def __getitem__(self, i: slice) -> GFFList:
-        ...
+    def __getitem__(self, i: slice) -> GFFList: ...
 
     def __getitem__(self, i: int | slice):
         if isinstance(i, slice):

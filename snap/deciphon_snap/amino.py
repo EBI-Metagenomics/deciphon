@@ -4,8 +4,7 @@ from hmmer_tables.domtbl import DomTBLCoord
 __all__ = ["AminoInterval", "make_amino_interval"]
 
 
-class AminoInterval(PyInterval):
-    ...
+class AminoInterval(PyInterval): ...
 
 
 def make_amino_interval(x: DomTBLCoord):

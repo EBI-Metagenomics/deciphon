@@ -94,12 +94,10 @@ class ProdList(RootModel):
         return len(self.root)
 
     @overload
-    def __getitem__(self, i: int) -> Prod:
-        ...
+    def __getitem__(self, i: int) -> Prod: ...
 
     @overload
-    def __getitem__(self, i: slice) -> ProdList:
-        ...
+    def __getitem__(self, i: slice) -> ProdList: ...
 
     def __getitem__(self, i: int | slice):
         if isinstance(i, slice):
