@@ -9,25 +9,25 @@ packages = [{ include = "deciphon" }]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-cffi = "^1.15.1"
-deciphon-core = ">=0.23.9"
-fasta-reader = "^3"
-h3daemon = ">=0.13.8"
-hmmer = "^0"
-ijson = "^3.2.3"
-pydantic = "^2"
-typer = "^0"
-rich = "^13"
-deciphon-snap = "^0.11.2"
+cffi = "^1.16"
+deciphon-core = "^0.23"
+fasta-reader = "^3.0"
+h3daemon = "^0.14"
+hmmer = "^3.4"
+ijson = "^3.2"
+pydantic = "^2.7"
+typer = "^0.12"
+rich = "^13.7"
+deciphon-snap = "^0.11"
 
 [tool.poetry.group.dev.dependencies]
-pytest = ">=7.3.2"
+pytest = "^8.2"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
 
 [tool.poetry.scripts]
-deci     = 'deciphon.cli:app' # deprecated
+deci = 'deciphon.cli:app'     # deprecated
 deciphon = 'deciphon.cli:app'
 
 [build-system]
