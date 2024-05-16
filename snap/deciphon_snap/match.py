@@ -20,7 +20,7 @@ class MatchElemName(Enum):
     AMINO = 4
 
 
-@dataclass(slots=True, frozen=True)
+@dataclass(slots=True, frozen=True, match_args=False)
 class Match:
     raw: str
     start: int

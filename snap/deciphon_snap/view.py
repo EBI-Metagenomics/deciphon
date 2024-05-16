@@ -5,11 +5,11 @@ from typing import Optional
 
 from hmmer_tables.query import DomAnnot, read_query
 from pydantic import BaseModel
-from tabulate import simple_separated_format, tabulate
 
 from deciphon_snap.match import Match, MatchList
 from deciphon_snap.prod import H3Result, Prod
 from deciphon_snap.snap_file import SnapFile
+from deciphon_snap.tabulate import tabulate
 
 __all__ = ["view_alignments"]
 
@@ -197,16 +197,10 @@ def view_alignment(prod: Prod):
             [None, None, "".join(score[sl]) + pad, "PP"],
         ]
         table += row + [[None, None, None, None]]
-    tablefmt = simple_separated_format(" ")
-    txt += tabulate(
-        table, tablefmt=tablefmt, colalign=("right", "right", "left", "left")
-    )
+    txt += tabulate(table, ["right", "right", "left", "left"])
     txt = txt.replace("&", "") + "\n"
     return txt
 
 
 def view_alignments(snap: SnapFile):
-    txt = []
-    for prod in snap.products:
-        txt.append(view_alignment(prod))
-    return "\n".join(txt)
+    return (view_alignment(prod) for prod in snap.products)
