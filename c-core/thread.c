@@ -18,6 +18,7 @@
 #include "viterbi.h"
 #include "window.h"
 #include "xsignal.h"
+// #include <imm/path.h>
 #include <imm/seq.h>
 #include <stdlib.h>
 #include <string.h>
@@ -154,6 +155,7 @@ static int process_window(struct thread *x, int protein_idx, struct window *w)
                             (void *)&seq->imm.eseq);
 
   line->lrt = lrt(null, alt);
+  debug("lrt for %s: %g", x->protein.accession, line->lrt);
   if (!imm_lprob_is_finite(line->lrt) || line->lrt < 0) return rc;
   debug("passed lrt threshold for window [%d,%d]", window_range(w).start,
         window_range(w).stop);
@@ -170,6 +172,81 @@ static int process_window(struct thread *x, int protein_idx, struct window *w)
   line->hit_start = 0;
   line->hit_stop = 0;
 
+  if (match_equal(begin, end)) return rc;
+
+  struct match it = {0};
+  line->hit_start = line->hit_stop;
+  it = end;
+  while (!match_equal(it, match_end()) && match_state_id(&it) != STATE_B)
+  {
+    line->hit_start += match_step(&it)->seqsize;
+    it = match_next(&it);
+  }
+  if (match_equal(it, match_end())) return rc;
+  int hit_stop = line->hit_start;
+  begin = it;
+  end = match_next(&it);
+
+  for (;;)
+  {
+    it = end;
+    line->hit_stop = hit_stop;
+    while (!match_equal(it, match_end()) && match_state_id(&it) != STATE_E)
+    {
+      hit_stop += match_step(&it)->seqsize;
+      it = match_next(&it);
+    }
+    if (match_equal(it, match_end()))
+    {
+      window_set_last_hit_position(w, line->hit_stop - 1);
+      break;
+    }
+    end = match_next(&it);
+  }
+
+  chararray_reset(&x->amino);
+  it = begin;
+  while (!match_equal(it, end))
+  {
+    if (!match_state_is_mute(&it))
+    {
+      char amino = 0;
+      if ((rc = match_amino(&it, &amino))) return rc;
+      if ((rc = chararray_append(&x->amino, amino))) return rc;
+    }
+    it = match_next(&it);
+  }
+  chararray_append(&x->amino, '\0');
+
+  // HMMER3 (2024) cannot handle sequences longer than 100000 letters.
+  // https://github.com/EddyRivasLab/hmmer/blob/9acd8b6758a0ca5d21db6d167e0277484341929b/src/p7_pipeline.c#L714
+  if (x->amino.size > 100000)
+    debug("Amino-acid sequence is too long for HMMER3: %d", x->amino.size);
+  if (hmmer_online(&x->hmmer) && x->amino.size <= 100000)
+  {
+    debug("sending to hmmer sequence of size %zu", x->amino.size);
+    debug("sequence sent: %s", x->amino.data);
+    if ((rc = hmmer_get(&x->hmmer, protein_idx, seq->name, x->amino.data)))
+      return rc;
+
+    x->product->line.evalue = hmmer_result_num_hits(&x->hmmer.result)
+                                  ? hmmer_result_evalue(&x->hmmer.result)
+                                  : 1.0;
+    // We apparently can have num_hits > 0 but without alignment. It seems
+    // to happen with evalue is above 1. So lets ignore those hits.
+    if (x->product->line.evalue > 1.0) x->product->line.evalue = 1.0;
+
+    debug("num_hits: %d evalue: %g", hmmer_result_num_hits(&x->hmmer.result),
+          x->product->line.evalue);
+    // if (x->product->line.evalue == 1.0) continue;
+    if (x->product->line.evalue == 1.0) return rc;
+    if ((rc = product_thread_put_hmmer(x->product, &x->hmmer.result)))
+      return rc;
+  }
+  if ((rc = product_thread_put_match(x->product, begin, end))) return rc;
+  line->hit += 1;
+
+#if 0
   struct match it = {0};
   while (!match_equal(begin, end))
   {
@@ -214,6 +291,7 @@ static int process_window(struct thread *x, int protein_idx, struct window *w)
     if (hmmer_online(&x->hmmer) && x->amino.size <= 100000)
     {
       debug("sending to hmmer sequence of size %zu", x->amino.size);
+      debug("sequence sent: %s", x->amino.data);
       if ((rc = hmmer_get(&x->hmmer, protein_idx, seq->name, x->amino.data)))
         return rc;
 
@@ -224,6 +302,8 @@ static int process_window(struct thread *x, int protein_idx, struct window *w)
       // to happen with evalue is above 1. So lets ignore those hits.
       if (x->product->line.evalue > 1.0) x->product->line.evalue = 1.0;
 
+      debug("num_hits: %d evalue: %g", hmmer_result_num_hits(&x->hmmer.result),
+            x->product->line.evalue);
       if (x->product->line.evalue == 1.0) continue;
       if ((rc = product_thread_put_hmmer(x->product, &x->hmmer.result)))
         return rc;
@@ -231,5 +311,6 @@ static int process_window(struct thread *x, int protein_idx, struct window *w)
     if ((rc = product_thread_put_match(x->product, begin, end))) return rc;
     line->hit += 1;
   }
+#endif
   return 0;
 }
