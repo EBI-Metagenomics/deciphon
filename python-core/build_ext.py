@@ -68,7 +68,7 @@ EXTS = [
     Ext(
         "EBI-Metagenomics",
         "deciphon",
-        "c-core-v0.20.10",
+        "c-core-v0.21.0",
         "./c-core",
         CMAKE_OPTS + CPM_OPTS,
     ),
