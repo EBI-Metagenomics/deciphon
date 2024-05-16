@@ -9,22 +9,21 @@ packages = [{ include = "deciphonctl" }]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-typer = "^0"
-requests = "^2"
-pydantic = "^2"
-pydantic-settings = "^2"
-fasta-reader = "^3"
-deciphon = ">=0.11.0"
-deciphon-core = ">=0.19.0"
-loguru = "^0"
-deciphon-sched = ">=0.11.2"
-paho-mqtt = "^1.6.1"
-requests-toolbelt = "^1.0.0"
+typer = "^0.12"
+requests = "^2.31"
+pydantic = "^2.7"
+pydantic-settings = "^2.2"
+fasta-reader = "^3.0"
+deciphon = "^0.13"
+deciphon-core = "^0.23"
+loguru = "^0.7"
+requests-toolbelt = "^1.0"
+paho-mqtt = "^2.1"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.3.2"
-uvicorn = "^0"
-deciphon-sched = { version = ">=0.11.2", extras = ["testing"] }
+deciphon-sched = { version = "^0.11", extras = ["testing"] }
+pytest = "^8.2"
+uvicorn = "^0.29"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
