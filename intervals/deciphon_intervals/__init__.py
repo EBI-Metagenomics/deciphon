@@ -11,18 +11,15 @@ __all__ = ["Interval", "PyInterval", "RInterval"]
 class Interval(BaseModel, ABC):
     @property
     @abstractmethod
-    def r(self) -> RInterval:
-        ...
+    def r(self) -> RInterval: ...
 
     @property
     @abstractmethod
-    def py(self) -> PyInterval:
-        ...
+    def py(self) -> PyInterval: ...
 
     @property
     @abstractmethod
-    def slice(self) -> slice:
-        ...
+    def slice(self) -> slice: ...
 
 
 class PyInterval(Interval):
