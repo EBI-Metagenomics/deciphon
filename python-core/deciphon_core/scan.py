@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 from deciphon_core.cffi import ffi, lib
 from deciphon_core.error import DeciphonError
 from deciphon_core.params import Params
@@ -46,7 +45,9 @@ class Scan:
             raise DeciphonError(rc)
 
     def run(self, snap: NewSnapFile):
-        if rc := lib.scan_run(self._cscan, str(snap.basename).encode(), lib.interrupt, ffi.NULL):
+        if rc := lib.scan_run(
+            self._cscan, str(snap.basename).encode(), lib.interrupt, ffi.NULL
+        ):
             raise DeciphonError(rc)
 
     def interrupted(self) -> bool:

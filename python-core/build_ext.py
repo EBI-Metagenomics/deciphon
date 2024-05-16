@@ -52,7 +52,7 @@ EXTS = [
     Ext(
         "EBI-Metagenomics",
         "hmmer3",
-        "hmmer-reader-v0.7.4",
+        "hmmer-reader-v0.7.5",
         "./hmmer-reader",
         CMAKE_OPTS,
     ),
@@ -68,7 +68,7 @@ EXTS = [
     Ext(
         "EBI-Metagenomics",
         "deciphon",
-        "c-core-v0.20.9",
+        "c-core-v0.20.10",
         "./c-core",
         CMAKE_OPTS + CPM_OPTS,
     ),
