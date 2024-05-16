@@ -11,6 +11,7 @@ from deciphon_core.scan import Scan
 from deciphon_core.schema import Gencode, HMMFile, NewSnapFile
 from deciphon_snap.read_snap import read_snap
 from deciphon_snap.view import view_alignments
+from more_itertools import mark_ends
 from rich.progress import track
 from typer import Argument, BadParameter, Exit, Option, Typer, echo
 
@@ -43,6 +44,7 @@ H_HMMER = "HMMER profile file."
 @app.callback(invoke_without_command=True)
 def cli(version: Optional[bool] = Option(None, "--version", is_eager=True)):
     if version:
+        assert __package__ is not None
         echo(importlib.metadata.version(__package__))
         raise Exit(0)
 
@@ -149,4 +151,8 @@ def see(
     Display scan results.
     """
     with service_exit():
-        echo(view_alignments(read_snap(snapfile)).rstrip("\n"))
+        for x in mark_ends(iter(view_alignments(read_snap(snapfile)))):
+            if x[1]:
+                echo(x[2].rstrip("\n"))
+            else:
+                echo(x[2])
