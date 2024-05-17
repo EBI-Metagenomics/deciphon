@@ -54,8 +54,7 @@ class DBFileName(BaseModel):
         return HMMFileName(name=str(Path(self.name).with_suffix(".hmm")))
 
 
-class HMMFile(HMMName):
-    ...
+class HMMFile(HMMName): ...
 
 
 class DBFile(DBName):

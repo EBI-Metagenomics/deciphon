@@ -7,10 +7,10 @@ from deciphon_core.scan import Params, Scan
 from deciphon_core.schema import DBFile, HMMFile, NewSnapFile
 from deciphon_core.sequence import Sequence
 from loguru import logger
-from pydantic import FilePath
 
 from deciphonctl.consumer import Consumer
 from deciphonctl.download import download
+from deciphonctl.file_path import file_path
 from deciphonctl.files import (
     atomic_file_creation,
     remove_temporary_files,
@@ -51,10 +51,10 @@ class Scanner(Consumer):
         with unique_temporary_file(".dcs") as t:
             snap = NewSnapFile(path=t)
 
-            db = DBFile(path=FilePath(dbfile))
+            db = DBFile(path=file_path(dbfile))
 
             logger.info("starting h3daemon")
-            with H3Daemon(HMMFile(path=FilePath(hmmfile)), stdout=DEVNULL) as daemon:
+            with H3Daemon(HMMFile(path=file_path(hmmfile)), stdout=DEVNULL) as daemon:
                 params = Params(
                     num_threads=self._num_threads,
                     multi_hits=x.multi_hits,

@@ -5,10 +5,11 @@ from pathlib import Path
 from deciphon_core.press import PressContext
 from deciphon_core.schema import HMMFile
 from loguru import logger
-from pydantic import FilePath, HttpUrl
+from pydantic import HttpUrl
 
 from deciphonctl.consumer import Consumer
 from deciphonctl.download import download
+from deciphonctl.file_path import file_path
 from deciphonctl.files import atomic_file_creation, remove_temporary_files
 from deciphonctl.models import DBFile, JobUpdate, PressRequest
 from deciphonctl.permissions import normalise_file_permissions
@@ -39,7 +40,7 @@ class Presser(Consumer):
 
     def _press(self, hmmfile: Path, req: PressRequest):
         dcpfile = hmmfile.with_suffix(".dcp")
-        hmm = HMMFile(path=FilePath(hmmfile))
+        hmm = HMMFile(path=file_path(hmmfile))
         db = req.db
         with PressContext(hmm, gencode=db.gencode, epsilon=db.epsilon) as press:
             self._qout.put(JobUpdate.run(req.job_id, 0).model_dump_json())

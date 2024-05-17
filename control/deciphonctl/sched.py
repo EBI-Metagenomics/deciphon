@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from requests_toolbelt import MultipartEncoder
 import urllib.parse
 from pathlib import Path
 from typing import Any, Optional
@@ -10,8 +9,10 @@ from deciphon_core.schema import Gencode
 from loguru import logger
 from pydantic import BaseModel, FilePath, HttpUrl
 from requests.models import HTTPError
+from requests_toolbelt import MultipartEncoder
 
 from deciphonctl.models import DBFile, HMMFile, JobUpdate, Scan
+from deciphonctl.url import http_url
 
 
 class SchedHTTPError(HTTPError):
@@ -121,7 +122,9 @@ class Sched:
         return self.get(self.url("seqs")).json()
 
     def snap_post(self, scan_id: int, snap: FilePath):
-        post = UploadPost(url=HttpUrl(self.url(f"scans/{scan_id}/snap.dcs")), fields={})
+        post = UploadPost(
+            url=http_url(self.url(f"scans/{scan_id}/snap.dcs")), fields={}
+        )
         self.upload(snap, post)
 
     def snap_get(self, scan_id: int):
@@ -147,20 +150,20 @@ class Presigned:
 
     def download_hmm_url(self, filename: str):
         x = self._request(f"hmms/presigned-download/{filename}")
-        return HttpUrl(x["url"])
+        return http_url(x["url"])
 
     def download_db_url(self, filename: str):
         x = self._request(f"dbs/presigned-download/{filename}")
-        return HttpUrl(x["url"])
+        return http_url(x["url"])
 
     def upload_hmm_post(self, filename: str):
         x = self._request(f"hmms/presigned-upload/{filename}")
-        url = self._sched.s3_url if self._sched.s3_url else HttpUrl(x["url"])
+        url = self._sched.s3_url if self._sched.s3_url else http_url(x["url"])
         return UploadPost(url=url, fields=x["fields"])
 
     def upload_db_post(self, filename: str):
         x = self._request(f"dbs/presigned-upload/{filename}")
-        url = self._sched.s3_url if self._sched.s3_url else HttpUrl(x["url"])
+        url = self._sched.s3_url if self._sched.s3_url else http_url(x["url"])
         return UploadPost(url=url, fields=x["fields"])
 
 
