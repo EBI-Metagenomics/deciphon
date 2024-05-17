@@ -17,7 +17,7 @@ class LogLevel(str, Enum):
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="deciphon_sched_")
+    model_config = SettingsConfigDict(env_prefix="deciphon_sched_", env_file=".env")
 
     host: str = "0.0.0.0"
     port: int = 8000
