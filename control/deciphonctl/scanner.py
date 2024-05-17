@@ -62,18 +62,18 @@ class Scanner(Consumer):
                 )
                 logger.info(f"scan parameters: {params}")
                 scan = Scan(params, db)
-                with scan:
-                    bar = Progress("scan", scan, self._sched, x.job_id)
-                    bar.start()
+                with scan, Progress("scan", scan, self._sched, x.job_id):
                     scan.dial(daemon.port)
                     for seq in x.seqs:
                         scan.add(Sequence(seq.id, seq.name, seq.data))
                     scan.run(snap)
-                    bar.stop()
-                    logger.info(
-                        "Scan has finished successfully and "
-                        f"results stored in '{snap.path}'."
-                    )
+            if scan.interrupted():
+                raise InterruptedError("Scanner has been interrupted.")
+            snap.make_archive()
+            logger.info(
+                "Scan has finished successfully and "
+                f"results stored in '{snap.path}'."
+            )
             self._sched.snap_post(x.id, snap.path)
 
 

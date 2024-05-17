@@ -36,3 +36,10 @@ class Progress:
         self._continue.set()
         self._thread.join()
         self._logger.stop()
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, *_):
+        self.stop()
