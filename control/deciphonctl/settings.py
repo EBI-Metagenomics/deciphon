@@ -7,7 +7,7 @@ from deciphonctl.url import http_url
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="deciphonctl_")
+    model_config = SettingsConfigDict(env_prefix="deciphonctl_", env_file=".env")
 
     sched_url: HttpUrl = http_url("http://localhost")
 

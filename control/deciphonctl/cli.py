@@ -9,11 +9,12 @@ from loguru import logger
 from typer import Argument, FileText, Option
 from typing_extensions import Annotated
 
-from deciphonctl.settings import Settings
+from deciphonctl.catch_validation import catch_validation
 from deciphonctl.models import DBFile, HMMFile, LogLevel, Scan, Seq
 from deciphonctl.presser import presser_entry
 from deciphonctl.scanner import scanner_entry
 from deciphonctl.sched import Sched
+from deciphonctl.settings import Settings
 from deciphonctl.signals import raise_sigint_on_sigterm
 
 HMMFILE = Annotated[
@@ -57,6 +58,7 @@ OUTFILE = Annotated[
     Option(file_okay=True, dir_okay=False, writable=True, help="Output file"),
 ]
 
+config = typer.Typer()
 hmm = typer.Typer()
 db = typer.Typer()
 job = typer.Typer()
@@ -65,6 +67,18 @@ seq = typer.Typer()
 snap = typer.Typer()
 presser = typer.Typer()
 scanner = typer.Typer()
+
+
+@config.command("dump")
+def config_dump():
+    with catch_validation():
+        settings = Settings()
+        for field in settings.__fields__:
+            value = getattr(settings, field)
+            if value is None:
+                typer.echo(f"{field}=")
+            else:
+                typer.echo(f"{field}={value}")
 
 
 @hmm.command("add")
@@ -207,7 +221,12 @@ def scanner_run(
     scanner_entry(settings, sched, num_workers, num_threads)
 
 
-app = typer.Typer()
+app = typer.Typer(
+    add_completion=False,
+    pretty_exceptions_short=True,
+    pretty_exceptions_show_locals=False,
+)
+app.add_typer(config, name="config")
 app.add_typer(hmm, name="hmm")
 app.add_typer(db, name="db")
 app.add_typer(job, name="job")
