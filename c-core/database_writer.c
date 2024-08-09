@@ -3,29 +3,37 @@
 #include "defer_return.h"
 #include "error.h"
 #include "fs.h"
-#include "lip/1darray/1darray.h"
-#include "lip/file/read_int.h"
-#include "lip/file/write_array.h"
-#include "lip/file/write_bool.h"
-#include "lip/file/write_cstr.h"
-#include "lip/file/write_float.h"
-#include "lip/file/write_int.h"
+#include "lite_pack_io.h"
 #include "magic_number.h"
-#include "pack.h"
 #include "protein.h"
+#include "read.h"
+#include "write.h"
+#include <unistd.h>
 
 static void nullify_tempfiles(struct database_writer *x)
 {
-  x->tmp.header.fp = NULL;
-  x->tmp.sizes.fp = NULL;
-  x->tmp.proteins.fp = NULL;
+  lio_setup(&x->tmp.header, -1);
+  lio_setup(&x->tmp.sizes, -1);
+  lio_setup(&x->tmp.proteins, -1);
 }
 
 static void destroy_tempfiles(struct database_writer *x)
 {
-  if (x->tmp.header.fp) fclose(x->tmp.header.fp);
-  if (x->tmp.sizes.fp) fclose(x->tmp.sizes.fp);
-  if (x->tmp.proteins.fp) fclose(x->tmp.proteins.fp);
+  if (lio_file(&x->tmp.header) >= 0)
+  {
+    lio_flush(&x->tmp.header);
+    close(lio_file(&x->tmp.header));
+  }
+  if (lio_file(&x->tmp.sizes) >= 0)
+  {
+    lio_flush(&x->tmp.sizes);
+    close(lio_file(&x->tmp.sizes));
+  }
+  if (lio_file(&x->tmp.proteins) >= 0)
+  {
+    lio_flush(&x->tmp.proteins);
+    close(lio_file(&x->tmp.proteins));
+  }
   nullify_tempfiles(x);
 }
 
@@ -34,17 +42,17 @@ static int create_tempfiles(struct database_writer *x)
   nullify_tempfiles(x);
   int rc = 0;
 
-  FILE **header = &x->tmp.header.fp;
-  FILE **sizes = &x->tmp.sizes.fp;
-  FILE **proteins = &x->tmp.proteins.fp;
+  int header = -1;
+  int sizes = -1;
+  int proteins = -1;
 
-  if ((rc = fs_mkstemp(header, ".header_XXXXXX"))) defer_return(rc);
-  if ((rc = fs_mkstemp(sizes, ".sizes_XXXXXX"))) defer_return(rc);
-  if ((rc = fs_mkstemp(proteins, ".proteins_XXXXXX"))) defer_return(rc);
+  if ((rc = fs_mkstemp(&header, ".header_XXXXXX"))) defer_return(rc);
+  if ((rc = fs_mkstemp(&sizes, ".sizes_XXXXXX"))) defer_return(rc);
+  if ((rc = fs_mkstemp(&proteins, ".proteins_XXXXXX"))) defer_return(rc);
 
-  lip_file_init(&x->tmp.header, *header);
-  lip_file_init(&x->tmp.sizes, *sizes);
-  lip_file_init(&x->tmp.proteins, *proteins);
+  lio_setup(&x->tmp.header, header);
+  lio_setup(&x->tmp.sizes, sizes);
+  lio_setup(&x->tmp.proteins, proteins);
 
   return rc;
 
@@ -53,62 +61,61 @@ defer:
   return rc;
 }
 
-static int pack_header_protein_sizes(struct database_writer *db)
-{
-  enum lip_1darray_type type = LIP_1DARRAY_UINT32;
-
-  if (!lip_write_1darray_size_type(&db->file, db->nproteins, type))
-    return error(DCP_EFWRITE);
-
-  rewind(lip_file_ptr(&db->tmp.sizes));
-
-  unsigned size = 0;
-  while (lip_read_int(&db->tmp.sizes, &size))
-  {
-    if (!lip_write_1darray_u32_item(&db->file, size)) return error(DCP_EFWRITE);
-  }
-
-  return feof(lip_file_ptr(&db->tmp.sizes)) ? 0 : error(DCP_EFWRITE);
-}
-
-static int pack_header(struct database_writer *db)
+static int pack_header_protein_sizes(struct database_writer *x)
 {
   int rc = 0;
-  struct lip_file *stream = &db->file;
+  if ((rc = write_array(&x->file, x->nproteins))) return rc;
+  if (lio_flush(&x->tmp.sizes)) return error(DCP_EFFLUSH);
+  if (lio_rewind(&x->tmp.sizes)) return error(DCP_EFWRITE);
 
-  if ((rc = pack_key(stream, "header"))) return rc;
-  if ((rc = pack_mapsize(stream, 8))) return rc;
-
-  FILE *src = lip_file_ptr(&db->tmp.header);
-  FILE *dst = lip_file_ptr(stream);
-  rewind(src);
-  if ((rc = fs_copy(dst, src))) return rc;
-
-  if ((rc = pack_key(stream, "has_ga"))) return rc;
-  if ((rc = pack_bool(stream, db->has_ga))) return rc;
-
-  if ((rc = pack_key(stream, "protein_sizes"))) return rc;
-  return pack_header_protein_sizes(db);
+  unsigned size = 0;
+  struct lio_reader src = {0};
+  lio_setup(&src, lio_file(&x->tmp.sizes));
+  while (!(rc = read_int(&src, &size)))
+  {
+    if ((rc = write_int(&x->file, size))) return rc;
+  }
+  return lio_eof(&src) ? 0 : rc;
 }
 
-static int pack_proteins(struct database_writer *db)
+static int pack_header(struct database_writer *x)
 {
-  if (!lip_write_cstr(&db->file, "proteins")) return error(DCP_EFWRITE);
+  int rc = 0;
+  struct lio_writer *src = &x->tmp.header;
+  struct lio_writer *dst = &x->file;
 
-  if (!lip_write_array_size(&db->file, db->nproteins))
-    return error(DCP_EFWRITE);
+  if ((rc = write_cstring(dst, "header"))) return rc;
+  if ((rc = write_map(dst, 8))) return rc;
 
-  rewind(lip_file_ptr(&db->tmp.proteins));
-  return fs_copy(lip_file_ptr(&db->file), lip_file_ptr(&db->tmp.proteins));
+  if ((rc = lio_rewind(src))) return rc;
+  if (lio_flush(dst)) return error(DCP_EFFLUSH);
+  if ((rc = fs_copy(dst->fd, src->fd))) return rc;
+
+  if ((rc = write_cstring(dst, "has_ga"))) return rc;
+  if ((rc = write_bool(dst, x->has_ga))) return rc;
+
+  if ((rc = write_cstring(dst, "protein_sizes"))) return rc;
+  return pack_header_protein_sizes(x);
+}
+
+static int pack_proteins(struct database_writer *x)
+{
+  int rc = 0;
+  if ((rc = write_cstring(&x->file, "proteins"))) return rc;
+  if ((rc = write_array(&x->file, x->nproteins))) return rc;
+  if (lio_rewind(&x->tmp.proteins)) return error(DCP_EFWRITE);
+  if (lio_flush(&x->tmp.proteins)) return error(DCP_EFFLUSH);
+  if (lio_flush(&x->file)) return error(DCP_EFFLUSH);
+  return fs_copy(lio_file(&x->file), lio_file(&x->tmp.proteins));
 }
 
 int database_writer_close(struct database_writer *db)
 {
   int rc = 0;
-  if ((rc = pack_mapsize(&db->file, 2))) defer_return(rc);
-
+  if ((rc = write_map(&db->file, 2))) defer_return(rc);
   if ((rc = pack_header(db))) defer_return(rc);
   if ((rc = pack_proteins(db))) defer_return(rc);
+  if (lio_flush(&db->file)) defer_return(error(DCP_EFFLUSH));
 
   return rc;
 
@@ -124,35 +131,35 @@ void database_writer_init(struct database_writer *x, struct model_params params)
   x->has_ga = false;
 }
 
-int database_writer_open(struct database_writer *x, FILE *restrict fp)
+int database_writer_open(struct database_writer *x, int fd)
 {
   int rc = 0;
 
   x->nproteins = 0;
-  lip_file_init(&x->file, fp);
+  lio_setup(&x->file, fd);
   if ((rc = create_tempfiles(x))) return rc;
 
   // the last header field is protein_sizes written when the file is closed
   struct model_params *p = &x->params;
-  struct lip_file *stream = &x->tmp.header;
+  struct lio_writer *f = &x->tmp.header;
 
-  if ((rc = pack_key(stream, "magic_number"))) defer_return(rc);
-  if ((rc = pack_int(stream, MAGIC_NUMBER))) defer_return(rc);
+  if ((rc = write_cstring(f, "magic_number"))) defer_return(rc);
+  if ((rc = write_int(f, MAGIC_NUMBER))) defer_return(rc);
 
-  if ((rc = pack_key(stream, "version"))) defer_return(rc);
-  if ((rc = pack_int(stream, DATABASE_VERSION))) defer_return(rc);
+  if ((rc = write_cstring(f, "version"))) defer_return(rc);
+  if ((rc = write_int(f, DATABASE_VERSION))) defer_return(rc);
 
-  if ((rc = pack_key(stream, "entry_dist"))) defer_return(rc);
-  if ((rc = pack_int(stream, p->entry_dist))) defer_return(rc);
+  if ((rc = write_cstring(f, "entry_dist"))) defer_return(rc);
+  if ((rc = write_int(f, p->entry_dist))) defer_return(rc);
 
-  if ((rc = pack_key(stream, "epsilon"))) defer_return(rc);
-  if ((rc = pack_float(stream, p->epsilon))) defer_return(rc);
+  if ((rc = write_cstring(f, "epsilon"))) defer_return(rc);
+  if ((rc = write_float(f, p->epsilon))) defer_return(rc);
 
-  if ((rc = pack_key(stream, "abc"))) defer_return(rc);
-  if ((rc = pack_abc(stream, &p->code->nuclt->super))) defer_return(rc);
+  if ((rc = write_cstring(f, "abc"))) defer_return(rc);
+  if (imm_abc_pack(&p->code->nuclt->super, f)) defer_return(DCP_EFWRITE);
 
-  if ((rc = pack_key(stream, "amino"))) defer_return(rc);
-  if ((rc = pack_abc(stream, &p->amino->super))) defer_return(rc);
+  if ((rc = write_cstring(f, "amino"))) defer_return(rc);
+  if (imm_abc_pack(&p->amino->super, f)) defer_return(DCP_EFWRITE);
 
   return rc;
 
@@ -167,17 +174,19 @@ int database_writer_pack(struct database_writer *x,
   int rc = 0;
 
   long start = 0;
-  if ((rc = fs_tell(lip_file_ptr(&x->tmp.proteins), &start))) return rc;
+  if (lio_flush(&x->tmp.proteins)) return error(DCP_EFFLUSH);
+  if (lio_wtell(&x->tmp.proteins, &start)) return error(DCP_EFTELL);
 
   if ((rc = protein_pack(protein, &x->tmp.proteins))) return rc;
 
   long end = 0;
-  if ((rc = fs_tell(lip_file_ptr(&x->tmp.proteins), &end))) return rc;
+  if (lio_flush(&x->tmp.proteins)) return error(DCP_EFFLUSH);
+  if (lio_tell(&x->tmp.proteins, &end)) return error(DCP_EFTELL);
 
   if ((end - start) > UINT_MAX) return error(DCP_ELARGEPROTEIN);
 
   unsigned protein_size = (unsigned)(end - start);
-  if ((rc = pack_int(&x->tmp.sizes, protein_size))) return rc;
+  if ((rc = write_int(&x->tmp.sizes, protein_size))) return rc;
 
   x->nproteins++;
   return rc;

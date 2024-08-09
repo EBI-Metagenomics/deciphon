@@ -83,7 +83,7 @@ int product_close(struct product *x)
     FILE *tmp = fopen(file, "rb");
     if (!tmp) defer_return(rc);
 
-    if ((rc = fs_copy(fp, tmp)))
+    if ((rc = fs_fcopy(fp, tmp)))
     {
       fclose(tmp);
       defer_return(rc);

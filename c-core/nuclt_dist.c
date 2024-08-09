@@ -1,7 +1,7 @@
 #include "nuclt_dist.h"
 #include "error.h"
-#include "lip/file/read_array.h"
-#include "lip/file/write_array.h"
+#include "read.h"
+#include "write.h"
 
 void nuclt_dist_init(struct nuclt_dist *x, struct imm_nuclt const *nuclt)
 {
@@ -9,18 +9,20 @@ void nuclt_dist_init(struct nuclt_dist *x, struct imm_nuclt const *nuclt)
   x->codonm.nuclt = nuclt;
 }
 
-int nuclt_dist_pack(struct nuclt_dist const *x, struct lip_file *file)
+int nuclt_dist_pack(struct nuclt_dist const *x, struct lio_writer *file)
 {
-  if (!lip_write_array_size(file, 2)) return error(DCP_ENUCLTDPACK);
-  if (imm_nuclt_lprob_pack(&x->nucltp, file)) return error(DCP_ENUCLTDPACK);
-  if (imm_codon_marg_pack(&x->codonm, file)) return error(DCP_ENUCLTDPACK);
+  int rc = 0;
+  if ((rc = write_array(file, 2))) return rc;
+  if (imm_nuclt_lprob_pack(&x->nucltp, file)) return rc;
+  if (imm_codon_marg_pack(&x->codonm, file)) return rc;
   return 0;
 }
 
-int nuclt_dist_unpack(struct nuclt_dist *x, struct lip_file *file)
+int nuclt_dist_unpack(struct nuclt_dist *x, struct lio_reader *file)
 {
-  unsigned size = 0;
-  if (!lip_read_array_size(file, &size)) return error(DCP_ENUCLTDUNPACK);
+  int rc = 0;
+  uint32_t size = 0;
+  if ((rc = read_array(file, &size))) return rc;
   if (size != 2) return error(DCP_ENUCLTDUNPACK);
   if (imm_nuclt_lprob_unpack(&x->nucltp, file)) return error(DCP_ENUCLTDUNPACK);
   if (imm_codon_marg_unpack(&x->codonm, file)) return error(DCP_ENUCLTDUNPACK);

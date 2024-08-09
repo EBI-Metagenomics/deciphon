@@ -1,24 +1,22 @@
 #include "protein_iter.h"
-#include "fs.h"
 #include "protein.h"
 #include "protein_reader.h"
 
 void protein_iter_init(struct protein_iter *x, struct protein_reader *reader,
-                       int start_idx, int end_idx, long offset, FILE *fp)
+                       int start_idx, int end_idx, long offset, int fd)
 {
   x->start_idx = start_idx;
   x->curr_idx = start_idx - 1;
   x->end_idx = end_idx;
   x->offset = offset;
-  x->fp = fp;
-  lip_file_init(&x->file, fp);
+  lio_setup(&x->file, fd);
   x->reader = reader;
 }
 
 int protein_iter_rewind(struct protein_iter *x)
 {
   x->curr_idx = x->start_idx - 1;
-  return fs_seek(x->fp, x->offset, SEEK_SET);
+  return lio_seek(&x->file, x->offset);
 }
 
 int protein_iter_next(struct protein_iter *x, struct protein *protein)

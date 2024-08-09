@@ -2,15 +2,17 @@
 #include "database_reader.h"
 #include "defer_return.h"
 #include "error.h"
+#include "expect.h"
 #include "fs.h"
 #include "min.h"
-#include "lip/file/read_array.h"
 #include "partition_size.h"
 #include "protein_iter.h"
+#include "read.h"
 #include "sizeof_field.h"
-#include "unpack.h"
+#include <fcntl.h>
 #include <limits.h>
 #include <string.h>
+#include <unistd.h>
 
 void protein_reader_init(struct protein_reader *x)
 {
@@ -33,14 +35,14 @@ int protein_reader_setup(struct protein_reader *x, struct database_reader *db,
     return error(DCP_EMANYPARTS);
   x->num_partitions = min(num_partitions, db->num_proteins);
 
-  if ((rc = unpack_key(&db->file, "proteins"))) return rc;
+  if ((rc = expect_key(&db->file, "proteins"))) return rc;
 
-  unsigned num_proteins = 0;
-  if (!lip_read_array_size(&db->file, &num_proteins)) return error(DCP_EFREAD);
+  uint32_t num_proteins = 0;
+  if ((rc = read_array(&db->file, &num_proteins))) return rc;
   if (num_proteins > INT_MAX) return error(DCP_EFDATA);
   if ((int)num_proteins != db->num_proteins) return error(DCP_EFDATA);
 
-  if ((rc = fs_tell(db->file.fp, &x->offset[0]))) return rc;
+  if (lio_tell(&db->file, &x->offset[0])) return error(DCP_EFTELL);
   partition_it(x);
 
   return rc;
@@ -68,22 +70,22 @@ int protein_reader_iter(struct protein_reader *x, int partition,
   if (partition < 0 || x->num_partitions < partition)
     return error(DCP_EINVALPART);
 
-  FILE *fp = lip_file_ptr(&x->db->file);
-  FILE *newfp = NULL;
+  int fd = lio_rfile(&x->db->file);
+  int newfd = -1;
   int rc = 0;
   long offset = x->offset[partition];
 
-  if ((rc = fs_refopen(fp, "rb", &newfp))) defer_return(rc);
-  if ((rc = fs_seek(newfp, offset, SEEK_SET))) defer_return(rc);
+  if ((rc = fs_reopen(fd, O_RDONLY, &newfd))) defer_return(rc);
+  if ((rc = fs_seek(newfd, offset, SEEK_SET))) defer_return(rc);
 
   int start = x->size_cumsum[partition];
   int end = start + protein_reader_partition_size(x, partition);
-  protein_iter_init(it, x, start, end, offset, newfp);
+  protein_iter_init(it, x, start, end, offset, newfd);
 
   return rc;
 
 defer:
-  if (newfp) fclose(newfp);
+  if (newfd >= 0) close(newfd);
   return rc;
 }
 

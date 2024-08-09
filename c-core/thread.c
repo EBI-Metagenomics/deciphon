@@ -18,8 +18,7 @@
 #include "viterbi.h"
 #include "window.h"
 #include "xsignal.h"
-// #include <imm/path.h>
-#include <imm/seq.h>
+#include <imm_seq.h>
 #include <stdlib.h>
 #include <string.h>
 

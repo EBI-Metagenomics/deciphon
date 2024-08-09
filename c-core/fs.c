@@ -42,17 +42,40 @@
 
 #define BUFFSIZE (8 * 1024)
 
-int fs_tell(FILE *restrict fp, long *offset)
-{
-  return (*offset = ftello(fp)) < 0 ? error(DCP_EFTELL) : 0;
-}
-
-int fs_seek(FILE *restrict fp, long offset, int whence)
+int fs_fseek(FILE *restrict fp, long offset, int whence)
 {
   return fseeko(fp, (off_t)offset, whence) < 0 ? error(DCP_EFSEEK) : 0;
 }
 
-int fs_copy(FILE *restrict dst, FILE *restrict src)
+int fs_seek(int fd, long offset, int whence)
+{
+  return lseek(fd, (off_t)offset, whence) < 0 ? error(DCP_EFSEEK) : 0;
+}
+
+static inline int full_write(int fd, size_t size, unsigned char const *buffer)
+{
+  while (size > 0)
+  {
+    ssize_t n = write(fd, buffer, size);
+    if (n == -1) return -1;
+    buffer += n;
+    size -= (size_t)n;
+  }
+  return 0;
+}
+
+int fs_copy(int dst, int src)
+{
+  static _Thread_local unsigned char buffer[BUFFSIZE];
+  ssize_t n = 0;
+  while ((n = read(src, buffer, BUFFSIZE)) > 0)
+  {
+    if (full_write(dst, n, buffer)) return error(DCP_EFWRITE);
+  }
+  return n < 0 ? error(DCP_EFREAD) : 0;
+}
+
+int fs_fcopy(FILE *restrict dst, FILE *restrict src)
 {
   static _Thread_local char buffer[BUFFSIZE];
   size_t n = 0;
@@ -77,6 +100,14 @@ int fs_refopen(FILE *restrict fp, char const *mode, FILE **out)
   return (*out = fopen(filepath, mode)) ? 0 : error(DCP_EREFOPEN);
 }
 
+int fs_reopen(int fd, int mode, int *out)
+{
+  _Static_assert(MAXPATHLEN <= FILENAME_MAX, "");
+  char filepath[FILENAME_MAX] = {0};
+  if (fcntl(fd, F_GETPATH, filepath) == -1) return error(DCP_EREFOPEN);
+  return (*out = open(filepath, mode)) >= 0 ? 0 : error(DCP_EREFOPEN);
+}
+
 int getpath(FILE *restrict fp, unsigned size, char *filepath)
 {
   int fd = fileno(fp);
@@ -99,8 +130,6 @@ int getpath(FILE *restrict fp, unsigned size, char *filepath)
 
   return 0;
 }
-
-int fs_close(FILE *restrict fp) { return fclose(fp) ? error(DCP_EFCLOSE) : 0; }
 
 static int fletcher16(FILE *fp, uint8_t *buf, size_t bufsize, long *chk)
 {
@@ -173,16 +202,19 @@ int fs_size(char const *filepath, long *size)
   return 0;
 }
 
-int fs_mkstemp(FILE **fp, char const *template)
+int fs_mkstemp(int *fd, char const *template)
 {
   char path[FS_PATH_MAX] = {0};
   if (xstrcpy(path, template, sizeof path)) return error(DCP_ENOMEM);
 
-  int fd = mkstemp(path);
-  if (fd < 0) return error(DCP_EMKSTEMP);
+  if ((*fd = mkstemp(path)) < 0) return error(DCP_EMKSTEMP);
 
   int rc = fs_rmfile(path);
-  if (rc) return rc;
+  if (rc)
+  {
+    close(*fd);
+    return rc;
+  }
 
-  return (*fp = fdopen(fd, "w+b")) ? 0 : error(DCP_EFDOPEN);
+  return *fd ? 0 : error(DCP_EFDOPEN);
 }

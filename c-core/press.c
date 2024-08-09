@@ -5,18 +5,20 @@
 #include "error.h"
 #include "fs.h"
 #include "hmm_reader.h"
-#include "imm/gencode.h"
+#include "imm_gencode.h"
 #include "protein.h"
 #include "sizeof_field.h"
 #include "xstrcpy.h"
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 struct press
 {
   struct
   {
-    FILE *fp;
+    int fd;
     struct database_writer db;
   } writer;
 
@@ -43,7 +45,7 @@ struct press *press_new(void)
   struct press *x = malloc(sizeof(*x));
   if (!x) return NULL;
 
-  x->writer.fp = NULL;
+  x->writer.fd = -1;
   x->reader.fp = NULL;
   x->has_ga = true;
   protein_init(&x->protein);
@@ -64,18 +66,19 @@ int press_setup(struct press *x, int gencode_id, float epsilon)
 
 int press_open(struct press *x, char const *hmm, char const *db)
 {
-  x->writer.fp = NULL;
+  x->writer.fd = -1;
   x->reader.fp = NULL;
 
   int rc = 0;
 
   if (!(x->reader.fp = fopen(hmm, "rb"))) defer_return(error(DCP_EOPENHMM));
-  if (!(x->writer.fp = fopen(db, "wb"))) defer_return(error(DCP_EOPENDB));
+  if ((x->writer.fd = open(db, O_WRONLY | O_CREAT | O_TRUNC, 0644)) <= 0)
+    defer_return(error(DCP_EOPENDB));
 
   if ((rc = count_proteins(x))) defer_return(rc);
 
   database_writer_init(&x->writer.db, x->params);
-  if ((rc = database_writer_open(&x->writer.db, x->writer.fp)))
+  if ((rc = database_writer_open(&x->writer.db, x->writer.fd)))
     defer_return(rc);
 
   if ((rc = hmm_reader_init(&x->reader.h3, x->params, x->reader.fp)))
@@ -93,9 +96,9 @@ int press_open(struct press *x, char const *hmm, char const *db)
   return rc;
 
 defer:
-  if (x->writer.fp) fclose(x->writer.fp);
+  if (x->writer.fd) close(x->writer.fd);
   if (x->reader.fp) fclose(x->reader.fp);
-  x->writer.fp = NULL;
+  x->writer.fd = -1;
   x->reader.fp = NULL;
   return rc;
 }
@@ -139,9 +142,10 @@ bool press_end(struct press const *press)
 
 int press_close(struct press *press)
 {
-  int rc_r = press->reader.fp ? fs_close(press->reader.fp) : 0;
+  int rc_r =
+      press->reader.fp ? fclose(press->reader.fp) ? error(DCP_EFCLOSE) : 0 : 0;
   int rc_w = finish_writer(press);
-  press->writer.fp = NULL;
+  press->writer.fd = -1;
   press->reader.fp = NULL;
   protein_cleanup(&press->protein);
   hmm_reader_cleanup(&press->reader.h3);
@@ -159,16 +163,16 @@ void press_del(struct press const *x)
 
 static int finish_writer(struct press *press)
 {
-  if (!press->writer.fp) return 0;
+  if (!press->writer.fd) return 0;
 
   database_writer_set_has_ga(&press->writer.db, press->has_ga);
   int rc = database_writer_close(&press->writer.db);
   if (rc) defer_return(rc);
 
-  return fs_close(press->writer.fp);
+  return close(press->writer.fd) ? error(DCP_EFCLOSE) : 0;
 
 defer:
-  fclose(press->writer.fp);
+  close(press->writer.fd);
   return rc;
 }
 

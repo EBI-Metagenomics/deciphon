@@ -1,7 +1,7 @@
 #ifndef PROTEIN_H
 #define PROTEIN_H
 
-#include "imm/score_table.h"
+#include "imm_score_table.h"
 #include "model.h"
 #include "protein_background.h"
 #include "protein_null.h"
@@ -24,6 +24,8 @@ struct protein
   float *BMk;
 };
 
+struct lio_writer;
+struct lio_reader;
 struct viterbi;
 
 void protein_init(struct protein *);
@@ -34,8 +36,8 @@ int  protein_absorb(struct protein *, struct model *);
 int  protein_sample(struct protein *, int seed, int core_size);
 void protein_cleanup(struct protein *);
 void protein_dump(struct protein const *, FILE *);
-int  protein_pack(struct protein const *, struct lip_file *);
-int  protein_unpack(struct protein *, struct lip_file *);
+int  protein_pack(struct protein const *, struct lio_writer *);
+int  protein_unpack(struct protein *, struct lio_reader *);
 int  protein_decode(struct protein const *, struct imm_seq const *, int state_id, struct imm_codon *);
 int  protein_setup_viterbi(struct protein const *, struct viterbi *);
 
