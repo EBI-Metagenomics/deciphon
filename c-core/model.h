@@ -1,7 +1,7 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-#include "imm/amino.h"
+#include "imm_amino.h"
 #include "model_node.h"
 #include "model_params.h"
 #include "model_xnode.h"

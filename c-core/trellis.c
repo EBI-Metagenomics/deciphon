@@ -2,7 +2,7 @@
 #include "bit.h"
 #include "bug.h"
 #include "error.h"
-#include "imm/path.h"
+#include "imm_path.h"
 #include "xrealloc.h"
 #include <stdlib.h>
 

@@ -1,8 +1,8 @@
 #ifndef MODEL_NODE_H
 #define MODEL_NODE_H
 
-#include "imm/frame_state.h"
-#include "imm/mute_state.h"
+#include "imm_frame_state.h"
+#include "imm_mute_state.h"
 #include "nuclt_dist.h"
 
 struct model_node

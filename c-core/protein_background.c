@@ -1,7 +1,7 @@
 #include "protein_background.h"
 #include "array_size.h"
-#include "imm/lprob.h"
-#include "imm/score_table.h"
+#include "imm_lprob.h"
+#include "imm_score_table.h"
 
 void protein_background_init(struct protein_background *x,
                              struct imm_nuclt const *nuclt)

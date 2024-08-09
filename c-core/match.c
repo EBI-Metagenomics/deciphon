@@ -1,7 +1,7 @@
 #include "match.h"
-#include "imm/gencode.h"
-#include "imm/nuclt_code.h"
-#include "imm/path.h"
+#include "imm_gencode.h"
+#include "imm_nuclt_code.h"
+#include "imm_path.h"
 #include "protein.h"
 #include "state.h"
 

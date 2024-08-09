@@ -3,7 +3,7 @@
 
 #include "chararray.h"
 #include "hmmer.h"
-#include "imm/path.h"
+#include "imm_path.h"
 #include "protein.h"
 #include "protein_iter.h"
 #include "thread_params.h"

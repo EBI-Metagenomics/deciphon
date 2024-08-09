@@ -1,5 +1,5 @@
 #include "codec.h"
-#include "imm/path.h"
+#include "imm_path.h"
 #include "protein.h"
 #include "state.h"
 

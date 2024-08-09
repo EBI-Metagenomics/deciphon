@@ -1,8 +1,8 @@
 #ifndef SEQUENCE_H
 #define SEQUENCE_H
 
-#include "imm/eseq.h"
-#include "imm/range.h"
+#include "imm_eseq.h"
+#include "imm_range.h"
 #include "node.h"
 #include <stdbool.h>
 

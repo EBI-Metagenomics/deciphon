@@ -4,7 +4,7 @@
 #include "debug.h"
 #include "error.h"
 #include "hmmer_dialer.h"
-#include "imm/lprob.h"
+#include "imm_lprob.h"
 #include "lrt.h"
 #include "match.h"
 #include "max.h"

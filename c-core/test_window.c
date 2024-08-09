@@ -1,5 +1,5 @@
 #include "fs.h"
-#include "imm/rnd.h"
+#include "imm_rnd.h"
 #include "params.h"
 #include "scan.h"
 #include "test_consensus.h"

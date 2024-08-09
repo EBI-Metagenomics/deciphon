@@ -2,7 +2,7 @@
 #define MATCH_H
 
 #include <stdbool.h>
-#include "imm/step.h"
+#include "imm_step.h"
 
 struct imm_codon;
 struct imm_path;

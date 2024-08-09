@@ -5,7 +5,7 @@
 #include "format.h"
 #include "fs.h"
 #include "hmmer_result.h"
-#include "imm/codon.h"
+#include "imm_codon.h"
 #include "match.h"
 #include <string.h>
 
