@@ -20,7 +20,10 @@ static inline int omp_get_thread_num() { return 0; }
 
 struct scan
 {
-  struct params params;
+  int port;
+  int num_threads;
+  bool multi_hits;
+  bool hmmer3_compat;
   struct thread threads[THREAD_MAX];
 
   struct product product;
@@ -37,14 +40,15 @@ struct scan
   bool interrupted;
 };
 
-struct scan *scan_new(struct params params)
+struct scan *scan_new(void)
 {
   struct scan *x = malloc(sizeof(*x));
   if (!x) return NULL;
 
-  x->params = params;
-  for (int i = 0; i < x->params.num_threads; ++i)
-    thread_init(x->threads + i);
+  x->port = -1;
+  x->num_threads = 0;
+  x->multi_hits = true;
+  x->hmmer3_compat = false;
 
   product_init(&x->product);
   sequence_queue_init(&x->sequences);
@@ -59,6 +63,22 @@ struct scan *scan_new(struct params params)
   return x;
 }
 
+int scan_setup(struct scan *x, int port, int num_threads, bool multi_hits,
+               bool hmmer3_compat)
+{
+  if (num_threads > THREAD_MAX) return error(DCP_EMANYTHREADS);
+
+  x->port = port;
+  x->num_threads = num_threads;
+  x->multi_hits = multi_hits;
+  x->hmmer3_compat = hmmer3_compat;
+
+  for (int i = 0; i < x->num_threads; ++i)
+    thread_init(x->threads + i);
+
+  return 0;
+}
+
 void scan_del(struct scan const *scan)
 {
   struct scan *x = (struct scan *)scan;
@@ -67,7 +87,7 @@ void scan_del(struct scan const *scan)
     database_reader_close(&x->db.reader);
     sequence_queue_cleanup(&x->sequences);
     product_close(&x->product);
-    for (int i = 0; i < x->params.num_threads; ++i)
+    for (int i = 0; i < x->num_threads; ++i)
       thread_cleanup(x->threads + i);
     free(x);
   }
@@ -76,7 +96,7 @@ void scan_del(struct scan const *scan)
 int scan_open(struct scan *x, char const *dbfile)
 {
   int rc = 0;
-  int n = x->params.num_threads;
+  int n = x->num_threads;
   x->done_proteins = 0;
 
   if ((rc = database_reader_open(&x->db.reader, dbfile))) return rc;
@@ -106,7 +126,7 @@ int scan_run(struct scan *x, char const *product_dir, bool (*interrupt)(void *),
              void *userdata)
 {
   int rc = 0;
-  int n = x->params.num_threads;
+  int n = x->num_threads;
   n = min(n, protein_reader_num_partitions(&x->db.protein));
   x->interrupted = false;
   struct xsignal *xsignal = NULL;
@@ -114,21 +134,21 @@ int scan_run(struct scan *x, char const *product_dir, bool (*interrupt)(void *),
 
   debug("%d thread(s)", n);
 
-  if ((rc = product_open(&x->product, n, product_dir)))
-    defer_return(rc);
+  if ((rc = product_open(&x->product, n, product_dir))) defer_return(rc);
 
   for (int i = 0; i < n; ++i)
   {
     struct thread_params params = {&x->db.protein,
                                    i,
                                    product_thread(&x->product, i),
-                                   x->params.port,
-                                   x->params.multi_hits,
-                                   x->params.hmmer3_compat};
+                                   x->port,
+                                   x->multi_hits,
+                                   x->hmmer3_compat};
     if ((rc = thread_setup(x->threads + i, params))) defer_return(rc);
   }
 
-#pragma omp parallel for default(none) shared(x, n, rc, xsignal, interrupt, userdata)
+#pragma omp parallel for default(none)                                         \
+    shared(x, n, rc, xsignal, interrupt, userdata)
   for (int i = 0; i < n; ++i)
   {
     int *proteins = &x->done_proteins;
@@ -151,7 +171,7 @@ int scan_run(struct scan *x, char const *product_dir, bool (*interrupt)(void *),
 defer:
   xsignal_del(xsignal);
 
-  for (int i = 0; i < x->params.num_threads; ++i)
+  for (int i = 0; i < x->num_threads; ++i)
   {
     x->interrupted |= thread_interrupted(x->threads + i);
     thread_cleanup(x->threads + i);

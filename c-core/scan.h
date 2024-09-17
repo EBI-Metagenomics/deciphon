@@ -1,19 +1,19 @@
 #ifndef SCAN_H
 #define SCAN_H
 
-#include "api.h"
-#include "params.h"
+#include <stdbool.h>
 
 struct scan;
 
-API struct scan *scan_new(struct params);
-API void         scan_del(struct scan const *);
+struct scan *scan_new(void);
+void         scan_del(struct scan const *);
 
-API int  scan_open(struct scan *, char const *dbfile);
-API int  scan_close(struct scan *);
-API int  scan_add(struct scan *, long id, char const *name, char const *data);
-API int  scan_run(struct scan *, char const *product_dir, bool (*interrupt)(void *), void *userdata);
-API bool scan_interrupted(struct scan const *);
-API int  scan_progress(struct scan const*);
+int  scan_setup(struct scan *, int port, int num_threads, bool multi_hits, bool hmmer3_compat);
+int  scan_open(struct scan *, char const *dbfile);
+int  scan_close(struct scan *);
+int  scan_add(struct scan *, long id, char const *name, char const *data);
+int  scan_run(struct scan *, char const *product_dir, bool (*interrupt)(void *), void *userdata);
+bool scan_interrupted(struct scan const *);
+int  scan_progress(struct scan const*);
 
 #endif
