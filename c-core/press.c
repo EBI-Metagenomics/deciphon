@@ -3,7 +3,6 @@
 #include "database_writer.h"
 #include "defer_return.h"
 #include "error.h"
-#include "fs.h"
 #include "hmm_reader.h"
 #include "imm_gencode.h"
 #include "protein.h"

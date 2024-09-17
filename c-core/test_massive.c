@@ -1,19 +1,20 @@
+#include "aye.h"
 #include "fs.h"
 #include "imm_rnd.h"
 #include "params.h"
 #include "scan.h"
 #include "test_utils.h"
-#include "vendor/minctest.h"
 
 #define HMMFILE "three.hmm"
 #define DBFILE "test_massive.dcp"
-#define PRODDIR "test_massive"
+#define PRODDIR "test_massive_product"
 
 static void random_sequence_init(void);
 static char const *random_sequence_next(void);
 
 int main(void)
 {
+  aye_begin();
   setup_database(1, 0.01, HMMFILE, DBFILE);
   fs_rmtree(PRODDIR);
   random_sequence_init();
@@ -21,23 +22,25 @@ int main(void)
   struct params params = {};
   struct scan *scan = NULL;
 
-  eq(params_setup(&params, 1, true, false), 0);
-  ok(scan = scan_new(params));
-  eq(scan_open(scan, DBFILE), 0);
+  params.port = 51301;
+  aye(params_setup(&params, 1, true, false) == 0);
+  aye(scan = scan_new(params));
+  aye(scan_open(scan, DBFILE) == 0);
   for (int i = 0; i < 10000; ++i)
   {
     snprintf(name, sizeof(name), "name%d", i);
-    eq(scan_add(scan, i, name, random_sequence_next()), 0);
+    aye(scan_add(scan, i, name, random_sequence_next()) == 0);
   }
-  eq(scan_run(scan, PRODDIR, NULL, NULL), 0);
-  eq(scan_progress(scan), 100);
-  eq(chksum(PRODDIR "/products.tsv"), 60189);
-  eq(scan_close(scan), 0);
+  aye(scan_run(scan, PRODDIR, NULL, NULL) == 0);
+  aye(scan_progress(scan) == 100);
+  printf("%ld\n", chksum(PRODDIR "/products.tsv"));
+  aye(chksum(PRODDIR "/products.tsv") == 48347);
+  aye(scan_close(scan) == 0);
 
   scan_del(scan);
   fs_rmtree(PRODDIR);
   cleanup_database(DBFILE);
-  return lfails;
+  return aye_end();
 }
 
 static struct imm_rnd rnd = {0};

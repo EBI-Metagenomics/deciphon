@@ -19,7 +19,7 @@ struct product_line
   char abc[16];
 
   float lrt;
-  float evalue;
+  double logevalue;
 };
 
 void product_line_init(struct product_line *);

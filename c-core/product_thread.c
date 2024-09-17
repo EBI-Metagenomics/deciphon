@@ -4,10 +4,14 @@
 #include "error.h"
 #include "format.h"
 #include "fs.h"
-#include "hmmer_result.h"
+#include "h3r_result.h"
 #include "imm_codon.h"
 #include "match.h"
+#include <fcntl.h>
+#include <math.h>
 #include <string.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 int product_thread_init(struct product_thread *x, int tid, char const *dir)
 {
@@ -44,7 +48,8 @@ int product_thread_put_match(struct product_thread *x, struct match begin,
   if (fprintf(fp, "%s\t", line->protein) < 0) defer_error(DCP_EWRITEPROD);
   if (fprintf(fp, "%s\t", line->abc) < 0) defer_error(DCP_EWRITEPROD);
   if (fprintf(fp, "%.1f\t", line->lrt) < 0) defer_error(DCP_EWRITEPROD);
-  if (fprintf(fp, "%.2g\t", line->evalue) < 0) defer_error(DCP_EWRITEPROD);
+  if (fprintf(fp, "%.2g\t", exp(line->logevalue)) < 0)
+    defer_error(DCP_EWRITEPROD);
 
   int i = 0;
   struct match it = begin;
@@ -65,8 +70,7 @@ defer:
 #undef defer_error
 }
 
-int product_thread_put_hmmer(struct product_thread *x,
-                             struct hmmer_result const *result)
+int product_thread_put_hmmer(struct product_thread *x, struct h3r const *result)
 {
   char file[FS_PATH_MAX] = {0};
   int rc = 0;
@@ -84,16 +88,16 @@ int product_thread_put_hmmer(struct product_thread *x,
   if ((rc = fs_mkdir(file, true)))                                                             return rc;
   if ((rc = format(file, FS_PATH_MAX, "%s/hmmer/%ld/%d/%d/%s.h3r", dir, seq, win, hit, prot))) return rc;
 
-  FILE *fp = fopen(file, "wb");
-  if (!fp) return error(DCP_EFOPEN);
+  int fd = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+  if (fd < 0) return error(DCP_EOPEN);
 
-  if ((rc = hmmer_result_pack(result, fp)))
+  if ((rc = h3r_pack(result, fd)))
   {
-    fclose(fp);
+    close(fd);
     return rc;
   }
 
-  return fclose(fp) ? error(DCP_EFCLOSE) : 0;
+  return close(fd) ? error(DCP_ECLOSE) : 0;
 }
 
 static int write_match(FILE *fp, struct match const *m)

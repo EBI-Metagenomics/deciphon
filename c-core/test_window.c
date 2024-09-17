@@ -1,10 +1,11 @@
+#include "aye.h"
 #include "fs.h"
 #include "imm_rnd.h"
 #include "params.h"
 #include "scan.h"
 #include "test_consensus.h"
 #include "test_utils.h"
-#include "vendor/minctest.h"
+#include <string.h>
 
 #define SIZE 150000
 #define HMMFILE "minifam.hmm"
@@ -13,6 +14,7 @@
 
 int main(void)
 {
+  aye_begin();
   setup_database(1, 0.1, HMMFILE, DBFILE);
   fs_rmtree(PRODDIR);
 
@@ -31,20 +33,23 @@ int main(void)
   }
   seq[SIZE] = '\0';
 
-  struct params params = {};
+  struct params params = {.port = 51300,
+                          .num_threads = 1,
+                          .multi_hits = true,
+                          .hmmer3_compat = false};
   struct scan *scan = NULL;
 
-  eq(params_setup(&params, 1, true, false), 0);
-  ok(scan = scan_new(params));
-  eq(scan_open(scan, DBFILE), 0);
-  eq(scan_add(scan, sequences[0].id, sequences[0].name, seq), 0);
-  eq(scan_run(scan, PRODDIR, NULL, NULL), 0);
-  eq(scan_progress(scan), 100);
-  eq(chksum(PRODDIR "/products.tsv"), 51091);
-  eq(scan_close(scan), 0);
+  aye(params_setup(&params, 1, true, false) == 0);
+  aye(scan = scan_new(params));
+  aye(scan_open(scan, DBFILE) == 0);
+  aye(scan_add(scan, sequences[0].id, sequences[0].name, seq) == 0);
+  aye(scan_run(scan, PRODDIR, NULL, NULL) == 0);
+  aye(scan_progress(scan) == 100);
+  aye(chksum(PRODDIR "/products.tsv") == 9910);
+  aye(scan_close(scan) == 0);
 
   scan_del(scan);
   fs_rmtree(PRODDIR);
   cleanup_database(DBFILE);
-  return lfails;
+  return aye_end();
 }

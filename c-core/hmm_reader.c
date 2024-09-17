@@ -9,7 +9,7 @@ int hmm_reader_init(struct hmm_reader *reader, struct model_params params,
                     FILE *fp)
 {
   hmr_init(&reader->hmr, fp);
-  hmr_prof_init(&reader->protein, &reader->hmr);
+  hmr_profile_init(&reader->protein, &reader->hmr);
   init_null_lprobs(reader->null_lprobs);
   reader->end = false;
   return model_init(&reader->model, params, reader->null_lprobs);
@@ -17,7 +17,7 @@ int hmm_reader_init(struct hmm_reader *reader, struct model_params params,
 
 int hmm_reader_next(struct hmm_reader *h3r)
 {
-  int hmr_rc = hmr_next_prof(&h3r->hmr, &h3r->protein);
+  int hmr_rc = hmr_next_profile(&h3r->hmr, &h3r->protein);
   if (hmr_rc == HMR_EOF)
   {
     h3r->end = true;
@@ -26,7 +26,7 @@ int hmm_reader_next(struct hmm_reader *h3r)
 
   if (hmr_rc) return error(DCP_EREADHMMER3);
 
-  int core_size = (int)hmr_prof_length(&h3r->protein);
+  int core_size = (int)hmr_profile_length(&h3r->protein);
   int rc = 0;
   if ((rc = model_setup(&h3r->model, core_size))) return rc;
   h3r->model.has_ga = h3r->protein.meta.ga[0] != '\0';

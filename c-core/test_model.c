@@ -1,3 +1,4 @@
+#include "aye.h"
 #include "imm_dna.h"
 #include "imm_gencode.h"
 #include "imm_lprob.h"
@@ -5,10 +6,10 @@
 #include "imm_rnd.h"
 #include "model.h"
 #include "protein.h"
-#include "vendor/minctest.h"
 
 int main(void)
 {
+  aye_begin();
   int core_size = 3;
   struct imm_amino const *amino = &imm_amino_iupac;
   struct imm_nuclt const *nuclt = &imm_dna_iupac.super;
@@ -42,28 +43,28 @@ int main(void)
       .entry_dist = ENTRY_DIST_OCCUPANCY,
       .epsilon = 0.01,
   };
-  eq(model_init(&model, params, null_lprobs), 0);
+  aye(model_init(&model, params, null_lprobs) == 0);
 
-  eq(model_setup(&model, core_size), 0);
+  aye(model_setup(&model, core_size) == 0);
 
-  eq(model_add_node(&model, match_lprobs1, '-'), 0);
-  eq(model_add_node(&model, match_lprobs2, '-'), 0);
-  eq(model_add_node(&model, match_lprobs3, '-'), 0);
+  aye(model_add_node(&model, match_lprobs1, '-') == 0);
+  aye(model_add_node(&model, match_lprobs2, '-') == 0);
+  aye(model_add_node(&model, match_lprobs3, '-') == 0);
 
-  eq(model_add_trans(&model, t[0]), 0);
-  eq(model_add_trans(&model, t[1]), 0);
-  eq(model_add_trans(&model, t[2]), 0);
-  eq(model_add_trans(&model, t[3]), 0);
+  aye(model_add_trans(&model, t[0]) == 0);
+  aye(model_add_trans(&model, t[1]) == 0);
+  aye(model_add_trans(&model, t[2]) == 0);
+  aye(model_add_trans(&model, t[3]) == 0);
 
   struct protein protein = {};
   protein_init(&protein);
   protein_setup(&protein, params);
-  eq(protein_set_accession(&protein, "accession"), 0);
+  aye(protein_set_accession(&protein, "accession") == 0);
 
-  eq(protein_absorb(&protein, &model), 0);
+  aye(protein_absorb(&protein, &model) == 0);
 
   protein_cleanup(&protein);
   model_cleanup(&model);
 
-  return lfails;
+  return aye_end();
 }

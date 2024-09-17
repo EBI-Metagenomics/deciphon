@@ -1,3 +1,4 @@
+#include "aye.h"
 #include "imm_dna.h"
 #include "imm_gencode.h"
 #include "imm_nuclt_code.h"
@@ -6,10 +7,10 @@
 #include "model_params.h"
 #include "protein.h"
 #include "state.h"
-#include "vendor/minctest.h"
 
 int main(void)
 {
+  aye_begin();
   struct imm_amino const *amino = &imm_amino_iupac;
   struct imm_nuclt const *nuclt = &imm_dna_iupac.super;
   struct imm_nuclt_code code = {};
@@ -27,7 +28,7 @@ int main(void)
   protein_init(&protein);
   protein_setup(&protein, params);
   protein_set_accession(&protein, "accession");
-  eq(protein_sample(&protein, 1, 10), 0);
+  aye(protein_sample(&protein, 1, 10) == 0);
 
   char const str[] = "ATGAAACGCATTAGCACCACCATTACCACCAC";
   struct imm_seq seq = imm_seq_unsafe(imm_str(str), &nuclt->super);
@@ -35,31 +36,31 @@ int main(void)
   protein_reset(&protein, imm_seq_size(&seq), true, false);
 
   struct imm_path path = imm_path();
-  eq(imm_path_add(&path, imm_step(STATE_S, 0, 0)), 0);
-  eq(imm_path_add(&path, imm_step(STATE_B, 0, 0)), 0);
-  eq(imm_path_add(&path, imm_step(state_make_match_id(0), 3, 0)), 0);
-  eq(imm_path_add(&path, imm_step(state_make_insert_id(0), 4, 0)), 0);
-  eq(imm_path_add(&path, imm_step(state_make_match_id(1), 2, 0)), 0);
-  eq(imm_path_add(&path, imm_step(STATE_E, 0, 0)), 0);
-  eq(imm_path_add(&path, imm_step(STATE_J, 3, 0)), 0);
-  eq(imm_path_add(&path, imm_step(STATE_B, 0, 0)), 0);
-  eq(imm_path_add(&path, imm_step(state_make_match_id(1), 3, 0)), 0);
-  eq(imm_path_add(&path, imm_step(state_make_delete_id(2), 0, 0)), 0);
-  eq(imm_path_add(&path, imm_step(state_make_match_id(3), 3, 0)), 0);
-  eq(imm_path_add(&path, imm_step(STATE_E, 0, 0)), 0);
-  eq(imm_path_add(&path, imm_step(STATE_B, 0, 0)), 0);
-  eq(imm_path_add(&path, imm_step(state_make_match_id(3), 5, 0)), 0);
-  eq(imm_path_add(&path, imm_step(state_make_match_id(4), 3, 0)), 0);
-  eq(imm_path_add(&path, imm_step(state_make_match_id(5), 3, 0)), 0);
-  eq(imm_path_add(&path, imm_step(state_make_match_id(6), 3, 0)), 0);
-  eq(imm_path_add(&path, imm_step(STATE_E, 0, 0)), 0);
-  eq(imm_path_add(&path, imm_step(STATE_T, 0, 0)), 0);
+  aye(imm_path_add(&path, imm_step(STATE_S, 0, 0)) == 0);
+  aye(imm_path_add(&path, imm_step(STATE_B, 0, 0)) == 0);
+  aye(imm_path_add(&path, imm_step(state_make_match_id(0), 3, 0)) == 0);
+  aye(imm_path_add(&path, imm_step(state_make_insert_id(0), 4, 0)) == 0);
+  aye(imm_path_add(&path, imm_step(state_make_match_id(1), 2, 0)) == 0);
+  aye(imm_path_add(&path, imm_step(STATE_E, 0, 0)) == 0);
+  aye(imm_path_add(&path, imm_step(STATE_J, 3, 0)) == 0);
+  aye(imm_path_add(&path, imm_step(STATE_B, 0, 0)) == 0);
+  aye(imm_path_add(&path, imm_step(state_make_match_id(1), 3, 0)) == 0);
+  aye(imm_path_add(&path, imm_step(state_make_delete_id(2), 0, 0)) == 0);
+  aye(imm_path_add(&path, imm_step(state_make_match_id(3), 3, 0)) == 0);
+  aye(imm_path_add(&path, imm_step(STATE_E, 0, 0)) == 0);
+  aye(imm_path_add(&path, imm_step(STATE_B, 0, 0)) == 0);
+  aye(imm_path_add(&path, imm_step(state_make_match_id(3), 5, 0)) == 0);
+  aye(imm_path_add(&path, imm_step(state_make_match_id(4), 3, 0)) == 0);
+  aye(imm_path_add(&path, imm_step(state_make_match_id(5), 3, 0)) == 0);
+  aye(imm_path_add(&path, imm_step(state_make_match_id(6), 3, 0)) == 0);
+  aye(imm_path_add(&path, imm_step(STATE_E, 0, 0)) == 0);
+  aye(imm_path_add(&path, imm_step(STATE_T, 0, 0)) == 0);
 
   struct match it = match_begin(&path, &seq, &protein);
   while (!match_equal(it, match_end()))
   {
     char name[256] = {0};
-    eq(match_state_name(&it, name), 0);
+    aye(match_state_name(&it, name) == 0);
     char amino = 0;
     int rc = match_amino(&it, &amino);
     printf("%s: %d:%c\n", name, rc, amino);
@@ -87,7 +88,7 @@ int main(void)
     while (!match_equal(it, end))
     {
       char name[256] = {0};
-      eq(match_state_name(&it, name), 0);
+      aye(match_state_name(&it, name) == 0);
       char amino = 0;
       int rc = match_amino(&it, &amino);
       if (!rc) printf("%s:%c\n", name, amino);
@@ -98,5 +99,5 @@ int main(void)
   imm_path_cleanup(&path);
   protein_cleanup(&protein);
 
-  return lfails;
+  return aye_end();
 }

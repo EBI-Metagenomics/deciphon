@@ -168,9 +168,9 @@ int fs_mkdir(char const *x, bool exist_ok)
                                                             : 0;
 }
 
-int fs_rmdir(char const *x) { return rmdir(x) < 0 ? error(DCP_ERMDIR) : 0; }
+int fs_rmdir(char const *x) { return rmdir(x) == 0 ? 0 : DCP_ERMDIR; }
 
-int fs_rmfile(char const *x) { return unlink(x) < 0 ? error(DCP_ERMFILE) : 0; }
+int fs_rmfile(char const *x) { return unlink(x) == 0 ? 0 : DCP_ERMFILE; }
 
 int fs_touch(char const *x)
 {

@@ -1,7 +1,7 @@
 #ifndef HMM_READER_H
 #define HMM_READER_H
 
-#include "hmmer_reader/hmmer_reader.h"
+#include "hmmer_reader.h"
 #include "model.h"
 #include "model_params.h"
 #include <stdio.h>
@@ -9,7 +9,7 @@
 struct hmm_reader
 {
   struct hmr hmr;
-  struct hmr_prof protein;
+  struct hmr_profile protein;
   float null_lprobs[IMM_AMINO_SIZE];
   struct model model;
   bool end;

@@ -1,7 +1,7 @@
 #ifndef PROTEIN_ITER_H
 #define PROTEIN_ITER_H
 
-#include "lite_pack_io.h"
+#include "lio.h"
 #include "protein.h"
 #include <stdbool.h>
 

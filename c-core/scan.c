@@ -3,7 +3,6 @@
 #include "debug.h"
 #include "defer_return.h"
 #include "error.h"
-#include "hmmer_dialer.h"
 #include "min.h"
 #include "product.h"
 #include "protein_reader.h"
@@ -33,8 +32,6 @@ struct scan
     struct protein_reader protein;
   } db;
 
-  struct hmmer_dialer dialer;
-
   int total_proteins;
   int done_proteins;
   bool interrupted;
@@ -55,8 +52,6 @@ struct scan *scan_new(struct params params)
   database_reader_init(&x->db.reader);
   protein_reader_init(&x->db.protein);
 
-  hmmer_dialer_init(&x->dialer);
-
   x->total_proteins = 0;
   x->done_proteins = 0;
   x->interrupted = false;
@@ -69,7 +64,6 @@ void scan_del(struct scan const *scan)
   struct scan *x = (struct scan *)scan;
   if (x)
   {
-    hmmer_dialer_cleanup(&x->dialer);
     database_reader_close(&x->db.reader);
     sequence_queue_cleanup(&x->sequences);
     product_close(&x->product);
@@ -77,11 +71,6 @@ void scan_del(struct scan const *scan)
       thread_cleanup(x->threads + i);
     free(x);
   }
-}
-
-int scan_dial(struct scan *x, int port)
-{
-  return hmmer_dialer_setup(&x->dialer, port);
 }
 
 int scan_open(struct scan *x, char const *dbfile)
@@ -133,7 +122,7 @@ int scan_run(struct scan *x, char const *product_dir, bool (*interrupt)(void *),
     struct thread_params params = {&x->db.protein,
                                    i,
                                    product_thread(&x->product, i),
-                                   &x->dialer,
+                                   x->params.port,
                                    x->params.multi_hits,
                                    x->params.hmmer3_compat};
     if ((rc = thread_setup(x->threads + i, params))) defer_return(rc);

@@ -1,24 +1,23 @@
 #ifndef HMMER_H
 #define HMMER_H
 
-#include "hmmer_result.h"
 #include <stdbool.h>
+
+struct h3c_socket;
+struct h3r;
 
 struct hmmer
 {
   bool cut_ga;
   int num_proteins;
-  struct h3client_stream *stream;
-  struct hmmer_result result;
+  struct h3c_socket *socket;
+  struct h3r        *result;
 };
 
-// clang-format off
 void hmmer_init(struct hmmer *);
-int  hmmer_setup(struct hmmer *, bool cut_ga, int num_proteins);
-bool hmmer_online(struct hmmer const *);
+int  hmmer_setup(struct hmmer *, bool cut_ga, int num_proteins, int port);
 void hmmer_cleanup(struct hmmer *);
 int  hmmer_warmup(struct hmmer *);
-int  hmmer_get(struct hmmer *, int hmmidx, char const *name, char const *seq);
-// clang-format on
+int  hmmer_get(struct hmmer *, int hmmidx, char const *seq);
 
 #endif

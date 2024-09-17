@@ -3,7 +3,7 @@
 #include "defer_return.h"
 #include "error.h"
 #include "fs.h"
-#include "lite_pack_io.h"
+#include "lio.h"
 #include "magic_number.h"
 #include "protein.h"
 #include "read.h"

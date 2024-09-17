@@ -1,6 +1,6 @@
 #include "expect.h"
 #include "error.h"
-#include "lite_pack_io.h"
+#include "lio.h"
 #include "read.h"
 #include <string.h>
 

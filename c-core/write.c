@@ -1,7 +1,7 @@
 #include "write.h"
 #include "error.h"
 #include "imm_abc.h"
-#include "lite_pack_io.h"
+#include "lio.h"
 #include <string.h>
 
 int write_cstring(struct lio_writer *x, char const *string)

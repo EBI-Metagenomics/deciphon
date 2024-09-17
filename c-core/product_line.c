@@ -21,7 +21,7 @@ void product_line_init(struct product_line *x)
   memset(x->abc, 0, sizeof_field(struct product_line, abc));
 
   x->lrt = 0;
-  x->evalue = 0;
+  x->logevalue = 1;
 }
 
 int product_line_set_protein(struct product_line *x, char const *accession)

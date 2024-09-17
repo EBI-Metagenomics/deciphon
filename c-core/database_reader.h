@@ -5,7 +5,7 @@
 #include "imm_amino.h"
 #include "imm_nuclt.h"
 #include "imm_nuclt_code.h"
-#include "lite_pack_io.h"
+#include "lio.h"
 #include "model_params.h"
 #include <stdint.h>
 

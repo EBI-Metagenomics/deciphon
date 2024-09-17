@@ -3,7 +3,6 @@
 #include "database_reader.h"
 #include "debug.h"
 #include "error.h"
-#include "hmmer_dialer.h"
 #include "imm_lprob.h"
 #include "lrt.h"
 #include "match.h"
@@ -18,6 +17,7 @@
 #include "viterbi.h"
 #include "window.h"
 #include "xsignal.h"
+#include <h3r_result.h>
 #include <imm_seq.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,10 +55,9 @@ int thread_setup(struct thread *x, struct thread_params params)
   x->multi_hits = params.multi_hits;
   x->hmmer3_compat = params.hmmer3_compat;
 
-  if ((rc = hmmer_setup(&x->hmmer, db->has_ga, db->num_proteins))) return rc;
-  if (hmmer_dialer_online(params.dialer))
+  if ((rc = hmmer_setup(&x->hmmer, db->has_ga, db->num_proteins, params.port)))
+    return rc;
   {
-    if ((rc = hmmer_dialer_dial(params.dialer, &x->hmmer))) return rc;
     if ((rc = hmmer_warmup(&x->hmmer))) return rc;
   }
 
@@ -221,95 +220,27 @@ static int process_window(struct thread *x, int protein_idx, struct window *w)
   // https://github.com/EddyRivasLab/hmmer/blob/9acd8b6758a0ca5d21db6d167e0277484341929b/src/p7_pipeline.c#L714
   if (x->amino.size > 100000)
     debug("Amino-acid sequence is too long for HMMER3: %d", x->amino.size);
-  if (hmmer_online(&x->hmmer) && x->amino.size <= 100000)
+  if (x->amino.size <= 100000)
   {
     debug("sending to hmmer sequence of size %zu", x->amino.size);
     debug("sequence sent: %s", x->amino.data);
-    if ((rc = hmmer_get(&x->hmmer, protein_idx, seq->name, x->amino.data)))
-      return rc;
+    if ((rc = hmmer_get(&x->hmmer, protein_idx, x->amino.data))) return rc;
 
-    x->product->line.evalue = hmmer_result_num_hits(&x->hmmer.result)
-                                  ? hmmer_result_evalue(&x->hmmer.result)
+    x->product->line.logevalue = h3r_nhits(x->hmmer.result)
+                                  ? h3r_hit_logevalue(x->hmmer.result, 0)
                                   : 1.0;
     // We apparently can have num_hits > 0 but without alignment. It seems
     // to happen with evalue is above 1. So lets ignore those hits.
-    if (x->product->line.evalue > 1.0) x->product->line.evalue = 1.0;
+    if (x->product->line.logevalue > 0) x->product->line.logevalue = 0;
 
-    debug("num_hits: %d evalue: %g", hmmer_result_num_hits(&x->hmmer.result),
-          x->product->line.evalue);
-    // if (x->product->line.evalue == 1.0) continue;
-    if (x->product->line.evalue == 1.0) return rc;
-    if ((rc = product_thread_put_hmmer(x->product, &x->hmmer.result)))
+    debug("num_hits: %d logvalue: %g", h3r_nhits(x->hmmer.result),
+          x->product->line.logevalue);
+    if (x->product->line.logevalue == 0) return rc;
+    if ((rc = product_thread_put_hmmer(x->product, x->hmmer.result)))
       return rc;
   }
   if ((rc = product_thread_put_match(x->product, begin, end))) return rc;
   line->hit += 1;
 
-#if 0
-  struct match it = {0};
-  while (!match_equal(begin, end))
-  {
-    line->hit_start = line->hit_stop;
-    it = end;
-    while (!match_equal(it, match_end()) && match_state_id(&it) != STATE_B)
-    {
-      line->hit_start += match_step(&it)->seqsize;
-      it = match_next(&it);
-    }
-
-    line->hit_stop = line->hit_start;
-    begin = it;
-    while (!match_equal(it, match_end()) && match_state_id(&it) != STATE_E)
-    {
-      line->hit_stop += match_step(&it)->seqsize;
-      it = match_next(&it);
-    }
-    end = match_next(&it);
-    window_set_last_hit_position(w, line->hit_stop - 1);
-
-    if (match_equal(begin, end)) continue;
-
-    chararray_reset(&x->amino);
-    it = begin;
-    while (!match_equal(it, end))
-    {
-      if (!match_state_is_mute(&it))
-      {
-        char amino = 0;
-        if ((rc = match_amino(&it, &amino))) return rc;
-        if ((rc = chararray_append(&x->amino, amino))) return rc;
-      }
-      it = match_next(&it);
-    }
-    chararray_append(&x->amino, '\0');
-
-    // HMMER3 (2024) cannot handle sequences longer than 100000 letters.
-    // https://github.com/EddyRivasLab/hmmer/blob/9acd8b6758a0ca5d21db6d167e0277484341929b/src/p7_pipeline.c#L714
-    if (x->amino.size > 100000)
-      debug("Amino-acid sequence is too long for HMMER3: %d", x->amino.size);
-    if (hmmer_online(&x->hmmer) && x->amino.size <= 100000)
-    {
-      debug("sending to hmmer sequence of size %zu", x->amino.size);
-      debug("sequence sent: %s", x->amino.data);
-      if ((rc = hmmer_get(&x->hmmer, protein_idx, seq->name, x->amino.data)))
-        return rc;
-
-      x->product->line.evalue = hmmer_result_num_hits(&x->hmmer.result)
-                                    ? hmmer_result_evalue(&x->hmmer.result)
-                                    : 1.0;
-      // We apparently can have num_hits > 0 but without alignment. It seems
-      // to happen with evalue is above 1. So lets ignore those hits.
-      if (x->product->line.evalue > 1.0) x->product->line.evalue = 1.0;
-
-      debug("num_hits: %d evalue: %g", hmmer_result_num_hits(&x->hmmer.result),
-            x->product->line.evalue);
-      if (x->product->line.evalue == 1.0) continue;
-      if ((rc = product_thread_put_hmmer(x->product, &x->hmmer.result)))
-        return rc;
-    }
-    if ((rc = product_thread_put_match(x->product, begin, end))) return rc;
-    line->hit += 1;
-  }
-#endif
   return 0;
 }

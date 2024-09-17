@@ -1,55 +1,79 @@
 #include "hmmer.h"
+#include "defer_return.h"
 #include "error.h"
-#include "h3client/deadline.h"
-#include "h3client/errno.h"
-#include "h3client/stream.h"
-#include "hmmer_dialer.h"
-#include "hmmer_result.h"
+#include "h3c_errnum.h"
+#include "h3c_socket.h"
+#include "h3r_result.h"
 
 #define NUM_RETRIES 30
-#define DEADLINE 30000
+#define TIMEOUT 30000
 
 void hmmer_init(struct hmmer *x)
 {
   x->cut_ga = true;
-  x->stream = NULL;
-  hmmer_result_init(&x->result);
+  x->socket = NULL;
+  x->result = NULL;
 }
 
-int hmmer_setup(struct hmmer *x, bool cut_ga, int num_proteins)
+int hmmer_setup(struct hmmer *x, bool cut_ga, int num_proteins, int port)
 {
+  int rc = 0;
   x->cut_ga = cut_ga;
   x->num_proteins = num_proteins;
-  return hmmer_result_setup(&x->result);
-}
+  if (!x->socket)
+  {
+    if (!(x->socket = h3c_socket_new())) defer_return(DCP_ENOMEM);
+    if ((rc = h3c_socket_dial(x->socket, "127.0.0.1", port, TIMEOUT)))
+      defer_return(DCP_EH3CDIAL);
+  }
 
-bool hmmer_online(struct hmmer const *x) { return x->stream; }
+  if (!x->result && !(x->result = h3r_new())) defer_return(DCP_ENOMEM);
+
+  return rc;
+
+defer:
+  if (x->socket)
+  {
+    h3c_socket_hangup(x->socket);
+    h3c_socket_del(x->socket);
+    x->socket = NULL;
+  }
+  if (x->result)
+  {
+    h3r_del(x->result);
+    x->result = NULL;
+  }
+  return rc;
+}
 
 void hmmer_cleanup(struct hmmer *x)
 {
   if (x)
   {
-    if (x->stream) h3client_stream_del(x->stream);
-    x->stream = NULL;
-    hmmer_result_cleanup(&x->result);
+    if (x->socket)
+    {
+      h3c_socket_hangup(x->socket);
+      h3c_socket_del(x->socket);
+      x->socket = NULL;
+    }
+    if (x->result)
+    {
+      h3r_del(x->result);
+      x->result = NULL;
+    }
   }
 }
 
 int hmmer_warmup(struct hmmer *x)
 {
   char cmd[] = "--hmmdb 1 --hmmdb_range 0..0 --acc";
-  long deadline = h3client_deadline(DEADLINE);
 
-  if (h3client_stream_put(x->stream, cmd, "warmup", "", deadline))
-    return error(DCP_EH3CWARMUP);
-
-  h3client_stream_wait(x->stream);
-  return h3client_stream_pop(x->stream, x->result.handle)
-             ? error(DCP_EH3CWARMUP)
-             : 0;
+  if (h3c_socket_send(x->socket, cmd, "")) return error(DCP_EH3CWARMUP);
+  if (h3c_socket_recv(x->socket, x->result)) return error(DCP_EH3CWARMUP);
+  return 0;
 }
 
-int hmmer_get(struct hmmer *x, int hmmidx, char const *name, char const *seq)
+int hmmer_get(struct hmmer *x, int hmmidx, char const *seq)
 {
   char cmd[128] = {0};
   if (x->cut_ga)
@@ -62,15 +86,12 @@ int hmmer_get(struct hmmer *x, int hmmidx, char const *name, char const *seq)
 
   for (int i = 0; i < NUM_RETRIES; ++i)
   {
-    long deadline = h3client_deadline(DEADLINE);
-
-    int rc = h3client_stream_put(x->stream, cmd, name, seq, deadline);
-    if (rc == H3CLIENT_ETIMEDOUT) continue;
+    int rc = h3c_socket_send(x->socket, cmd, seq);
+    if (rc == H3C_ETIMEDOUT) continue;
     if (rc) return error(DCP_EH3CPUT);
 
-    h3client_stream_wait(x->stream);
-    rc = h3client_stream_pop(x->stream, x->result.handle);
-    if (rc == H3CLIENT_ETIMEDOUT) continue;
+    rc = h3c_socket_recv(x->socket, x->result);
+    if (rc == H3C_ETIMEDOUT) continue;
     if (rc) return error(DCP_EH3CPOP);
 
     return 0;

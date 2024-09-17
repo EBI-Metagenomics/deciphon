@@ -6,6 +6,7 @@
 
 struct params
 {
+  int port;
   int num_threads;
   bool multi_hits;
   bool hmmer3_compat;

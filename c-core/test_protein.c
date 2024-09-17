@@ -1,23 +1,26 @@
+#include "aye.h"
 #include "codec.h"
 #include "imm_dna.h"
 #include "imm_eseq.h"
 #include "imm_gencode.h"
 #include "imm_nuclt_code.h"
 #include "imm_path.h"
+#include "near.h"
 #include "protein.h"
 #include "state.h"
 #include "trellis.h"
-#include "vendor/minctest.h"
 #include "viterbi.h"
+#include <string.h>
 
 static void test_protein_uniform(void);
 static void test_protein_occupancy(void);
 
 int main(void)
 {
+  aye_begin();
   test_protein_uniform();
   test_protein_occupancy();
-  return lfails;
+  return aye_end();
 }
 
 static int code_fn(int pos, int len, void *arg)
@@ -49,39 +52,39 @@ static void test_protein_uniform(void)
   protein_init(&protein);
   protein_setup(&protein, params);
   protein_set_accession(&protein, "accession");
-  eq(protein_sample(&protein, 1, 2), 0);
+  aye(protein_sample(&protein, 1, 2) == 0);
 
   char const str[] = "ATGAAACGCATTAGCACCACCATTACCACCAC";
   struct imm_seq seq = imm_seq_unsafe(imm_str(str), &nuclt->super);
 
   protein_reset(&protein, imm_seq_size(&seq), true, false);
 
-  eq(imm_eseq_setup(&eseq, &seq), 0);
+  aye(imm_eseq_setup(&eseq, &seq) == 0);
 
   char name[IMM_STATE_NAME_SIZE];
 
-  eq(imm_eseq_setup(&eseq, &seq), 0);
+  aye(imm_eseq_setup(&eseq, &seq) == 0);
 
   struct viterbi *viterbi = viterbi_new();
-  eq(viterbi_setup(viterbi, protein.core_size), 0);
-  eq(protein_setup_viterbi(&protein, viterbi), 0);
-  close(viterbi_null(viterbi, imm_eseq_size(&eseq), code_fn, (void *)&eseq),  48.9272687711);
-  close(viterbi_cost(viterbi, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 55.59428153448);
-  eq(viterbi_path(viterbi, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 0);
+  aye(viterbi_setup(viterbi, protein.core_size) == 0);
+  aye(protein_setup_viterbi(&protein, viterbi) == 0);
+  aye(near(viterbi_null(viterbi, imm_eseq_size(&eseq), code_fn, (void *)&eseq),  48.9272687711));
+  aye(near(viterbi_cost(viterbi, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 55.59428153448));
+  aye(viterbi_path(viterbi, imm_eseq_size(&eseq), code_fn, (void *)&eseq) == 0);
   imm_path_reset(&path);
-  eq(trellis_unzip(viterbi_trellis(viterbi), imm_eseq_size(&eseq), &path), 0);
+  aye(trellis_unzip(viterbi_trellis(viterbi), imm_eseq_size(&eseq), &path) == 0);
 
-  eq(imm_path_nsteps(&path), 14);
+  aye(imm_path_nsteps(&path) == 14);
 
-  eq(imm_path_step(&path, 0)->seqsize, 0);
-  eq(imm_path_step(&path, 0)->state_id, STATE_S);
+  aye(imm_path_step(&path, 0)->seqsize == 0);
+  aye(imm_path_step(&path, 0)->state_id == STATE_S);
   state_name(imm_path_step(&path, 0)->state_id, name);
-  cmp(name, "S");
+  aye(strcmp(name, "S") == 0);
 
-  eq(imm_path_step(&path, 13)->seqsize, 0);
-  eq(imm_path_step(&path, 13)->state_id, STATE_T);
+  aye(imm_path_step(&path, 13)->seqsize == 0);
+  aye(imm_path_step(&path, 13)->state_id == STATE_T);
   state_name(imm_path_step(&path, 13)->state_id, name);
-  cmp(name, "T");
+  aye(strcmp(name, "T") == 0);
 
   struct codec codec = codec_init(&protein, &path);
   int rc = 0;
@@ -99,13 +102,13 @@ static void test_protein_uniform(void)
   while (!(rc = codec_next(&codec, &seq, &codon)))
   {
     if (codec_end(&codec)) break;
-    eq(codons[i].a, codon.a);
-    eq(codons[i].b, codon.b);
-    eq(codons[i].c, codon.c);
+    aye(codons[i].a == codon.a);
+    aye(codons[i].b == codon.b);
+    aye(codons[i].c == codon.c);
     ++i;
   }
-  eq(rc, 0);
-  eq(i, 10);
+  aye(rc == 0);
+  aye(i == 10);
 
   imm_eseq_cleanup(&eseq);
   viterbi_del(viterbi);
@@ -136,39 +139,40 @@ static void test_protein_occupancy(void)
   protein_init(&protein);
   protein_setup(&protein, params);
   protein_set_accession(&protein, "accession");
-  eq(protein_sample(&protein, 1, 2), 0);
+  aye(protein_sample(&protein, 1, 2) == 0);
 
   char const str[] = "ATGAAACGCATTAGCACCACCATTACCACCAC";
   struct imm_seq seq = imm_seq_unsafe(imm_str(str), &nuclt->super);
 
   protein_reset(&protein, imm_seq_size(&seq), true, false);
 
-  eq(imm_eseq_setup(&eseq, &seq), 0);
+  aye(imm_eseq_setup(&eseq, &seq) == 0);
 
   char name[IMM_STATE_NAME_SIZE];
 
-  eq(imm_eseq_setup(&eseq, &seq), 0);
+  aye(imm_eseq_setup(&eseq, &seq) == 0);
 
   struct viterbi *viterbi = viterbi_new();
-  eq(viterbi_setup(viterbi, protein.core_size), 0);
-  eq(protein_setup_viterbi(&protein, viterbi), 0);
-  close(viterbi_null(viterbi, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 48.9272687711);
-  close(viterbi_cost(viterbi, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 54.35543421312);
-  eq(viterbi_path(viterbi, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 0);
+  aye(viterbi_setup(viterbi, protein.core_size) == 0);
+  aye(protein_setup_viterbi(&protein, viterbi) == 0);
+  aye(near(viterbi_null(viterbi, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 48.9272687711));
+  aye(near(viterbi_cost(viterbi, imm_eseq_size(&eseq), code_fn, (void *)&eseq), 54.35543421312));
+  aye(viterbi_path(viterbi, imm_eseq_size(&eseq), code_fn, (void *)&eseq) == 0);
   imm_path_reset(&path);
-  eq(trellis_unzip(viterbi_trellis(viterbi), imm_eseq_size(&eseq), &path), 0);
+  aye(trellis_unzip(viterbi_trellis(viterbi), imm_eseq_size(&eseq), &path) == 0);
 
-  eq(imm_path_nsteps(&path), 14);
+  aye(imm_path_nsteps(&path) == 14);
 
-  eq(imm_path_step(&path, 0)->seqsize, 0);
-  eq(imm_path_step(&path, 0)->state_id, STATE_S);
+  aye(imm_path_step(&path, 0)->seqsize == 0);
+  aye(imm_path_step(&path, 0)->state_id == STATE_S);
   state_name(imm_path_step(&path, 0)->state_id, name);
-  cmp(name, "S");
+  aye(strcmp(name, "S") == 0);
 
-  eq(imm_path_step(&path, 13)->seqsize, 0);
-  eq(imm_path_step(&path, 13)->state_id, STATE_T);
+
+  aye(imm_path_step(&path, 13)->seqsize == 0);
+  aye(imm_path_step(&path, 13)->state_id == STATE_T);
   state_name(imm_path_step(&path, 13)->state_id, name);
-  cmp(name, "T");
+  aye(strcmp(name, "T") == 0);
 
   struct codec codec = codec_init(&protein, &path);
   int rc = 0;
@@ -186,13 +190,13 @@ static void test_protein_occupancy(void)
   while (!(rc = codec_next(&codec, &seq, &codon)))
   {
     if (codec_end(&codec)) break;
-    eq(codons[i].a, codon.a);
-    eq(codons[i].b, codon.b);
-    eq(codons[i].c, codon.c);
+    aye(codons[i].a == codon.a);
+    aye(codons[i].b == codon.b);
+    aye(codons[i].c == codon.c);
     ++i;
   }
-  eq(rc, 0);
-  eq(i, 10);
+  aye(rc == 0);
+  aye(i == 10);
 
   imm_eseq_cleanup(&eseq);
   viterbi_del(viterbi);

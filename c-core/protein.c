@@ -9,7 +9,7 @@
 #include "imm_lprob.h"
 #include "imm_nuclt_code.h"
 #include "imm_rnd.h"
-#include "lite_pack_io.h"
+#include "lio.h"
 #include "min.h"
 #include "model.h"
 #include "protein_background.h"
