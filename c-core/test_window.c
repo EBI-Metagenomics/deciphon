@@ -1,7 +1,6 @@
 #include "aye.h"
 #include "fs.h"
 #include "imm_rnd.h"
-#include "params.h"
 #include "scan.h"
 #include "test_consensus.h"
 #include "test_utils.h"
@@ -11,6 +10,10 @@
 #define HMMFILE "minifam.hmm"
 #define DBFILE "test_window.dcp"
 #define PRODDIR "test_window_prod"
+#define PORT 51300
+#define NUM_THREADS 1
+#define MULTI_HITS true
+#define HMMER3_COMPAT false
 
 int main(void)
 {
@@ -33,14 +36,9 @@ int main(void)
   }
   seq[SIZE] = '\0';
 
-  struct params params = {.port = 51300,
-                          .num_threads = 1,
-                          .multi_hits = true,
-                          .hmmer3_compat = false};
   struct scan *scan = NULL;
-
-  aye(params_setup(&params, 1, true, false) == 0);
-  aye(scan = scan_new(params));
+  aye(scan = scan_new());
+  aye(scan_setup(scan, PORT, NUM_THREADS, MULTI_HITS, HMMER3_COMPAT) == 0);
   aye(scan_open(scan, DBFILE) == 0);
   aye(scan_add(scan, sequences[0].id, sequences[0].name, seq) == 0);
   aye(scan_run(scan, PRODDIR, NULL, NULL) == 0);
