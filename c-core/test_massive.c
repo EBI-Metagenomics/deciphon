@@ -4,10 +4,10 @@
 #include "scan.h"
 #include "test_utils.h"
 
-#define HMMFILE "three.hmm"
-#define DBFILE "test_massive.dcp"
-#define PRODDIR "test_massive_product"
-#define PORT 51301
+#define HMMFILE "massive.hmm"
+#define DBFILE "massive.dcp"
+#define PRODDIR "massive_product"
+#define PORT 51300
 #define NUM_THREADS 1
 #define MULTI_HITS true
 #define HMMER3_COMPAT false
@@ -47,7 +47,6 @@ int main(void)
   }
   aye(scan_run(scan, PRODDIR, NULL, NULL) == 0);
   aye(scan_progress(scan) == 100);
-  printf("%ld\n", chksum(PRODDIR "/products.tsv"));
   aye(chksum(PRODDIR "/products.tsv") == 48347);
   aye(scan_close(scan) == 0);
 

@@ -56,15 +56,23 @@ int main(void)
   aye(imm_path_add(&path, imm_step(STATE_E, 0, 0)) == 0);
   aye(imm_path_add(&path, imm_step(STATE_T, 0, 0)) == 0);
 
+  char aminos[] = {' ', ' ', 'D', 'N', 'A', ' ', 'I', ' ', 'S', ' ',
+                   'T', ' ', ' ', 'N', 'Y', 'H', 'H', ' ', ' '};
+
   struct match it = match_begin(&path, &seq, &protein);
+  int idx = 0;
   while (!match_equal(it, match_end()))
   {
     char name[256] = {0};
     aye(match_state_name(&it, name) == 0);
     char amino = 0;
-    int rc = match_amino(&it, &amino);
-    printf("%s: %d:%c\n", name, rc, amino);
+    if (aminos[idx] != ' ')
+    {
+      aye(match_amino(&it, &amino) == 0);
+      aye(aminos[idx] == amino);
+    }
     it = match_next(&it);
+    idx += 1;
   }
 
   struct match begin = match_end();
@@ -83,15 +91,13 @@ int main(void)
 
     if (match_equal(begin, end)) continue;
 
-    printf("\n");
     it = begin;
     while (!match_equal(it, end))
     {
       char name[256] = {0};
       aye(match_state_name(&it, name) == 0);
       char amino = 0;
-      int rc = match_amino(&it, &amino);
-      if (!rc) printf("%s:%c\n", name, amino);
+      match_amino(&it, &amino);
       it = match_next(&it);
     }
   }

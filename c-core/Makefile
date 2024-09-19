@@ -23,7 +23,13 @@ $(TEST_TARGET): %: %.o $(LIB)
 	$(CC) $(CFLAGS) $< -L. -ldeciphon -lh3client -lh3result -lhmmer_reader -limm -llio -llite_pack -lm -o $@
 
 check: $(TEST_TARGET)
-	for test in $(TEST_TARGET); do ./$$test || exit 1; done
+	./test_match
+	./test_model
+	./test_press
+	./test_protein
+	./start_daemon.sh massive.hmm 51300 && ./test_massive; e=$$?; ./stop_daemon.sh massive.hmm; exit $$e
+	./start_daemon.sh minifam.hmm 51300 && ./test_scan   ; e=$$?; ./stop_daemon.sh minifam.hmm; exit $$e
+	./start_daemon.sh minifam.hmm 51300 && ./test_window ; e=$$?; ./stop_daemon.sh minifam.hmm; exit $$e
 
 install: $(LIB) $(HDR)
 	@mkdir -p $(PREFIX)/lib $(PREFIX)/include
