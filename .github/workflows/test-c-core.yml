@@ -15,25 +15,46 @@ defaults:
 jobs:
   test:
     runs-on: ${{matrix.os}}
+    env:
+      PREFIX:         ${{github.workspace}}/deps
+      C_INCLUDE_PATH: ${{github.workspace}}/deps/include
+      LIBRARY_PATH:   ${{github.workspace}}/deps/lib
     strategy:
       matrix:
-        build_type: [Release, Debug]
         os: [ubuntu-latest, macos-13, macos-14]
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Configure CMake on Linux
-        if: runner.os == 'Linux'
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DUSE_SANITIZER='Address;Undefined'
+      - name: clone lite-pack
+        run: git clone --depth 1 https://github.com/EBI-Metagenomics/lite-pack.git lite-pack
 
-      - name: Configure CMake on MacOS
-        if: runner.os == 'macOS'
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+      - name: build & install lite-pack
+        run: cd lite-pack && make && make install
 
-      - name: Build
-        run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}}
+      - name: build & install lite-pack-io
+        run: cd lite-pack/ext && make && make install
 
-      - name: Test
-        working-directory: ${{github.workspace}}/build
-        run: ASAN_OPTIONS=allocator_may_return_null=1 ctest -C ${{matrix.build_type}} --rerun-failed --output-on-failure
+      - name: clone hmmer3
+        run: git clone --depth 1 https://github.com/EBI-Metagenomics/hmmer3.git hmmer3
+
+      - name: build & install hmmer-reader
+        run: cd hmmer3/hmmer-reader && make && make install
+
+      - name: build & install h3result
+        run: cd hmmer3/h3result && make && make install
+
+      - name: build & install h3client
+        run: cd hmmer3/h3client && make && make install
+
+      - name: clone imm
+        run: git clone --depth 1 https://github.com/EBI-Metagenomics/imm.git imm
+
+      - name: build & install imm
+        run: cd imm && make && make install
+
+      - name: make
+        run: make
+
+      - name: make check
+        run: make check
