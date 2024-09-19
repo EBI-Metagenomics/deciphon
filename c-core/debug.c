@@ -1,5 +1,5 @@
 #include "debug.h"
-#include "env.h"
+#include "loglevel.h"
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -7,7 +7,7 @@ void debug_print(int line, const char *src, char const *fmt, ...)
 {
   va_list arg;
   va_start(arg, fmt);
-  if (env_as_bool("DECIPHON_DEBUG"))
+  if (loglevel() <= LOGLEVEL_DEBUG)
   {
     char location[256] = {0};
     snprintf(location, 256, "%s:%d", src, line);

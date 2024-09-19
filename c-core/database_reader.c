@@ -83,7 +83,8 @@ int database_reader_close(struct database_reader *x)
   x->protein_sizes = NULL;
   int rc = 0;
   int fd = lio_rfile(&x->file);
-  if (fd) rc = close(fd) ? error(DCP_EFCLOSE) : 0;
+  if (fd != -1) rc = close(fd) ? error(DCP_EFCLOSE) : 0;
+  database_reader_init(x);
   return rc;
 }
 

@@ -1,5 +1,5 @@
 #include "error.h"
-#include "env.h"
+#include "loglevel.h"
 #include "array_size.h"
 #include <stdio.h>
 
@@ -92,7 +92,7 @@ char const *error_string(int error_code)
 
 int error_print(int error_code, int line, const char *src)
 {
-  if (env_as_bool("DECIPHON_DEBUG"))
+  if (loglevel() <= LOGLEVEL_ERROR)
     fprintf(stderr, "%s:%d: %s\n", src, line, error_string(error_code));
   return error_code;
 }
