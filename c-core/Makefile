@@ -1,5 +1,5 @@
 SIMD =
-ifeq ($(shell uname -p),x86_64)
+ifeq ($(shell uname -m),x86_64)
 	SIMD += -mavx2
 endif
 
