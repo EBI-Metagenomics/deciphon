@@ -18,7 +18,7 @@ struct trans
       float II;
       float DM;
       float DD;
-    } __attribute_packed;
+    } attribute_packed;
     struct
     {
       float data[TRANS_SIZE];

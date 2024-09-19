@@ -49,10 +49,10 @@ int  state_make_match_id(int idx);
 int  state_make_insert_id(int idx);
 int  state_make_delete_id(int idx);
 
-__always_inline __attribute_const static int state_id_msb(int id) { return id & (3 << (STATE_ID_BITS - 2)); }
+always_inline attribute_const static int state_id_msb(int id) { return id & (3 << (STATE_ID_BITS - 2)); }
 
-__always_inline __attribute_const static bool state_is_match(int id)  { return state_id_msb(id) == STATE_M; }
-__always_inline __attribute_const static bool state_is_insert(int id) { return state_id_msb(id) == STATE_I; }
-__always_inline __attribute_const static bool state_is_delete(int id) { return state_id_msb(id) == STATE_D; }
+always_inline attribute_const static bool state_is_match(int id)  { return state_id_msb(id) == STATE_M; }
+always_inline attribute_const static bool state_is_insert(int id) { return state_id_msb(id) == STATE_I; }
+always_inline attribute_const static bool state_is_delete(int id) { return state_id_msb(id) == STATE_D; }
 
 #endif
