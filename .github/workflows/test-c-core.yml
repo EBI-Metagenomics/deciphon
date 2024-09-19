@@ -26,15 +26,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: uname -m
-        run: uname -m
-
-      - name: uname -p
-        run: uname -p
-
-      - name: uname
-        run: uname
-
       - name: clone lite-pack
         run: git clone --depth 1 https://github.com/EBI-Metagenomics/lite-pack.git lite-pack
 
