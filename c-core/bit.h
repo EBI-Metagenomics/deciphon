@@ -1,7 +1,7 @@
 #ifndef BIT_H
 #define BIT_H
 
-#include "compiler_attributes.h"
+#include "compiler.h"
 #include <limits.h>
 
 ALWAYS_INLINE ATTRIBUTE_CONST

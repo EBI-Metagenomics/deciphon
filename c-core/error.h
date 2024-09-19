@@ -1,9 +1,7 @@
 #ifndef ERROR_H
 #define ERROR_H
 
-#include "api.h"
-
-API char const *error_string(int error_code);
+char const *error_string(int error_code);
 
 enum
 {

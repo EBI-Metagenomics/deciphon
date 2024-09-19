@@ -1,9 +1,9 @@
 #ifndef TRELLIS_H
 #define TRELLIS_H
 
-#include "build_bug.h"
-#include "compiler_attributes.h"
+#include "compiler.h"
 #include "state.h"
+#include "static_assert.h"
 #include <limits.h>
 #include <stdint.h>
 

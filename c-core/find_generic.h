@@ -3,13 +3,13 @@
 
 #include "compiler.h"
 
-PURE int find(float needle, int const size, float const stack[restrict])
+ATTRIBUTE_PURE int find(float needle, int const size, float const stack[restrict])
 {
   for (int i = 0; i < size; ++i)
   {
     if (stack[i] == needle) return i;
   }
-  UNREACHABLE();
+  unreachable();
   return -1;
 }
 

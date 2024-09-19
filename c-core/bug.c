@@ -1,5 +1,5 @@
 #include "bug.h"
-#include "compiler_attributes.h"
+#include "compiler.h"
 #include <stdio.h>
 #include <stdlib.h>
 

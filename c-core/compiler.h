@@ -1,19 +1,10 @@
 #ifndef COMPILER_H
 #define COMPILER_H
 
-#define unlikely(x) __builtin_expect(!!(x), 0)
-#define unreachable() __builtin_unreachable()
-
 #ifdef __has_builtin
 #define HAS_BUILTIN(x) __has_builtin(x)
 #else
 #define HAS_BUILTIN(x) (0)
-#endif
-
-#if HAS_BUILTIN(__builtin_unreachable)
-#define UNREACHABLE() __builtin_unreachable()
-#else
-#define UNREACHABLE() (void)(0)
 #endif
 
 #ifdef __has_attribute
@@ -28,34 +19,46 @@
 #define UNUSED
 #endif
 
-#if HAS_BUILTIN(__builtin_prefetch)
-#define PREFETCH(addr, rw, locality) __builtin_prefetch(addr, rw, locality)
+#if HAS_BUILTIN(__builtin_unreachable)
+#define unlikely(x) __builtin_expect(!!(x), 0)
 #else
-#define PREFETCH(addr, rw, locality)                                           \
-  do                                                                           \
-  {                                                                            \
-    (void)(addr);                                                              \
-    (void)(rw);                                                                \
-    (void)(locality);                                                          \
-  } while (0)
+#define unlikely(x) (x)
 #endif
 
-#if HAS_ATTRIBUTE(always_inline)
-#define INLINE static inline __attribute__((always_inline))
+#if HAS_BUILTIN(__builtin_unreachable)
+#define unreachable() __builtin_unreachable()
 #else
-#define INLINE static inline
+#define unreachable() (void)(0)
 #endif
 
-#if HAS_ATTRIBUTE(const)
-#define CONST INLINE __attribute__((const))
+#if HAS_ATTRIBUTE(__always_inline__)
+#define ALWAYS_INLINE inline __attribute__((__always_inline__))
 #else
-#define CONST INLINE
+#define ALWAYS_INLINE inline
 #endif
 
-#if HAS_ATTRIBUTE(pure)
-#define PURE INLINE __attribute__((pure))
+#if HAS_ATTRIBUTE(__noreturn__)
+#define ATTRIBUTE_NORETURN __attribute__((__noreturn__))
 #else
-#define PURE INLINE
+#define ATTRIBUTE_NORETURN
+#endif
+
+#if HAS_ATTRIBUTE(__const__)
+#define ATTRIBUTE_CONST __attribute__((__const__))
+#else
+#define ATTRIBUTE_CONST
+#endif
+
+#if HAS_ATTRIBUTE(__pure__)
+#define ATTRIBUTE_PURE __attribute__((__pure__))
+#else
+#define ATTRIBUTE_PURE
+#endif
+
+#if HAS_ATTRIBUTE(packed)
+#define ATTRIBUTE_PACKED __attribute__((packed))
+#else
+#define ATTRIBUTE_PACKED
 #endif
 
 #if HAS_ATTRIBUTE(format)

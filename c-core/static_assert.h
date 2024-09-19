@@ -1,5 +1,5 @@
-#ifndef BUILD_BUG
-#define BUILD_BUG
+#ifndef STATIC_ASSERT_H
+#define STATIC_ASSERT_H
 
 /* COPIED FROM LINUX KERNEL
  * static_assert - check integer constant expression at build time
@@ -17,15 +17,7 @@
  * true, while static_assert() fails the build if the expression is
  * false.
  */
-#define static_assert(expr, ...) __static_assert(expr, ##__VA_ARGS__, #expr)
+#define static_assert(expr, ...)        __static_assert(expr, ##__VA_ARGS__, #expr)
 #define __static_assert(expr, msg, ...) _Static_assert(expr, msg)
-
-/* COPIED FROM LINUX KERNEL
- * Force a compilation error if condition is true, but also produce a
- * result (of value 0 and type int), so the expression can be used
- * e.g. in a structure initializer (or where-ever else comma expressions
- * aren't permitted).
- */
-#define BUILD_BUG_ON_ZERO(e) ((int)(sizeof(struct { int:(-!!(e)); })))
 
 #endif

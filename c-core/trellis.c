@@ -6,8 +6,8 @@
 #include "xrealloc.h"
 #include <stdlib.h>
 
-CONST unsigned xnode_get_field(uint32_t x, int state);
-CONST unsigned node_get_field(uint16_t x, int state);
+ATTRIBUTE_CONST unsigned xnode_get_field(uint32_t x, int state);
+ATTRIBUTE_CONST unsigned node_get_field(uint16_t x, int state);
 
 void trellis_init(struct trellis *x)
 {
@@ -121,7 +121,7 @@ void trellis_seek_node(struct trellis *x, int stage, int core_idx)
   x->node = x->nodes + stage * x->core_size + core_idx;
 }
 
-CONST unsigned xnode_get_field(uint32_t x, int state)
+ATTRIBUTE_CONST unsigned xnode_get_field(uint32_t x, int state)
 {
   if (state == STATE_S) return bit_extract(x, 0, STATE_S_BITS);
   if (state == STATE_N) return bit_extract(x, 0 + STATE_S_BITS, STATE_N_BITS);
@@ -134,7 +134,7 @@ CONST unsigned xnode_get_field(uint32_t x, int state)
   return 0;
 }
 
-CONST unsigned node_get_field(uint16_t x, int state)
+ATTRIBUTE_CONST unsigned node_get_field(uint16_t x, int state)
 {
   if (state_is_match(state))  return bit_extract(x, 0, STATE_M_BITS);
   if (state_is_delete(state)) return bit_extract(x, 0 + STATE_M_BITS, STATE_D_BITS);

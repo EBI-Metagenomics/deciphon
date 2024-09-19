@@ -4,7 +4,7 @@
 #include "compiler.h"
 #include <math.h>
 
-CONST float maximum(float const a, float const b)
+ATTRIBUTE_CONST float maximum(float const a, float const b)
 {
 #if __aarch64__
   return fmax(a, b);

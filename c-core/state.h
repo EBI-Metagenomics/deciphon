@@ -1,8 +1,8 @@
 #ifndef STATE_H
 #define STATE_H
 
+#include "compiler.h"
 #include <stdbool.h>
-#include "compiler_attributes.h"
 
 #define STATE_ID_BITS 16
 

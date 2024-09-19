@@ -1,7 +1,7 @@
 #ifndef TRANS_H
 #define TRANS_H
 
-#include "compiler_attributes.h"
+#include "compiler.h"
 
 #define TRANS_SIZE 7
 
