@@ -1,5 +1,10 @@
+SIMD =
+ifeq ($(shell uname -p),x86_64)
+	SIMD += -mavx2
+endif
+
 CC     ?= gcc
-CFLAGS ?= -std=c11 -Wall -Wextra -O3 -MMD -MP
+CFLAGS ?= -std=c11 -Wall -Wextra -O3 -MMD -MP $(SIMD)
 PREFIX ?= /usr/local
 SRC = $(filter-out $(wildcard test_*.c),$(wildcard *.c))
 OBJ = $(SRC:.c=.o)
@@ -8,6 +13,7 @@ LIB = libdeciphon.a
 TEST_SRC = $(wildcard test_*.c)
 TEST_OBJ = $(TEST_SRC:.c=.o)
 TEST_TARGET = $(basename $(TEST_OBJ))
+
 
 all: $(LIB)
 
