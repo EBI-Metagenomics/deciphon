@@ -1,6 +1,7 @@
 #include "error.h"
-#include "loglevel.h"
 #include "array_size.h"
+#include "loglevel.h"
+#include "sink.h"
 #include <stdio.h>
 
 static char const *msg[] = {
@@ -93,6 +94,6 @@ char const *error_string(int error_code)
 int error_print(int error_code, int line, const char *src)
 {
   if (loglevel() <= LOGLEVEL_ERROR)
-    fprintf(stderr, "%s:%d: %s\n", src, line, error_string(error_code));
+    fprintf(SINK_ERROR, "%s:%d: %s\n", src, line, error_string(error_code));
   return error_code;
 }

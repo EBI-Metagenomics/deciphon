@@ -4,9 +4,9 @@
 enum
 {
   LOGLEVEL_DEBUG = 0,
-  LOGLEVEL_INFO = 1,
+  LOGLEVEL_INFO  = 1,
   LOGLEVEL_ERROR = 2,
-  LOGLEVEL_NONE = 3,
+  LOGLEVEL_NONE  = 3,
 };
 
 int loglevel(void);

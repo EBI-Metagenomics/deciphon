@@ -1,5 +1,6 @@
 #include "debug.h"
 #include "loglevel.h"
+#include "sink.h"
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -15,7 +16,7 @@ void debug_print(int line, const char *src, char const *fmt, ...)
     char message[256] = {0};
     vsnprintf(message, 256, fmt, arg);
 
-    fprintf(stderr, "%s: %s\n", location, message);
+    fprintf(SINK_DEBUG, "%s: %s\n", location, message);
   }
   va_end(arg);
 }
