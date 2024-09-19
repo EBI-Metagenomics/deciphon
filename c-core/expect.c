@@ -15,7 +15,7 @@ int expect_key(struct lio_reader *x, char const *key)
 
   if (lio_readb(x, size, buf)) return error(DCP_EFREAD);
   if (size != (uint32_t)strlen(key)) return error(DCP_EFDATA);
-  memcmp(key, buf, size);
+  if (memcmp(key, buf, size) != 0) return error(DCP_EFDATA);
   return 0;
 }
 

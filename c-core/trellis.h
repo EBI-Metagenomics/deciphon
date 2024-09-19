@@ -39,7 +39,7 @@ static inline void trellis_next_node(struct trellis *x) { x->node++; }
 static inline void trellis_clear_xnode(struct trellis *x) { *x->xnode = 0; }
 static inline void trellis_clear_node(struct trellis *x) { *x->node = 0; }
 
-static always_inline void trellis_set(struct trellis *x, int id, int value)
+static ALWAYS_INLINE void trellis_set(struct trellis *x, int id, int value)
 {
 
   unsigned v = *(unsigned *)&value;

@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/param.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -90,29 +91,28 @@ int fs_fcopy(FILE *restrict dst, FILE *restrict src)
   return 0;
 }
 
-static int getpath(FILE *restrict fp, unsigned size, char *filepath);
+static int getpath(int fd, unsigned size, char *filepath);
 
 int fs_refopen(FILE *restrict fp, char const *mode, FILE **out)
 {
+  int fd = fileno(fp);
+  if (fd < 0) return error(DCP_EGETPATH);
   char filepath[FILENAME_MAX] = {0};
-  int rc = getpath(fp, sizeof filepath, filepath);
+  int rc = getpath(fd, sizeof filepath, filepath);
   if (rc) return rc;
   return (*out = fopen(filepath, mode)) ? 0 : error(DCP_EREFOPEN);
 }
 
 int fs_reopen(int fd, int mode, int *out)
 {
-  _Static_assert(MAXPATHLEN <= FILENAME_MAX, "");
   char filepath[FILENAME_MAX] = {0};
-  if (fcntl(fd, F_GETPATH, filepath) == -1) return error(DCP_EREFOPEN);
+  int rc = getpath(fd, sizeof filepath, filepath);
+  if (rc) return rc;
   return (*out = open(filepath, mode)) >= 0 ? 0 : error(DCP_EREFOPEN);
 }
 
-int getpath(FILE *restrict fp, unsigned size, char *filepath)
+int getpath(int fd, unsigned size, char *filepath)
 {
-  int fd = fileno(fp);
-  if (fd < 0) return error(DCP_EGETPATH);
-
 #ifdef __APPLE__
   (void)size;
   char pathbuf[MAXPATHLEN] = {0};

@@ -56,7 +56,7 @@ int main(void)
   aye(imm_path_add(&path, imm_step(STATE_E, 0, 0)) == 0);
   aye(imm_path_add(&path, imm_step(STATE_T, 0, 0)) == 0);
 
-  char aminos[] = {' ', ' ', 'D', 'N', 'A', ' ', 'I', ' ', 'S', ' ',
+  char aminos1[] = {' ', ' ', 'D', 'N', 'A', ' ', 'I', ' ', 'S', ' ',
                    'T', ' ', ' ', 'N', 'Y', 'H', 'H', ' ', ' '};
 
   struct match it = match_begin(&path, &seq, &protein);
@@ -66,10 +66,10 @@ int main(void)
     char name[256] = {0};
     aye(match_state_name(&it, name) == 0);
     char amino = 0;
-    if (aminos[idx] != ' ')
+    if (aminos1[idx] != ' ')
     {
       aye(match_amino(&it, &amino) == 0);
-      aye(aminos[idx] == amino);
+      aye(aminos1[idx] == amino);
     }
     it = match_next(&it);
     idx += 1;
@@ -78,6 +78,9 @@ int main(void)
   struct match begin = match_end();
   struct match end = match_begin(&path, &seq, &protein);
 
+  char aminos2[] = {' ', 'D', 'N', 'A', ' ', ' ', 'S', ' ',
+                    'T', ' ', ' ', 'N', 'Y', 'H', 'H', ' '};
+  idx = 0;
   while (!match_equal(begin, end))
   {
     it = end;
@@ -97,8 +100,13 @@ int main(void)
       char name[256] = {0};
       aye(match_state_name(&it, name) == 0);
       char amino = 0;
-      match_amino(&it, &amino);
+      if (aminos2[idx] != ' ')
+      {
+        aye(match_amino(&it, &amino) == 0);
+        aye(aminos2[idx] == amino);
+      }
       it = match_next(&it);
+      idx += 1;
     }
   }
 

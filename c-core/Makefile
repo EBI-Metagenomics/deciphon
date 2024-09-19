@@ -20,7 +20,7 @@ $(LIB): $(OBJ)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(TEST_TARGET): %: %.o $(LIB)
-	$(CC) $(CFLAGS) $< -L. -ldeciphon -lh3client -lh3result -lhmmer_reader -limm -llio -llite_pack -lm -o $@
+	$(CC) $(CFLAGS) $< -L. -ldeciphon -lh3client -lh3result -lhmmer_reader -limm -llio -llite_pack -fopenmp -lm -o $@
 
 check: $(TEST_TARGET)
 	./test_match
