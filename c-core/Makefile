@@ -3,8 +3,13 @@ ifeq ($(shell uname -p),x86_64)
 	SIMD += -mavx2
 endif
 
+OMP =
+ifeq ($(shell uname),Linux)
+	OMP += -fopenmp
+endif
+
 CC     ?= gcc
-CFLAGS ?= -std=c11 -Wall -Wextra -O3 -MMD -MP $(SIMD)
+CFLAGS ?= -std=c11 -Wall -Wextra -O3 -MMD -MP $(SIMD) $(OMP)
 PREFIX ?= /usr/local
 SRC = $(filter-out $(wildcard test_*.c),$(wildcard *.c))
 OBJ = $(SRC:.c=.o)
@@ -26,7 +31,7 @@ $(LIB): $(OBJ)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(TEST_TARGET): %: %.o $(LIB)
-	$(CC) $(CFLAGS) $< -L. -ldeciphon -lh3client -lh3result -lhmmer_reader -limm -llio -llite_pack -fopenmp -lm -o $@
+	$(CC) $(CFLAGS) $< -L. -ldeciphon -lh3client -lh3result -lhmmer_reader -limm -llio -llite_pack -lm -o $@
 
 check: $(TEST_TARGET)
 	./test_match
