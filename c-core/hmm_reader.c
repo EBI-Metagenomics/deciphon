@@ -79,24 +79,24 @@ static void init_null_lprobs(float lprobs[IMM_AMINO_SIZE])
 {
   /* Copy/paste from HMMER3 amino acid frequences inferred from Swiss-Prot
    * 50.8, (Oct 2006), counting over 85956127 (86.0M) residues. */
-  *(lprobs++) = log(0.0787945); /*"A":*/
-  *(lprobs++) = log(0.0151600); /*"C":*/
-  *(lprobs++) = log(0.0535222); /*"D":*/
-  *(lprobs++) = log(0.0668298); /*"E":*/
-  *(lprobs++) = log(0.0397062); /*"F":*/
-  *(lprobs++) = log(0.0695071); /*"G":*/
-  *(lprobs++) = log(0.0229198); /*"H":*/
-  *(lprobs++) = log(0.0590092); /*"I":*/
-  *(lprobs++) = log(0.0594422); /*"K":*/
-  *(lprobs++) = log(0.0963728); /*"L":*/
-  *(lprobs++) = log(0.0237718); /*"M":*/
-  *(lprobs++) = log(0.0414386); /*"N":*/
-  *(lprobs++) = log(0.0482904); /*"P":*/
-  *(lprobs++) = log(0.0395639); /*"Q":*/
-  *(lprobs++) = log(0.0540978); /*"R":*/
-  *(lprobs++) = log(0.0683364); /*"S":*/
-  *(lprobs++) = log(0.0540687); /*"T":*/
-  *(lprobs++) = log(0.0673417); /*"V":*/
-  *(lprobs++) = log(0.0114135); /*"W":*/
-  *(lprobs++) = log(0.0304133); /*"Y":*/
+  *(lprobs++) = logf(0.0787945); /*"A":*/
+  *(lprobs++) = logf(0.0151600); /*"C":*/
+  *(lprobs++) = logf(0.0535222); /*"D":*/
+  *(lprobs++) = logf(0.0668298); /*"E":*/
+  *(lprobs++) = logf(0.0397062); /*"F":*/
+  *(lprobs++) = logf(0.0695071); /*"G":*/
+  *(lprobs++) = logf(0.0229198); /*"H":*/
+  *(lprobs++) = logf(0.0590092); /*"I":*/
+  *(lprobs++) = logf(0.0594422); /*"K":*/
+  *(lprobs++) = logf(0.0963728); /*"L":*/
+  *(lprobs++) = logf(0.0237718); /*"M":*/
+  *(lprobs++) = logf(0.0414386); /*"N":*/
+  *(lprobs++) = logf(0.0482904); /*"P":*/
+  *(lprobs++) = logf(0.0395639); /*"Q":*/
+  *(lprobs++) = logf(0.0540978); /*"R":*/
+  *(lprobs++) = logf(0.0683364); /*"S":*/
+  *(lprobs++) = logf(0.0540687); /*"T":*/
+  *(lprobs++) = logf(0.0673417); /*"V":*/
+  *(lprobs++) = logf(0.0114135); /*"W":*/
+  *(lprobs++) = logf(0.0304133); /*"Y":*/
 };

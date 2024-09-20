@@ -24,5 +24,5 @@ int expect_map(struct lio_reader *x, uint32_t size)
   uint32_t u32 = 0;
   int rc = read_map(x, &u32);
   if (rc) return rc;
-  return u32 == size ? 0 : DCP_EFDATA;
+  return u32 == size ? 0 : error(DCP_EFDATA);
 }

@@ -22,10 +22,7 @@ static inline void setup_database(int gencode_id, float epsilon,
   press_del(press);
 }
 
-static inline void cleanup_database(char const *dbfile)
-{
-  fs_rmfile(dbfile);
-}
+static inline void cleanup_database(char const *dbfile) { fs_rmfile(dbfile); }
 
 static inline long chksum(char const *filename)
 {

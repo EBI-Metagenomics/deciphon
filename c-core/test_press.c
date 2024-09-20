@@ -19,7 +19,7 @@ int main(void)
   aye(press_nproteins(press) == 3);
   while (!press_end(press))
     aye(press_next(press) == 0);
-  //
+
   aye(press_close(press) == 0);
   press_del(press);
 

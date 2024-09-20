@@ -1,8 +1,6 @@
 #ifndef ERROR_H
 #define ERROR_H
 
-char const *error_string(int error_code);
-
 enum
 {
   DCP_EDIFFABC        = 1,
@@ -85,6 +83,8 @@ enum
 };
 
 #define error(x) error_print((x), __LINE__, __FILE__)
-int error_print(int error_code, int line, const char *src);
+
+char const      *error_string(int error_code);
+int              error_print(int error_code, int line, const char *src);
 
 #endif

@@ -1,5 +1,5 @@
-#ifndef PACK_H
-#define PACK_H
+#ifndef WRITE_H
+#define WRITE_H
 
 #include <stdbool.h>
 #include <stdint.h>

@@ -1,3 +1,9 @@
 *.o
 *.d
-test_*[^\.]*
+test_massive
+test_match
+test_model
+test_press
+test_protein
+test_scan
+test_window

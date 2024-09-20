@@ -2,6 +2,7 @@
 #include "imm_path.h"
 #include "protein.h"
 #include "state.h"
+#include "bug.h"
 
 struct codec codec_init(struct protein const *protein,
                         struct imm_path const *path)
@@ -21,6 +22,7 @@ int codec_next(struct codec *x, struct imm_seq const *seq,
   }
 
   if (codec_end(x)) return 0;
+  BUG_ON(step == NULL);
 
   int size = step->seqsize;
   struct imm_range range = imm_range(x->start, x->start + size);

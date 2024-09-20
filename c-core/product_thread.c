@@ -38,18 +38,17 @@ int product_thread_put_match(struct product_thread *x, struct match begin,
   FILE *fp = fopen(x->filename, "ab");
   if (!fp) return error(DCP_EFOPEN);
 
-  if (fprintf(fp, "%ld\t", line->sequence) < 0) defer_error(DCP_EWRITEPROD);
-  if (fprintf(fp, "%d\t", line->window) < 0) defer_error(DCP_EWRITEPROD);
-  if (fprintf(fp, "%d\t", line->window_start) < 0) defer_error(DCP_EWRITEPROD);
-  if (fprintf(fp, "%d\t", line->window_stop) < 0) defer_error(DCP_EWRITEPROD);
-  if (fprintf(fp, "%d\t", line->hit) < 0) defer_error(DCP_EWRITEPROD);
-  if (fprintf(fp, "%d\t", line->hit_start) < 0) defer_error(DCP_EWRITEPROD);
-  if (fprintf(fp, "%d\t", line->hit_stop) < 0) defer_error(DCP_EWRITEPROD);
-  if (fprintf(fp, "%s\t", line->protein) < 0) defer_error(DCP_EWRITEPROD);
-  if (fprintf(fp, "%s\t", line->abc) < 0) defer_error(DCP_EWRITEPROD);
-  if (fprintf(fp, "%.1f\t", line->lrt) < 0) defer_error(DCP_EWRITEPROD);
-  if (fprintf(fp, "%.2g\t", exp(line->logevalue)) < 0)
-    defer_error(DCP_EWRITEPROD);
+  if (fprintf(fp, "%ld\t",  line->sequence)       < 0) defer_error(DCP_EWRITEPROD);
+  if (fprintf(fp, "%d\t",   line->window)         < 0) defer_error(DCP_EWRITEPROD);
+  if (fprintf(fp, "%d\t",   line->window_start)   < 0) defer_error(DCP_EWRITEPROD);
+  if (fprintf(fp, "%d\t",   line->window_stop)    < 0) defer_error(DCP_EWRITEPROD);
+  if (fprintf(fp, "%d\t",   line->hit)            < 0) defer_error(DCP_EWRITEPROD);
+  if (fprintf(fp, "%d\t",   line->hit_start)      < 0) defer_error(DCP_EWRITEPROD);
+  if (fprintf(fp, "%d\t",   line->hit_stop)       < 0) defer_error(DCP_EWRITEPROD);
+  if (fprintf(fp, "%s\t",   line->protein)        < 0) defer_error(DCP_EWRITEPROD);
+  if (fprintf(fp, "%s\t",   line->abc)            < 0) defer_error(DCP_EWRITEPROD);
+  if (fprintf(fp, "%.1f\t", line->lrt)            < 0) defer_error(DCP_EWRITEPROD);
+  if (fprintf(fp, "%.2g\t", exp(line->logevalue)) < 0) defer_error(DCP_EWRITEPROD);
 
   int i = 0;
   struct match it = begin;

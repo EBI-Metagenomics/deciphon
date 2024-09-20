@@ -17,7 +17,7 @@
 #define BUG()                                                                  \
   do                                                                           \
   {                                                                            \
-    bug(__FILE__, __LINE__, __func__);        \
+    bug(__FILE__, __LINE__, __func__);                                         \
   } while (0)
 
 #define BUG_ON(condition)                                                      \

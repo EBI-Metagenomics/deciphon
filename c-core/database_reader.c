@@ -107,7 +107,7 @@ static int unpack_header_protein_sizes(struct database_reader *x)
     {
       free(x->protein_sizes);
       x->protein_sizes = NULL;
-      return error(DCP_EFREAD);
+      return error(rc);
     }
   }
 

@@ -25,7 +25,7 @@ static float const uniform_lprobs[IMM_NUCLT_SIZE] = {LOGN2, LOGN2, LOGN2,
                                                      LOGN2};
 
 /* Compute log(1 - p) given log(p). */
-static inline float log1_p(float logp) { return log1p(-exp(logp)); }
+static inline float log1_p(float logp) { return log1pf(-expf(logp)); }
 
 int add_xnodes(struct model *);
 void init_xnodes(struct model *);
@@ -306,7 +306,7 @@ void calculate_occupancy(struct model *x)
   int n = x->core_size;
   for (int i = 0; i < x->core_size; ++i)
   {
-    logZ = imm_lprob_add(logZ, x->alt.locc[i] + log(n - i));
+    logZ = imm_lprob_add(logZ, x->alt.locc[i] + logf(n - i));
   }
 
   for (int i = 0; i < x->core_size; ++i)
@@ -398,7 +398,7 @@ struct imm_nuclt_lprob nuclt_lprob(struct imm_gencode const *gc,
 {
   float lprobs[] = {[0 ... IMM_NUCLT_SIZE - 1] = IMM_LPROB_ZERO};
 
-  float const norm = log((float)3);
+  float const norm = logf(3);
   for (int i = 0; i < imm_gencode_size(gc); ++i)
   {
     struct imm_codon codon = imm_gencode_codon(gc, i);
@@ -469,7 +469,7 @@ int setup_entry_trans(struct model *x)
   if (x->params.entry_dist == ENTRY_DIST_UNIFORM)
   {
     float M = (float)x->core_size;
-    float cost = log(2.0 / (M * (M + 1))) * M;
+    float cost = logf(2.0 / (M * (M + 1))) * M;
 
     struct imm_state *B = &x->xnode.alt.B.super;
     for (int i = 0; i < x->core_size; ++i)
@@ -503,13 +503,13 @@ int setup_exit_trans(struct model *x)
   for (int i = 0; i < x->core_size; ++i)
   {
     struct model_node *node = x->alt.nodes + i;
-    if (imm_hmm_set_trans(x->alt.hmm, &node->M.super, E, log(1)))
+    if (imm_hmm_set_trans(x->alt.hmm, &node->M.super, E, logf(1)))
       return error(DCP_ESETTRANS);
   }
   for (int i = 1; i < x->core_size; ++i)
   {
     struct model_node *node = x->alt.nodes + i;
-    if (imm_hmm_set_trans(x->alt.hmm, &node->D.super, E, log(1)))
+    if (imm_hmm_set_trans(x->alt.hmm, &node->D.super, E, logf(1)))
       return error(DCP_ESETTRANS);
   }
   return 0;

@@ -43,11 +43,6 @@
 
 #define BUFFSIZE (8 * 1024)
 
-int fs_fseek(FILE *restrict fp, long offset, int whence)
-{
-  return fseeko(fp, (off_t)offset, whence) < 0 ? error(DCP_EFSEEK) : 0;
-}
-
 int fs_seek(int fd, long offset, int whence)
 {
   return lseek(fd, (off_t)offset, whence) < 0 ? error(DCP_EFSEEK) : 0;

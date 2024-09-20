@@ -87,7 +87,7 @@ void protein_reset(struct protein *x, int seq_size, bool multi_hits,
 
   if (hmmer3_compat)
   {
-    t.NN = t.CC = t.JJ = log(1);
+    t.NN = t.CC = t.JJ = logf(1);
   }
 
   protein_null_setup(&x->null, &t);
@@ -135,7 +135,7 @@ int protein_absorb(struct protein *x, struct model *m)
 
   x->BMk = xrealloc(x->BMk, core_size * sizeof(*x->BMk));
   if (!x->BMk && x->core_size > 0) defer_return(error(DCP_ENOMEM));
-  memcpy(x->BMk, m->BMk, x->core_size * sizeof(*x->BMk));
+  if (x->BMk) memcpy(x->BMk, m->BMk, x->core_size * sizeof(*x->BMk));
 
   return rc;
 
@@ -271,13 +271,13 @@ int protein_pack(struct protein const *x, struct lio_writer *file)
   if ((rc = write_cstring(file, x->accession))) return rc;
 
   if ((rc = write_cstring(file, "gencode"))) return rc;
-  if ((rc = write_int(file, x->params.gencode->id))) return error(DCP_EFWRITE);
+  if ((rc = write_int(file, x->params.gencode->id))) return error(rc);
 
   if ((rc = write_cstring(file, "consensus"))) return rc;
   if ((rc = write_cstring(file, x->consensus))) return rc;
 
   if ((rc = write_cstring(file, "core_size"))) return rc;
-  if ((rc = write_int(file, x->core_size))) return error(DCP_EFWRITE);
+  if ((rc = write_int(file, x->core_size))) return error(rc);
 
   if ((rc = write_cstring(file, "null_nuclt_dist"))) return rc;
   if ((rc = nuclt_dist_pack(&x->null.nuclt_dist, file))) return rc;
