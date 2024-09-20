@@ -1,5 +1,6 @@
 *.o
 *.d
+*.dcp
 test_massive
 test_match
 test_model

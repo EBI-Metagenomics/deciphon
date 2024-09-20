@@ -60,18 +60,18 @@ int product_close(struct product *x)
   if (!fp) return error(DCP_EFOPEN);
 
   bool ok = true;
-  ok &= fputs("sequence\t", fp) >= 0;
-  ok &= fputs("window\t", fp) >= 0;
+  ok &= fputs("sequence\t", fp)     >= 0;
+  ok &= fputs("window\t", fp)       >= 0;
   ok &= fputs("window_start\t", fp) >= 0;
-  ok &= fputs("window_stop\t", fp) >= 0;
-  ok &= fputs("hit\t", fp) >= 0;
-  ok &= fputs("hit_start\t", fp) >= 0;
-  ok &= fputs("hit_stop\t", fp) >= 0;
-  ok &= fputs("profile\t", fp) >= 0;
-  ok &= fputs("abc\t", fp) >= 0;
-  ok &= fputs("lrt\t", fp) >= 0;
-  ok &= fputs("evalue\t", fp) >= 0;
-  ok &= fputs("match\n", fp) >= 0;
+  ok &= fputs("window_stop\t", fp)  >= 0;
+  ok &= fputs("hit\t", fp)          >= 0;
+  ok &= fputs("hit_start\t", fp)    >= 0;
+  ok &= fputs("hit_stop\t", fp)     >= 0;
+  ok &= fputs("profile\t", fp)      >= 0;
+  ok &= fputs("abc\t", fp)          >= 0;
+  ok &= fputs("lrt\t", fp)          >= 0;
+  ok &= fputs("evalue\t", fp)       >= 0;
+  ok &= fputs("match\n", fp)        >= 0;
   if (!ok) defer_return(error(DCP_EWRITEPROD));
 
   for (int i = 0; i < x->num_threads; ++i)
