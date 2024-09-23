@@ -34,9 +34,11 @@ void protein_init(struct protein *x)
   x->BMk = NULL;
 }
 
-void protein_setup(struct protein *x, struct model_params params)
+void protein_setup(struct protein *x, struct model_params params, bool multi_hits, bool hmmer3_compat)
 {
   x->params = params;
+  x->multi_hits = multi_hits;
+  x->hmmer3_compat = hmmer3_compat;
 
   memset(x->accession, 0, array_size_field(struct protein, accession));
   imm_score_table_init(&x->score_table, &params.code->super);
@@ -57,8 +59,7 @@ int protein_set_accession(struct protein *x, char const *acc)
   return xstrcpy(x->accession, acc, n) ? error(DCP_ELONGACCESSION) : 0;
 }
 
-void protein_reset(struct protein *x, int seq_size, bool multi_hits,
-                   bool hmmer3_compat)
+void protein_reset(struct protein *x, int seq_size)
 {
   assert(seq_size > 0);
 
@@ -67,7 +68,7 @@ void protein_reset(struct protein *x, int seq_size, bool multi_hits,
   float q = 0.0;
   float log_q = IMM_LPROB_ZERO;
 
-  if (multi_hits)
+  if (x->multi_hits)
   {
     q = 0.5;
     log_q = log(0.5);
@@ -85,7 +86,7 @@ void protein_reset(struct protein *x, int seq_size, bool multi_hits,
   t.EJ = log_q;
   t.EC = log(1 - q);
 
-  if (hmmer3_compat)
+  if (x->hmmer3_compat)
   {
     t.NN = t.CC = t.JJ = logf(1);
   }
