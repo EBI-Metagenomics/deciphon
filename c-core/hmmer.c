@@ -10,9 +10,11 @@
 
 void hmmer_init(struct hmmer *x)
 {
-  x->cut_ga = true;
-  x->socket = NULL;
-  x->result = NULL;
+  x->cut_ga       = true;
+  x->num_proteins = -1;
+  x->port         = -1;
+  x->socket       = NULL;
+  x->result       = NULL;
 }
 
 int hmmer_setup(struct hmmer *x, bool cut_ga, int num_proteins, int port)
@@ -20,21 +22,18 @@ int hmmer_setup(struct hmmer *x, bool cut_ga, int num_proteins, int port)
   int rc = 0;
   x->cut_ga = cut_ga;
   x->num_proteins = num_proteins;
-  if (!x->socket)
-  {
-    if (!(x->socket = h3c_socket_new())) defer_return(DCP_ENOMEM);
-    if ((rc = h3c_socket_dial(x->socket, "127.0.0.1", port, TIMEOUT)))
-      defer_return(DCP_EH3CDIAL);
-  }
-
+  x->port = port;
+  if (!x->socket && !(x->socket = h3c_socket_new())) defer_return(DCP_ENOMEM);
   if (!x->result && !(x->result = h3r_new())) defer_return(DCP_ENOMEM);
+
+  if ((rc = hmmer_dial(x))) return rc;
+  if ((rc = hmmer_warmup(x))) return rc;
 
   return rc;
 
 defer:
   if (x->socket)
   {
-    h3c_socket_hangup(x->socket);
     h3c_socket_del(x->socket);
     x->socket = NULL;
   }
@@ -44,6 +43,13 @@ defer:
     x->result = NULL;
   }
   return rc;
+}
+
+int hmmer_dial(struct hmmer *x)
+{
+  if (h3c_socket_dial(x->socket, "127.0.0.1", x->port, TIMEOUT))
+    return error(DCP_EH3CDIAL);
+  return 0;
 }
 
 void hmmer_cleanup(struct hmmer *x)

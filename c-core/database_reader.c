@@ -79,13 +79,19 @@ defer:
 
 int database_reader_close(struct database_reader *x)
 {
-  if (x->protein_sizes) free(x->protein_sizes);
-  x->protein_sizes = NULL;
   int rc = 0;
   int fd = lio_rfile(&x->file);
   if (fd != -1) rc = close(fd) ? error(DCP_EFCLOSE) : 0;
-  database_reader_init(x);
+  lio_setup(&x->file, -1);
   return rc;
+}
+
+void database_reader_cleanup(struct database_reader *x)
+{
+  if (x->protein_sizes) free(x->protein_sizes);
+  x->protein_sizes = NULL;
+  database_reader_close(x);
+  database_reader_init(x);
 }
 
 static int unpack_header_protein_sizes(struct database_reader *x)

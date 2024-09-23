@@ -83,7 +83,7 @@ int press_open(struct press *x, char const *hmm, char const *db)
   if ((rc = hmm_reader_init(&x->reader.h3, x->params, x->reader.fp)))
     defer_return(rc);
 
-  protein_setup(&x->protein, x->params);
+  protein_setup(&x->protein, x->params, true, false);
 
   char const *acc = x->reader.h3.protein.meta.acc;
   if ((rc = protein_set_accession(&x->protein, acc)))

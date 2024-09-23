@@ -26,6 +26,7 @@ struct database_reader
 void                database_reader_init(struct database_reader *);
 int                 database_reader_open(struct database_reader *, char const *filename);
 int                 database_reader_close(struct database_reader *);
+void                database_reader_cleanup(struct database_reader *);
 struct model_params database_reader_params(struct database_reader const *, struct imm_gencode const *);
 
 #endif
