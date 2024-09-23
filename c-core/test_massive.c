@@ -41,8 +41,7 @@ int main(void)
 
   aye(batch = batch_new());
   aye(scan = scan_new());
-  aye(scan_setup(scan, PORT, NUM_THREADS, true, false) == 0);
-  aye(scan_open(scan, DBFILE) == 0);
+  aye(scan_setup(scan, DBFILE, PORT, NUM_THREADS, true, false) == 0);
   for (int i = 0; i < 10000; ++i)
   {
     snprintf(name, sizeof(name), "name%d", i);
@@ -51,7 +50,6 @@ int main(void)
   aye(scan_run(scan, batch, PRODDIR, NULL, NULL) == 0);
   aye(scan_progress(scan) == 100);
   aye(chksum(PRODDIR "/products.tsv") == 48347);
-  aye(scan_close(scan) == 0);
 
   batch_del(batch);
   scan_del(scan);

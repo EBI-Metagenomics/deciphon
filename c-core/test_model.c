@@ -58,7 +58,7 @@ int main(void)
 
   struct protein protein = {};
   protein_init(&protein);
-  protein_setup(&protein, params);
+  protein_setup(&protein, params, true, false);
   aye(protein_set_accession(&protein, "accession") == 0);
 
   aye(protein_absorb(&protein, &model) == 0);

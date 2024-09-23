@@ -26,14 +26,14 @@ int main(void)
 
   struct protein protein = {0};
   protein_init(&protein);
-  protein_setup(&protein, params);
+  protein_setup(&protein, params, true, false);
   protein_set_accession(&protein, "accession");
   aye(protein_sample(&protein, 1, 10) == 0);
 
   char const str[] = "ATGAAACGCATTAGCACCACCATTACCACCAC";
   struct imm_seq seq = imm_seq_unsafe(imm_str(str), &nuclt->super);
 
-  protein_reset(&protein, imm_seq_size(&seq), true, false);
+  protein_reset(&protein, imm_seq_size(&seq));
 
   struct imm_path path = imm_path();
   aye(imm_path_add(&path, imm_step(STATE_S, 0, 0)) == 0);

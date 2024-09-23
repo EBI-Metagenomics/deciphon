@@ -34,12 +34,10 @@ static void test_normal_scan(void)
   {
     fs_rmtree(PRODDIR);
     aye(scan = scan_new());
-    aye(scan_setup(scan, PORT, NUM_THREADS, multi_hits[i], hmmer3_compat[i]) ==
-        0);
-    aye(scan_open(scan, DBFILE) == 0);
+    aye(scan_setup(scan, DBFILE, PORT, NUM_THREADS, multi_hits[i],
+                   hmmer3_compat[i]) == 0);
     aye(scan_run(scan, batch, PRODDIR, NULL, NULL) == 0);
     aye(scan_progress(scan) == 100);
-    aye(scan_close(scan) == 0);
     scan_del(scan);
     printf("normal: %ld\n", chksum(PRODDIR "/products.tsv"));
     aye(chksum(PRODDIR "/products.tsv") == normal_chksums[i]);
@@ -61,9 +59,8 @@ static void test_reuse_scan(void)
   {
     fs_rmtree(PRODDIR);
     aye(scan = scan_new());
-    aye(scan_setup(scan, PORT, NUM_THREADS, multi_hits[i], hmmer3_compat[i]) ==
-        0);
-    aye(scan_open(scan, DBFILE) == 0);
+    aye(scan_setup(scan, DBFILE, PORT, NUM_THREADS, multi_hits[i],
+                   hmmer3_compat[i]) == 0);
     for (size_t j = 0; j < array_size(sequences); ++j)
     {
       long id = sequences[j].id;
@@ -72,7 +69,6 @@ static void test_reuse_scan(void)
       batch_reset(batch);
     }
     aye(scan_progress(scan) == 100);
-    aye(scan_close(scan) == 0);
     scan_del(scan);
     printf("reuse: %ld\n", chksum(PRODDIR "/products.tsv"));
     aye(chksum(PRODDIR "/products.tsv") == reuse_chksums[i]);
