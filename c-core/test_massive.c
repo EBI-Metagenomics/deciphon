@@ -1,4 +1,5 @@
 #include "aye.h"
+#include "batch.h"
 #include "fs.h"
 #include "imm_rnd.h"
 #include "scan.h"
@@ -36,20 +37,23 @@ int main(void)
   random_sequence_init();
   char name[256] = {};
   struct scan *scan = NULL;
+  struct batch *batch = NULL;
 
+  aye(batch = batch_new());
   aye(scan = scan_new());
   aye(scan_setup(scan, PORT, NUM_THREADS, true, false) == 0);
   aye(scan_open(scan, DBFILE) == 0);
   for (int i = 0; i < 10000; ++i)
   {
     snprintf(name, sizeof(name), "name%d", i);
-    aye(scan_add(scan, i, name, random_sequence_next()) == 0);
+    aye(batch_add(batch, i, name, random_sequence_next()) == 0);
   }
-  aye(scan_run(scan, PRODDIR, NULL, NULL) == 0);
+  aye(scan_run(scan, batch, PRODDIR, NULL, NULL) == 0);
   aye(scan_progress(scan) == 100);
   aye(chksum(PRODDIR "/products.tsv") == 48347);
   aye(scan_close(scan) == 0);
 
+  batch_del(batch);
   scan_del(scan);
   fs_rmtree(PRODDIR);
   cleanup_database(DBFILE);

@@ -11,7 +11,7 @@
 #define THREAD_MAX 128
 
 struct product_thread;
-struct sequence_queue;
+struct batch;
 struct viterbi;
 struct xsignal;
 
@@ -23,8 +23,8 @@ struct thread
   bool multi_hits;
   bool hmmer3_compat;
 
+  char const *abc;
   struct viterbi *viterbi;
-  struct product_thread *product;
   int partition;
   struct chararray amino;
   struct hmmer hmmer;
@@ -35,9 +35,10 @@ struct thread
 void thread_init(struct thread *);
 int  thread_setup(struct thread *, struct thread_params);
 void thread_cleanup(struct thread *);
-int  thread_run(struct thread *, struct sequence_queue const *,
+int  thread_run(struct thread *, struct batch const *,
                 int *done_proteins, struct xsignal *, bool (*interrupt)(void *),
-                void (*userdata)(void *));
+                void (*userdata)(void *),
+                struct product_thread *);
 void thread_interrupt(struct thread *);
 bool thread_interrupted(struct thread const *);
 

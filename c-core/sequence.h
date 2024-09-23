@@ -16,10 +16,12 @@ struct sequence
     struct imm_seq seq;
     struct imm_eseq eseq;
   } imm;
+  bool encoded;
   struct node node;
 };
 
-int             sequence_init(struct sequence *, struct imm_code const *, long id, char const *name, char const *data);
+int             sequence_init(struct sequence *, long id, char const *name, char const *data);
+int             sequence_encode(struct sequence *, struct imm_code const *);
 void            sequence_cleanup(struct sequence *);
 struct sequence sequence_slice(struct sequence const *, struct imm_range);
 int             sequence_size(struct sequence const *);

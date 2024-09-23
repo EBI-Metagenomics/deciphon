@@ -18,7 +18,7 @@ int product_open(struct product *x, int num_threads, char const *dir)
   int rc = 0;
 
   int size = (int)array_size_field(struct product, threads);
-  if (num_threads > size) defer_return(error(DCP_EMANYTHREADS));
+  if (num_threads > THREAD_MAX) return error(DCP_EMANYTHREADS);
   x->num_threads = num_threads;
 
   size = (int)array_size_field(struct product, dirname);
@@ -30,7 +30,7 @@ int product_open(struct product *x, int num_threads, char const *dir)
   if ((rc = fs_mkdir(x->dirname, true))) defer_return(rc);
   if ((rc = fs_mkdir(hmmer_dir, true))) defer_return(rc);
 
-  for (int i = 0; i < num_threads; ++i)
+  for (int i = 0; i < x->num_threads; ++i)
   {
     if ((rc = product_thread_init(x->threads + i, i, x->dirname)))
       defer_return(rc);

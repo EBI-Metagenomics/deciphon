@@ -1,4 +1,5 @@
 #include "scan.h"
+#include "batch.h"
 #include "database_reader.h"
 #include "debug.h"
 #include "defer_return.h"
@@ -6,7 +7,6 @@
 #include "min.h"
 #include "product.h"
 #include "protein_reader.h"
-#include "sequence_queue.h"
 #include "thread.h"
 #include "thread_params.h"
 #include "xsignal.h"
@@ -27,7 +27,6 @@ struct scan
   struct thread threads[THREAD_MAX];
 
   struct product product;
-  struct sequence_queue sequences;
 
   struct
   {
@@ -51,7 +50,6 @@ struct scan *scan_new(void)
   x->hmmer3_compat = false;
 
   product_init(&x->product);
-  sequence_queue_init(&x->sequences);
 
   database_reader_init(&x->db.reader);
   protein_reader_init(&x->db.protein);
@@ -85,7 +83,6 @@ void scan_del(struct scan const *scan)
   if (x)
   {
     database_reader_close(&x->db.reader);
-    sequence_queue_cleanup(&x->sequences);
     product_close(&x->product);
     for (int i = 0; i < x->num_threads; ++i)
       thread_cleanup(x->threads + i);
@@ -104,28 +101,29 @@ int scan_open(struct scan *x, char const *dbfile)
 
   int abc = x->db.reader.code.super.abc->typeid;
   if (!(abc == IMM_DNA || abc == IMM_RNA)) return error(DCP_ENUCLTNOSUPPORT);
-  sequence_queue_setup(&x->sequences, &x->db.reader.code.super);
 
   x->total_proteins = protein_reader_size(&x->db.protein);
+
+  for (int i = 0; i < n; ++i)
+  {
+    struct thread_params params = {&x->db.protein, i, x->port, x->multi_hits,
+                                   x->hmmer3_compat};
+    if ((rc = thread_setup(x->threads + i, params))) return rc;
+  }
 
   return rc;
 }
 
 int scan_close(struct scan *x)
 {
-  sequence_queue_cleanup(&x->sequences);
   return database_reader_close(&x->db.reader) ? error(DCP_EFCLOSE) : 0;
 }
 
-int scan_add(struct scan *x, long id, char const *name, char const *data)
-{
-  return sequence_queue_put(&x->sequences, id, name, data);
-}
-
-int scan_run(struct scan *x, char const *product_dir, bool (*interrupt)(void *),
+int scan_run(struct scan *x, struct batch *batch, char const *product_dir, bool (*interrupt)(void *),
              void *userdata)
 {
   int rc = 0;
+  x->done_proteins = 0;
   int n = x->num_threads;
   n = min(n, protein_reader_num_partitions(&x->db.protein));
   x->interrupted = false;
@@ -133,22 +131,12 @@ int scan_run(struct scan *x, char const *product_dir, bool (*interrupt)(void *),
   if (!interrupt && !(xsignal = xsignal_new())) defer_return(error(DCP_ENOMEM));
 
   debug("%d thread(s)", n);
+  if ((rc = batch_encode(batch, &x->db.reader.code.super))) defer_return(rc);
 
-  if ((rc = product_open(&x->product, n, product_dir))) defer_return(rc);
-
-  for (int i = 0; i < n; ++i)
-  {
-    struct thread_params params = {&x->db.protein,
-                                   i,
-                                   product_thread(&x->product, i),
-                                   x->port,
-                                   x->multi_hits,
-                                   x->hmmer3_compat};
-    if ((rc = thread_setup(x->threads + i, params))) defer_return(rc);
-  }
+  if ((rc = product_open(&x->product, x->num_threads, product_dir))) defer_return(rc);
 
 #pragma omp parallel for default(none)                                         \
-    shared(x, n, rc, xsignal, interrupt, userdata)
+    shared(x, n, rc, xsignal, interrupt, userdata, batch)
   for (int i = 0; i < n; ++i)
   {
     int *proteins = &x->done_proteins;
@@ -156,8 +144,8 @@ int scan_run(struct scan *x, char const *product_dir, bool (*interrupt)(void *),
     struct xsignal *signal = rank == 0 ? xsignal : NULL;
     bool (*callb)(void *) = rank == 0 ? interrupt : NULL;
     void *args = rank == 0 ? userdata : NULL;
-    int r = thread_run(x->threads + i, &x->sequences, proteins, signal, callb,
-                       args);
+    int r = thread_run(x->threads + i, batch, proteins, signal, callb, args,
+                       product_thread(&x->product, i));
     if (r || (rank == 0 && thread_interrupted(&x->threads[i])))
     {
       for (int i = 0; i < n; ++i)
@@ -172,10 +160,7 @@ defer:
   xsignal_del(xsignal);
 
   for (int i = 0; i < x->num_threads; ++i)
-  {
     x->interrupted |= thread_interrupted(x->threads + i);
-    thread_cleanup(x->threads + i);
-  }
 
   int product_rc = product_close(&x->product);
   return rc ? rc : product_rc;

@@ -1,4 +1,5 @@
 #include "aye.h"
+#include "batch.h"
 #include "fs.h"
 #include "imm_rnd.h"
 #include "scan.h"
@@ -37,15 +38,18 @@ int main(void)
   seq[SIZE] = '\0';
 
   struct scan *scan = NULL;
+  struct batch *batch = NULL;
   aye(scan = scan_new());
+  aye(batch = batch_new());
   aye(scan_setup(scan, PORT, NUM_THREADS, MULTI_HITS, HMMER3_COMPAT) == 0);
   aye(scan_open(scan, DBFILE) == 0);
-  aye(scan_add(scan, sequences[0].id, sequences[0].name, seq) == 0);
-  aye(scan_run(scan, PRODDIR, NULL, NULL) == 0);
+  aye(batch_add(batch, sequences[0].id, sequences[0].name, seq) == 0);
+  aye(scan_run(scan, batch, PRODDIR, NULL, NULL) == 0);
   aye(scan_progress(scan) == 100);
   aye(chksum(PRODDIR "/products.tsv") == 9910);
   aye(scan_close(scan) == 0);
 
+  batch_del(batch);
   scan_del(scan);
   fs_rmtree(PRODDIR);
   cleanup_database(DBFILE);

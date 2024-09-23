@@ -1,9 +1,11 @@
 #include "thread.h"
+#include "batch.h"
 #include "chararray.h"
 #include "database_reader.h"
 #include "debug.h"
 #include "error.h"
 #include "imm_lprob.h"
+#include "iter.h"
 #include "lrt.h"
 #include "match.h"
 #include "max.h"
@@ -12,7 +14,6 @@
 #include "protein_iter.h"
 #include "protein_reader.h"
 #include "sequence.h"
-#include "sequence_queue.h"
 #include "trellis.h"
 #include "viterbi.h"
 #include "window.h"
@@ -29,8 +30,8 @@ void thread_init(struct thread *x)
   x->multi_hits = false;
   x->hmmer3_compat = false;
 
+  x->abc = NULL;
   x->viterbi = NULL;
-  x->product = NULL;
   x->partition = -1;
   chararray_init(&x->amino);
   hmmer_init(&x->hmmer);
@@ -47,10 +48,8 @@ int thread_setup(struct thread *x, struct thread_params params)
   if ((rc = protein_reader_iter(params.reader, params.partition, &x->iter)))
     return rc;
 
-  x->product = params.product_thread;
   x->partition = params.partition;
-  char const *abc = imm_abc_typeid_name(db->nuclt.super.typeid);
-  if ((rc = product_line_set_abc(&x->product->line, abc))) return rc;
+  x->abc = imm_abc_typeid_name(db->nuclt.super.typeid);
 
   x->multi_hits = params.multi_hits;
   x->hmmer3_compat = params.hmmer3_compat;
@@ -68,8 +67,8 @@ int thread_setup(struct thread *x, struct thread_params params)
 
 void thread_cleanup(struct thread *x)
 {
-  x->partition = -1;
   protein_cleanup(&x->protein);
+  x->partition = -1;
   viterbi_del(x->viterbi);
   x->viterbi = NULL;
   chararray_cleanup(&x->amino);
@@ -77,24 +76,29 @@ void thread_cleanup(struct thread *x)
   imm_path_cleanup(&x->path);
 }
 
-static int process_window(struct thread *, int protein_idx, struct window *);
+static int process_window(struct thread *, int protein_idx,
+                          struct product_thread *, struct window *);
 
-int thread_run(struct thread *x, struct sequence_queue const *sequences,
+int thread_run(struct thread *x, struct batch const *sequences,
                int *done_proteins, struct xsignal *xsignal,
-               bool (*interrupt)(void *), void (*userdata)(void *))
+               bool (*interrupt)(void *), void (*userdata)(void *),
+               struct product_thread *product)
 {
   int rc = 0;
+  x->interrupted = false;
+
+  if ((rc = product_line_set_abc(&product->line, x->abc))) return rc;
 
   struct protein_iter *protein_iter = &x->iter;
 
-  if ((rc = protein_iter_rewind(protein_iter))) goto cleanup;
+  if ((rc = protein_iter_rewind(protein_iter))) return rc;
 
   while (!(rc = protein_iter_next(protein_iter, &x->protein)))
   {
     if (protein_iter_end(protein_iter)) break;
 
     struct sequence *seq = NULL;
-    struct iter seq_iter = sequence_queue_iter(sequences);
+    struct iter seq_iter = batch_iter(sequences);
     iter_for_each_entry(seq, &seq_iter, node)
     {
       debug("%d:%s:%s", x->partition, x->protein.accession, seq->name);
@@ -102,11 +106,11 @@ int thread_run(struct thread *x, struct sequence_queue const *sequences,
       while (window_next(&w))
       {
         int protein_idx = protein_iter_idx(protein_iter);
-        if ((rc = process_window(x, protein_idx, &w))) goto cleanup;
+        if ((rc = process_window(x, protein_idx, product, &w))) return rc;
 
         if (interrupt) x->interrupted = (*interrupt)(userdata);
         if (xsignal && xsignal_interrupted(xsignal)) x->interrupted = true;
-        if (x->interrupted) goto cleanup;
+        if (x->interrupted) return rc;
       }
     }
 
@@ -114,9 +118,9 @@ int thread_run(struct thread *x, struct sequence_queue const *sequences,
     (*done_proteins)++;
   }
 
-cleanup:
-  protein_cleanup(&x->protein);
-  return rc;
+  chararray_reset(&x->amino);
+  imm_path_reset(&x->path);
+  return 0;
 }
 
 void thread_interrupt(struct thread *x) { x->interrupted = true; }
@@ -129,11 +133,12 @@ static int code_fn(int pos, int len, void *arg)
   return imm_eseq_get(seq, pos, len, 1);
 }
 
-static int process_window(struct thread *x, int protein_idx, struct window *w)
+static int process_window(struct thread *x, int protein_idx,
+                          struct product_thread *product, struct window *w)
 {
   int rc = 0;
   struct sequence const *seq = window_sequence(w);
-  struct product_line *line = &x->product->line;
+  struct product_line *line = &product->line;
   line->sequence = seq->id;
   line->window = w->idx;
   line->window_start = window_range(w).start;
@@ -226,20 +231,20 @@ static int process_window(struct thread *x, int protein_idx, struct window *w)
     debug("sequence sent: %s", x->amino.data);
     if ((rc = hmmer_get(&x->hmmer, protein_idx, x->amino.data))) return rc;
 
-    x->product->line.logevalue = h3r_nhits(x->hmmer.result)
+    product->line.logevalue = h3r_nhits(x->hmmer.result)
                                   ? h3r_hit_logevalue(x->hmmer.result, 0)
                                   : 1.0;
     // We apparently can have num_hits > 0 but without alignment. It seems
     // to happen with evalue is above 1. So lets ignore those hits.
-    if (x->product->line.logevalue > 0) x->product->line.logevalue = 0;
+    if (product->line.logevalue > 0) product->line.logevalue = 0;
 
     debug("num_hits: %d logvalue: %g", h3r_nhits(x->hmmer.result),
-          x->product->line.logevalue);
-    if (x->product->line.logevalue == 0) return rc;
-    if ((rc = product_thread_put_hmmer(x->product, x->hmmer.result)))
+          product->line.logevalue);
+    if (product->line.logevalue == 0) return rc;
+    if ((rc = product_thread_put_hmmer(product, x->hmmer.result)))
       return rc;
   }
-  if ((rc = product_thread_put_match(x->product, begin, end))) return rc;
+  if ((rc = product_thread_put_match(product, begin, end))) return rc;
   line->hit += 1;
 
   return 0;

@@ -33,14 +33,28 @@ $(LIB): $(OBJ)
 $(TEST_TARGET): %: %.o $(LIB)
 	$(CC) $(CFLAGS) $< -L. -ldeciphon -lh3client -lh3result -lhmmer_reader -limm -llio -llite_pack -lm -o $@
 
-check: $(TEST_TARGET)
+check_match: test_match
 	./test_match
+
+check_model: test_model
 	./test_model
+
+check_press: test_press
 	./test_press
+
+check_protein: test_protein
 	./test_protein
-	./start_daemon.sh massive.hmm 51300 && ./test_massive; e=$$?; ./stop_daemon.sh massive.hmm; exit $$e
+
+check_scan: test_scan
 	./start_daemon.sh minifam.hmm 51300 && ./test_scan   ; e=$$?; ./stop_daemon.sh minifam.hmm; exit $$e
+
+check_massive: test_massive
+	./start_daemon.sh massive.hmm 51300 && ./test_massive; e=$$?; ./stop_daemon.sh massive.hmm; exit $$e
+
+check_window: test_window
 	./start_daemon.sh minifam.hmm 51300 && ./test_window ; e=$$?; ./stop_daemon.sh minifam.hmm; exit $$e
+
+check: check_match check_model check_press check_protein check_scan check_massive check_window
 
 install: $(LIB) $(HDR)
 	@mkdir -p $(PREFIX)/lib $(PREFIX)/include
@@ -50,6 +64,6 @@ install: $(LIB) $(HDR)
 uninstall:
 	rm -f $(PREFIX)/lib/$(LIB) $(HDR:%=$(PREFIX)/include/%)
 
-.PHONY: all clean check uninstall
+.PHONY: all clean check check_match check_model check_press check_protein check_scan check_massive check_window uninstall
 clean:
 	rm -f $(OBJ) $(LIB) $(TEST_OBJ) $(TEST_TARGET) *.d
