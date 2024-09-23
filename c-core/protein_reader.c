@@ -1,4 +1,5 @@
 #include "protein_reader.h"
+#include "bug.h"
 #include "database_reader.h"
 #include "defer_return.h"
 #include "error.h"
@@ -19,21 +20,23 @@ void protein_reader_init(struct protein_reader *x)
   x->num_partitions = 0;
   memset(x->size_cumsum, 0, sizeof_field(struct protein_reader, size_cumsum));
   memset(x->offset, 0, sizeof_field(struct protein_reader, offset));
-  x->db = NULL;
+  x->file_descriptor = -1;
 }
 
-static void partition_it(struct protein_reader *);
+static void partition_it(struct protein_reader *, struct database_reader *);
 
 int protein_reader_setup(struct protein_reader *x, struct database_reader *db,
                          int num_partitions)
 {
   int rc = 0;
-  x->db = db;
 
   if (num_partitions == 0) return error(DCP_EZEROPART);
   if (num_partitions > PROTEIN_READER_MAX_PARTITIONS)
     return error(DCP_EMANYPARTS);
   x->num_partitions = min(num_partitions, db->num_proteins);
+
+  BUG_ON(x->file_descriptor != -1);
+  if ((rc = fs_dup(lio_rfile(&db->file), &x->file_descriptor))) return rc;
 
   if ((rc = expect_key(&db->file, "proteins"))) return rc;
 
@@ -43,7 +46,7 @@ int protein_reader_setup(struct protein_reader *x, struct database_reader *db,
   if ((int)num_proteins != db->num_proteins) return error(DCP_EFDATA);
 
   if (lio_tell(&db->file, &x->offset[0])) return error(DCP_EFTELL);
-  partition_it(x);
+  partition_it(x, db);
 
   return rc;
 }
@@ -70,7 +73,8 @@ int protein_reader_iter(struct protein_reader *x, int partition,
   if (partition < 0 || x->num_partitions < partition)
     return error(DCP_EINVALPART);
 
-  int fd = lio_rfile(&x->db->file);
+  BUG_ON(x->file_descriptor == -1);
+  int fd = x->file_descriptor;
   int newfd = -1;
   int rc = 0;
   long offset = x->offset[partition];
@@ -80,7 +84,7 @@ int protein_reader_iter(struct protein_reader *x, int partition,
 
   int start = x->size_cumsum[partition];
   int end = start + protein_reader_partition_size(x, partition);
-  protein_iter_init(it, x, start, end, offset, newfd);
+  protein_iter_setup(it, x, start, end, offset, newfd);
 
   return rc;
 
@@ -89,9 +93,18 @@ defer:
   return rc;
 }
 
-static void partition_it(struct protein_reader *x)
+void protein_reader_cleanup(struct protein_reader *x)
 {
-  int n = x->db->num_proteins;
+  if (x->file_descriptor != -1)
+  {
+    close(x->file_descriptor);
+    x->file_descriptor = -1;
+  }
+}
+
+static void partition_it(struct protein_reader *x, struct database_reader *db)
+{
+  int n = db->num_proteins;
   int k = x->num_partitions;
   int part = 0;
   for (int i = 0; i < k; ++i)
@@ -101,7 +114,7 @@ static void partition_it(struct protein_reader *x)
     x->size_cumsum[i + 1] = x->size_cumsum[i] + size;
 
     for (int j = 0; j < size; ++j)
-      x->offset[i + 1] += x->db->protein_sizes[part++];
+      x->offset[i + 1] += db->protein_sizes[part++];
 
     x->offset[i + 1] += x->offset[i];
   }
