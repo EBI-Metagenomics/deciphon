@@ -81,6 +81,7 @@ enum
   DCP_EOPEN           = 76,
   DCP_ECLOSE          = 77,
   DCP_EDUP            = 78,
+  DCP_ESIGNAL         = 79,
 };
 
 #define error(x) error_print((x), __LINE__, __FILE__)

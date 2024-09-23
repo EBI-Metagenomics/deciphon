@@ -32,7 +32,7 @@ void thread_init(struct thread *);
 int  thread_setup(struct thread *, struct hmmer *, struct protein *, struct protein_iter *);
 void thread_cleanup(struct thread *);
 int  thread_run(struct thread *, struct batch const *,
-                int *done_proteins, struct xsignal *, bool (*interrupt)(void *),
+                int *done_proteins, struct xsignal *, void (callb)(void *),
                 void (*userdata)(void *),
                 struct product_thread *);
 void thread_interrupt(struct thread *);

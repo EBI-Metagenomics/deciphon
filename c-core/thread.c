@@ -56,7 +56,7 @@ static int process_window(struct thread *, int protein_idx,
 
 int thread_run(struct thread *x, struct batch const *batch,
                int *done_proteins, struct xsignal *xsignal,
-               bool (*interrupt)(void *), void (*userdata)(void *),
+               void (*callb)(void *), void (*userdata)(void *),
                struct product_thread *product)
 {
   int rc = 0;
@@ -81,7 +81,7 @@ int thread_run(struct thread *x, struct batch const *batch,
         int protein_idx = protein_iter_idx(protein_iter);
         if ((rc = process_window(x, protein_idx, product, &w))) return rc;
 
-        if (interrupt) x->interrupted = (*interrupt)(userdata);
+        if (callb) (*callb)(userdata);
         if (xsignal && xsignal_interrupted(xsignal)) x->interrupted = true;
         if (x->interrupted) return rc;
       }

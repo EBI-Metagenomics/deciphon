@@ -24,6 +24,7 @@ static inline int omp_get_thread_num() { return 0; }
 
 struct scan
 {
+  struct xsignal *xsignal;
   int num_threads;
 
   struct database_reader database_reader;
@@ -38,7 +39,7 @@ struct scan
 
   int done_proteins;
   bool interrupted;
-  bool (*interrupt)(void *);
+  void (*callback)(void *);
   void *userdata;
 };
 
@@ -47,6 +48,11 @@ struct scan *scan_new(void)
   struct scan *x = malloc(sizeof(*x));
   if (!x) return NULL;
 
+  if (!(x->xsignal = xsignal_new()))
+  {
+    free(x);
+    return NULL;
+  }
   x->num_threads = 0;
 
   database_reader_init(&x->database_reader);
@@ -64,7 +70,7 @@ struct scan *scan_new(void)
 
   x->done_proteins = 0;
   x->interrupted = false;
-  x->interrupt = NULL;
+  x->callback = NULL;
   x->userdata = NULL;
 
   return x;
@@ -75,6 +81,7 @@ void scan_del(struct scan const *scan)
   struct scan *x = (struct scan *)scan;
   if (x)
   {
+    xsignal_del(x->xsignal);
     protein_reader_cleanup(&x->protein_reader);
     for (int i = 0; i < x->num_threads; ++i)
     {
@@ -91,7 +98,7 @@ void scan_del(struct scan const *scan)
 }
 
 int scan_setup(struct scan *x, char const *dbfile, int port, int num_threads,
-               bool multi_hits, bool hmmer3_compat, bool (*interrupt)(void *),
+               bool multi_hits, bool hmmer3_compat, void (*callback)(void *),
                void *userdata)
 {
   if (num_threads > THREAD_MAX) return error(DCP_EMANYTHREADS);
@@ -123,7 +130,7 @@ int scan_setup(struct scan *x, char const *dbfile, int port, int num_threads,
     if ((rc = thread_setup(thread, hmmer, protein, it)))     return rc;
   }
 
-  x->interrupt = interrupt;
+  x->callback = callback;
   x->userdata = userdata;
   return database_reader_close(db);
 }
@@ -137,10 +144,9 @@ int scan_run(struct scan *x, struct batch *batch, char const *product_dir)
   x->done_proteins = 0;
   x->interrupted = false;
 
-  struct xsignal *xsignal = NULL;
   struct imm_code *code = &x->database_reader.code.super;
 
-  if (!x->interrupt && !(xsignal = xsignal_new()))   defer_return(error(DCP_ENOMEM));
+  if ((rc = xsignal_set(x->xsignal)))                defer_return(rc);
   if ((rc = batch_encode(batch, code)))              defer_return(rc);
   if ((rc = product_open(&x->product, product_dir))) defer_return(rc);
 
@@ -159,12 +165,12 @@ int scan_run(struct scan *x, struct batch *batch, char const *product_dir)
     struct product_thread *product  = x->product_threads + i;
     int                   *proteins = &x->done_proteins;
 
-    int rank               = omp_get_thread_num();
-    struct xsignal *signal = rank == 0 ? xsignal      : NULL;
-    bool (*callb)(void *)  = rank == 0 ? x->interrupt : NULL;
-    void *args             = rank == 0 ? x->userdata  : NULL;
+    int rank                = omp_get_thread_num();
+    struct xsignal *xsignal = rank == 0 ? x->xsignal   : NULL;
+    void (*callb)(void *)   = rank == 0 ? x->callback  : NULL;
+    void *args              = rank == 0 ? x->userdata  : NULL;
 
-    int r = thread_run(thread, batch, proteins, signal, callb, args, product);
+    int r = thread_run(thread, batch, proteins, xsignal, callb, args, product);
     if (r || (rank == 0 && thread_interrupted(&x->threads[i])))
     {
       for (int i = 0; i < x->num_threads; ++i)
@@ -176,7 +182,7 @@ int scan_run(struct scan *x, struct batch *batch, char const *product_dir)
   }
 
 defer:
-  xsignal_del(xsignal);
+  xsignal_unset(x->xsignal);
 
   for (int i = 0; i < x->num_threads; ++i)
     x->interrupted |= thread_interrupted(x->threads + i);

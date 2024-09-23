@@ -4,6 +4,7 @@
 #endif
 #include <signal.h>
 
+#include "error.h"
 #include "xsignal.h"
 #include <stdlib.h>
 
@@ -13,15 +14,20 @@ struct xsignal
   sigset_t new_sigmask;
 };
 
+struct xsignal *xsignal_new(void) { return malloc(sizeof(struct xsignal)); }
 
-struct xsignal *xsignal_new(void)
+int xsignal_set(struct xsignal *x)
 {
-  struct xsignal *x = malloc(sizeof(*x));
   sigemptyset(&x->new_sigmask);
   sigaddset(&x->new_sigmask, SIGINT);
   sigaddset(&x->new_sigmask, SIGTERM);
-  sigprocmask(SIG_BLOCK, &x->new_sigmask, &x->old_mask);
-  return x;
+  return sigprocmask(SIG_BLOCK, &x->new_sigmask, &x->old_mask) ? DCP_ESIGNAL
+                                                               : 0;
+}
+
+int xsignal_unset(struct xsignal *x)
+{
+  return sigprocmask(SIG_SETMASK, &x->old_mask, NULL) ? DCP_ESIGNAL : 0;
 }
 
 bool xsignal_interrupted(struct xsignal *x)
@@ -41,6 +47,5 @@ bool xsignal_interrupted(struct xsignal *x)
 
 void xsignal_del(struct xsignal *x)
 {
-  if (x) sigprocmask(SIG_SETMASK, &x->old_mask, NULL);
-  free(x);
+  if (x) free(x);
 }
