@@ -106,6 +106,11 @@ int fs_reopen(int fd, int mode, int *out)
   return (*out = open(filepath, mode)) >= 0 ? 0 : error(DCP_EREFOPEN);
 }
 
+int fs_dup(int fd, int *out)
+{
+  return ((*out = dup(fd)) == -1 ? error(DCP_EDUP) : 0);
+}
+
 int getpath(int fd, unsigned size, char *filepath)
 {
 #ifdef __APPLE__

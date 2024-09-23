@@ -10,6 +10,7 @@ int fs_seek(int fd, long offset, int whence);
 int fs_copy(int dst, int src);
 int fs_fcopy(FILE *restrict dst, FILE *restrict src);
 int fs_reopen(int fd, int mode, int *out);
+int fs_dup(int fd, int *out);
 int fs_chksum(char const *filepath, long *chk);
 int fs_mkdir(char const *dirpath, bool exist_ok);
 int fs_rmdir(char const *dirpath);
