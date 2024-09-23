@@ -24,7 +24,7 @@ void product_line_init(struct product_line *x)
   x->logevalue = 1;
 }
 
-int product_line_set_protein(struct product_line *x, char const *accession)
+int product_line_set_accession(struct product_line *x, char const *accession)
 {
   size_t size = array_size_field(struct product_line, protein);
   return xstrcpy(x->protein, accession, size) ? error(DCP_ELONGACCESSION) : 0;

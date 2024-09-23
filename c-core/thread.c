@@ -1,9 +1,10 @@
 #include "thread.h"
 #include "batch.h"
 #include "chararray.h"
-#include "database_reader.h"
 #include "debug.h"
 #include "error.h"
+#include "h3r_result.h"
+#include "hmmer.h"
 #include "imm_lprob.h"
 #include "iter.h"
 #include "lrt.h"
@@ -18,68 +19,42 @@
 #include "viterbi.h"
 #include "window.h"
 #include "xsignal.h"
-#include <h3r_result.h>
-#include <imm_seq.h>
 #include <stdlib.h>
 #include <string.h>
 
 void thread_init(struct thread *x)
 {
-  protein_init(&x->protein);
-
-  x->multi_hits = false;
-  x->hmmer3_compat = false;
-
-  x->abc = NULL;
+  x->protein = NULL;
+  x->iter = NULL;
   x->viterbi = NULL;
-  x->partition = -1;
   chararray_init(&x->amino);
-  hmmer_init(&x->hmmer);
+  x->hmmer = NULL;
   x->path = imm_path();
   x->interrupted = false;
 }
 
-int thread_setup(struct thread *x, struct thread_params params)
+int thread_setup(struct thread *x, struct hmmer *hmmer, struct protein *protein,
+                 struct protein_iter *iter)
 {
-  struct database_reader const *db = params.reader->db;
-  protein_setup(&x->protein, database_reader_params(db, NULL));
-  int rc = 0;
-
-  if ((rc = protein_reader_iter(params.reader, params.partition, &x->iter)))
-    return rc;
-
-  x->partition = params.partition;
-  x->abc = imm_abc_typeid_name(db->nuclt.super.typeid);
-
-  x->multi_hits = params.multi_hits;
-  x->hmmer3_compat = params.hmmer3_compat;
-
-  if ((rc = hmmer_setup(&x->hmmer, db->has_ga, db->num_proteins, params.port)))
-    return rc;
-  {
-    if ((rc = hmmer_warmup(&x->hmmer))) return rc;
-  }
-
+  x->protein = protein;
+  x->iter = iter;
+  x->hmmer = hmmer;
   x->interrupted = false;
-
   return (x->viterbi = viterbi_new()) ? 0 : DCP_ENOMEM;
 }
 
 void thread_cleanup(struct thread *x)
 {
-  protein_cleanup(&x->protein);
-  x->partition = -1;
   viterbi_del(x->viterbi);
   x->viterbi = NULL;
   chararray_cleanup(&x->amino);
-  hmmer_cleanup(&x->hmmer);
   imm_path_cleanup(&x->path);
 }
 
 static int process_window(struct thread *, int protein_idx,
                           struct product_thread *, struct window *);
 
-int thread_run(struct thread *x, struct batch const *sequences,
+int thread_run(struct thread *x, struct batch const *batch,
                int *done_proteins, struct xsignal *xsignal,
                bool (*interrupt)(void *), void (*userdata)(void *),
                struct product_thread *product)
@@ -87,22 +62,20 @@ int thread_run(struct thread *x, struct batch const *sequences,
   int rc = 0;
   x->interrupted = false;
 
-  if ((rc = product_line_set_abc(&product->line, x->abc))) return rc;
-
-  struct protein_iter *protein_iter = &x->iter;
+  struct protein_iter *protein_iter = x->iter;
 
   if ((rc = protein_iter_rewind(protein_iter))) return rc;
 
-  while (!(rc = protein_iter_next(protein_iter, &x->protein)))
+  while (!(rc = protein_iter_next(protein_iter, x->protein)))
   {
     if (protein_iter_end(protein_iter)) break;
 
     struct sequence *seq = NULL;
-    struct iter seq_iter = batch_iter(sequences);
+    struct iter seq_iter = batch_iter(batch);
     iter_for_each_entry(seq, &seq_iter, node)
     {
-      debug("%d:%s:%s", x->partition, x->protein.accession, seq->name);
-      struct window w = window_setup(seq, x->protein.core_size);
+      debug("%s:%s", x->protein->accession, seq->name);
+      struct window w = window_setup(seq, x->protein->core_size);
       while (window_next(&w))
       {
         int protein_idx = protein_iter_idx(protein_iter);
@@ -143,14 +116,12 @@ static int process_window(struct thread *x, int protein_idx,
   line->window = w->idx;
   line->window_start = window_range(w).start;
   line->window_stop = window_range(w).stop;
-  bool multi_hits = x->multi_hits;
-  bool hmmer3_compat = x->hmmer3_compat;
   debug("running on window [%d,%d]", window_range(w).start,
         window_range(w).stop);
 
   int L = sequence_size(seq);
-  protein_reset(&x->protein, max(L / 3, 1), multi_hits, hmmer3_compat);
-  if ((rc = protein_setup_viterbi(&x->protein, x->viterbi))) return rc;
+  protein_reset(x->protein, max(L / 3, 1));
+  if ((rc = protein_setup_viterbi(x->protein, x->viterbi))) return rc;
 
   float null = -viterbi_null(x->viterbi, sequence_size(seq), code_fn,
                              (void *)&seq->imm.eseq);
@@ -158,19 +129,19 @@ static int process_window(struct thread *x, int protein_idx,
                             (void *)&seq->imm.eseq);
 
   line->lrt = lrt(null, alt);
-  debug("lrt for %s: %g", x->protein.accession, line->lrt);
+  debug("lrt for %s: %g", x->protein->accession, line->lrt);
   if (!imm_lprob_is_finite(line->lrt) || line->lrt < 0) return rc;
   debug("passed lrt threshold for window [%d,%d]", window_range(w).start,
         window_range(w).stop);
 
-  if ((rc = product_line_set_protein(line, x->protein.accession))) return rc;
+  if ((rc = product_line_set_accession(line, x->protein->accession))) return rc;
   if ((rc = viterbi_path(x->viterbi, L, code_fn, (void *)&seq->imm.eseq)))
     return rc;
   imm_path_reset(&x->path);
   if ((rc = trellis_unzip(viterbi_trellis(x->viterbi), L, &x->path))) return rc;
 
   struct match begin = match_end();
-  struct match end = match_begin(&x->path, &seq->imm.seq, &x->protein);
+  struct match end = match_begin(&x->path, &seq->imm.seq, x->protein);
   line->hit = 0;
   line->hit_start = 0;
   line->hit_stop = 0;
@@ -229,22 +200,21 @@ static int process_window(struct thread *x, int protein_idx,
   {
     debug("sending to hmmer sequence of size %zu", x->amino.size);
     debug("sequence sent: %s", x->amino.data);
-    if ((rc = hmmer_get(&x->hmmer, protein_idx, x->amino.data))) return rc;
+    if ((rc = hmmer_get(x->hmmer, protein_idx, x->amino.data))) return rc;
 
-    product->line.logevalue = h3r_nhits(x->hmmer.result)
-                                  ? h3r_hit_logevalue(x->hmmer.result, 0)
+    product->line.logevalue = h3r_nhits(x->hmmer->result)
+                                  ? h3r_hit_logevalue(x->hmmer->result, 0)
                                   : 1.0;
     // We apparently can have num_hits > 0 but without alignment. It seems
     // to happen with evalue is above 1. So lets ignore those hits.
     if (product->line.logevalue > 0) product->line.logevalue = 0;
 
-    debug("num_hits: %d logvalue: %g", h3r_nhits(x->hmmer.result),
+    debug("num_hits: %d logvalue: %g", h3r_nhits(x->hmmer->result),
           product->line.logevalue);
     if (product->line.logevalue == 0) return rc;
-    if ((rc = product_thread_put_hmmer(product, x->hmmer.result)))
-      return rc;
+    if ((rc = product_thread_add_hmmer(product, x->hmmer->result))) return rc;
   }
-  if ((rc = product_thread_put_match(product, begin, end))) return rc;
+  if ((rc = product_thread_add_match(product, begin, end))) return rc;
   line->hit += 1;
 
   return 0;

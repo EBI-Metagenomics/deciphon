@@ -4,13 +4,17 @@
 #include "debug.h"
 #include "defer_return.h"
 #include "error.h"
+#include "hmmer.h"
+#include "imm_abc.h"
 #include "min.h"
 #include "product.h"
+#include "product_thread.h"
+#include "protein_iter.h"
 #include "protein_reader.h"
 #include "thread.h"
-#include "thread_params.h"
 #include "xsignal.h"
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -20,23 +24,22 @@ static inline int omp_get_thread_num() { return 0; }
 
 struct scan
 {
-  int port;
   int num_threads;
-  bool multi_hits;
-  bool hmmer3_compat;
-  struct thread threads[THREAD_MAX];
 
+  struct database_reader database_reader;
+  struct protein_reader protein_reader;
   struct product product;
 
-  struct
-  {
-    struct database_reader reader;
-    struct protein_reader protein;
-  } db;
+  struct protein proteins[THREAD_MAX];
+  struct protein_iter protein_iters[THREAD_MAX];
+  struct hmmer hmmers[THREAD_MAX];
+  struct product_thread product_threads[THREAD_MAX];
+  struct thread threads[THREAD_MAX];
 
-  int total_proteins;
   int done_proteins;
   bool interrupted;
+  bool (*interrupt)(void *);
+  void *userdata;
 };
 
 struct scan *scan_new(void)
@@ -44,37 +47,27 @@ struct scan *scan_new(void)
   struct scan *x = malloc(sizeof(*x));
   if (!x) return NULL;
 
-  x->port = -1;
   x->num_threads = 0;
-  x->multi_hits = true;
-  x->hmmer3_compat = false;
 
+  database_reader_init(&x->database_reader);
+  protein_reader_init(&x->protein_reader);
   product_init(&x->product);
 
-  database_reader_init(&x->db.reader);
-  protein_reader_init(&x->db.protein);
+  for (int i = 0; i < THREAD_MAX; ++i)
+  {
+    protein_init(x->proteins + i);
+    protein_iter_init(x->protein_iters + i);
+    hmmer_init(x->hmmers + i);
+    product_thread_init(x->product_threads + i, i);
+    thread_init(x->threads + i);
+  }
 
-  x->total_proteins = 0;
   x->done_proteins = 0;
   x->interrupted = false;
+  x->interrupt = NULL;
+  x->userdata = NULL;
 
   return x;
-}
-
-int scan_setup(struct scan *x, int port, int num_threads, bool multi_hits,
-               bool hmmer3_compat)
-{
-  if (num_threads > THREAD_MAX) return error(DCP_EMANYTHREADS);
-
-  x->port = port;
-  x->num_threads = num_threads;
-  x->multi_hits = multi_hits;
-  x->hmmer3_compat = hmmer3_compat;
-
-  for (int i = 0; i < x->num_threads; ++i)
-    thread_init(x->threads + i);
-
-  return 0;
 }
 
 void scan_del(struct scan const *scan)
@@ -82,73 +75,99 @@ void scan_del(struct scan const *scan)
   struct scan *x = (struct scan *)scan;
   if (x)
   {
-    database_reader_close(&x->db.reader);
-    product_close(&x->product);
+    protein_reader_cleanup(&x->protein_reader);
     for (int i = 0; i < x->num_threads; ++i)
-      thread_cleanup(x->threads + i);
+    {
+      struct protein        *protein = x->proteins + i;
+      struct hmmer          *hmmer   = x->hmmers + i;
+      struct thread         *thread  = x->threads + i;
+
+      protein_cleanup(protein);
+      hmmer_cleanup(hmmer);
+      thread_cleanup(thread);
+    }
     free(x);
   }
 }
 
-int scan_open(struct scan *x, char const *dbfile)
+int scan_setup(struct scan *x, char const *dbfile, int port, int num_threads,
+               bool multi_hits, bool hmmer3_compat, bool (*interrupt)(void *),
+               void *userdata)
 {
+  if (num_threads > THREAD_MAX) return error(DCP_EMANYTHREADS);
+
   int rc = 0;
-  int n = x->num_threads;
-  x->done_proteins = 0;
 
-  if ((rc = database_reader_open(&x->db.reader, dbfile))) return rc;
-  if ((rc = protein_reader_setup(&x->db.protein, &x->db.reader, n))) return rc;
+  struct database_reader *db = &x->database_reader;
 
-  int abc = x->db.reader.code.super.abc->typeid;
+  if ((rc = database_reader_open(db, dbfile))) return rc;
+  x->num_threads = min(num_threads, db->num_proteins);
+
+  if ((rc = protein_reader_setup(&x->protein_reader, db, x->num_threads)))
+    return rc;
+
+  int abc = db->code.super.abc->typeid;
   if (!(abc == IMM_DNA || abc == IMM_RNA)) return error(DCP_ENUCLTNOSUPPORT);
 
-  x->total_proteins = protein_reader_size(&x->db.protein);
-
-  for (int i = 0; i < n; ++i)
+  for (int i = 0; i < x->num_threads; ++i)
   {
-    struct thread_params params = {&x->db.protein, i, x->port, x->multi_hits,
-                                   x->hmmer3_compat};
-    if ((rc = thread_setup(x->threads + i, params))) return rc;
+    struct model_params    params  = database_reader_params(db, NULL);
+    struct protein        *protein = x->proteins + i;
+    struct protein_iter   *it      = x->protein_iters + i;
+    struct hmmer          *hmmer   = x->hmmers + i;
+    struct thread         *thread  = x->threads + i;
+
+    protein_setup(protein, params, multi_hits, hmmer3_compat);
+    if ((rc = protein_reader_iter(&x->protein_reader, i, it)))         return rc;
+    if ((rc = hmmer_setup(hmmer, db->has_ga, db->num_proteins, port))) return rc;
+    if ((rc = thread_setup(thread, hmmer, protein, it)))     return rc;
   }
 
-  return rc;
+  x->interrupt = interrupt;
+  x->userdata = userdata;
+  return database_reader_close(db);
 }
 
-int scan_close(struct scan *x)
+int scan_run(struct scan *x, struct batch *batch, char const *product_dir)
 {
-  return database_reader_close(&x->db.reader) ? error(DCP_EFCLOSE) : 0;
-}
+  debug("%d thread(s)", x->num_threads);
 
-int scan_run(struct scan *x, struct batch *batch, char const *product_dir, bool (*interrupt)(void *),
-             void *userdata)
-{
   int rc = 0;
+
   x->done_proteins = 0;
-  int n = x->num_threads;
-  n = min(n, protein_reader_num_partitions(&x->db.protein));
   x->interrupted = false;
+
   struct xsignal *xsignal = NULL;
-  if (!interrupt && !(xsignal = xsignal_new())) defer_return(error(DCP_ENOMEM));
+  struct imm_code *code = &x->database_reader.code.super;
 
-  debug("%d thread(s)", n);
-  if ((rc = batch_encode(batch, &x->db.reader.code.super))) defer_return(rc);
+  if (!x->interrupt && !(xsignal = xsignal_new()))   defer_return(error(DCP_ENOMEM));
+  if ((rc = batch_encode(batch, code)))              defer_return(rc);
+  if ((rc = product_open(&x->product, product_dir))) defer_return(rc);
 
-  if ((rc = product_open(&x->product, x->num_threads, product_dir))) defer_return(rc);
-
-#pragma omp parallel for default(none)                                         \
-    shared(x, n, rc, xsignal, interrupt, userdata, batch)
-  for (int i = 0; i < n; ++i)
+  for (int i = 0; i < x->num_threads; ++i)
   {
-    int *proteins = &x->done_proteins;
-    int rank = omp_get_thread_num();
-    struct xsignal *signal = rank == 0 ? xsignal : NULL;
-    bool (*callb)(void *) = rank == 0 ? interrupt : NULL;
-    void *args = rank == 0 ? userdata : NULL;
-    int r = thread_run(x->threads + i, batch, proteins, signal, callb, args,
-                       product_thread(&x->product, i));
+    struct product_thread *product = x->product_threads + i;
+    struct database_reader *db = &x->database_reader;
+    char const *abc = imm_abc_typeid_name(db->code.super.abc->typeid);
+    if ((rc = product_thread_setup(product, abc, product_dir))) defer_return(rc);
+  }
+
+#pragma omp parallel for
+  for (int i = 0; i < x->num_threads; ++i)
+  {
+    struct thread         *thread   = x->threads + i;
+    struct product_thread *product  = x->product_threads + i;
+    int                   *proteins = &x->done_proteins;
+
+    int rank               = omp_get_thread_num();
+    struct xsignal *signal = rank == 0 ? xsignal      : NULL;
+    bool (*callb)(void *)  = rank == 0 ? x->interrupt : NULL;
+    void *args             = rank == 0 ? x->userdata  : NULL;
+
+    int r = thread_run(thread, batch, proteins, signal, callb, args, product);
     if (r || (rank == 0 && thread_interrupted(&x->threads[i])))
     {
-      for (int i = 0; i < n; ++i)
+      for (int i = 0; i < x->num_threads; ++i)
         thread_interrupt(&x->threads[i]);
     }
 
@@ -162,7 +181,7 @@ defer:
   for (int i = 0; i < x->num_threads; ++i)
     x->interrupted |= thread_interrupted(x->threads + i);
 
-  int product_rc = product_close(&x->product);
+  int product_rc = product_close(&x->product, x->num_threads);
   return rc ? rc : product_rc;
 }
 
@@ -170,5 +189,5 @@ bool scan_interrupted(struct scan const *x) { return x->interrupted; }
 
 int scan_progress(struct scan const *x)
 {
-  return (100 * x->done_proteins) / x->total_proteins;
+  return (100 * x->done_proteins) / x->database_reader.num_proteins;
 }

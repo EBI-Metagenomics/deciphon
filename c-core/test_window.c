@@ -41,10 +41,10 @@ int main(void)
   struct batch *batch = NULL;
   aye(scan = scan_new());
   aye(batch = batch_new());
-  aye(scan_setup(scan, DBFILE, PORT, NUM_THREADS, MULTI_HITS, HMMER3_COMPAT) ==
+  aye(scan_setup(scan, DBFILE, PORT, NUM_THREADS, MULTI_HITS, HMMER3_COMPAT, NULL, NULL) ==
       0);
   aye(batch_add(batch, sequences[0].id, sequences[0].name, seq) == 0);
-  aye(scan_run(scan, batch, PRODDIR, NULL, NULL) == 0);
+  aye(scan_run(scan, batch, PRODDIR) == 0);
   aye(scan_progress(scan) == 100);
   aye(chksum(PRODDIR "/products.tsv") == 9910);
 

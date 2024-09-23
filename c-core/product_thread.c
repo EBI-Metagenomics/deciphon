@@ -13,22 +13,30 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-int product_thread_init(struct product_thread *x, int tid, char const *dir)
+void product_thread_init(struct product_thread *x, int id)
+{
+  x->id = id;
+  x->dirname = NULL;
+  memset(x->filename, 0, FS_PATH_MAX);
+  product_line_init(&x->line);
+}
+
+int product_thread_setup(struct product_thread *x, char const *abc, char const *dir)
 {
   int rc = 0;
-  x->id = tid;
   x->dirname = dir;
   char *name = x->filename;
   size_t n = array_size_field(struct product_thread, filename);
-  if ((rc = format(name, n, "%s/.products.%03d.tsv", dir, tid))) return rc;
+  if ((rc = format(name, n, "%s/.products.%03d.tsv", dir, x->id))) return rc;
   if ((rc = fs_touch(x->filename))) return rc;
   product_line_init(&x->line);
+  product_line_set_abc(&x->line, abc);
   return 0;
 }
 
 static int write_match(FILE *, struct match const *);
 
-int product_thread_put_match(struct product_thread *x, struct match begin,
+int product_thread_add_match(struct product_thread *x, struct match begin,
                              struct match end)
 {
 #define defer_error(x) defer_return(error(x))
@@ -69,7 +77,7 @@ defer:
 #undef defer_error
 }
 
-int product_thread_put_hmmer(struct product_thread *x, struct h3r const *result)
+int product_thread_add_hmmer(struct product_thread *x, struct h3r const *result)
 {
   char file[FS_PATH_MAX] = {0};
   int rc = 0;
