@@ -127,7 +127,7 @@ int scan_setup(struct scan *x, char const *dbfile, int port, int num_threads,
     protein_setup(protein, params, multi_hits, hmmer3_compat);
     if ((rc = protein_reader_iter(&x->protein_reader, i, it)))         return rc;
     if ((rc = hmmer_setup(hmmer, db->has_ga, db->num_proteins, port))) return rc;
-    if ((rc = thread_setup(thread, hmmer, protein, it)))     return rc;
+    if ((rc = thread_setup(thread, hmmer, protein, it)))               return rc;
   }
 
   x->callback = callback;
