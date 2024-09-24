@@ -1,68 +1,74 @@
 from __future__ import annotations
 
+from deciphon_core.batch import Batch
 from deciphon_core.cffi import ffi, lib
 from deciphon_core.error import DeciphonError
-from deciphon_core.params import Params
 from deciphon_core.schema import DBFile, NewSnapFile
-from deciphon_core.sequence import Sequence
 
 __all__ = ["Scan"]
 
 
-def check_exception(*_):
-    return True
+def check_exception(exception, exc_value, traceback):
+    if traceback is not None:
+        scan: Scan = ffi.from_handle(traceback.tb_frame.f_locals["userdata"])
+        scan.interrupt()
 
 
 @ffi.def_extern(onerror=check_exception)
-def interrupt(_):
-    return False
+def callback(userdata):
+    pass
 
 
 class Scan:
-    def __init__(self, params: Params, dbfile: DBFile):
-        self._cscan = lib.scan_new(params.cparams)
+    def __init__(
+        self,
+        dbfile: DBFile,
+        port: int,
+        num_threads: int,
+        multi_hits: bool,
+        hmmer3_compat: bool,
+        cache: bool,
+    ):
+        self._cscan = lib.dcp_scan_new()
         if self._cscan == ffi.NULL:
             raise MemoryError()
-        self._dbfile = dbfile
+        self._handle = ffi.new_handle(self)
 
-    def dial(self, port: int = 51371):
-        if rc := lib.scan_dial(self._cscan, port):
-            raise DeciphonError(rc)
-
-    def open(self):
-        if rc := lib.scan_open(self._cscan, bytes(self._dbfile.path)):
-            raise DeciphonError(rc)
-
-    def close(self):
-        if rc := lib.scan_close(self._cscan):
-            raise DeciphonError(rc)
-
-    def add(self, sequence: Sequence):
-        id = sequence.id
-        name = sequence.name.encode()
-        data = sequence.data.encode()
-        if rc := lib.scan_add(self._cscan, id, name, data):
-            raise DeciphonError(rc)
-
-    def run(self, snap: NewSnapFile):
-        if rc := lib.scan_run(
-            self._cscan, str(snap.basename).encode(), lib.interrupt, ffi.NULL
+        if rc := lib.dcp_scan_setup(
+            self._cscan,
+            bytes(dbfile.path),
+            port,
+            num_threads,
+            multi_hits,
+            hmmer3_compat,
+            cache,
+            lib.callback,
+            self._handle,
         ):
             raise DeciphonError(rc)
 
-    def interrupted(self) -> bool:
-        return lib.scan_interrupted(self._cscan)
+    def run(self, snap: NewSnapFile, batch: Batch):
+        if rc := lib.dcp_scan_run(
+            self._cscan, batch.cdata, str(snap.basename).encode()
+        ):
+            raise DeciphonError(rc)
+
+    def interrupt(self):
+        lib.dcp_scan_interrupt(self._cscan)
 
     def progress(self) -> int:
-        return lib.scan_progress(self._cscan)
+        return lib.dcp_scan_progress(self._cscan)
+
+    def free(self):
+        if getattr(self, "_cscan", ffi.NULL) != ffi.NULL:
+            lib.dcp_scan_del(self._cscan)
+            self._cscan = ffi.NULL
+
+    def __del__(self):
+        self.free()
 
     def __enter__(self):
-        self.open()
         return self
 
     def __exit__(self, *_):
-        self.close()
-
-    def __del__(self):
-        if getattr(self, "_cscan", ffi.NULL) != ffi.NULL:
-            lib.scan_del(self._cscan)
+        self.free()

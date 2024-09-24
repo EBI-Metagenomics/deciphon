@@ -15,4 +15,4 @@ def test_press(tmp_path: Path, files_path: Path):
         while not press.end():
             press.next()
 
-    assert hmmfile.dbfile.path.stat().st_size == 3536729
+    assert hmmfile.dbfile.path.stat().st_size == 3609858

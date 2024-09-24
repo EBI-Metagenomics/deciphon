@@ -7,12 +7,13 @@ from pathlib import Path
 
 from h3daemon.hmmfile import HMMFile as H3File
 from h3daemon.sched import SchedContext
+from h3daemon.polling import wait_until
 
-from deciphon_core.params import Params
 from deciphon_core.press import PressContext
 from deciphon_core.scan import Scan
 from deciphon_core.schema import Gencode, HMMFile, NewSnapFile
 from deciphon_core.sequence import Sequence
+from deciphon_core.batch import Batch
 
 
 def checksum(filename: Path):
@@ -34,25 +35,23 @@ def test_scan(tmp_path, files_path: Path):
 
     hmmfile = H3File(hmm)
     hmmfile.ensure_pressed()
-    params = Params(num_threads=1, multi_hits=True, hmmer3_compat=False)
     snapfile = NewSnapFile(path=Path("snap.dcs").absolute())
 
     with SchedContext(hmmfile) as sched:
-        sched.is_ready(True)
+        wait_until(sched.is_ready)
         dbfile = HMMFile(path=hmm).dbfile
-        scan = Scan(params, dbfile)
-        scan.dial(sched.get_cport())
+        batch = Batch()
+        for seq in sequences:
+            batch.add(seq)
+        scan = Scan(dbfile, sched.get_cport(), 1, True, False, False)
         with scan:
-            for seq in sequences:
-                scan.add(seq)
-            scan.run(snapfile)
-            assert not scan.interrupted()
+            scan.run(snapfile, batch)
             snapfile.make_archive()
             assert scan.progress() == 100
 
     shutil.unpack_archive(snapfile.path, format="zip")
     products = snapfile.basename / "products.tsv"
-    assert checksum(products)[:8] == "07652c5f"
+    assert checksum(products)[:8] == "a8d59263"
 
 
 sequences = [
