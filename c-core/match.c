@@ -33,10 +33,10 @@ struct match match_next(struct match const *x)
   int pos = x->sequence_position + imm_path_step(x->path, x->step)->seqsize;
   int step = x->step + 1;
   return (struct match){.path = x->path,
-                       .sequence = x->sequence,
-                       .protein = x->protein,
-                       step,
-                       pos};
+                        .sequence = x->sequence,
+                        .protein = x->protein,
+                        step,
+                        pos};
 }
 
 int match_state_name(struct match const *x, char *dst)
