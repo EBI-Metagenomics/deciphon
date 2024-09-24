@@ -2,7 +2,6 @@
 #include "array_size.h"
 #include "imm_lprob.h"
 #include "imm_score_table.h"
-#include "xtrans.h"
 
 void protein_null_init(struct protein_null *x, struct imm_nuclt const *nuclt)
 {
@@ -12,9 +11,9 @@ void protein_null_init(struct protein_null *x, struct imm_nuclt const *nuclt)
     x->emission[i] = IMM_LPROB_NAN;
 }
 
-void protein_null_setup(struct protein_null *x, struct xtrans const *t)
+void protein_null_setup(struct protein_null *x, float RR)
 {
-  x->RR = t->RR;
+  x->RR = RR;
 }
 
 void protein_null_absorb(struct protein_null *x, struct imm_score_table *st,

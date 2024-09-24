@@ -61,38 +61,8 @@ int protein_set_accession(struct protein *x, char const *acc)
 
 void protein_reset(struct protein *x, int seq_size)
 {
-  assert(seq_size > 0);
-
-  float L = (float)seq_size;
-
-  float q = 0.0;
-  float log_q = IMM_LPROB_ZERO;
-
-  if (x->multi_hits)
-  {
-    q = 0.5;
-    log_q = log(0.5);
-  }
-
-  float lp = log(L) - log(L + 2 + q / (1 - q));
-  float l1p = log(2 + q / (1 - q)) - log(L + 2 + q / (1 - q));
-  float lr = log(L) - log(L + 1);
-
-  struct xtrans t = {0};
-
-  t.NN = t.CC = t.JJ = lp;
-  t.NB = t.CT = t.JB = l1p;
-  t.RR = lr;
-  t.EJ = log_q;
-  t.EC = log(1 - q);
-
-  if (x->hmmer3_compat)
-  {
-    t.NN = t.CC = t.JJ = logf(1);
-  }
-
-  protein_null_setup(&x->null, &t);
-  x->xtrans = t;
+  xtrans_setup(&x->xtrans, x->multi_hits, x->hmmer3_compat, seq_size);
+  protein_null_setup(&x->null, x->xtrans.RR);
 }
 
 int protein_absorb(struct protein *x, struct model *m)
@@ -412,20 +382,7 @@ int protein_setup_viterbi(struct protein const *x, struct viterbi *v)
   int rc = viterbi_setup(v, K);
   if (rc) return rc;
 
-  struct xtrans xt = x->xtrans;
-  viterbi_set_extr_trans(v, EXTR_TRANS_RR, -x->null.RR);
-  viterbi_set_extr_trans(v, EXTR_TRANS_SN, -0 - xt.NN);
-  viterbi_set_extr_trans(v, EXTR_TRANS_NN, -xt.NN);
-  viterbi_set_extr_trans(v, EXTR_TRANS_SB, -0 - xt.NB);
-  viterbi_set_extr_trans(v, EXTR_TRANS_NB, -xt.NB);
-  viterbi_set_extr_trans(v, EXTR_TRANS_EB, -xt.EJ - xt.JB);
-  viterbi_set_extr_trans(v, EXTR_TRANS_JB, -xt.JB);
-  viterbi_set_extr_trans(v, EXTR_TRANS_EJ, -xt.EJ - xt.JJ);
-  viterbi_set_extr_trans(v, EXTR_TRANS_JJ, -xt.JJ);
-  viterbi_set_extr_trans(v, EXTR_TRANS_EC, -xt.EC - xt.CC);
-  viterbi_set_extr_trans(v, EXTR_TRANS_CC, -xt.CC);
-  viterbi_set_extr_trans(v, EXTR_TRANS_ET, -xt.EC - xt.CT);
-  viterbi_set_extr_trans(v, EXTR_TRANS_CT, -xt.CT);
+  xtrans_setup_viterbi(&x->xtrans, v);
 
   for (int k = 0; k < K; ++k)
   {
