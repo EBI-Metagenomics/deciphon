@@ -35,7 +35,7 @@ static void test_normal_scan(void)
     fs_rmtree(PRODDIR);
     aye(scan = scan_new());
     aye(scan_setup(scan, DBFILE, PORT, NUM_THREADS, multi_hits[i],
-                   hmmer3_compat[i], NULL, NULL) == 0);
+                   hmmer3_compat[i], false, NULL, NULL) == 0);
     aye(scan_run(scan, batch, PRODDIR) == 0);
     aye(scan_progress(scan) == 100);
     scan_del(scan);
@@ -60,7 +60,7 @@ static void test_reuse_scan(void)
     fs_rmtree(PRODDIR);
     aye(scan = scan_new());
     aye(scan_setup(scan, DBFILE, PORT, NUM_THREADS, multi_hits[i],
-                   hmmer3_compat[i], NULL, NULL) == 0);
+                   hmmer3_compat[i], true, NULL, NULL) == 0);
     for (size_t j = 0; j < array_size(sequences); ++j)
     {
       long id = sequences[j].id;

@@ -1,4 +1,5 @@
 #include "aye.h"
+#include "decoder.h"
 #include "imm_dna.h"
 #include "imm_gencode.h"
 #include "imm_nuclt_code.h"
@@ -59,7 +60,10 @@ int main(void)
   char aminos1[] = {' ', ' ', 'D', 'N', 'A', ' ', 'I', ' ', 'S', ' ',
                    'T', ' ', ' ', 'N', 'Y', 'H', 'H', ' ', ' '};
 
-  struct match it = match_begin(&path, &seq, &protein);
+  struct decoder decoder = {0};
+  decoder_init(&decoder);
+  aye(decoder_setup(&decoder, &protein) == 0);
+  struct match it = match_begin(&path, &seq, &decoder);
   int idx = 0;
   while (!match_equal(it, match_end()))
   {
@@ -76,7 +80,7 @@ int main(void)
   }
 
   struct match begin = match_end();
-  struct match end = match_begin(&path, &seq, &protein);
+  struct match end = match_begin(&path, &seq, &decoder);
 
   char aminos2[] = {' ', 'D', 'N', 'A', ' ', ' ', 'S', ' ',
                     'T', ' ', ' ', 'N', 'Y', 'H', 'H', ' '};
@@ -110,6 +114,7 @@ int main(void)
     }
   }
 
+  decoder_cleanup(&decoder);
   imm_path_cleanup(&path);
   protein_cleanup(&protein);
 

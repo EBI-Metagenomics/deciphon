@@ -40,7 +40,6 @@ void protein_cleanup(struct protein *);
 void protein_dump(struct protein const *, FILE *);
 int  protein_pack(struct protein const *, struct lio_writer *);
 int  protein_unpack(struct protein *, struct lio_reader *);
-int  protein_decode(struct protein const *, struct imm_seq const *, int state_id, struct imm_codon *);
 int  protein_setup_viterbi(struct protein const *, struct viterbi *);
 
 #endif

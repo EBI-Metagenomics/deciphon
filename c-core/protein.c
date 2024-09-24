@@ -354,28 +354,6 @@ int protein_unpack(struct protein *x, struct lio_reader *file)
   return 0;
 }
 
-int protein_decode(struct protein const *x, struct imm_seq const *seq,
-                   int state_id, struct imm_codon *codon)
-{
-  if (state_is_mute(state_id)) return error(DCP_EINVALSTATE);
-
-  struct nuclt_dist const *nucltd = NULL;
-  if (state_is_insert(state_id))
-    nucltd = &x->bg.nuclt_dist;
-  else if (state_is_match(state_id))
-    nucltd = &x->nodes[state_core_idx(state_id)].nuclt_dist;
-  else
-    nucltd = &x->null.nuclt_dist;
-
-  struct imm_frame_cond cond = {imm_frame_epsilon(x->params.epsilon),
-                                &nucltd->nucltp, &nucltd->codonm};
-
-  if (imm_lprob_is_nan(imm_frame_cond_decode(&cond, seq, codon)))
-    return error(DCP_EDECODON);
-
-  return 0;
-}
-
 int protein_setup_viterbi(struct protein const *x, struct viterbi *v)
 {
   int K = x->core_size;

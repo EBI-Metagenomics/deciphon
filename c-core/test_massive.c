@@ -41,7 +41,8 @@ int main(void)
 
   aye(batch = batch_new());
   aye(scan = scan_new());
-  aye(scan_setup(scan, DBFILE, PORT, NUM_THREADS, true, false, NULL, NULL) == 0);
+  aye(scan_setup(scan, DBFILE, PORT, NUM_THREADS, true, false, false, NULL,
+                 NULL) == 0);
   for (int i = 0; i < 10000; ++i)
   {
     snprintf(name, sizeof(name), "name%d", i);

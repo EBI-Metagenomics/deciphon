@@ -1,27 +1,28 @@
 #include "match.h"
+#include "decoder.h"
 #include "imm_gencode.h"
 #include "imm_nuclt_code.h"
 #include "imm_path.h"
-#include "protein.h"
 #include "state.h"
 
 struct match match_begin(struct imm_path const *path,
-                       struct imm_seq const *sequence,
-                       struct protein const *protein)
+                         struct imm_seq const *sequence,
+                         struct decoder const *decoder)
 {
   return (struct match){
-      .path = path, .sequence = sequence, .protein = protein, 0, 0};
+      .path = path, .sequence = sequence, .decoder = decoder, 0, 0};
 }
 
 struct match match_end(void)
 {
-  return (struct match){.path = NULL, .sequence = NULL, .protein = NULL, -1, -1};
+  return (struct match){
+      .path = NULL, .sequence = NULL, .decoder = NULL, -1, -1};
 }
 
 bool match_equal(struct match a, struct match b)
 {
   return a.path == b.path && a.sequence == b.sequence &&
-         a.protein == b.protein && a.step == b.step &&
+         a.decoder == b.decoder && a.step == b.step &&
          a.sequence_position == b.sequence_position;
 }
 
@@ -34,7 +35,7 @@ struct match match_next(struct match const *x)
   int step = x->step + 1;
   return (struct match){.path = x->path,
                         .sequence = x->sequence,
-                        .protein = x->protein,
+                        .decoder = x->decoder,
                         step,
                         pos};
 }
@@ -63,7 +64,7 @@ int match_state_id(struct match const *x)
 
 int match_amino(struct match const *x, char *amino)
 {
-  struct imm_codon codon = imm_codon_any(x->protein->params.code->nuclt);
+  struct imm_codon codon = imm_codon_any(x->decoder->code->nuclt);
   int state_id = match_state_id(x);
 
   struct imm_step const *step = imm_path_step(x->path, x->step);
@@ -71,19 +72,19 @@ int match_amino(struct match const *x, char *amino)
   struct imm_range range = imm_range(pos, pos + step->seqsize);
   struct imm_seq seq = imm_seq_slice(x->sequence, range);
 
-  int rc = protein_decode(x->protein, &seq, state_id, &codon);
+  int rc = decoder_decode(x->decoder, &seq, state_id, &codon);
   if (rc) return rc;
 
-  *amino = imm_gencode_decode(x->protein->params.gencode, codon);
+  *amino = imm_gencode_decode(x->decoder->gencode, codon);
   return 0;
 }
 
 int match_codon(struct match const *x, struct imm_codon *codon)
 {
-  *codon = imm_codon_any(x->protein->params.code->nuclt);
+  *codon = imm_codon_any(x->decoder->code->nuclt);
   int state_id = match_state_id(x);
   struct imm_seq seq = match_subsequence(x);
-  return protein_decode(x->protein, &seq, state_id, codon);
+  return decoder_decode(x->decoder, &seq, state_id, codon);
 }
 
 struct imm_seq match_subsequence(struct match const *x)

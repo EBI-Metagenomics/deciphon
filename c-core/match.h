@@ -7,18 +7,18 @@
 struct imm_codon;
 struct imm_path;
 struct imm_seq;
-struct protein;
+struct decoder;
 
 struct match
 {
   struct imm_path const *path;
   struct imm_seq const *sequence;
-  struct protein const *protein;
+  struct decoder const *decoder;
   int step;
   int sequence_position;
 };
 
-struct match match_begin(struct imm_path const *, struct imm_seq const *, struct protein const *);
+struct match match_begin(struct imm_path const *, struct imm_seq const *, struct decoder const *);
 struct match match_end(void);
 bool         match_equal(struct match, struct match);
 struct match match_next(struct match const *);

@@ -1,13 +1,13 @@
 #include "codec.h"
-#include "imm_path.h"
-#include "protein.h"
-#include "state.h"
 #include "bug.h"
+#include "decoder.h"
+#include "imm_path.h"
+#include "state.h"
 
-struct codec codec_init(struct protein const *protein,
+struct codec codec_init(struct decoder const *decoder,
                         struct imm_path const *path)
 {
-  return (struct codec){0, 0, protein, path};
+  return (struct codec){0, 0, decoder, path};
 }
 
 int codec_next(struct codec *x, struct imm_seq const *seq,
@@ -29,7 +29,7 @@ int codec_next(struct codec *x, struct imm_seq const *seq,
   struct imm_seq frag = imm_seq_slice(seq, range);
   x->start += size;
   x->idx++;
-  return protein_decode(x->protein, &frag, step->state_id, codon);
+  return decoder_decode(x->decoder, &frag, step->state_id, codon);
 }
 
 bool codec_end(struct codec const *x)

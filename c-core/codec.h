@@ -6,20 +6,18 @@
 struct imm_codon;
 struct imm_path;
 struct imm_seq;
-struct protein;
+struct decoder;
 
 struct codec
 {
   int idx;
   int start;
-  struct protein const *protein;
+  struct decoder const *decoder;
   struct imm_path const *path;
 };
 
-// clang-format off
-struct codec codec_init(struct protein const *, struct imm_path const *);
+struct codec codec_init(struct decoder const *, struct imm_path const *);
 int          codec_next(struct codec *, struct imm_seq const *, struct imm_codon *);
 bool         codec_end(struct codec const *);
-// clang-format on
 
 #endif

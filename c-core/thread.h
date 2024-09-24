@@ -3,8 +3,6 @@
 
 #include "chararray.h"
 #include "imm_path.h"
-#include "protein.h"
-#include "protein_iter.h"
 
 #define THREAD_MAX 128
 
@@ -13,15 +11,11 @@ struct batch;
 struct viterbi;
 struct xsignal;
 struct hmmer;
-struct protein;
-struct protein_iter;
+struct workload;
 
 struct thread
 {
-  struct protein *protein;
-  struct protein_iter *iter;
-
-  struct viterbi *viterbi;
+  struct workload *workload;
   struct chararray amino;
   struct hmmer *hmmer;
   struct imm_path path;
@@ -29,7 +23,7 @@ struct thread
 };
 
 void thread_init(struct thread *);
-int  thread_setup(struct thread *, struct hmmer *, struct protein *, struct protein_iter *);
+void thread_setup(struct thread *, struct hmmer *, struct workload *);
 void thread_cleanup(struct thread *);
 int  thread_run(struct thread *, struct batch const *,
                 int *done_proteins, struct xsignal *, void (callb)(void *),

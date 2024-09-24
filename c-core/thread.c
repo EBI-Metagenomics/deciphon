@@ -2,7 +2,6 @@
 #include "batch.h"
 #include "chararray.h"
 #include "debug.h"
-#include "error.h"
 #include "h3r_result.h"
 #include "hmmer.h"
 #include "imm_lprob.h"
@@ -12,46 +11,39 @@
 #include "max.h"
 #include "product_line.h"
 #include "product_thread.h"
-#include "protein_iter.h"
-#include "protein_reader.h"
 #include "sequence.h"
 #include "trellis.h"
 #include "viterbi.h"
 #include "window.h"
+#include "workload.h"
 #include "xsignal.h"
 #include <stdlib.h>
 #include <string.h>
 
 void thread_init(struct thread *x)
 {
-  x->protein = NULL;
-  x->iter = NULL;
-  x->viterbi = NULL;
+  x->workload = NULL;
   chararray_init(&x->amino);
   x->hmmer = NULL;
-  x->path = imm_path();
+  x->path  = imm_path();
   x->interrupted = false;
 }
 
-int thread_setup(struct thread *x, struct hmmer *hmmer, struct protein *protein,
-                 struct protein_iter *iter)
+void thread_setup(struct thread *x, struct hmmer *hmmer, struct workload *workload)
 {
-  x->protein = protein;
-  x->iter = iter;
-  x->hmmer = hmmer;
+  x->workload    = workload;
+  x->hmmer       = hmmer;
   x->interrupted = false;
-  return (x->viterbi = viterbi_new()) ? 0 : DCP_ENOMEM;
 }
 
 void thread_cleanup(struct thread *x)
 {
-  viterbi_del(x->viterbi);
-  x->viterbi = NULL;
+  x->workload = NULL;
   chararray_cleanup(&x->amino);
   imm_path_cleanup(&x->path);
 }
 
-static int process_window(struct thread *, int protein_idx,
+static int process_window(struct thread *, struct work *work, int protein_idx,
                           struct product_thread *, struct window *);
 
 int thread_run(struct thread *x, struct batch const *batch,
@@ -61,25 +53,24 @@ int thread_run(struct thread *x, struct batch const *batch,
 {
   int rc = 0;
   x->interrupted = false;
+  struct work *work = NULL;
 
-  struct protein_iter *protein_iter = x->iter;
+  if ((rc = workload_rewind(x->workload))) return rc;
 
-  if ((rc = protein_iter_rewind(protein_iter))) return rc;
-
-  while (!(rc = protein_iter_next(protein_iter, x->protein)))
+  while (!(rc = workload_next(x->workload, &work)))
   {
-    if (protein_iter_end(protein_iter)) break;
+    if (workload_end(x->workload)) break;
 
     struct sequence *seq = NULL;
     struct iter seq_iter = batch_iter(batch);
     iter_for_each_entry(seq, &seq_iter, node)
     {
-      debug("%s:%s", x->protein->accession, seq->name);
-      struct window w = window_setup(seq, x->protein->core_size);
+      debug("%s:%s", work->accession, seq->name);
+      struct window w = window_setup(seq, work->core_size);
       while (window_next(&w))
       {
-        int protein_idx = protein_iter_idx(protein_iter);
-        if ((rc = process_window(x, protein_idx, product, &w))) return rc;
+        int idx = workload_index(x->workload);
+        if ((rc = process_window(x, work, idx, product, &w))) return rc;
 
         if (callb) (*callb)(userdata);
         if (xsignal && xsignal_interrupted(xsignal)) x->interrupted = true;
@@ -106,7 +97,7 @@ static int code_fn(int pos, int len, void *arg)
   return imm_eseq_get(seq, pos, len, 1);
 }
 
-static int process_window(struct thread *x, int protein_idx,
+static int process_window(struct thread *x, struct work *work, int protein_idx,
                           struct product_thread *product, struct window *w)
 {
   int rc = 0;
@@ -120,28 +111,27 @@ static int process_window(struct thread *x, int protein_idx,
         window_range(w).stop);
 
   int L = sequence_size(seq);
-  protein_reset(x->protein, max(L / 3, 1));
-  if ((rc = protein_setup_viterbi(x->protein, x->viterbi))) return rc;
+  work_reset(work, max(L / 3, 1));
 
-  float null = -viterbi_null(x->viterbi, sequence_size(seq), code_fn,
+  float null = -viterbi_null(work->viterbi, sequence_size(seq), code_fn,
                              (void *)&seq->imm.eseq);
-  float alt = -viterbi_cost(x->viterbi, sequence_size(seq), code_fn,
+  float alt = -viterbi_cost(work->viterbi, sequence_size(seq), code_fn,
                             (void *)&seq->imm.eseq);
 
   line->lrt = lrt(null, alt);
-  debug("lrt for %s: %g", x->protein->accession, line->lrt);
+  debug("lrt for %s: %g", work->accession, line->lrt);
   if (!imm_lprob_is_finite(line->lrt) || line->lrt < 0) return rc;
   debug("passed lrt threshold for window [%d,%d]", window_range(w).start,
         window_range(w).stop);
 
-  if ((rc = product_line_set_accession(line, x->protein->accession))) return rc;
-  if ((rc = viterbi_path(x->viterbi, L, code_fn, (void *)&seq->imm.eseq)))
+  if ((rc = product_line_set_accession(line, work->accession))) return rc;
+  if ((rc = viterbi_path(work->viterbi, L, code_fn, (void *)&seq->imm.eseq)))
     return rc;
   imm_path_reset(&x->path);
-  if ((rc = trellis_unzip(viterbi_trellis(x->viterbi), L, &x->path))) return rc;
+  if ((rc = trellis_unzip(viterbi_trellis(work->viterbi), L, &x->path))) return rc;
 
   struct match begin = match_end();
-  struct match end = match_begin(&x->path, &seq->imm.seq, x->protein);
+  struct match end = match_begin(&x->path, &seq->imm.seq, &work->decoder);
   line->hit = 0;
   line->hit_start = 0;
   line->hit_stop = 0;

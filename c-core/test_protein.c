@@ -1,5 +1,6 @@
 #include "aye.h"
 #include "codec.h"
+#include "decoder.h"
 #include "imm_dna.h"
 #include "imm_eseq.h"
 #include "imm_gencode.h"
@@ -86,7 +87,10 @@ static void test_protein_uniform(void)
   state_name(imm_path_step(&path, 13)->state_id, name);
   aye(strcmp(name, "T") == 0);
 
-  struct codec codec = codec_init(&protein, &path);
+  struct decoder decoder = {0};
+  decoder_init(&decoder);
+  aye(decoder_setup(&decoder, &protein) == 0);
+  struct codec codec = codec_init(&decoder, &path);
   int rc = 0;
 
   struct imm_codon codons[10] = {
@@ -110,6 +114,7 @@ static void test_protein_uniform(void)
   aye(rc == 0);
   aye(i == 10);
 
+  decoder_cleanup(&decoder);
   imm_eseq_cleanup(&eseq);
   viterbi_del(viterbi);
   protein_cleanup(&protein);
@@ -174,7 +179,10 @@ static void test_protein_occupancy(void)
   state_name(imm_path_step(&path, 13)->state_id, name);
   aye(strcmp(name, "T") == 0);
 
-  struct codec codec = codec_init(&protein, &path);
+  struct decoder decoder = {0};
+  decoder_init(&decoder);
+  aye(decoder_setup(&decoder, &protein) == 0);
+  struct codec codec = codec_init(&decoder, &path);
   int rc = 0;
 
   struct imm_codon codons[10] = {
@@ -198,6 +206,7 @@ static void test_protein_occupancy(void)
   aye(rc == 0);
   aye(i == 10);
 
+  decoder_cleanup(&decoder);
   imm_eseq_cleanup(&eseq);
   viterbi_del(viterbi);
   protein_cleanup(&protein);

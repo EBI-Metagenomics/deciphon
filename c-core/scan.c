@@ -12,6 +12,7 @@
 #include "protein_iter.h"
 #include "protein_reader.h"
 #include "thread.h"
+#include "workload.h"
 #include "xsignal.h"
 #include <stdlib.h>
 #include <string.h>
@@ -35,6 +36,7 @@ struct scan
   struct protein_iter protein_iters[THREAD_MAX];
   struct hmmer hmmers[THREAD_MAX];
   struct product_thread product_threads[THREAD_MAX];
+  struct workload workloads[THREAD_MAX];
   struct thread threads[THREAD_MAX];
 
   int done_proteins;
@@ -65,6 +67,7 @@ struct scan *scan_new(void)
     protein_iter_init(x->protein_iters + i);
     hmmer_init(x->hmmers + i);
     product_thread_init(x->product_threads + i, i);
+    workload_init(x->workloads + i);
     thread_init(x->threads + i);
   }
 
@@ -82,15 +85,18 @@ void scan_del(struct scan const *scan)
   if (x)
   {
     xsignal_del(x->xsignal);
+    database_reader_cleanup(&x->database_reader);
     protein_reader_cleanup(&x->protein_reader);
     for (int i = 0; i < x->num_threads; ++i)
     {
-      struct protein        *protein = x->proteins + i;
-      struct hmmer          *hmmer   = x->hmmers + i;
-      struct thread         *thread  = x->threads + i;
+      struct protein        *protein  = x->proteins + i;
+      struct hmmer          *hmmer    = x->hmmers + i;
+      struct workload       *workload = x->workloads + i;
+      struct thread         *thread   = x->threads + i;
 
       protein_cleanup(protein);
       hmmer_cleanup(hmmer);
+      workload_cleanup(workload);
       thread_cleanup(thread);
     }
     free(x);
@@ -98,8 +104,8 @@ void scan_del(struct scan const *scan)
 }
 
 int scan_setup(struct scan *x, char const *dbfile, int port, int num_threads,
-               bool multi_hits, bool hmmer3_compat, void (*callback)(void *),
-               void *userdata)
+               bool multi_hits, bool hmmer3_compat, bool cache,
+               void (*callback)(void *), void *userdata)
 {
   if (num_threads > THREAD_MAX) return error(DCP_EMANYTHREADS);
 
@@ -118,16 +124,18 @@ int scan_setup(struct scan *x, char const *dbfile, int port, int num_threads,
 
   for (int i = 0; i < x->num_threads; ++i)
   {
-    struct model_params    params  = database_reader_params(db, NULL);
-    struct protein        *protein = x->proteins + i;
-    struct protein_iter   *it      = x->protein_iters + i;
-    struct hmmer          *hmmer   = x->hmmers + i;
-    struct thread         *thread  = x->threads + i;
+    struct model_params    params   = database_reader_params(db, NULL);
+    struct protein        *protein  = x->proteins + i;
+    struct protein_iter   *it       = x->protein_iters + i;
+    struct hmmer          *hmmer    = x->hmmers + i;
+    struct workload       *workload = x->workloads + i;
+    struct thread         *thread   = x->threads + i;
 
     protein_setup(protein, params, multi_hits, hmmer3_compat);
-    if ((rc = protein_reader_iter(&x->protein_reader, i, it)))         return rc;
-    if ((rc = hmmer_setup(hmmer, db->has_ga, db->num_proteins, port))) return rc;
-    if ((rc = thread_setup(thread, hmmer, protein, it)))               return rc;
+    if ((rc = protein_reader_iter(&x->protein_reader, i, it)))                 return rc;
+    if ((rc = hmmer_setup(hmmer, db->has_ga, db->num_proteins, port)))         return rc;
+    if ((rc = workload_setup(workload, cache, db->num_proteins, protein, it))) return rc;
+    thread_setup(thread, hmmer, workload);
   }
 
   x->callback = callback;
