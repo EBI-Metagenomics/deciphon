@@ -1,4 +1,5 @@
 #include "chararray.h"
+#include "deciphon.h"
 #include "error.h"
 #include "xrealloc.h"
 #include <stdlib.h>

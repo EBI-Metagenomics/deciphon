@@ -46,7 +46,7 @@ void thread_cleanup(struct thread *x)
 static int process_window(struct thread *, struct work *work, int protein_idx,
                           struct product_thread *, struct window *);
 
-int thread_run(struct thread *x, struct batch const *batch,
+int thread_run(struct thread *x, struct dcp_batch const *batch,
                int *done_proteins, struct xsignal *xsignal,
                void (*callb)(void *), void (*userdata)(void *),
                struct product_thread *product)

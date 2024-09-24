@@ -7,7 +7,7 @@
 #define THREAD_MAX 128
 
 struct product_thread;
-struct batch;
+struct dcp_batch;
 struct viterbi;
 struct xsignal;
 struct hmmer;
@@ -25,7 +25,7 @@ struct thread
 void thread_init(struct thread *);
 void thread_setup(struct thread *, struct hmmer *, struct workload *);
 void thread_cleanup(struct thread *);
-int  thread_run(struct thread *, struct batch const *,
+int  thread_run(struct thread *, struct dcp_batch const *,
                 int *done_proteins, struct xsignal *, void (callb)(void *),
                 void (*userdata)(void *),
                 struct product_thread *);

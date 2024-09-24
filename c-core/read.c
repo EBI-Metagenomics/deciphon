@@ -1,5 +1,5 @@
 #include "read.h"
-#include "error.h"
+#include "deciphon.h"
 #include "imm_abc.h"
 #include "lio.h"
 #include <string.h>

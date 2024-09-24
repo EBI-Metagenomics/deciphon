@@ -1,4 +1,5 @@
 #include "array_size.h"
+#include "deciphon.h"
 #include "error.h"
 #include <stddef.h>
 

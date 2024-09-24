@@ -1,6 +1,7 @@
 #include "trellis.h"
 #include "bit.h"
 #include "bug.h"
+#include "deciphon.h"
 #include "error.h"
 #include "imm_path.h"
 #include "xrealloc.h"

@@ -1,5 +1,6 @@
 #include "error.h"
 #include "array_size.h"
+#include "deciphon.h"
 #include "loglevel.h"
 #include "sink.h"
 #include <stdio.h>
@@ -81,7 +82,7 @@ static char const *msg[] = {
     [DCP_ENOHIT] = "failed to find hit",
 };
 
-char const *error_string(int error_code)
+char const *dcp_error_string(int error_code)
 {
   if (error_code > 0 && error_code < (int)array_size(msg))
     return msg[error_code];
@@ -94,6 +95,6 @@ char const *error_string(int error_code)
 int error_print(int error_code, int line, const char *src)
 {
   if (loglevel() <= LOGLEVEL_ERROR)
-    fprintf(SINK_ERROR, "%s:%d: %s\n", src, line, error_string(error_code));
+    fprintf(SINK_ERROR, "%s:%d: %s\n", src, line, dcp_error_string(error_code));
   return error_code;
 }

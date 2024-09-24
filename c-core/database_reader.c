@@ -1,5 +1,6 @@
 #include "database_reader.h"
 #include "database_version.h"
+#include "deciphon.h"
 #include "defer_return.h"
 #include "error.h"
 #include "expect.h"

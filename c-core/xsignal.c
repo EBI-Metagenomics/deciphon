@@ -4,7 +4,7 @@
 #endif
 #include <signal.h>
 
-#include "error.h"
+#include "deciphon.h"
 #include "xsignal.h"
 #include <stdlib.h>
 

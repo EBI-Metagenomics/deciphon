@@ -1,4 +1,5 @@
 #include "format.h"
+#include "deciphon.h"
 #include "error.h"
 #include <limits.h>
 #include <stdarg.h>

@@ -1,33 +1,34 @@
 #include "batch.h"
+#include "deciphon.h"
 #include "defer_return.h"
 #include "error.h"
 #include "queue.h"
 #include "sequence.h"
 #include <stdlib.h>
 
-struct batch
+struct dcp_batch
 {
   struct queue sequences;
 };
 
-struct batch *batch_new(void)
+struct dcp_batch *dcp_batch_new(void)
 {
-  struct batch *x = malloc(sizeof(struct batch));
+  struct dcp_batch *x = malloc(sizeof(struct dcp_batch));
   if (!x) return NULL;
   queue_init(&x->sequences);
   return x;
 }
 
-void batch_del(struct batch *x)
+void dcp_batch_del(struct dcp_batch *x)
 {
   if (x)
   {
-    batch_reset(x);
+    dcp_batch_reset(x);
     free(x);
   }
 }
 
-int batch_add(struct batch *x, long id, char const *name, char const *data)
+int dcp_batch_add(struct dcp_batch *x, long id, char const *name, char const *data)
 {
   int rc = 0;
   struct sequence *seq = malloc(sizeof(*seq));
@@ -43,7 +44,7 @@ defer:
   return rc;
 }
 
-void batch_reset(struct batch *x)
+void dcp_batch_reset(struct dcp_batch *x)
 {
   struct sequence *seq = NULL;
   struct sequence *tmp = NULL;
@@ -56,7 +57,7 @@ void batch_reset(struct batch *x)
   queue_init(&x->sequences);
 }
 
-int batch_encode(struct batch *x, struct imm_code const *code)
+int batch_encode(struct dcp_batch *x, struct imm_code const *code)
 {
   int rc = 0;
   struct sequence *seq = NULL;
@@ -68,7 +69,7 @@ int batch_encode(struct batch *x, struct imm_code const *code)
   return rc;
 }
 
-struct iter batch_iter(struct batch const *x)
+struct iter batch_iter(struct dcp_batch const *x)
 {
   return queue_iter(&x->sequences);
 }

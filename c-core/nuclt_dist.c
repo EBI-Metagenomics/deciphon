@@ -1,4 +1,5 @@
 #include "nuclt_dist.h"
+#include "deciphon.h"
 #include "error.h"
 #include "read.h"
 #include "write.h"

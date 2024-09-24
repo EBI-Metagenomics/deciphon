@@ -1,8 +1,8 @@
 #include "aye.h"
 #include "batch.h"
+#include "deciphon.h"
 #include "fs.h"
 #include "imm_rnd.h"
-#include "scan.h"
 #include "test_consensus.h"
 #include "test_utils.h"
 #include <string.h>
@@ -37,19 +37,19 @@ int main(void)
   }
   seq[SIZE] = '\0';
 
-  struct scan *scan = NULL;
-  struct batch *batch = NULL;
-  aye(scan = scan_new());
-  aye(batch = batch_new());
-  aye(scan_setup(scan, DBFILE, PORT, NUM_THREADS, MULTI_HITS, HMMER3_COMPAT, false, NULL, NULL) ==
+  struct dcp_scan *scan = NULL;
+  struct dcp_batch *batch = NULL;
+  aye(scan = dcp_scan_new());
+  aye(batch = dcp_batch_new());
+  aye(dcp_scan_setup(scan, DBFILE, PORT, NUM_THREADS, MULTI_HITS, HMMER3_COMPAT, false, NULL, NULL) ==
       0);
-  aye(batch_add(batch, sequences[0].id, sequences[0].name, seq) == 0);
-  aye(scan_run(scan, batch, PRODDIR) == 0);
-  aye(scan_progress(scan) == 100);
+  aye(dcp_batch_add(batch, sequences[0].id, sequences[0].name, seq) == 0);
+  aye(dcp_scan_run(scan, batch, PRODDIR) == 0);
+  aye(dcp_scan_progress(scan) == 100);
   aye(chksum(PRODDIR "/products.tsv") == 9910);
 
-  batch_del(batch);
-  scan_del(scan);
+  dcp_batch_del(batch);
+  dcp_scan_del(scan);
   fs_rmtree(PRODDIR);
   cleanup_database(DBFILE);
   return aye_end();

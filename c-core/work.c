@@ -1,5 +1,6 @@
 #include "work.h"
 #include "array_size_field.h"
+#include "deciphon.h"
 #include "decoder.h"
 #include "defer_return.h"
 #include "error.h"
@@ -29,8 +30,8 @@ int work_setup(struct work *x, struct protein *protein)
   x->core_size     = protein->core_size;
 
   int size = array_size_field(struct work, accession);
-  if (xstrcpy(x->accession, protein->accession, size))   defer_return(DCP_ELONGACCESSION);
-  if (!x->viterbi && !(x->viterbi = viterbi_new()))      defer_return(DCP_ENOMEM);
+  if (xstrcpy(x->accession, protein->accession, size))   defer_return(error(DCP_ELONGACCESSION));
+  if (!x->viterbi && !(x->viterbi = viterbi_new()))      defer_return(error(DCP_ENOMEM));
   if ((rc = decoder_setup(&x->decoder, protein)))        defer_return(rc);
   if ((rc = protein_setup_viterbi(protein, x->viterbi))) defer_return(rc);
 

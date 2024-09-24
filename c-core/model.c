@@ -1,4 +1,5 @@
 #include "model.h"
+#include "deciphon.h"
 #include "defer_return.h"
 #include "entry_dist.h"
 #include "error.h"

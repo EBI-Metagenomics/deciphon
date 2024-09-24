@@ -1,4 +1,5 @@
 #include "write.h"
+#include "deciphon.h"
 #include "error.h"
 #include "imm_abc.h"
 #include "lio.h"

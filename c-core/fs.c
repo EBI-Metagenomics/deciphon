@@ -14,6 +14,7 @@
 #endif
 
 #include "fs.h"
+#include "deciphon.h"
 #include "error.h"
 #include "xstrcpy.h"
 #include <errno.h>

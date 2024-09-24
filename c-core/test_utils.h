@@ -2,24 +2,24 @@
 #define TEST_UTILS_H
 
 #include "aye.h"
+#include "deciphon.h"
 #include "fs.h"
-#include "press.h"
 
 static inline void setup_database(int gencode_id, float epsilon,
                                   char const *hmmfile, char const *dbfile)
 {
-  struct press *press = NULL;
+  struct dcp_press *press = NULL;
   fs_rmfile(dbfile);
 
-  aye(press = press_new());
-  aye(press_setup(press, gencode_id, epsilon) == 0);
-  aye(press_open(press, hmmfile, dbfile) == 0);
+  aye(press = dcp_press_new());
+  aye(dcp_press_setup(press, gencode_id, epsilon) == 0);
+  aye(dcp_press_open(press, hmmfile, dbfile) == 0);
 
-  while (!press_end(press))
-    aye(press_next(press) == 0);
+  while (!dcp_press_end(press))
+    aye(dcp_press_next(press) == 0);
 
-  aye(press_close(press) == 0);
-  press_del(press);
+  aye(dcp_press_close(press) == 0);
+  dcp_press_del(press);
 }
 
 static inline void cleanup_database(char const *dbfile) { fs_rmfile(dbfile); }

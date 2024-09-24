@@ -1,7 +1,7 @@
-#include "scan.h"
 #include "batch.h"
 #include "database_reader.h"
 #include "debug.h"
+#include "deciphon.h"
 #include "defer_return.h"
 #include "error.h"
 #include "hmmer.h"
@@ -23,7 +23,7 @@
 static inline int omp_get_thread_num() { return 0; }
 #endif
 
-struct scan
+struct dcp_scan
 {
   struct xsignal *xsignal;
   int num_threads;
@@ -45,9 +45,9 @@ struct scan
   void *userdata;
 };
 
-struct scan *scan_new(void)
+struct dcp_scan *dcp_scan_new(void)
 {
-  struct scan *x = malloc(sizeof(*x));
+  struct dcp_scan *x = malloc(sizeof(*x));
   if (!x) return NULL;
 
   if (!(x->xsignal = xsignal_new()))
@@ -79,9 +79,9 @@ struct scan *scan_new(void)
   return x;
 }
 
-void scan_del(struct scan const *scan)
+void dcp_scan_del(struct dcp_scan const *scan)
 {
-  struct scan *x = (struct scan *)scan;
+  struct dcp_scan *x = (struct dcp_scan *)scan;
   if (x)
   {
     xsignal_del(x->xsignal);
@@ -103,7 +103,7 @@ void scan_del(struct scan const *scan)
   }
 }
 
-int scan_setup(struct scan *x, char const *dbfile, int port, int num_threads,
+int dcp_scan_setup(struct dcp_scan *x, char const *dbfile, int port, int num_threads,
                bool multi_hits, bool hmmer3_compat, bool cache,
                void (*callback)(void *), void *userdata)
 {
@@ -143,7 +143,7 @@ int scan_setup(struct scan *x, char const *dbfile, int port, int num_threads,
   return database_reader_close(db);
 }
 
-int scan_run(struct scan *x, struct batch *batch, char const *product_dir)
+int dcp_scan_run(struct dcp_scan *x, struct dcp_batch *batch, char const *product_dir)
 {
   debug("%d thread(s)", x->num_threads);
 
@@ -199,9 +199,9 @@ defer:
   return rc ? rc : product_rc;
 }
 
-bool scan_interrupted(struct scan const *x) { return x->interrupted; }
+bool dcp_scan_interrupted(struct dcp_scan const *x) { return x->interrupted; }
 
-int scan_progress(struct scan const *x)
+int dcp_scan_progress(struct dcp_scan const *x)
 {
   return (100 * x->done_proteins) / x->database_reader.num_proteins;
 }

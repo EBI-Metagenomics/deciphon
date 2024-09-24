@@ -1,5 +1,6 @@
 #include "product_line.h"
 #include "array_size_field.h"
+#include "deciphon.h"
 #include "error.h"
 #include "sizeof_field.h"
 #include "xstrcpy.h"

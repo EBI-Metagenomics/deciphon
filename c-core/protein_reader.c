@@ -1,6 +1,7 @@
 #include "protein_reader.h"
 #include "bug.h"
 #include "database_reader.h"
+#include "deciphon.h"
 #include "defer_return.h"
 #include "error.h"
 #include "expect.h"

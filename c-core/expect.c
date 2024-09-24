@@ -1,4 +1,5 @@
 #include "expect.h"
+#include "deciphon.h"
 #include "error.h"
 #include "lio.h"
 #include "read.h"

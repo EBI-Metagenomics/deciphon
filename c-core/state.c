@@ -1,5 +1,6 @@
-#include "error.h"
 #include "state.h"
+#include "deciphon.h"
+#include "error.h"
 #include <stdint.h>
 
 int state_make_end(void) { return STATE_T; }

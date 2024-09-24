@@ -1,4 +1,5 @@
 #include "hmm_reader.h"
+#include "deciphon.h"
 #include "error.h"
 #include "model.h"
 #include <math.h>

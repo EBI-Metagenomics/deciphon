@@ -1,4 +1,5 @@
 #include "decoder.h"
+#include "deciphon.h"
 #include "error.h"
 #include "imm_frame_cond.h"
 #include "imm_frame_epsilon.h"

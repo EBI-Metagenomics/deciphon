@@ -1,4 +1,5 @@
 #include "sequence.h"
+#include "deciphon.h"
 #include "defer_return.h"
 #include "disambiguate.h"
 #include "error.h"

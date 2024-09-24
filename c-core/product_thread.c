@@ -1,5 +1,6 @@
 #include "product_thread.h"
 #include "array_size_field.h"
+#include "deciphon.h"
 #include "defer_return.h"
 #include "error.h"
 #include "format.h"

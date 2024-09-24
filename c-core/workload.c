@@ -1,5 +1,6 @@
 #include "workload.h"
 #include "bug.h"
+#include "deciphon.h"
 #include "defer_return.h"
 #include "error.h"
 #include "protein_iter.h"

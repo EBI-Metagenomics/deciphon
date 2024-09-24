@@ -1,6 +1,6 @@
-#include "press.h"
 #include "array_size_field.h"
 #include "database_writer.h"
+#include "deciphon.h"
 #include "defer_return.h"
 #include "error.h"
 #include "hmm_reader.h"
@@ -13,7 +13,7 @@
 #include <string.h>
 #include <unistd.h>
 
-struct press
+struct dcp_press
 {
   struct
   {
@@ -35,13 +35,13 @@ struct press
   char buffer[4 * 1024];
 };
 
-static int count_proteins(struct press *);
-static int finish_writer(struct press *);
-static int protein_write(struct press *);
+static int count_proteins(struct dcp_press *);
+static int finish_writer(struct dcp_press *);
+static int protein_write(struct dcp_press *);
 
-struct press *press_new(void)
+struct dcp_press *dcp_press_new(void)
 {
-  struct press *x = malloc(sizeof(*x));
+  struct dcp_press *x = malloc(sizeof(*x));
   if (!x) return NULL;
 
   x->writer.fd = -1;
@@ -51,7 +51,7 @@ struct press *press_new(void)
   return x;
 }
 
-int press_setup(struct press *x, int gencode_id, float epsilon)
+int dcp_press_setup(struct dcp_press *x, int gencode_id, float epsilon)
 {
   x->params.gencode = imm_gencode_get(gencode_id);
   if (!x->params.gencode) return error(DCP_EGENCODEID);
@@ -63,7 +63,7 @@ int press_setup(struct press *x, int gencode_id, float epsilon)
   return 0;
 }
 
-int press_open(struct press *x, char const *hmm, char const *db)
+int dcp_press_open(struct dcp_press *x, char const *hmm, char const *db)
 {
   x->writer.fd = -1;
   x->reader.fp = NULL;
@@ -102,14 +102,14 @@ defer:
   return rc;
 }
 
-long press_nproteins(struct press const *press) { return press->count; }
+long dcp_press_nproteins(struct dcp_press const *press) { return press->count; }
 
-static int count_proteins(struct press *press)
+static int count_proteins(struct dcp_press *press)
 {
 #define HMMER3 "HMMER3/f"
 
   int count = 0;
-  int bufsize = sizeof_field(struct press, buffer);
+  int bufsize = sizeof_field(struct dcp_press, buffer);
   while (fgets(press->buffer, bufsize, press->reader.fp) != NULL)
   {
     if (!strncmp(press->buffer, HMMER3, strlen(HMMER3))) ++count;
@@ -124,7 +124,7 @@ static int count_proteins(struct press *press)
 #undef HMMER3
 }
 
-int press_next(struct press *press)
+int dcp_press_next(struct dcp_press *press)
 {
   int rc = hmm_reader_next(&press->reader.h3);
   if (rc) return rc;
@@ -134,12 +134,12 @@ int press_next(struct press *press)
   return protein_write(press);
 }
 
-bool press_end(struct press const *press)
+bool dcp_press_end(struct dcp_press const *press)
 {
   return hmm_reader_end(&press->reader.h3);
 }
 
-int press_close(struct press *press)
+int dcp_press_close(struct dcp_press *press)
 {
   int rc_r =
       press->reader.fp ? fclose(press->reader.fp) ? error(DCP_EFCLOSE) : 0 : 0;
@@ -151,7 +151,7 @@ int press_close(struct press *press)
   return rc_r ? rc_r : (rc_w ? rc_w : 0);
 }
 
-void press_del(struct press const *x)
+void dcp_press_del(struct dcp_press const *x)
 {
   if (x)
   {
@@ -160,7 +160,7 @@ void press_del(struct press const *x)
   }
 }
 
-static int finish_writer(struct press *press)
+static int finish_writer(struct dcp_press *press)
 {
   if (!press->writer.fd) return 0;
 
@@ -175,7 +175,7 @@ defer:
   return rc;
 }
 
-static int protein_write(struct press *x)
+static int protein_write(struct dcp_press *x)
 {
   int rc = protein_absorb(&x->protein, &x->reader.h3.model);
   if (rc) return rc;
