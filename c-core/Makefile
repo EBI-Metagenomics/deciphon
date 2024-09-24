@@ -1,15 +1,19 @@
-SIMD =
+AUTO_SIMD =
 ifeq ($(shell uname -m),x86_64)
-	SIMD += -mavx2
+	AUTO_SIMD += -mavx2
 endif
 
-OMP =
+AUTO_OMP =
 ifeq ($(shell uname),Linux)
-	OMP += -fopenmp
+	AUTO_OMP += -fopenmp
 endif
 
+SIMD   ?= $(AUTO_SIMD)
+OMP    ?= $(AUTO_OMP)
 CC     ?= gcc
-CFLAGS ?= -std=c11 -Wall -Wextra -O3 -MMD -MP $(SIMD) $(OMP)
+CFLAGS ?= -std=c11 -Wall -Wextra -O3 -MMD -MP
+CFLAGS += $(SIMD)
+CFLAGS += $(OMP)
 PREFIX ?= /usr/local
 SRC = $(filter-out $(wildcard test_*.c),$(wildcard *.c))
 OBJ = $(SRC:.c=.o)
