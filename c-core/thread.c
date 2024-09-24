@@ -16,7 +16,6 @@
 #include "viterbi.h"
 #include "window.h"
 #include "workload.h"
-#include "xsignal.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -47,9 +46,8 @@ static int process_window(struct thread *, struct work *work, int protein_idx,
                           struct product_thread *, struct window *);
 
 int thread_run(struct thread *x, struct dcp_batch const *batch,
-               int *done_proteins, struct xsignal *xsignal,
-               void (*callb)(void *), void (*userdata)(void *),
-               struct product_thread *product)
+               int *done_proteins, void (*callb)(void *),
+               void (*userdata)(void *), struct product_thread *product)
 {
   int rc = 0;
   x->interrupted = false;
@@ -73,7 +71,6 @@ int thread_run(struct thread *x, struct dcp_batch const *batch,
         if ((rc = process_window(x, work, idx, product, &w))) return rc;
 
         if (callb) (*callb)(userdata);
-        if (xsignal && xsignal_interrupted(xsignal)) x->interrupted = true;
         if (x->interrupted) return rc;
       }
     }

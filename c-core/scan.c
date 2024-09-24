@@ -13,7 +13,6 @@
 #include "protein_reader.h"
 #include "thread.h"
 #include "workload.h"
-#include "xsignal.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -25,7 +24,6 @@ static inline int omp_get_thread_num() { return 0; }
 
 struct dcp_scan
 {
-  struct xsignal *xsignal;
   int num_threads;
 
   struct database_reader database_reader;
@@ -40,7 +38,6 @@ struct dcp_scan
   struct thread threads[THREAD_MAX];
 
   int done_proteins;
-  bool interrupted;
   void (*callback)(void *);
   void *userdata;
 };
@@ -50,11 +47,6 @@ struct dcp_scan *dcp_scan_new(void)
   struct dcp_scan *x = malloc(sizeof(*x));
   if (!x) return NULL;
 
-  if (!(x->xsignal = xsignal_new()))
-  {
-    free(x);
-    return NULL;
-  }
   x->num_threads = 0;
 
   database_reader_init(&x->database_reader);
@@ -72,7 +64,6 @@ struct dcp_scan *dcp_scan_new(void)
   }
 
   x->done_proteins = 0;
-  x->interrupted = false;
   x->callback = NULL;
   x->userdata = NULL;
 
@@ -84,7 +75,6 @@ void dcp_scan_del(struct dcp_scan const *scan)
   struct dcp_scan *x = (struct dcp_scan *)scan;
   if (x)
   {
-    xsignal_del(x->xsignal);
     database_reader_cleanup(&x->database_reader);
     protein_reader_cleanup(&x->protein_reader);
     for (int i = 0; i < x->num_threads; ++i)
@@ -150,11 +140,9 @@ int dcp_scan_run(struct dcp_scan *x, struct dcp_batch *batch, char const *produc
   int rc = 0;
 
   x->done_proteins = 0;
-  x->interrupted = false;
 
   struct imm_code *code = &x->database_reader.code.super;
 
-  if ((rc = xsignal_set(x->xsignal)))                defer_return(rc);
   if ((rc = batch_encode(batch, code)))              defer_return(rc);
   if ((rc = product_open(&x->product, product_dir))) defer_return(rc);
 
@@ -174,11 +162,10 @@ int dcp_scan_run(struct dcp_scan *x, struct dcp_batch *batch, char const *produc
     int                   *proteins = &x->done_proteins;
 
     int rank                = omp_get_thread_num();
-    struct xsignal *xsignal = rank == 0 ? x->xsignal   : NULL;
     void (*callb)(void *)   = rank == 0 ? x->callback  : NULL;
     void *args              = rank == 0 ? x->userdata  : NULL;
 
-    int r = thread_run(thread, batch, proteins, xsignal, callb, args, product);
+    int r = thread_run(thread, batch, proteins, callb, args, product);
     if (r || (rank == 0 && thread_interrupted(&x->threads[i])))
     {
       for (int i = 0; i < x->num_threads; ++i)
@@ -189,17 +176,18 @@ int dcp_scan_run(struct dcp_scan *x, struct dcp_batch *batch, char const *produc
     if (r && !rc) rc = r;
   }
 
+  return product_close(&x->product, x->num_threads);
+
 defer:
-  xsignal_unset(x->xsignal);
-
-  for (int i = 0; i < x->num_threads; ++i)
-    x->interrupted |= thread_interrupted(x->threads + i);
-
-  int product_rc = product_close(&x->product, x->num_threads);
-  return rc ? rc : product_rc;
+  product_close(&x->product, x->num_threads);
+  return rc;
 }
 
-bool dcp_scan_interrupted(struct dcp_scan const *x) { return x->interrupted; }
+void dcp_scan_interrupt(struct dcp_scan *x)
+{
+  for (int i = 0; i < x->num_threads; ++i)
+    thread_interrupt(&x->threads[i]);
+}
 
 int dcp_scan_progress(struct dcp_scan const *x)
 {

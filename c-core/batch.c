@@ -57,7 +57,7 @@ void dcp_batch_reset(struct dcp_batch *x)
   queue_init(&x->sequences);
 }
 
-int batch_encode(struct dcp_batch *x, struct imm_code const *code)
+int batch_encode(struct dcp_batch const *x, struct imm_code const *code)
 {
   int rc = 0;
   struct sequence *seq = NULL;

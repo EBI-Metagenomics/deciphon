@@ -12,7 +12,7 @@ int               dcp_scan_setup(struct dcp_scan *, char const *dbfile, int port
                                  int num_threads, bool multi_hits, bool hmmer3_compat,
                                  bool cache, void (*callback)(void *), void *userdata);
 int               dcp_scan_run(struct dcp_scan *, struct dcp_batch *, char const *product_dir);
-bool              dcp_scan_interrupted(struct dcp_scan const *);
+void              dcp_scan_interrupt(struct dcp_scan *);
 int               dcp_scan_progress(struct dcp_scan const*);
 
 struct dcp_press *dcp_press_new(void);
