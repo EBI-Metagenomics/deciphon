@@ -26,9 +26,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: install openmp
+      - name: setup openmp
         if: startsWith(matrix.os, 'macos')
-        run: brew install libomp
+        run: |
+          brew install libomp
+          echo "C_INCLUDE_PATH=/opt/homebrew/opt/libomp/include" >> $GITHUB_ENV
+          echo "LIBRARY_PATH=/opt/homebrew/opt/libomp/lib" >> $GITHUB_ENV
 
       - name: clone lite-pack
         run: git clone --depth 1 https://github.com/EBI-Metagenomics/lite-pack.git lite-pack
