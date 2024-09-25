@@ -1,31 +1,35 @@
 CC        ?= gcc
 CC_NAME   := $(shell $(CC) -v 2>&1 | grep -oE "gcc|clang" | head -n 1)
 CC_VENDOR := $(shell $(CC) --version | { grep -oE "Homebrew|Apple" || true; } | head -n 1)
+LDLIBS    := -ldeciphon -lh3client -lh3result -lhmmer_reader -limm -llio -llite_pack -lm
 
-SIMD ?=
+SIMD   ?=
+OMP    ?=
+LDLIBS ?=
+
 ifeq ($(shell uname -m),x86_64)
-	SIMD += -mavx2
+  SIMD += -mavx2
 endif
 
-OMP ?=
 ifeq ($(CC_NAME),gcc)
   OMP += -fopenmp
 else ifeq ($(CC_NAME),clang)
   ifeq ($(CC_VENDOR),Apple)
-    OMP += -Xclang -fopenmp -lomp
+    OMP    += -Xclang -fopenmp
+    LDLIBS += -lomp
   else
     OMP += -fopenmp
   endif
 endif
 
-CFLAGS ?= -std=c11 -Wall -Wextra -O3 -MMD -MP
-PREFIX ?= /usr/local
-SRC = $(filter-out $(wildcard test_*.c),$(wildcard *.c))
-OBJ = $(SRC:.c=.o)
-HDR = deciphon.h
-LIB = libdeciphon.a
-TEST_SRC = $(wildcard test_*.c)
-TEST_OBJ = $(TEST_SRC:.c=.o)
+CFLAGS     ?= -std=c11 -Wall -Wextra -O3 -MMD -MP
+PREFIX     ?= /usr/local
+SRC         = $(filter-out $(wildcard test_*.c),$(wildcard *.c))
+OBJ         = $(SRC:.c=.o)
+HDR         = deciphon.h
+LIB         = libdeciphon.a
+TEST_SRC    = $(wildcard test_*.c)
+TEST_OBJ    = $(TEST_SRC:.c=.o)
 TEST_TARGET = $(basename $(TEST_OBJ))
 
 
@@ -40,7 +44,7 @@ $(LIB): $(OBJ)
 	$(CC) $(CFLAGS) $(SIMD) $(OMP) -c $< -o $@
 
 $(TEST_TARGET): %: %.o $(LIB)
-	$(CC) $(CFLAGS) $(SIMD) $(OMP) $< -L. -ldeciphon -lh3client -lh3result -lhmmer_reader -limm -llio -llite_pack -lm -o $@
+	$(CC) $(CFLAGS) $(SIMD) $(OMP) $< -L. $(LDLIBS) -o $@
 
 check_match: test_match
 	./test_match
