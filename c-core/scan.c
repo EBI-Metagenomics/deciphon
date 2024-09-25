@@ -13,14 +13,9 @@
 #include "protein_reader.h"
 #include "thread.h"
 #include "workload.h"
+#include <omp.h>
 #include <stdlib.h>
 #include <string.h>
-
-#ifdef _OPENMP
-#include <omp.h>
-#else
-static inline int omp_get_thread_num() { return 0; }
-#endif
 
 struct dcp_scan
 {

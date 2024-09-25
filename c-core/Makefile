@@ -1,14 +1,23 @@
+CC        ?= gcc
+CC_NAME   := $(shell $(CC) -v 2>&1 | grep -oE "gcc|clang" | head -n 1)
+CC_VENDOR := $(shell $(CC) --version | { grep -oE "Homebrew|Apple" || true; } | head -n 1)
+
 SIMD ?=
 ifeq ($(shell uname -m),x86_64)
 	SIMD += -mavx2
 endif
 
 OMP ?=
-ifeq ($(shell uname),Linux)
-	OMP += -fopenmp
+ifeq ($(CC_NAME),gcc)
+  OMP += -fopenmp
+else ifeq ($(CC_NAME),clang)
+  ifeq ($(CC_VENDOR),Apple)
+    OMP += -Xclang -fopenmp -lomp
+  else
+    OMP += -fopenmp
+  endif
 endif
 
-CC     ?= gcc
 CFLAGS ?= -std=c11 -Wall -Wextra -O3 -MMD -MP
 PREFIX ?= /usr/local
 SRC = $(filter-out $(wildcard test_*.c),$(wildcard *.c))
