@@ -1,19 +1,15 @@
-AUTO_SIMD =
+SIMD ?=
 ifeq ($(shell uname -m),x86_64)
-	AUTO_SIMD += -mavx2
+	SIMD += -mavx2
 endif
 
-AUTO_OMP =
+OMP ?=
 ifeq ($(shell uname),Linux)
-	AUTO_OMP += -fopenmp
+	OMP += -fopenmp
 endif
 
-SIMD   ?= $(AUTO_SIMD)
-OMP    ?= $(AUTO_OMP)
 CC     ?= gcc
 CFLAGS ?= -std=c11 -Wall -Wextra -O3 -MMD -MP
-CFLAGS += $(SIMD)
-CFLAGS += $(OMP)
 PREFIX ?= /usr/local
 SRC = $(filter-out $(wildcard test_*.c),$(wildcard *.c))
 OBJ = $(SRC:.c=.o)
@@ -32,10 +28,10 @@ $(LIB): $(OBJ)
 -include $(SRC:.c=.d)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(SIMD) $(OMP) -c $< -o $@
 
 $(TEST_TARGET): %: %.o $(LIB)
-	$(CC) $(CFLAGS) $< -L. -ldeciphon -lh3client -lh3result -lhmmer_reader -limm -llio -llite_pack -lm -o $@
+	$(CC) $(CFLAGS) $(SIMD) $(OMP) $< -L. -ldeciphon -lh3client -lh3result -lhmmer_reader -limm -llio -llite_pack -lm -o $@
 
 check_match: test_match
 	./test_match
