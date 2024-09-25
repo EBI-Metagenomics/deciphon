@@ -120,11 +120,12 @@ int dcp_scan_setup(struct dcp_scan *x, char const *dbfile, int port, int num_thr
     struct hmmer          *hmmer    = x->hmmers + i;
     struct workload       *workload = x->workloads + i;
     struct thread         *thread   = x->threads + i;
+    int num_proteins                = protein_reader_partition_size(&x->protein_reader, i);
 
     protein_setup(protein, params, multi_hits, hmmer3_compat);
     if ((rc = protein_reader_iter(&x->protein_reader, i, it)))                 return rc;
     if ((rc = hmmer_setup(hmmer, db->has_ga, db->num_proteins, port)))         return rc;
-    if ((rc = workload_setup(workload, cache, db->num_proteins, protein, it))) return rc;
+    if ((rc = workload_setup(workload, cache, num_proteins, protein, it)))     return rc;
     thread_setup(thread, hmmer, workload);
   }
 
