@@ -78,6 +78,7 @@ if __name__ == "__main__":
         library_dirs=[str(PKG / "lib")],
         include_dirs=[str(PKG / "include")],
         extra_compile_args=["-fopenmp"] if os.uname().sysname == "Linux" else [],
+        extra_link_args=["-lgomp"] if os.uname().sysname == "Linux" else [],
     )
 
     ffibuilder.compile(verbose=True)
