@@ -1,11 +1,12 @@
 from __future__ import annotations
+import psutil
 
 import importlib.metadata
 from pathlib import Path
 from subprocess import DEVNULL
 from typing import Optional
 
-from deciphon_core.params import Params
+from deciphon_core.batch import Batch
 from deciphon_core.press import PressContext
 from deciphon_core.scan import Scan
 from deciphon_core.schema import Gencode, HMMFile, NewSnapFile
@@ -15,6 +16,7 @@ from more_itertools import mark_ends
 from rich.progress import track
 from typer import Argument, BadParameter, Exit, Option, Typer, echo
 
+from enum import Enum
 from deciphon.catch_validation import catch_validation
 from deciphon.gencode import gencodes
 from deciphon.h3daemon import H3Daemon
@@ -26,6 +28,11 @@ from deciphon.service_exit import service_exit
 __all__ = ["app"]
 
 
+class AutoThreads(str, Enum):
+    physical = "physical"
+    logical = "logical"
+
+
 app = Typer(
     add_completion=False,
     pretty_exceptions_short=True,
@@ -33,7 +40,14 @@ app = Typer(
 )
 
 O_PROGRESS = Option(True, "--progress/--no-progress", help="Display progress bar.")
-O_NUM_THREADS = Option(1, "--num-threads", help="Number of threads.")
+O_NUM_THREADS = Option(
+    0, "--num-threads", help="Number of threads. Pass 0 for core count."
+)
+O_AUTO_THREADS = Option(
+    AutoThreads.physical,
+    "--auto-threads",
+    help="Set number of threads based on core type.",
+)
 O_MULTI_HITS = Option(True, "--multi-hits/--no-multi-hits", help="Set multi-hits.")
 O_HMMER3_COMPAT = Option(
     False, "--hmmer3-compat/--no-hmmer3-compat", help="Set hmmer3 compatibility."
@@ -113,6 +127,7 @@ def scan(
     ),
     snapfile: Optional[Path] = Option(None, help="File to store results."),
     num_threads: int = O_NUM_THREADS,
+    auto_threads: AutoThreads = O_AUTO_THREADS,
     multi_hits: bool = O_MULTI_HITS,
     hmmer3_compat: bool = O_HMMER3_COMPAT,
     progress: bool = O_PROGRESS,
@@ -128,16 +143,18 @@ def scan(
         else:
             snap = NewSnapFile.create_from_prefix(seqfile.with_suffix("").name)
 
+        if num_threads == 0:
+            num_threads = psutil.cpu_count(logical=auto_threads == AutoThreads.logical)
+
         sequences = read_sequences(seqfile)
         with H3Daemon(hmm, stdout=DEVNULL) as daemon:
-            params = Params(num_threads, multi_hits, hmmer3_compat)
-            scan = Scan(params, db)
+            scan = Scan(db, daemon.port, num_threads, multi_hits, hmmer3_compat, False)
             with scan, Progress(scan, disabled=not progress):
-                scan.dial(daemon.port)
+                batch = Batch()
                 for seq in sequences:
-                    scan.add(seq)
-                scan.run(snap)
-        if scan.interrupted():
+                    batch.add(seq)
+                scan.run(snap, batch)
+        if scan.interrupted:
             raise Exit(1)
         snap.make_archive()
         echo("Scan has finished successfully and " f"results stored in '{snap.path}'.")
