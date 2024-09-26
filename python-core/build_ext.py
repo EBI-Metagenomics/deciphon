@@ -1,5 +1,6 @@
 import os
 import shutil
+import sysconfig
 from pathlib import Path
 from subprocess import check_call
 
@@ -12,6 +13,10 @@ def envlist(name: str) -> list[str]:
     if value is None:
         return []
     return value.split(":")
+
+
+def uname():
+    return os.uname().sysname
 
 
 def build_and_install(
@@ -29,6 +34,10 @@ def build_and_install(
     env["LIBRARY_PATH"] = ":".join(envlist("LIBRARY_PATH") + [f"{prefix}/lib"])
     env["CFLAGS"] = "-std=c11 -O3 -fPIC"
     env["PREFIX"] = prefix
+
+    if uname() == "Darwin":
+        target = sysconfig.get_config_var("MACOSX_DEPLOYMENT_TARGET")
+        env["MACOSX_DEPLOYMENT_TARGET"] = target
 
     check_call(["make"], cwd=root / dst_dir, env=env)
     check_call(["make", "install"], cwd=root / dst_dir, env=env)
@@ -71,11 +80,11 @@ if __name__ == "__main__":
             "imm",
             "lio",
             "lite_pack",
-            "gomp" if os.uname().sysname == "Linux" else "omp",
+            "gomp" if uname() == "Linux" else "omp",
         ],
         library_dirs=[str(PKG / "lib")],
         include_dirs=[str(PKG / "include")],
-        extra_compile_args=["-fopenmp"],
+        extra_compile_args=([] if uname() == "Linux" else ["-Xclang"]) + ["-fopenmp"],
     )
 
     ffibuilder.compile(verbose=True)
