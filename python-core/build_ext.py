@@ -35,7 +35,7 @@ def build_and_install(
     env["CFLAGS"] = "-std=c11 -O3 -fPIC"
     env["PREFIX"] = prefix
 
-    if uname() == "Darwin":
+    if uname() == "Darwin" and "MACOSX_DEPLOYMENT_TARGET" not in env:
         target = sysconfig.get_config_var("MACOSX_DEPLOYMENT_TARGET")
         env["MACOSX_DEPLOYMENT_TARGET"] = target
 
