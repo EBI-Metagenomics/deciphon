@@ -12,6 +12,7 @@ def check_exception(exception, exc_value, traceback):
     if traceback is not None:
         scan: Scan = ffi.from_handle(traceback.tb_frame.f_locals["userdata"])
         scan.interrupt()
+        scan.interrupted = True
 
 
 @ffi.def_extern(onerror=check_exception)
@@ -34,6 +35,8 @@ class Scan:
             raise MemoryError()
         self._handle = ffi.new_handle(self)
 
+        self.interrupted = False
+
         if rc := lib.dcp_scan_setup(
             self._cscan,
             bytes(dbfile.path),
@@ -48,6 +51,7 @@ class Scan:
             raise DeciphonError(rc)
 
     def run(self, snap: NewSnapFile, batch: Batch):
+        self.interrupted = False
         if rc := lib.dcp_scan_run(
             self._cscan, batch.cdata, str(snap.basename).encode()
         ):
