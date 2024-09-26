@@ -7,8 +7,11 @@ from cffi import FFI
 from git import Repo
 
 
-def make(cwd: Path, args: list[str] = []):
-    check_call(["make"] + args, cwd=cwd)
+def envlist(name: str) -> list[str]:
+    value = os.environ.get(name, None)
+    if value is None:
+        return []
+    return value.split(":")
 
 
 def build_and_install(
@@ -21,13 +24,14 @@ def build_and_install(
         shutil.rmtree(root / dst_dir, ignore_errors=True)
         shutil.move(root / ".gitdir" / dst_dir / prj_dir, root / dst_dir)
 
-    args = [
-        f"C_INCLUDE_PATH={prefix}/include",
-        f"LIBRARY_PATH={prefix}/lib",
-        "CFLAGS=-std=c11 -O3 -fPIC",
-    ]
-    make(root / dst_dir, args)
-    make(root / dst_dir, ["install", f"PREFIX={prefix}"])
+    env = os.environ.copy()
+    env["C_INCLUDE_PATH"] = ":".join(envlist("C_INCLUDE_PATH") + [f"{prefix}/include"])
+    env["LIBRARY_PATH"] = ":".join(envlist("LIBRARY_PATH") + [f"{prefix}/lib"])
+    env["CFLAGS"] = "-std=c11 -O3 -fPIC"
+    env["PREFIX"] = prefix
+
+    check_call(["make"], cwd=root / dst_dir, env=env)
+    check_call(["make", "install"], cwd=root / dst_dir, env=env)
 
 
 if __name__ == "__main__":
