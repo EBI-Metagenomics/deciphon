@@ -25,39 +25,64 @@ jobs:
         with:
           path: python-core/dist/*.tar.gz
 
-  make_wheels:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - {os: macos-13, arch: x86_64, build: "*"}
-          - {os: macos-14, arch: arm64, build: "*"}
-          - {os: ubuntu-latest, arch: x86_64, build: "*"}
-          - {os: ubuntu-latest, arch: aarch64, build: "*9-manylinux*"}
-          - {os: ubuntu-latest, arch: aarch64, build: "*0-manylinux*"}
-          - {os: ubuntu-latest, arch: aarch64, build: "*1-manylinux*"}
-          - {os: ubuntu-latest, arch: aarch64, build: "*2-manylinux*"}
-          - {os: ubuntu-latest, arch: aarch64, build: "*9-musllinux*"}
-          - {os: ubuntu-latest, arch: aarch64, build: "*0-musllinux*"}
-          - {os: ubuntu-latest, arch: aarch64, build: "*1-musllinux*"}
-          - {os: ubuntu-latest, arch: aarch64, build: "*2-musllinux*"}
+  make_linux_wheels:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: docker/setup-qemu-action@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
         with:
-          platforms: arm64
-        if: matrix.os == 'ubuntu-latest'
+          platforms: all
+
       - name: Build wheels
-        run: pipx run cibuildwheel==2.18.0
-        env:
-          CIBW_ARCHS: ${{ matrix.arch }}
-          CIBW_BUILD: ${{ matrix.build }}
+        run: pipx run cibuildwheel==2.21.0
+
+      - uses: actions/upload-artifact@v3
+        with:
+          path: python-core/wheelhouse/*.whl
+
+  make_macos_intel_wheels:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup OpenMP
+        run: |
+          brew install libomp
+          echo "C_INCLUDE_PATH=$(brew --prefix)/opt/libomp/include" >> $GITHUB_ENV
+          echo "LIBRARY_PATH=$(brew --prefix)/opt/libomp/lib"       >> $GITHUB_ENV
+
+      - name: Build wheels
+        run: pipx run cibuildwheel==2.21.0
+
+      - uses: actions/upload-artifact@v3
+        with:
+          path: python-core/wheelhouse/*.whl
+
+  make_macos_arm_wheels:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install autoconf
+        run: brew install autoconf
+
+      - name: Setup OpenMP
+        run: |
+          brew install libomp
+          echo "C_INCLUDE_PATH=$(brew --prefix)/opt/libomp/include" >> $GITHUB_ENV
+          echo "LIBRARY_PATH=$(brew --prefix)/opt/libomp/lib"       >> $GITHUB_ENV
+
+      - name: Build wheels
+        run: pipx run cibuildwheel==2.21.0
+
       - uses: actions/upload-artifact@v3
         with:
           path: python-core/wheelhouse/*.whl
 
   upload_all:
-    needs: [make_wheels, make_sdist]
+    needs: [make_linux_wheels, make_macos_intel_wheels, make_macos_arm_wheels, make_sdist]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v3
@@ -67,5 +92,5 @@ jobs:
 
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{secrets.PYPI_API_TOKEN}}
+          password: ${{ secrets.PYPI_API_TOKEN }}
           skip-existing: true
