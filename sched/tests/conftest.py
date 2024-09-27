@@ -1,7 +1,7 @@
 import pytest
 
-from deciphon_sched.settings import Settings
 from deciphon_sched.logger import Logger
+from deciphon_sched.settings import Settings
 from deciphon_sched.testing import mqtt_server, s3_cleanup, s3_server
 
 

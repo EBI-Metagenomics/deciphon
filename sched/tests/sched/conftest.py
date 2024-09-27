@@ -1,9 +1,9 @@
+import pathlib
+
 import pytest
 import requests
 from fastapi.testclient import TestClient
-from pydantic import HttpUrl
 
-import pathlib
 from deciphon_sched.main import create_app
 from deciphon_sched.settings import Settings
 
@@ -23,17 +23,19 @@ def s3_upload():
 
 @pytest.fixture
 def compose(mqtt, s3, settings: Settings):
-    settings.mqtt_host = mqtt["host"]
-    settings.mqtt_port = mqtt["port"]
-    settings.s3_key = s3["access_key"]
-    settings.s3_secret = s3["secret_key"]
-    settings.s3_url = HttpUrl(s3["url"])
-    yield {"app": create_app(settings), "settings": settings}
+    data = settings.model_dump()
+    data["mqtt_host"] = mqtt["host"]
+    data["mqtt_port"] = mqtt["port"]
+    data["s3_key"] = s3["access_key"]
+    data["s3_secret"] = s3["secret_key"]
+    data["s3_url"] = s3["url"]
+    settings = Settings.model_validate(data)
+    yield create_app(settings)
 
 
 @pytest.fixture
 def client(compose):
-    with TestClient(compose["app"]) as client:
+    with TestClient(compose) as client:
         yield client
 
 

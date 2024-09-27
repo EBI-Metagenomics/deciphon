@@ -3,6 +3,8 @@ from enum import Enum
 from pydantic import AnyUrl, Field, HttpUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from deciphon_sched.url import http_url
+
 
 class LogLevel(str, Enum):
     debug = "debug"
@@ -18,7 +20,7 @@ class LogLevel(str, Enum):
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="deciphon_sched_", env_file=".env")
+    model_config = SettingsConfigDict(env_prefix="deciphon_sched_")
 
     host: str = "0.0.0.0"
     port: int = 8000
@@ -31,9 +33,9 @@ class Settings(BaseSettings):
 
     s3_key: str = "minioadmin"
     s3_secret: str = "minioadmin"
-    s3_url: HttpUrl = Field(default="http://localhost:9000")
+    s3_url: HttpUrl = http_url("http://127.0.0.1:9000")
     s3_bucket: str = "deciphon"
 
-    mqtt_host: str = "localhost"
+    mqtt_host: str = "127.0.0.1"
     mqtt_port: int = 1883
     mqtt_topic: str = "deciphon"
