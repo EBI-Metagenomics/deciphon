@@ -46,13 +46,13 @@ class Storage:
                 {"Signature": ""},
             ],
         )
-        return PresignedUpload(url=HttpUrl(x["url"]), fields=x["fields"])
+        return PresignedUpload(url=x["url"], fields=x["fields"])
 
     def presigned_download(self, file: str) -> PresignedDownload:
         self._logger.handler.debug(f"generating presigned download for file {file}")
         params = {"Bucket": self._bucket, "Key": file}
         x = self._s3.generate_presigned_url("get_object", Params=params)
-        return PresignedDownload(url=HttpUrl(x))
+        return PresignedDownload(url=x)
 
     def delete(self, file: str):
         self._s3.delete_object(Bucket=self._bucket, Key=file)

@@ -9,7 +9,8 @@ from starlette.status import (
 )
 
 
-async def integrity_error_handler(_: Request, exc: IntegrityError):
+async def integrity_error_handler(_: Request, exc: Exception):
+    assert isinstance(exc, IntegrityError)
     return JSONResponse(
         content={"detail": str(exc)}, status_code=HTTP_422_UNPROCESSABLE_ENTITY
     )
