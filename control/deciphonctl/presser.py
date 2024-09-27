@@ -42,6 +42,7 @@ class Presser(Consumer):
         dcpfile = hmmfile.with_suffix(".dcp")
         hmm = HMMFile(path=file_path(hmmfile))
         db = req.db
+        last_perc = -1
         with PressContext(hmm, gencode=db.gencode, epsilon=db.epsilon) as press:
             self._qout.put(JobUpdate.run(req.job_id, 0).model_dump_json())
             with ProgressLogger(str(hmmfile)) as progress:
@@ -49,7 +50,9 @@ class Presser(Consumer):
                     x.next()
                     progress.percent = (100 * (i + 1)) // press.nproteins
                     perc = progress.percent
-                    self._qout.put(JobUpdate.run(req.job_id, perc).model_dump_json())
+                    if perc != last_perc:
+                        self._qout.put(JobUpdate.run(req.job_id, perc).model_dump_json())
+                        last_perc = perc
         normalise_file_permissions(dcpfile)
         return dcpfile
 

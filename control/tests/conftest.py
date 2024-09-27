@@ -1,17 +1,18 @@
+import asyncio
 import os
+import threading
 from pathlib import Path
 
-import uvicorn
-import threading
 import pytest
-import asyncio
+import uvicorn
 from deciphon_sched.main import create_app
-from deciphonctl.settings import Settings
 from deciphon_sched.settings import Settings as SchedSettings
 from deciphon_sched.testing import mqtt_server, s3_cleanup, s3_server
-from pydantic import HttpUrl
 from typer.testing import CliRunner
 from uvicorn.config import Config
+
+from deciphonctl.settings import Settings
+from deciphonctl.url import http_url
 
 
 @pytest.fixture
@@ -57,21 +58,26 @@ class ThreadedUvicorn:
 
 @pytest.fixture
 def compose(mqtt, s3, settings: Settings):
-    settings.mqtt_host = mqtt["host"]
-    settings.mqtt_port = mqtt["port"]
+    data = settings.model_dump()
+    data["mqtt_host"] = str(mqtt["host"])
+    data["mqtt_port"] = int(mqtt["port"])
+    settings = Settings.model_validate(data)
 
     sched_settings = SchedSettings(
         mqtt_host=settings.mqtt_host,
         mqtt_port=settings.mqtt_port,
         s3_key=s3["access_key"],
         s3_secret=s3["secret_key"],
-        s3_url=HttpUrl(s3["url"]),
+        s3_url=http_url(s3["url"]),
     )
 
     sched = create_app(sched_settings)
     config = Config(app=sched)
-    settings.sched_url = HttpUrl(f"http://{config.host}:{config.port}")
-    sched_settings.allow_origins = [settings.sched_url]
+
+    data = settings.model_dump()
+    data["sched_url"] = http_url(f"http://{config.host}:{config.port}")
+    settings = Settings.model_validate(data)
+
     server = ThreadedUvicorn(config)
 
     server.start()

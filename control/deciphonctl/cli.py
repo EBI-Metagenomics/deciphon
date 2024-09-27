@@ -1,4 +1,5 @@
 import sys
+import psutil
 from pathlib import Path
 
 import fasta_reader
@@ -211,14 +212,19 @@ def presser_run(num_workers: int = 1, log_level: LOG_LEVEL = LogLevel.info):
 
 @scanner.command("run")
 def scanner_run(
-    num_workers: int = 1, num_threads: int = 1, log_level: LOG_LEVEL = LogLevel.info
+    num_workers: int = 1,
+    num_threads: int = 0,
+    log_level: LOG_LEVEL = LogLevel.info,
+    cache: bool = True,
 ):
     settings = Settings()
     raise_sigint_on_sigterm()
     logger.remove()
     logger.add(sys.stderr, level=log_level.value.upper())
     sched = Sched(settings.sched_url, settings.s3_url)
-    scanner_entry(settings, sched, num_workers, num_threads)
+    if num_threads == 0:
+        num_threads = psutil.cpu_count()
+    scanner_entry(settings, sched, num_workers, num_threads, cache)
 
 
 app = typer.Typer(

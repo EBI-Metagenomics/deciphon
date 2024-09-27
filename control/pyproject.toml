@@ -10,20 +10,19 @@ packages = [{ include = "deciphonctl" }]
 [tool.poetry.dependencies]
 python = "^3.10"
 typer = "^0.12"
-requests = "^2.31"
-pydantic = "^2.7"
-pydantic-settings = "^2.2"
+requests = "^2.32"
+pydantic = "^2.9"
+pydantic-settings = "^2.5"
 fasta-reader = "^3.0"
-deciphon = "^0.13"
-deciphon-core = "^0.23"
 loguru = "^0.7"
 requests-toolbelt = "^1.0"
 paho-mqtt = "^2.1"
+deciphon = "^0.14"
 
 [tool.poetry.group.dev.dependencies]
-deciphon-sched = { version = "^0.11", extras = ["testing"] }
+deciphon-sched = { version = "^0.12", extras = ["testing"] }
 pytest = "^8.2"
-uvicorn = "^0.29"
+uvicorn = "^0.30"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
