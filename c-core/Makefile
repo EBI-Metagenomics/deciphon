@@ -46,6 +46,9 @@ $(LIB): $(OBJ)
 $(TEST_TARGET): %: %.o $(LIB)
 	$(CC) $(CFLAGS) $(SIMD) $(OMP) $< -L. $(LDLIBS) -o $@
 
+check_intrinsics: test_intrinsics
+	./test_intrinsics
+
 check_match: test_match
 	./test_match
 

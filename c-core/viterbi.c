@@ -5,29 +5,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if __ARM_NEON
-  #include <arm_neon.h>
-  typedef float32x4_t packf;
-  typedef uint32x4_t  packu;
-  #define ALIGNMENT 16
-  #define NUM_LANES 4
-#elif __AVX__
-  #include <immintrin.h>
-  typedef __m256  packf;
-  typedef __m256i packu;
-  #define ALIGNMENT 32
-  #define NUM_LANES 8
-#else
-  #error "We require either AVX or NEON feature."
-#endif
+#include "intrinsics.h"
 
 #define TIME_FRAME 6
 #define TABLE_SIZE 1364
 
 #define INLINE static inline __attribute__((always_inline))
-
-typedef uint32_t u32;
-typedef float    f32;
 
 #define STEP_NAME_OFFSET 28
 #define STEP_LANE_OFFSET 24
@@ -75,12 +58,12 @@ INLINE u32 step(u32 n, int x)
 
 INLINE int step_lane(u32 x)
 {
-  return (int)(x & STEP_LANE_MASK) >> STEP_LANE_OFFSET;
+  return (int)((x & STEP_LANE_MASK) >> STEP_LANE_OFFSET);
 }
 
 INLINE int step_data(u32 x)
 {
-  return (int)(STEP_DATA_MASK & x) >> STEP_DATA_OFFSET;
+  return (int)((STEP_DATA_MASK & x) >> STEP_DATA_OFFSET);
 }
 
 struct emission
@@ -185,154 +168,25 @@ struct viterbi
   struct trellis trellis;
 };
 
-#if __ARM_NEON
-#define add(a, b)         vaddq_f32(a, b)
-#define and(a, b)         vandq_u32(a, b)
-#define blendf(m, a, b)   vbslq_f32(m, a, b)
-#define blendu(m, a, b)   vbslq_u32(m, a, b)
-#define castf(x)          (packf)(x)
-#define castu(x)          (packu)(x)
-#define dupf(x)           vdupq_n_f32(x)
-#define dupu(x)           vdupq_n_u32(x)
-#define eq(a, b)          vceqq_f32(a, b)
-#define initu(a, b, c, d) ((packu){a, b, c, d})
-#define initf(a, b, c, d) ((packf){a, b, c, d})
-#define loadf(mem)        vld1q_f32(mem)
-#define loadu(mem)        vld1q_u32(mem)
-#define maxu(a, b)        vmaxq_u32(a, b)
-#define min(a, b)         vminq_f32(a, b)
-#define or(a, b)          vorrq_u32(a, b)
-#define storef(mem, x)    vst1q_f32(mem, x)
-#define storeu(mem, x)    vst1q_u32(mem, x)
-#endif
-
-#if __AVX__
-#define add(a, b)                     _mm256_add_ps(a, b)
-#define and(a, b)                     _mm256_and_si256(a, b)
-#define blendf(m, a, b)               _mm256_blendv_ps(b, a, castf(m))
-#define blendu(m, a, b)               _mm256_blendv_epi8(b, a, m)
-#define castf(x)                      _mm256_castsi256_ps(x)
-#define castu(x)                      _mm256_castps_si256(x)
-#define dupf(x)                       _mm256_set1_ps(x)
-#define dupu(x)                       _mm256_set1_epi32(x)
-#define eq(a, b)                      castu(_mm256_cmp_ps(a, b, _CMP_EQ_OQ))
-#define initu(a, b, c, d, e, f, g, h) _mm256_setr_epi32(a, b, c, d, e, f, g, h)
-#define initf(a, b, c, d, e, f, g, h) _mm256_setr_ps(a, b, c, d, e, f, g, h)
-#define loadf(mem)                    _mm256_loadu_ps(mem)
-#define loadu(mem)                    _mm256_loadu_si256(mem)
-#define maxu(a, b)                    _mm256_max_epi32(a, b)
-#define min(a, b)                     _mm256_min_ps(a, b)
-#define or(a, b)                      _mm256_or_si256(a, b)
-#define storef(mem, x)                _mm256_storeu_ps(mem, x)
-#define storeu(mem, x)                _mm256_storeu_si256((packu *)mem, x)
-#endif
-
-INLINE packf shift(packf x)
-{
-#if __ARM_NEON
-  return vextq_f32(dupf(INFINITY), x, NUM_LANES - 1);
-#endif
-#if __AVX__
-  x = _mm256_permutevar8x32_ps(x, initu(7, 0, 1, 2, 3, 4, 5, 6));
-  return _mm256_blend_ps(x, dupf(INFINITY), _MM_SHUFFLE(0, 0, 0, 1));
-#endif
-}
-
-INLINE u32 hmaxu(packu x)
-{
-#if __ARM_NEON
-  return vmaxvq_u32(x);
-#endif
-#if __AVX__
-  x = maxu(x, castu(_mm256_permute_ps(castf(x), _MM_SHUFFLE(2, 3, 0, 1))));
-  x = maxu(x, castu(_mm256_permute_ps(castf(x), _MM_SHUFFLE(1, 0, 3, 2))));
-  x = maxu(x, _mm256_permute2f128_si256(x, x, _MM_SHUFFLE(0, 0, 0, 1)));
-  return _mm_cvtsi128_si32(_mm256_castsi256_si128(x));
-#endif
-}
-
-INLINE f32 hmin(packf x)
-{
-#if __ARM_NEON
-  return vminvq_f32(x);
-#endif
-#if __AVX__
-  x = min(x, _mm256_permute_ps(x, _MM_SHUFFLE(2, 3, 0, 1)));
-  x = min(x, _mm256_permute_ps(x, _MM_SHUFFLE(1, 0, 3, 2)));
-  x = min(x, _mm256_permute2f128_ps(x, x, _MM_SHUFFLE(0, 0, 0, 1)));
-  return _mm_cvtss_f32(_mm256_castps256_ps128(x));
-#endif
-}
-
-INLINE int all_leq(packf a, packf b)
-{
-#if __ARM_NEON
-  packu m = vmvnq_u32(eq(min(a, b), a));
-  uint32x2_t r = vshrn_n_u64(vreinterpretq_u64_u32(m), 16);
-  return !vget_lane_u64(vreinterpret_u64_u32(r), 0);
-#endif
-#if __AVX__
-  return 0xFF == _mm256_movemask_ps(_mm256_cmp_ps(a, b, _CMP_LE_OS));
-#endif
-}
-
-INLINE void setf(packf *x, f32 v, int e)
-{
-  packf broad = dupf(v);
-  int32_t m[2 * NUM_LANES] = {0};
-  m[NUM_LANES] = -1;
-  packu mask = loadu((void const *)(m + NUM_LANES - (e & (NUM_LANES - 1))));
-  *x = blendf(mask, broad, *x);
-}
-
-__attribute__((unused)) INLINE void setu(packu *x, u32 v, int e)
-{
-  packu broad = dupu(v);
-  int32_t m[2 * NUM_LANES] = {0};
-  m[NUM_LANES] = -1;
-  packu mask = loadu((void const *)(m + NUM_LANES - (e & (NUM_LANES - 1))));
-  *x = blendu(mask, broad, *x);
-}
-
-INLINE f32 getf(packf x, int e)
-{
-  f32 arr[NUM_LANES];
-  storef(arr, x);
-  return arr[e & (NUM_LANES - 1)];
-}
-
-INLINE u32 getu(packu x, int e)
-{
-  u32 arr[NUM_LANES];
-  storeu(arr, x);
-  return arr[e & (NUM_LANES - 1)];
-}
-
-__attribute__((unused)) static void echof(packf x)
-{
-  for (int i = 0; i < NUM_LANES; ++i)
-    printf("%6.4f ", getf(x, i));
-  printf("\n");
-}
-
-__attribute__((unused)) static void echou(packu x)
-{
-  for (int i = 0; i < NUM_LANES; ++i)
-    printf("%#010x ", getu(x, i));
-  printf("\n");
-}
-
 INLINE packu pack_index(void)
 {
 #if __ARM_NEON
-  return initu(0x0 << STEP_LANE_OFFSET, 0x1 << STEP_LANE_OFFSET,
-               0x2 << STEP_LANE_OFFSET, 0x3 << STEP_LANE_OFFSET);
-#endif
-#if __AVX__
-  return initu(0x0 << STEP_LANE_OFFSET, 0x1 << STEP_LANE_OFFSET,
-               0x2 << STEP_LANE_OFFSET, 0x3 << STEP_LANE_OFFSET,
-               0x4 << STEP_LANE_OFFSET, 0x5 << STEP_LANE_OFFSET,
-               0x6 << STEP_LANE_OFFSET, 0x7 << STEP_LANE_OFFSET);
+  return init4u(0x0 << STEP_LANE_OFFSET, 0x1 << STEP_LANE_OFFSET,
+                0x2 << STEP_LANE_OFFSET, 0x3 << STEP_LANE_OFFSET);
+#elif __AVX512F__
+  return init16u(0x0 << STEP_LANE_OFFSET, 0x1 << STEP_LANE_OFFSET,
+                 0x2 << STEP_LANE_OFFSET, 0x3 << STEP_LANE_OFFSET,
+                 0x4 << STEP_LANE_OFFSET, 0x5 << STEP_LANE_OFFSET,
+                 0x6 << STEP_LANE_OFFSET, 0x7 << STEP_LANE_OFFSET,
+                 0x8 << STEP_LANE_OFFSET, 0x9 << STEP_LANE_OFFSET,
+                 0xA << STEP_LANE_OFFSET, 0xB << STEP_LANE_OFFSET,
+                 0xC << STEP_LANE_OFFSET, 0xD << STEP_LANE_OFFSET,
+                 0xE << STEP_LANE_OFFSET, 0xF << STEP_LANE_OFFSET);
+#elif __AVX__
+  return init8u(0x0 << STEP_LANE_OFFSET, 0x1 << STEP_LANE_OFFSET,
+                0x2 << STEP_LANE_OFFSET, 0x3 << STEP_LANE_OFFSET,
+                0x4 << STEP_LANE_OFFSET, 0x5 << STEP_LANE_OFFSET,
+                0x6 << STEP_LANE_OFFSET, 0x7 << STEP_LANE_OFFSET);
 #endif
 }
 
@@ -344,10 +198,8 @@ static inline int num_packs(int K)
 
 INLINE void acc(packf *acc_val, packf val, packu *acc_idx, packu idx, int save)
 {
-  packf x = min(*acc_val, val);
-  // if (save) *acc_idx = blendu(eq(x, val), idx, *acc_idx);
-  if (save) *acc_idx = blendu(eq(x, *acc_val), *acc_idx, idx);
-  *acc_val = x;
+  if (save) min_idx(acc_val, val, acc_idx, idx);
+  else      *acc_val = min(*acc_val, val);
 }
 
 INLINE void facc(f32 *acc_val, f32 val, u32 *acc_idx, u32 idx, int save)
@@ -359,9 +211,8 @@ INLINE void facc(f32 *acc_val, f32 val, u32 *acc_idx, u32 idx, int save)
 
 INLINE void hacc(f32 *hval, packf val, u32 *hidx, packu idx, int save)
 {
-  f32 x = hmin(val);
-  if (save) *hidx = hmaxu(and(eq(val, dupf(x)), idx));
-  *hval = x;
+  if (save) hmin_idx(hval, val, hidx, idx);
+  else      *hval = hmin(val);
 }
 
 INLINE int core_pack(int k, int Q)   { return k % Q; }
