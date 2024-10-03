@@ -24,17 +24,9 @@ def checksum(filename: Path):
     return hash_obj.hexdigest()
 
 
-def test_scan(tmp_path, files_path: Path):
-    shutil.copy(files_path / "minifam.hmm", tmp_path)
-    os.chdir(tmp_path)
-
-    hmm = Path("minifam.hmm")
-    with PressContext(HMMFile(path=hmm), Gencode(1)) as press:
-        while not press.end():
-            press.next()
-
-    hmmfile = H3File(hmm)
-    hmmfile.ensure_pressed()
+def run_scan(hmm: Path, hmmfile: H3File, num_threads: int, cache: bool):
+    shutil.rmtree("snap.dcs", ignore_errors=True)
+    shutil.rmtree("snap", ignore_errors=True)
     snapfile = NewSnapFile(path=Path("snap.dcs").absolute())
 
     with SchedContext(hmmfile) as sched:
@@ -43,7 +35,7 @@ def test_scan(tmp_path, files_path: Path):
         batch = Batch()
         for seq in sequences:
             batch.add(seq)
-        scan = Scan(dbfile, sched.get_cport(), 1, True, False, False)
+        scan = Scan(dbfile, sched.get_cport(), num_threads, True, False, False)
         with scan:
             scan.run(snapfile, batch)
             snapfile.make_archive()
@@ -104,3 +96,21 @@ sequences = [
         "CCATACGCTGCTGACCTTCTC",
     ),
 ]
+
+
+def test_scan(tmp_path, files_path: Path):
+    shutil.copy(files_path / "minifam.hmm", tmp_path)
+    os.chdir(tmp_path)
+
+    hmm = Path("minifam.hmm")
+    with PressContext(HMMFile(path=hmm), Gencode(1)) as press:
+        while not press.end():
+            press.next()
+
+    hmmfile = H3File(hmm)
+    hmmfile.ensure_pressed()
+
+    run_scan(hmm, hmmfile, 1, False)
+    run_scan(hmm, hmmfile, 1, True)
+    run_scan(hmm, hmmfile, 2, False)
+    run_scan(hmm, hmmfile, 2, True)
