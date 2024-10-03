@@ -107,9 +107,33 @@ int dcp_scan_setup(struct dcp_scan *x, char const *dbfile, int port, int num_thr
   int abc = db->code.super.abc->typeid;
   if (!(abc == IMM_DNA || abc == IMM_RNA)) return error(DCP_ENUCLTNOSUPPORT);
 
+#pragma omp parallel for
   for (int i = 0; i < x->num_threads; ++i)
   {
     struct model_params    params   = database_reader_params(db, NULL);
+    struct protein        *protein  = x->proteins + i;
+    struct protein_iter   *it       = x->protein_iters + i;
+    struct hmmer          *hmmer    = x->hmmers + i;
+
+    int r = 0;
+    protein_setup(protein, params, multi_hits, hmmer3_compat);
+    if ((r = protein_reader_iter(&x->protein_reader, i, it)))             goto loop_exit;
+    if ((r = hmmer_setup(hmmer, db->has_ga, db->num_proteins, port)))     goto loop_exit;
+
+loop_exit:
+#pragma omp critical
+    if (r && !rc) rc = r;
+  }
+
+  if (rc)
+  {
+    database_reader_close(db);
+    return rc;
+  }
+
+  int index_offset = 0;
+  for (int i = 0; i < x->num_threads; ++i)
+  {
     struct protein        *protein  = x->proteins + i;
     struct protein_iter   *it       = x->protein_iters + i;
     struct hmmer          *hmmer    = x->hmmers + i;
@@ -117,11 +141,9 @@ int dcp_scan_setup(struct dcp_scan *x, char const *dbfile, int port, int num_thr
     struct thread         *thread   = x->threads + i;
     int num_proteins                = protein_reader_partition_size(&x->protein_reader, i);
 
-    protein_setup(protein, params, multi_hits, hmmer3_compat);
-    if ((rc = protein_reader_iter(&x->protein_reader, i, it)))                 return rc;
-    if ((rc = hmmer_setup(hmmer, db->has_ga, db->num_proteins, port)))         return rc;
-    if ((rc = workload_setup(workload, cache, num_proteins, protein, it)))     return rc;
+    if ((rc = workload_setup(workload, cache, index_offset, num_proteins, protein, it))) break;
     thread_setup(thread, hmmer, workload);
+    index_offset += num_proteins;
   }
 
   x->callback = callback;

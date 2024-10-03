@@ -13,13 +13,14 @@ struct workload
   int num_proteins;
   struct protein *protein;
   struct protein_iter *protein_iter;
+  int index_offset;
   int index;
   struct work *works;
 };
 
 void workload_init(struct workload *);
-int  workload_setup(struct workload *, bool cache, int num_proteins,
-                    struct protein *, struct protein_iter *);
+int  workload_setup(struct workload *, bool cache, int index_offset,
+                    int num_proteins, struct protein *, struct protein_iter *);
 int  workload_rewind(struct workload *);
 int  workload_next(struct workload *, struct work **);
 bool workload_end(struct workload *);

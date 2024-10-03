@@ -13,19 +13,22 @@ void workload_init(struct workload *x)
   x->num_proteins = -1;
   x->protein      = NULL;
   x->protein_iter = NULL;
+  x->index_offset = 0;
   x->index        = -1;
   x->works        = NULL;
 }
 
-int workload_setup(struct workload *x, bool cache, int num_proteins,
-                   struct protein *protein, struct protein_iter *iter)
+int workload_setup(struct workload *x, bool cache, int index_offset,
+                   int num_proteins, struct protein *protein,
+                   struct protein_iter *iter)
 {
   int rc          = 0;
   x->cache        = cache;
   x->num_proteins = num_proteins;
   x->protein      = protein;
   x->protein_iter = iter;
-  x->index = -1;
+  x->index_offset = index_offset;
+  x->index        = -1;
 
   x->works = malloc(sizeof(*x->works) * (cache ? num_proteins : 1));
   if (!x->works) return error(DCP_ENOMEM);
@@ -73,7 +76,7 @@ int workload_next(struct workload *x, struct work **work)
   x->index += 1;
   if (workload_end(x)) return 0;
 
-  *work = x->works + (x->cache ? x->index : 0);
+  *work = x->works + (x->cache ? x->index: 0);
   if (!x->cache)
   {
     if ((rc = protein_iter_next(x->protein_iter, x->protein))) return rc;
@@ -89,7 +92,7 @@ bool workload_end(struct workload *x)
                   : protein_iter_end(x->protein_iter);
 }
 
-int workload_index(struct workload const *x) { return x->index; }
+int workload_index(struct workload const *x) { return x->index + x->index_offset; }
 
 void workload_cleanup(struct workload *x)
 {

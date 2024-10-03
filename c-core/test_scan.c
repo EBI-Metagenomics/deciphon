@@ -10,7 +10,7 @@
 #define DBFILE "scan.dcp"
 #define PRODDIR "scan_product"
 #define PORT 51300
-#define NUM_THREADS 1
+#define NUM_THREADS 2
 
 static bool multi_hits[] = {false, false, true, true};
 static bool hmmer3_compat[] = {false, true, false, true};
@@ -39,7 +39,6 @@ static void test_normal_scan(void)
     aye(dcp_scan_run(scan, batch, PRODDIR) == 0);
     aye(dcp_scan_progress(scan) == 100);
     dcp_scan_del(scan);
-    printf("normal: %ld\n", chksum(PRODDIR "/products.tsv"));
     aye(chksum(PRODDIR "/products.tsv") == normal_chksums[i]);
     fs_rmtree(PRODDIR);
   }
@@ -70,7 +69,6 @@ static void test_reuse_scan(void)
     }
     aye(dcp_scan_progress(scan) == 100);
     dcp_scan_del(scan);
-    printf("reuse: %ld\n", chksum(PRODDIR "/products.tsv"));
     aye(chksum(PRODDIR "/products.tsv") == reuse_chksums[i]);
     fs_rmtree(PRODDIR);
   }
