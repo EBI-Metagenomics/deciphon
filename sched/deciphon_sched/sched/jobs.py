@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import APIRouter, Request
 from starlette.status import HTTP_200_OK
 
@@ -6,15 +8,16 @@ from deciphon_sched.errors import NotFoundInDatabaseError
 from deciphon_sched.sched.models import Job
 from deciphon_sched.sched.schemas import JobRead, JobState, JobUpdate
 
-
 router = APIRouter()
 
 
 @router.get("/jobs", status_code=HTTP_200_OK)
-async def read_jobs(request: Request) -> list[JobRead]:
+async def read_jobs(request: Request, limit: Optional[int] = None) -> list[JobRead]:
     database: Database = request.app.state.database
     with database.create_session() as session:
-        return [x.read_model() for x in Job.get_all(session)]
+        jobs = [x.read_model() for x in Job.get_all(session)]
+        limit = len(jobs) if limit is None else limit
+        return jobs[:limit]
 
 
 @router.get("/jobs/{job_id}", status_code=HTTP_200_OK)
