@@ -3,7 +3,7 @@ from pathlib import Path
 from subprocess import DEVNULL
 
 from deciphon.h3daemon import H3Daemon
-from deciphon_core.scan import Scan
+from deciphon_core.scan import DeciphonError, Scan
 from deciphon_core.batch import Batch
 from deciphon_core.schema import DBFile, HMMFile, NewSnapFile
 from deciphon_core.sequence import Sequence
@@ -17,7 +17,7 @@ from deciphonctl.files import (
     remove_temporary_files,
     unique_temporary_file,
 )
-from deciphonctl.models import ScanRequest
+from deciphonctl.models import JobUpdate, ScanRequest
 from deciphonctl.progress import Progress
 from deciphonctl.progress_informer import ProgressInformer
 from deciphonctl.sched import Sched
@@ -94,7 +94,6 @@ class Scanner(Consumer):
                 logger.info("self._daemon.__enter__()")
                 self._daemon.__enter__()
                 logger.info("starting scanner")
-                logger.info("self._scan.__enter__()")
                 self._scan = Scan(
                     db,
                     self._daemon.port,
@@ -106,12 +105,19 @@ class Scanner(Consumer):
                 self._scan.__enter__()
 
             self._batch.reset()
-            with Progress("scan", self._scan, self._sched, x.job_id):
-                for seq in x.seqs:
-                    self._batch.add(Sequence(seq.id, seq.name, seq.data))
-                self._scan.run(snap, self._batch)
+            try:
+                with Progress("scan", self._scan, self._sched, x.job_id):
+                    for seq in x.seqs:
+                        self._batch.add(Sequence(seq.id, seq.name, seq.data))
+                    self._scan.run(snap, self._batch)
+            except DeciphonError as ex:
+                logger.exception(ex)
+                self._sched.job_patch(JobUpdate.fail(x.job_id, str(ex)))
+                return
             if self._scan.interrupted:
-                raise InterruptedError("Scanner has been interrupted.")
+                ex = InterruptedError("Scanner has been interrupted.")
+                self._sched.job_patch(JobUpdate.fail(x.job_id, str(ex)))
+                raise ex
             snap.make_archive()
             logger.info(
                 "Scan has finished successfully and "

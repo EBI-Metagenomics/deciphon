@@ -22,9 +22,10 @@ class Consumer(ABC):
             try:
                 message = cast(str, self._queue.get())
                 self.callback(message)
-                self._queue.task_done()
             except KeyboardInterrupt:
                 assert False
             except Exception as exception:
                 logger.exception(exception)
                 time.sleep(1)
+            finally:
+                self._queue.task_done()
