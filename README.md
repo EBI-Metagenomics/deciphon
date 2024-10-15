@@ -1,7 +1,7 @@
 <h1 align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./.github/assets/logo-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="./.github/assets/logo-light.png">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/EBI-Metagenomics/deciphon/refs/heads/readme/.github/assets/logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/EBI-Metagenomics/deciphon/refs/heads/readme/.github/assets/logo-light.png">
   </picture>
 </h1>
 
