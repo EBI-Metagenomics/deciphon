@@ -11,7 +11,7 @@ incorporates quasi-codons, Deciphon allows for direct annotation of protein sequ
 without the need for prior error correction or open reading frame identification.
 
 <p align="center">
-    <img src="./img/chlamydia.png" alt="Comparison on Chlamydia long-read" width="740">
+  <img src="./.github/assets/chlamydia.png" alt="Comparison on Chlamydia long-read" width="740">
 </p>
 
 The figure above illustrates the Pfam annotations found using Deciphon, compared to combinations
