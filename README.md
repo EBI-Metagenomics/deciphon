@@ -2,6 +2,7 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/EBI-Metagenomics/deciphon/refs/heads/readme/.github/assets/logo-dark.png">
     <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/EBI-Metagenomics/deciphon/refs/heads/readme/.github/assets/logo-light.png">
+    <img src="https://raw.githubusercontent.com/EBI-Metagenomics/deciphon/refs/heads/readme/.github/assets/logo-light.png">
   </picture>
 </h1>
 
