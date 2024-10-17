@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "poster"
+name = "deciphon-poster"
 version = "0.1.0"
 description = "Poster for Deciphon scheduler."
 authors = ["Danilo Horta <danilo.horta@pm.me>"]
