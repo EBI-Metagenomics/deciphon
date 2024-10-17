@@ -10,7 +10,7 @@ packages = [{ include = "deciphon" }]
 [tool.poetry.dependencies]
 python = "^3.9"
 cffi = "^1.16"
-fasta-reader = "^3.0"
+fasta-reader = "^3.0.3"
 h3daemon = "^0.14"
 hmmer = "^3.4"
 ijson = "^3.3"
@@ -20,7 +20,7 @@ rich = "^13.8"
 deciphon-snap = "^0.12"
 more-itertools = "^10.5"
 psutil = "^6.0.0"
-deciphon-core = "^0.24"
+deciphon-core = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2"
