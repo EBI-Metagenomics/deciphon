@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deciphon-snap"
-version = "0.12.1"
+version = "1.0.0"
 description = "Reader for Deciphon snap files."
 authors = ["Danilo Horta <horta@ebi.ac.uk>"]
 license = "MIT"
@@ -9,13 +9,13 @@ packages = [{ include = "deciphon_snap" }]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-fsspec = ">=2024.5.0"
-h3result = "^1.0"
-fasta-reader = "^3.0"
-deciphon-intervals = "^0.1"
+fsspec = ">=2024.9.0"
+h3result = "^1.0.1"
+fasta-reader = "^3.0.3"
+deciphon-intervals = "^1.0.0"
 prettytable = "^3.11"
 pydantic = "^2.9"
-hmmer-tables = "^0.6"
+hmmer-tables = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2"
