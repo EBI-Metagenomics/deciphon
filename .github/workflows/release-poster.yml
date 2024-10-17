@@ -19,6 +19,8 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
+      - name: Build
+        run: pipx run build
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: poster/dist
