@@ -5,18 +5,17 @@ from pathlib import Path
 from typing import Optional
 
 import requests
-from deciphon_core.schema import Gencode
-from pydantic import FilePath, HttpUrl
+from deciphon_core.schema import DBName, Gencode, HMMName
+from pydantic import FilePath, HttpUrl, TypeAdapter
 from requests_toolbelt import MultipartEncoder
 
 from deciphon_poster.errors import PosterHTTPError
-from deciphon_poster.models import DBFile, HMMFile, JobUpdate, Scan, UploadPost
-from deciphon_poster.url import http_url
+from deciphon_poster.schema import JobUpdate, Scan, UploadPost
 
 
 class Poster:
-    def __init__(self, url: HttpUrl, s3_url: Optional[HttpUrl]):
-        self._url = url
+    def __init__(self, sched_url: HttpUrl, s3_url: Optional[HttpUrl]):
+        self.sched_url = sched_url
         self.s3_url = s3_url
 
     def handle_http_response(self, response):
@@ -48,7 +47,7 @@ class Poster:
             m = MultipartEncoder(fields=fields)
             self.post(post.url_string, data=m, headers={"content-type": m.content_type})
 
-    def hmm_post(self, file: HMMFile, gencode: Gencode, epsilon: float):
+    def hmm_post(self, file: HMMName, gencode: Gencode, epsilon: float):
         self.post(
             self.url("hmms/"),
             params={"gencode": gencode, "epsilon": epsilon},
@@ -61,15 +60,8 @@ class Poster:
     def hmm_list(self):
         return self.get(self.url("hmms")).json()
 
-    def db_post(self, file: DBFile):
-        self.post(
-            self.url("dbs/"),
-            json={
-                "name": file.name,
-                "gencode": int(file.gencode),
-                "epsilon": file.epsilon,
-            },
-        )
+    def db_post(self, file: DBName):
+        self.post(self.url("dbs/"), json={"name": file.name})
 
     def db_delete(self, db_id: int):
         self.delete(self.url(f"dbs/{db_id}"))
@@ -113,7 +105,28 @@ class Poster:
         return strip_empty_lines(x)
 
     def url(self, endpoint: str):
-        return urllib.parse.urljoin(self._url.unicode_string(), endpoint)
+        return urllib.parse.urljoin(self.sched_url.unicode_string(), endpoint)
+
+    def _request(self, path: str):
+        return self.get(self.url(path)).json()
+
+    def download_hmm_url(self, filename: str):
+        x = self._request(f"hmms/presigned-download/{filename}")
+        return http_url(x["url"])
+
+    def download_db_url(self, filename: str):
+        x = self._request(f"dbs/presigned-download/{filename}")
+        return http_url(x["url"])
+
+    def upload_hmm_post(self, filename: str):
+        x = self._request(f"hmms/presigned-upload/{filename}")
+        url = self.s3_url if self.s3_url else http_url(x["url"])
+        return UploadPost(url=url, fields=x["fields"])
+
+    def upload_db_post(self, filename: str):
+        x = self._request(f"dbs/presigned-upload/{filename}")
+        url = self.s3_url if self.s3_url else http_url(x["url"])
+        return UploadPost(url=url, fields=x["fields"])
 
 
 def strip_empty_lines(s):
@@ -123,3 +136,7 @@ def strip_empty_lines(s):
     while lines and not lines[-1].strip():
         lines.pop()
     return "\n".join(lines)
+
+
+def http_url(url: str) -> HttpUrl:
+    return TypeAdapter(HttpUrl).validate_strings(url)
