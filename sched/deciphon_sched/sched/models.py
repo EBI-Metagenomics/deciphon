@@ -4,15 +4,13 @@ from collections.abc import Iterable
 from datetime import datetime
 from typing import Optional
 
-from deciphon_core.schema import Gencode
+from deciphon_core.schema import DBName, HMMName
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
-from deciphon_sched.errors import JobStateTransitionError
 
+from deciphon_sched.errors import JobStateTransitionError
 from deciphon_sched.sched.schemas import (
-    DBFile,
     DBRead,
-    HMMFile,
     HMMRead,
     JobRead,
     JobState,
@@ -131,11 +129,11 @@ class HMM(BaseModel):
     name: Mapped[str] = mapped_column(unique=True)
 
     @classmethod
-    def create(cls, file: HMMFile):
+    def create(cls, file: HMMName):
         return cls(job=Job.create(type=JobType.hmm), name=file.name)
 
     def read_model(self):
-        file = HMMFile(name=self.name)
+        file = HMMName(name=self.name)
         return HMMRead(id=self.id, job=self.job.read_model(), file=file)
 
     @staticmethod
@@ -163,22 +161,13 @@ class DB(BaseModel):
     scans: Mapped[list[Scan]] = relationship(back_populates="db")
 
     name: Mapped[str]
-    gencode: Mapped[int]
-    epsilon: Mapped[float]
 
     @classmethod
-    def create(cls, hmm: HMM, file: DBFile):
-        return cls(
-            hmm=hmm,
-            name=file.name,
-            gencode=int(file.gencode),
-            epsilon=file.epsilon,
-        )
+    def create(cls, hmm: HMM, file: DBName):
+        return cls(hmm=hmm, name=file.name)
 
     def read_model(self):
-        file = DBFile(
-            name=self.name, gencode=Gencode(self.gencode), epsilon=self.epsilon
-        )
+        file = DBName(name=self.name)
         return DBRead(id=self.id, hmm=self.hmm.read_model(), file=file)
 
     @staticmethod

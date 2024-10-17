@@ -48,35 +48,14 @@ class JobUpdate(BaseModel):
     error: str
 
 
-class HMMFile(HMMName):
-    @property
-    def db_name(self):
-        return DBName(name=self.name[:-4] + ".dcp")
-
-    @property
-    def path_type(self):
-        return fastapi.Path(
-            title="HMM file",
-            pattern=HMM_NAME_PATTERN,
-            max_length=NAME_MAX_LENGTH,
-        )
+HMMFilePathType = fastapi.Path(
+    title="HMM file", pattern=HMM_NAME_PATTERN, max_length=NAME_MAX_LENGTH
+)
 
 
-class DBFile(DBName):
-    gencode: Gencode
-    epsilon: float
-
-    @property
-    def hmm_name(self):
-        return HMMName(name=self.name[:-4] + ".hmm")
-
-    @property
-    def path_type(self):
-        return fastapi.Path(
-            title="DB file",
-            pattern=DB_NAME_PATTERN,
-            max_length=NAME_MAX_LENGTH,
-        )
+DBFilePathType = fastapi.Path(
+    title="DB file", pattern=DB_NAME_PATTERN, max_length=NAME_MAX_LENGTH
+)
 
 
 class SnapFile(SnapName):
@@ -91,20 +70,23 @@ class SnapFile(SnapName):
 
 class PressRequest(BaseModel):
     job_id: int
-    hmm: HMMFile
-    db: DBFile
+    hmm: HMMName
+    db: DBName
+    gencode: Gencode
+    epsilon: float
 
     @classmethod
-    def create(cls, job_id: int, hmm: HMMFile, gencode: Gencode, epsilon: float):
-        db = DBFile(name=hmm.db_name.name, gencode=gencode, epsilon=epsilon)
-        return cls(job_id=job_id, hmm=hmm, db=db)
+    def create(cls, job_id: int, hmm: HMMName, gencode: Gencode, epsilon: float):
+        return cls(
+            job_id=job_id, hmm=hmm, db=hmm.db_name, gencode=gencode, epsilon=epsilon
+        )
 
 
 class ScanRequest(BaseModel):
     id: int
     job_id: int
-    hmm: HMMFile
-    db: DBFile
+    hmm: HMMName
+    db: DBName
     multi_hits: bool
     hmmer3_compat: bool
     seqs: list[SeqRead]
@@ -114,7 +96,7 @@ class ScanRequest(BaseModel):
         return cls(
             id=scan.id,
             job_id=scan.job.id,
-            hmm=HMMFile(name=scan.db.hmm.file.name),
+            hmm=HMMName(name=scan.db.hmm.file.name),
             db=scan.db.file,
             multi_hits=scan.multi_hits,
             hmmer3_compat=scan.hmmer3_compat,
@@ -125,17 +107,17 @@ class ScanRequest(BaseModel):
 class HMMRead(BaseModel):
     id: int
     job: JobRead
-    file: HMMFile
+    file: HMMName
 
 
 class DBCreate(BaseModel):
-    file: DBFile
+    file: DBName
 
 
 class DBRead(BaseModel):
     id: int
     hmm: HMMRead
-    file: DBFile
+    file: DBName
 
 
 class SeqCreate(BaseModel):

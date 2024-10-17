@@ -1,14 +1,12 @@
-from deciphon_sched.logger import Logger
-from deciphon_sched.sched.schemas import Gencode
 import pytest
+from deciphon_core.schema import DBName, HMMName
 from sqlalchemy import select
 
 from deciphon_sched.database import Database
+from deciphon_sched.logger import Logger
 from deciphon_sched.sched.models import (
     DB,
     HMM,
-    DBFile,
-    HMMFile,
     Scan,
     Seq,
     metadata,
@@ -18,12 +16,12 @@ from deciphon_sched.settings import Settings
 
 @pytest.fixture()
 def hmmfile():
-    return HMMFile(name="file.hmm")
+    return HMMName(name="file.hmm")
 
 
 @pytest.fixture()
 def dbfile():
-    return DBFile(name="file.dcp", gencode=Gencode(1), epsilon=0.01)
+    return DBName(name="file.dcp")
 
 
 @pytest.fixture()
@@ -33,7 +31,7 @@ def session(settings: Settings, logger: Logger):
     yield database.create_session()
 
 
-def test_models_add_get_hmm(session, hmmfile: HMMFile):
+def test_models_add_get_hmm(session, hmmfile: HMMName):
     for i in range(1, 2):
         hmm = HMM.create(file=hmmfile)
 
@@ -47,7 +45,7 @@ def test_models_add_get_hmm(session, hmmfile: HMMFile):
         assert hmm.job.id == i
 
 
-def test_models_add_get_db(session, hmmfile: HMMFile, dbfile: DBFile):
+def test_models_add_get_db(session, hmmfile: HMMName, dbfile: DBName):
     for i in range(1, 2):
         db = DB.create(hmm=HMM.create(file=hmmfile), file=dbfile)
 
@@ -63,7 +61,7 @@ def test_models_add_get_db(session, hmmfile: HMMFile, dbfile: DBFile):
         assert db.hmm.job.id == i
 
 
-def test_models_add_get_scan(session, hmmfile: HMMFile, dbfile: DBFile):
+def test_models_add_get_scan(session, hmmfile: HMMName, dbfile: DBName):
     for i in range(1, 2):
         db = DB.create(hmm=HMM.create(file=hmmfile), file=dbfile)
         seqs = [Seq(name="seq1", data="ACGT"), Seq(name="seq2", data="CGA")]

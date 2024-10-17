@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from deciphon_core.schema import DBName
 from fastapi import APIRouter, Request
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
@@ -10,7 +11,7 @@ from deciphon_sched.errors import (
     NotFoundInDatabaseError,
 )
 from deciphon_sched.sched.models import DB, HMM
-from deciphon_sched.sched.schemas import DBFile, DBRead
+from deciphon_sched.sched.schemas import DBFilePathType, DBRead
 from deciphon_sched.storage import PresignedDownload, PresignedUpload, Storage
 
 router = APIRouter()
@@ -26,7 +27,7 @@ async def read_dbs(request: Request) -> list[DBRead]:
 @router.get("/dbs/presigned-upload/{name}", status_code=HTTP_200_OK)
 async def presigned_db_upload(
     request: Request,
-    name: Annotated[str, DBFile.path_type],
+    name: Annotated[str, DBFilePathType],
 ) -> PresignedUpload:
     storage: Storage = request.app.state.storage
     database: Database = request.app.state.database
@@ -41,7 +42,7 @@ async def presigned_db_upload(
 @router.get("/dbs/presigned-download/{name}", status_code=HTTP_200_OK)
 async def presigned_db_download(
     request: Request,
-    name: Annotated[str, DBFile.path_type],
+    name: Annotated[str, DBFilePathType],
 ) -> PresignedDownload:
     storage: Storage = request.app.state.storage
     database: Database = request.app.state.database
@@ -54,7 +55,7 @@ async def presigned_db_download(
 
 
 @router.post("/dbs/", status_code=HTTP_201_CREATED)
-async def create_db(request: Request, db: DBFile) -> DBRead:
+async def create_db(request: Request, db: DBName) -> DBRead:
     storage: Storage = request.app.state.storage
     database: Database = request.app.state.database
 

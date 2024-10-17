@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from deciphon_core.schema import Gencode
+from deciphon_core.schema import Gencode, HMMName
 from fastapi import APIRouter, Request
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
@@ -12,7 +12,7 @@ from deciphon_sched.errors import (
 )
 from deciphon_sched.journal import Journal
 from deciphon_sched.sched.models import HMM
-from deciphon_sched.sched.schemas import HMMFile, HMMRead, PressRequest
+from deciphon_sched.sched.schemas import HMMFilePathType, HMMRead, PressRequest
 from deciphon_sched.storage import PresignedDownload, PresignedUpload, Storage
 
 router = APIRouter()
@@ -28,7 +28,7 @@ async def read_hmms(request: Request) -> list[HMMRead]:
 @router.get("/hmms/presigned-upload/{name}", status_code=HTTP_200_OK)
 async def presigned_hmm_upload(
     request: Request,
-    name: Annotated[str, HMMFile.path_type],
+    name: Annotated[str, HMMFilePathType],
 ) -> PresignedUpload:
     storage: Storage = request.app.state.storage
     database: Database = request.app.state.database
@@ -43,7 +43,7 @@ async def presigned_hmm_upload(
 @router.get("/hmms/presigned-download/{name}", status_code=HTTP_200_OK)
 async def presigned_hmm_download(
     request: Request,
-    name: Annotated[str, HMMFile.path_type],
+    name: Annotated[str, HMMFilePathType],
 ) -> PresignedDownload:
     storage: Storage = request.app.state.storage
     database: Database = request.app.state.database
@@ -57,7 +57,7 @@ async def presigned_hmm_download(
 
 @router.post("/hmms/", status_code=HTTP_201_CREATED)
 async def create_hmm(
-    request: Request, hmm: HMMFile, gencode: Gencode, epsilon: float
+    request: Request, hmm: HMMName, gencode: Gencode, epsilon: float
 ) -> HMMRead:
     storage: Storage = request.app.state.storage
     database: Database = request.app.state.database
