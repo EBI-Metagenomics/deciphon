@@ -10,7 +10,7 @@ defaults:
     working-directory: python-core
 
 env:
-  CIBW_PROJECT_REQUIRES_PYTHON: ">=3.9,<3.13"
+  CIBW_PROJECT_REQUIRES_PYTHON: ">=3.9,<3.14"
 
 jobs:
   make_sdist:
@@ -36,7 +36,7 @@ jobs:
           platforms: all
 
       - name: Build wheels
-        run: pipx run cibuildwheel==2.21.0
+        run: pipx run cibuildwheel==2.21.3
 
       - uses: actions/upload-artifact@v3
         with:
@@ -57,7 +57,7 @@ jobs:
         run: echo "MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion | cut -d '.' -f 1-2)" >> $GITHUB_ENV
 
       - name: Build wheels
-        run: pipx run cibuildwheel==2.21.0
+        run: pipx run cibuildwheel==2.21.3
 
       - uses: actions/upload-artifact@v3
         with:
@@ -81,7 +81,7 @@ jobs:
         run: echo "MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion | cut -d '.' -f 1-2)" >> $GITHUB_ENV
 
       - name: Build wheels
-        run: pipx run cibuildwheel==2.21.0
+        run: pipx run cibuildwheel==2.21.3
 
       - uses: actions/upload-artifact@v3
         with:
