@@ -51,7 +51,7 @@ class DBName(BaseModel):
     name: str = Field(pattern=DB_NAME_PATTERN, max_length=NAME_MAX_LENGTH)
 
     @property
-    def hmm_file_name(self):
+    def hmm_name(self):
         return HMMName(name=self.name[:-4] + ".hmm")
 
 
