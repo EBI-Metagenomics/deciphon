@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deciphon"
-version = "0.14.0"
+version = "1.0.0"
 description = "Individually annotate long, error-prone nucleotide sequences into proteins"
 authors = ["Danilo Horta <horta@ebi.ac.uk>"]
 license = "MIT"
@@ -17,7 +17,7 @@ ijson = "^3.3"
 pydantic = "^2.9"
 typer = "^0.12"
 rich = "^13.8"
-deciphon-snap = "^0.12"
+deciphon-snap = "^1.0.0"
 more-itertools = "^10.5"
 psutil = "^6.0.0"
 deciphon-core = "^1.0.0"
