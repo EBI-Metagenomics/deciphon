@@ -41,7 +41,7 @@ class MosquittoContainer(DockerContainer):
     def _healthcheck(self):
         host = self.get_container_host_ip()
         port = int(self.get_exposed_port(self.port))
-        x = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
+        x = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         x.connect(host, port, 1)
         if x.loop() != 0:
             raise ConnectionError()
