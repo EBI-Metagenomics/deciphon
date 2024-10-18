@@ -3,8 +3,6 @@ from __future__ import annotations
 from click.exceptions import UsageError
 from pydantic import ValidationError
 
-__all__ = ["catch_validation"]
-
 
 class catch_validation:
     def __enter__(self):

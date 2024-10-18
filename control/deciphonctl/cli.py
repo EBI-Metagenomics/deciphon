@@ -1,22 +1,18 @@
 import sys
-import psutil
 from pathlib import Path
 
 import fasta_reader
 import rich
 import typer
-from deciphon_core.schema import Gencode
-from loguru import logger
+from deciphon_core.schema import DBName, Gencode, HMMName
+from deciphon_poster.poster import Poster
+from deciphon_poster.schema import Scan, Seq
 from typer import Argument, FileText, Option
 from typing_extensions import Annotated
 
 from deciphonctl.catch_validation import catch_validation
-from deciphonctl.models import DBFile, HMMFile, LogLevel, Scan, Seq
-from deciphonctl.presser import presser_entry
-from deciphonctl.scanner import scanner_entry
-from deciphonctl.sched import Sched
+from deciphonctl.log_level import LogLevel
 from deciphonctl.settings import Settings
-from deciphonctl.signals import raise_sigint_on_sigterm
 
 HMMFILE = Annotated[
     Path,
@@ -85,52 +81,52 @@ def config_dump():
 @hmm.command("add")
 def hmm_add(hmmfile: HMMFILE, gencode: GENCODE, epsilon: EPSILON = 0.01):
     settings = Settings()
-    sched = Sched(settings.sched_url, settings.s3_url)
-    sched.upload(hmmfile, sched.presigned.upload_hmm_post(hmmfile.name))
-    sched.hmm_post(HMMFile(name=hmmfile.name), gencode, epsilon)
+    poster = Poster(settings.sched_url, settings.s3_url)
+    poster.upload(hmmfile, poster.upload_hmm_post(hmmfile.name))
+    poster.hmm_post(HMMName(name=hmmfile.name), gencode, epsilon)
 
 
 @hmm.command("rm")
 def hmm_rm(hmm_id: HMMID):
     settings = Settings()
-    sched = Sched(settings.sched_url, settings.s3_url)
-    sched.hmm_delete(hmm_id)
+    poster = Poster(settings.sched_url, settings.s3_url)
+    poster.hmm_delete(hmm_id)
 
 
 @hmm.command("ls")
 def hmm_ls():
     settings = Settings()
-    sched = Sched(settings.sched_url, settings.s3_url)
-    rich.print(sched.hmm_list())
+    poster = Poster(settings.sched_url, settings.s3_url)
+    rich.print(poster.hmm_list())
 
 
 @db.command("add")
 def db_add(dbfile: DBFILE, gencode: GENCODE, epsilon: EPSILON = 0.01):
     settings = Settings()
-    sched = Sched(settings.sched_url, settings.s3_url)
-    sched.upload(dbfile, sched.presigned.upload_db_post(dbfile.name))
-    sched.db_post(DBFile(name=dbfile.name, gencode=gencode, epsilon=epsilon))
+    poster = Poster(settings.sched_url, settings.s3_url)
+    poster.upload(dbfile, poster.upload_db_post(dbfile.name))
+    poster.db_post(DBName(name=dbfile.name))
 
 
 @db.command("rm")
 def db_rm(db_id: DBID):
     settings = Settings()
-    sched = Sched(settings.sched_url, settings.s3_url)
-    sched.db_delete(db_id)
+    poster = Poster(settings.sched_url, settings.s3_url)
+    poster.db_delete(db_id)
 
 
 @db.command("ls")
 def db_ls():
     settings = Settings()
-    sched = Sched(settings.sched_url, settings.s3_url)
-    rich.print(sched.db_list())
+    poster = Poster(settings.sched_url, settings.s3_url)
+    rich.print(poster.db_list())
 
 
 @job.command("ls")
 def job_ls():
     settings = Settings()
-    sched = Sched(settings.sched_url, settings.s3_url)
-    rich.print(sched.job_list())
+    poster = Poster(settings.sched_url, settings.s3_url)
+    rich.print(poster.job_list())
 
 
 @scan.command("add")
@@ -143,88 +139,61 @@ def scan_add(
     settings = Settings()
     seqs = [Seq(name=x.id, data=x.sequence) for x in fasta_reader.Reader(fasta)]
     x = Scan(db_id=db_id, multi_hits=multi_hits, hmmer3_compat=hmmer3_compat, seqs=seqs)
-    sched = Sched(settings.sched_url, settings.s3_url)
-    sched.scan_post(x)
+    poster = Poster(settings.sched_url, settings.s3_url)
+    poster.scan_post(x)
 
 
 @scan.command("rm")
 def scan_rm(scan_id: SCANID):
     settings = Settings()
-    sched = Sched(settings.sched_url, settings.s3_url)
-    sched.scan_delete(scan_id)
+    poster = Poster(settings.sched_url, settings.s3_url)
+    poster.scan_delete(scan_id)
 
 
 @scan.command("ls")
 def scan_ls():
     settings = Settings()
-    sched = Sched(settings.sched_url, settings.s3_url)
-    rich.print(sched.scan_list())
+    poster = Poster(settings.sched_url, settings.s3_url)
+    rich.print(poster.scan_list())
 
 
 @seq.command("ls")
 def seq_ls():
     settings = Settings()
-    sched = Sched(settings.sched_url, settings.s3_url)
-    rich.print(sched.seq_list())
+    poster = Poster(settings.sched_url, settings.s3_url)
+    rich.print(poster.seq_list())
 
 
 @scan.command("snap-add")
 def snap_add(scan_id: SCANID, snap: SNAPFILE):
     settings = Settings()
-    sched = Sched(settings.sched_url, settings.s3_url)
-    sched.snap_post(scan_id, snap)
+    poster = Poster(settings.sched_url, settings.s3_url)
+    poster.snap_post(scan_id, snap)
 
 
 @scan.command("snap-get")
 def snap_get(scan_id: SCANID, output_file: OUTFILE = Path("snap.dcs")):
     settings = Settings()
-    sched = Sched(settings.sched_url, settings.s3_url)
+    poster = Poster(settings.sched_url, settings.s3_url)
     with open(output_file, "wb") as file:
-        file.write(sched.snap_get(scan_id))
+        file.write(poster.snap_get(scan_id))
 
 
 @scan.command("snap-rm")
 def snap_rm(scan_id: SCANID):
     settings = Settings()
-    sched = Sched(settings.sched_url, settings.s3_url)
-    sched.snap_delete(scan_id)
+    poster = Poster(settings.sched_url, settings.s3_url)
+    poster.snap_delete(scan_id)
 
 
 @scan.command("snap-view")
 def snap_view(scan_id: SCANID):
     settings = Settings()
-    sched = Sched(settings.sched_url, settings.s3_url)
-    print(sched.snap_view(scan_id))
+    poster = Poster(settings.sched_url, settings.s3_url)
+    print(poster.snap_view(scan_id))
 
 
 LOG_LEVEL = Annotated[LogLevel, Option(help="Log level.")]
-
-
-@presser.command("run")
-def presser_run(num_workers: int = 1, log_level: LOG_LEVEL = LogLevel.info):
-    settings = Settings()
-    raise_sigint_on_sigterm()
-    logger.remove()
-    logger.add(sys.stderr, level=log_level.value.upper())
-    sched = Sched(settings.sched_url, settings.s3_url)
-    presser_entry(settings, sched, num_workers)
-
-
-@scanner.command("run")
-def scanner_run(
-    num_workers: int = 1,
-    num_threads: int = 0,
-    log_level: LOG_LEVEL = LogLevel.info,
-    cache: bool = True,
-):
-    settings = Settings()
-    raise_sigint_on_sigterm()
-    logger.remove()
-    logger.add(sys.stderr, level=log_level.value.upper())
-    sched = Sched(settings.sched_url, settings.s3_url)
-    if num_threads == 0:
-        num_threads = psutil.cpu_count()
-    scanner_entry(settings, sched, num_workers, num_threads, cache)
 
 
 app = typer.Typer(

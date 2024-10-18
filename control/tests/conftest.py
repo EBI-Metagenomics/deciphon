@@ -58,14 +58,9 @@ class ThreadedUvicorn:
 
 @pytest.fixture
 def compose(mqtt, s3, settings: Settings):
-    data = settings.model_dump()
-    data["mqtt_host"] = str(mqtt["host"])
-    data["mqtt_port"] = int(mqtt["port"])
-    settings = Settings.model_validate(data)
-
     sched_settings = SchedSettings(
-        mqtt_host=settings.mqtt_host,
-        mqtt_port=settings.mqtt_port,
+        mqtt_host=str(mqtt["host"]),
+        mqtt_port=int(mqtt["port"]),
         s3_key=s3["access_key"],
         s3_secret=s3["secret_key"],
         s3_url=http_url(s3["url"]),
