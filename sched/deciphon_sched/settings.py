@@ -37,4 +37,3 @@ class Settings(BaseSettings):
 
     mqtt_host: str = "127.0.0.1"
     mqtt_port: int = 1883
-    mqtt_topic: str = "deciphon"
