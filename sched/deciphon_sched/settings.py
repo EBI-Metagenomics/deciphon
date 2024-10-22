@@ -34,7 +34,6 @@ class Settings(BaseSettings):
     s3_key: str = "minioadmin"
     s3_secret: str = "minioadmin"
     s3_url: HttpUrl = http_url("http://127.0.0.1:9000")
-    s3_bucket: str = "deciphon"
 
     mqtt_host: str = "127.0.0.1"
     mqtt_port: int = 1883

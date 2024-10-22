@@ -8,6 +8,8 @@ from botocore.config import Config
 
 from deciphon_sched.settings import Settings
 
+BUCKET = "deciphon.org"
+
 
 class Storage:
     def __init__(self, settings: Settings, logger: Logger):
@@ -19,15 +21,14 @@ class Storage:
             aws_secret_access_key=settings.s3_secret,
             config=Config(retries={"max_attempts": 15, "mode": "standard"}),
         )
-        self._bucket = settings.s3_bucket
         if not self._bucket_exists():
-            self._logger.handler.debug(f"creating bucket {self._bucket}")
-            self._s3.create_bucket(Bucket=self._bucket)
+            self._logger.handler.debug(f"creating bucket {BUCKET}")
+            self._s3.create_bucket(Bucket=BUCKET)
 
     def _bucket_exists(self):
-        self._logger.handler.debug(f"checking if bucket {self._bucket} exists")
+        self._logger.handler.debug(f"checking if bucket {BUCKET} exists")
         try:
-            self._s3.head_bucket(Bucket=self._bucket)
+            self._s3.head_bucket(Bucket=BUCKET)
             return True
         except ClientError as e:
             if e.response["Error"]["Code"] == "404":
@@ -37,7 +38,7 @@ class Storage:
     def presigned_upload(self, file: str) -> PresignedUpload:
         self._logger.handler.debug(f"generating presigned upload for file {file}")
         x = self._s3.generate_presigned_post(
-            self._bucket,
+            BUCKET,
             file,
             Conditions=[
                 ["starts-with", "$AWSAccessKeyId", ""],
@@ -50,16 +51,16 @@ class Storage:
 
     def presigned_download(self, file: str) -> PresignedDownload:
         self._logger.handler.debug(f"generating presigned download for file {file}")
-        params = {"Bucket": self._bucket, "Key": file}
+        params = {"Bucket": BUCKET, "Key": file}
         x = self._s3.generate_presigned_url("get_object", Params=params)
         return PresignedDownload(url=x)
 
     def delete(self, file: str):
-        self._s3.delete_object(Bucket=self._bucket, Key=file)
+        self._s3.delete_object(Bucket=BUCKET, Key=file)
 
     def has_file(self, file: str) -> bool:
         try:
-            self._s3.head_object(Bucket=self._bucket, Key=file)
+            self._s3.head_object(Bucket=BUCKET, Key=file)
             return True
         except ClientError as e:
             if e.response["Error"]["Code"] == "404":
