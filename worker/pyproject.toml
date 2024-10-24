@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "deciphon-worker"
+version = "0.1.0"
+description = "Deciphon worker."
+authors = ["Danilo Horta <danilo.horta@pm.me>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+deciphon-core = "^1.0.1"
+loguru = "^0.7.2"
+requests = "^2.32.3"
+pydantic = "^2.9.2"
+paho-mqtt = "^2.1.0"
+deciphon-poster = "^0.1.2"
+pydantic-settings = "^2.6.0"
+typer = "^0.12.5"
+rich = "^13.9.2"
+psutil = "^6.1.0"
+h3daemon = "^0.14.5"
+
+[tool.poetry.scripts]
+deciphon-worker = 'deciphon_worker.cli:app'
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
