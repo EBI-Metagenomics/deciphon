@@ -20,6 +20,6 @@ class Journal:
         await self._mqtt.__aexit__(*args, **kargs)
 
     async def publish(self, subject: str, payload: str):
-        topic = f"/TOPIC/{subject}"
+        topic = f"/{TOPIC}/{subject}"
         self._logger.handler.info(f"publishing <{payload}> to <{topic}>")
         await self._mqtt.publish(topic, payload)
