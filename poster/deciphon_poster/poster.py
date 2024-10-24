@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import urllib.parse
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
 import requests
 from deciphon_core.schema import DBName, Gencode, HMMName
 from pydantic import FilePath, HttpUrl, TypeAdapter
-from requests_toolbelt import MultipartEncoder
+from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
 from deciphon_poster.errors import PosterHTTPError
 from deciphon_poster.schema import JobUpdate, Scan, UploadPost
@@ -40,12 +40,29 @@ class Poster:
     def delete(self, url: str, **kwargs):
         self.handle_http_response(requests.delete(url, **kwargs))
 
-    def upload(self, file: Path, post: UploadPost):
+    def upload(
+        self, file: Path, post: UploadPost, callback: Callable[[int, int]] | None = None
+    ):
         with open(file, "rb") as f:
             fields = post.fields
             fields["file"] = (file.name, f)
-            m = MultipartEncoder(fields=fields)
-            self.post(post.url_string, data=m, headers={"content-type": m.content_type})
+            encoder = MultipartEncoder(fields=fields)
+            if callback is None:
+                data = MultipartEncoderMonitor(encoder)
+            else:
+                callback(int(encoder.len), 0)
+                data = MultipartEncoderMonitor(
+                    encoder,
+                    lambda monitor: callback(int(encoder.len), monitor.bytes_read),
+                )
+            self.post(
+                post.url_string,
+                data=data,
+                headers={
+                    "content-type": encoder.content_type,
+                    "content-length": encoder.len,
+                },
+            )
 
     def hmm_post(self, file: HMMName, gencode: Gencode, epsilon: float):
         self.post(
