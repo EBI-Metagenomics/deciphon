@@ -72,12 +72,14 @@ async def create_hmm(
 
         x = HMM.create(hmm)
         session.add(x)
-        session.commit()
+        session.flush()
         hmm_read = x.read_model()
 
-    journal: Journal = request.app.state.journal
-    x = PressRequest.create(hmm_read.job.id, hmm_read.file, gencode, epsilon)
-    await journal.publish("press", x.model_dump_json())
+        journal: Journal = request.app.state.journal
+        x = PressRequest.create(hmm_read.job.id, hmm_read.file, gencode, epsilon)
+
+        await journal.publish("press", x.model_dump_json())
+        session.commit()
 
     return hmm_read
 

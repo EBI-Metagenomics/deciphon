@@ -47,12 +47,14 @@ async def create_scan(request: Request, scan: ScanCreate) -> ScanRead:
         for seq in seqs:
             seq.scan = x
         session.add_all([x] + seqs)
-        session.commit()
+        session.flush()
         scan_read = x.read_model()
 
-    journal: Journal = request.app.state.journal
-    x = ScanRequest.create(scan_read)
-    await journal.publish("scan", x.model_dump_json())
+        journal: Journal = request.app.state.journal
+        x = ScanRequest.create(scan_read)
+
+        await journal.publish("scan", x.model_dump_json())
+        session.commit()
 
     return scan_read
 

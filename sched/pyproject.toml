@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deciphon-sched"
-version = "1.0.3"
+version = "1.0.4"
 description = "Deciphon scheduler"
 authors = ["Danilo Horta <horta@ebi.ac.uk>"]
 license = "MIT"
@@ -24,6 +24,7 @@ aiomqtt = "^2.3"
 deciphon-snap = "^1.0.0"
 sqlalchemy = "^2.0"
 boto3 = "^1.35"
+tenacity = "^9.0.0"
 
 [tool.poetry.extras]
 testing = ["testcontainers", "testcontainers-core", "testcontainers-minio"]
