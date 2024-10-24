@@ -60,7 +60,7 @@ class Poster:
                 data=data,
                 headers={
                     "content-type": encoder.content_type,
-                    "content-length": encoder.len,
+                    "content-length": str(encoder.len),
                 },
             )
 
