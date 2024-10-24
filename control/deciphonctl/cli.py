@@ -16,6 +16,7 @@ from typing_extensions import Annotated
 from deciphonctl.catch_validation import catch_validation
 from deciphonctl.display_exception import display_exception
 from deciphonctl.log_level import LogLevel
+from deciphonctl.progress import Progress
 from deciphonctl.settings import (
     Settings,
     SettingsFields,
@@ -134,7 +135,9 @@ def config_get(option: CFGOPT):
 def hmm_add(hmmfile: HMMFILE, gencode: GENCODE, epsilon: EPSILON = 0.01):
     settings = Settings()
     poster = Poster(settings.sched_url, settings.s3_url)
-    poster.upload(hmmfile, poster.upload_hmm_post(hmmfile.name))
+    upload_post = poster.upload_hmm_post(hmmfile.name)
+    with Progress() as progress:
+        poster.upload(hmmfile, upload_post, progress)
     poster.hmm_post(HMMName(name=hmmfile.name), gencode, epsilon)
 
 
@@ -162,7 +165,9 @@ def hmm_ls():
 def db_add(dbfile: DBFILE, gencode: GENCODE, epsilon: EPSILON = 0.01):
     settings = Settings()
     poster = Poster(settings.sched_url, settings.s3_url)
-    poster.upload(dbfile, poster.upload_db_post(dbfile.name))
+    upload_post = poster.upload_db_post(dbfile.name)
+    with Progress() as progress:
+        poster.upload(dbfile, upload_post, progress)
     poster.db_post(DBName(name=dbfile.name))
 
 
