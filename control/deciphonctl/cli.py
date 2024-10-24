@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from pprint import pformat
 
 import fasta_reader
 import requests
@@ -9,13 +10,20 @@ from deciphon_core.schema import DBName, Gencode, HMMName
 from deciphon_poster.errors import PosterHTTPError
 from deciphon_poster.poster import Poster
 from deciphon_poster.schema import Scan, Seq
-from typer import Argument, FileText, Option
+from typer import Argument, FileText, Option, echo
 from typing_extensions import Annotated
 
 from deciphonctl.catch_validation import catch_validation
 from deciphonctl.display_exception import display_exception
 from deciphonctl.log_level import LogLevel
-from deciphonctl.settings import Settings
+from deciphonctl.settings import (
+    Settings,
+    SettingsFields,
+    cfg_file,
+    cfg_file_set,
+    cfg_vars,
+    env_vars,
+)
 
 HMMFILE = Annotated[
     Path,
@@ -57,6 +65,8 @@ OUTFILE = Annotated[
     Path,
     Option(file_okay=True, dir_okay=False, writable=True, help="Output file"),
 ]
+CFGOPT = Annotated[SettingsFields, Argument(help="Config option")]
+CFGVAL = Annotated[str, Argument(help="Config value")]
 
 EXCEPTIONS_FOR_DISPLAY = (
     ConnectionError,
@@ -75,20 +85,51 @@ presser = typer.Typer()
 scanner = typer.Typer()
 
 
-@config.command("dump")
+@config.command("debug")
+@catch_validation
 @display_exception(EXCEPTIONS_FOR_DISPLAY)
-def config_dump():
-    with catch_validation():
-        settings = Settings()
-        for field in settings.__fields__:
-            value = getattr(settings, field)
-            if value is None:
-                typer.echo(f"{field}=")
-            else:
-                typer.echo(f"{field}={value}")
+def config_debug():
+    echo("configuration file:")
+    echo(f"  {cfg_file()}, exists: {cfg_file().exists()}")
+    if cfg_file().exists():
+        for field, value in cfg_vars().items():
+            echo(f"    {field}={pformat(value)}")
+
+    echo("environment variables:")
+    for field, value in env_vars().items():
+        echo(f"  {field}={pformat(value)}")
+
+    echo("final configuration:")
+    settings = Settings()
+    for field in settings.__fields__:
+        value = getattr(settings, field)
+        if value is None:
+            echo(f"  {field}=")
+        else:
+            echo(f"  {field}={pformat(value)}")
+
+
+@config.command("set")
+@catch_validation
+@display_exception(EXCEPTIONS_FOR_DISPLAY)
+def config_set(option: CFGOPT, value: CFGVAL):
+    field = option.value
+    Settings.model_validate({field: value})
+    echo(f"Writing to {cfg_file()}")
+    cfg_file_set(cfg_file(), field, value)
+
+
+@config.command("get")
+@catch_validation
+@display_exception(EXCEPTIONS_FOR_DISPLAY)
+def config_get(option: CFGOPT):
+    field = option.value
+    settings = Settings()
+    echo(settings.model_dump()[field])
 
 
 @hmm.command("add")
+@catch_validation
 @display_exception(EXCEPTIONS_FOR_DISPLAY)
 def hmm_add(hmmfile: HMMFILE, gencode: GENCODE, epsilon: EPSILON = 0.01):
     settings = Settings()
@@ -98,6 +139,7 @@ def hmm_add(hmmfile: HMMFILE, gencode: GENCODE, epsilon: EPSILON = 0.01):
 
 
 @hmm.command("rm")
+@catch_validation
 @display_exception(EXCEPTIONS_FOR_DISPLAY)
 def hmm_rm(hmm_id: HMMID):
     settings = Settings()
@@ -106,6 +148,7 @@ def hmm_rm(hmm_id: HMMID):
 
 
 @hmm.command("ls")
+@catch_validation
 @display_exception(EXCEPTIONS_FOR_DISPLAY)
 def hmm_ls():
     settings = Settings()
@@ -114,6 +157,7 @@ def hmm_ls():
 
 
 @db.command("add")
+@catch_validation
 @display_exception(EXCEPTIONS_FOR_DISPLAY)
 def db_add(dbfile: DBFILE, gencode: GENCODE, epsilon: EPSILON = 0.01):
     settings = Settings()
@@ -123,6 +167,7 @@ def db_add(dbfile: DBFILE, gencode: GENCODE, epsilon: EPSILON = 0.01):
 
 
 @db.command("rm")
+@catch_validation
 @display_exception(EXCEPTIONS_FOR_DISPLAY)
 def db_rm(db_id: DBID):
     settings = Settings()
@@ -131,6 +176,7 @@ def db_rm(db_id: DBID):
 
 
 @db.command("ls")
+@catch_validation
 @display_exception(EXCEPTIONS_FOR_DISPLAY)
 def db_ls():
     settings = Settings()
@@ -139,6 +185,7 @@ def db_ls():
 
 
 @job.command("ls")
+@catch_validation
 @display_exception(EXCEPTIONS_FOR_DISPLAY)
 def job_ls():
     settings = Settings()
@@ -147,6 +194,7 @@ def job_ls():
 
 
 @scan.command("add")
+@catch_validation
 @display_exception(EXCEPTIONS_FOR_DISPLAY)
 def scan_add(
     fasta: FASTAFILE,
@@ -162,6 +210,7 @@ def scan_add(
 
 
 @scan.command("rm")
+@catch_validation
 @display_exception(EXCEPTIONS_FOR_DISPLAY)
 def scan_rm(scan_id: SCANID):
     settings = Settings()
@@ -170,6 +219,7 @@ def scan_rm(scan_id: SCANID):
 
 
 @scan.command("ls")
+@catch_validation
 @display_exception(EXCEPTIONS_FOR_DISPLAY)
 def scan_ls():
     settings = Settings()
@@ -178,6 +228,7 @@ def scan_ls():
 
 
 @seq.command("ls")
+@catch_validation
 @display_exception(EXCEPTIONS_FOR_DISPLAY)
 def seq_ls():
     settings = Settings()
@@ -186,6 +237,7 @@ def seq_ls():
 
 
 @scan.command("snap-add")
+@catch_validation
 @display_exception(EXCEPTIONS_FOR_DISPLAY)
 def snap_add(scan_id: SCANID, snap: SNAPFILE):
     settings = Settings()
@@ -194,6 +246,7 @@ def snap_add(scan_id: SCANID, snap: SNAPFILE):
 
 
 @scan.command("snap-get")
+@catch_validation
 @display_exception(EXCEPTIONS_FOR_DISPLAY)
 def snap_get(scan_id: SCANID, output_file: OUTFILE = Path("snap.dcs")):
     settings = Settings()
@@ -203,6 +256,7 @@ def snap_get(scan_id: SCANID, output_file: OUTFILE = Path("snap.dcs")):
 
 
 @scan.command("snap-rm")
+@catch_validation
 @display_exception(EXCEPTIONS_FOR_DISPLAY)
 def snap_rm(scan_id: SCANID):
     settings = Settings()
@@ -211,6 +265,7 @@ def snap_rm(scan_id: SCANID):
 
 
 @scan.command("snap-view")
+@catch_validation
 @display_exception(EXCEPTIONS_FOR_DISPLAY)
 def snap_view(scan_id: SCANID):
     settings = Settings()
