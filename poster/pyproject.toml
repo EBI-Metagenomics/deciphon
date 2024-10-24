@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deciphon-poster"
-version = "0.2.0"
+version = "0.2.1"
 description = "Poster for Deciphon scheduler."
 authors = ["Danilo Horta <danilo.horta@pm.me>"]
 license = "MIT"
