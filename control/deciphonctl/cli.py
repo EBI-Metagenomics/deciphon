@@ -2,15 +2,18 @@ import sys
 from pathlib import Path
 
 import fasta_reader
+import requests
 import rich
 import typer
 from deciphon_core.schema import DBName, Gencode, HMMName
+from deciphon_poster.errors import PosterHTTPError
 from deciphon_poster.poster import Poster
 from deciphon_poster.schema import Scan, Seq
 from typer import Argument, FileText, Option
 from typing_extensions import Annotated
 
 from deciphonctl.catch_validation import catch_validation
+from deciphonctl.display_exception import display_exception
 from deciphonctl.log_level import LogLevel
 from deciphonctl.settings import Settings
 
@@ -55,6 +58,12 @@ OUTFILE = Annotated[
     Option(file_okay=True, dir_okay=False, writable=True, help="Output file"),
 ]
 
+EXCEPTIONS_FOR_DISPLAY = (
+    ConnectionError,
+    PosterHTTPError,
+    requests.exceptions.ConnectionError,
+)
+
 config = typer.Typer()
 hmm = typer.Typer()
 db = typer.Typer()
@@ -67,6 +76,7 @@ scanner = typer.Typer()
 
 
 @config.command("dump")
+@display_exception(EXCEPTIONS_FOR_DISPLAY)
 def config_dump():
     with catch_validation():
         settings = Settings()
@@ -79,6 +89,7 @@ def config_dump():
 
 
 @hmm.command("add")
+@display_exception(EXCEPTIONS_FOR_DISPLAY)
 def hmm_add(hmmfile: HMMFILE, gencode: GENCODE, epsilon: EPSILON = 0.01):
     settings = Settings()
     poster = Poster(settings.sched_url, settings.s3_url)
@@ -87,6 +98,7 @@ def hmm_add(hmmfile: HMMFILE, gencode: GENCODE, epsilon: EPSILON = 0.01):
 
 
 @hmm.command("rm")
+@display_exception(EXCEPTIONS_FOR_DISPLAY)
 def hmm_rm(hmm_id: HMMID):
     settings = Settings()
     poster = Poster(settings.sched_url, settings.s3_url)
@@ -94,6 +106,7 @@ def hmm_rm(hmm_id: HMMID):
 
 
 @hmm.command("ls")
+@display_exception(EXCEPTIONS_FOR_DISPLAY)
 def hmm_ls():
     settings = Settings()
     poster = Poster(settings.sched_url, settings.s3_url)
@@ -101,6 +114,7 @@ def hmm_ls():
 
 
 @db.command("add")
+@display_exception(EXCEPTIONS_FOR_DISPLAY)
 def db_add(dbfile: DBFILE, gencode: GENCODE, epsilon: EPSILON = 0.01):
     settings = Settings()
     poster = Poster(settings.sched_url, settings.s3_url)
@@ -109,6 +123,7 @@ def db_add(dbfile: DBFILE, gencode: GENCODE, epsilon: EPSILON = 0.01):
 
 
 @db.command("rm")
+@display_exception(EXCEPTIONS_FOR_DISPLAY)
 def db_rm(db_id: DBID):
     settings = Settings()
     poster = Poster(settings.sched_url, settings.s3_url)
@@ -116,6 +131,7 @@ def db_rm(db_id: DBID):
 
 
 @db.command("ls")
+@display_exception(EXCEPTIONS_FOR_DISPLAY)
 def db_ls():
     settings = Settings()
     poster = Poster(settings.sched_url, settings.s3_url)
@@ -123,6 +139,7 @@ def db_ls():
 
 
 @job.command("ls")
+@display_exception(EXCEPTIONS_FOR_DISPLAY)
 def job_ls():
     settings = Settings()
     poster = Poster(settings.sched_url, settings.s3_url)
@@ -130,6 +147,7 @@ def job_ls():
 
 
 @scan.command("add")
+@display_exception(EXCEPTIONS_FOR_DISPLAY)
 def scan_add(
     fasta: FASTAFILE,
     db_id: DBID,
@@ -144,6 +162,7 @@ def scan_add(
 
 
 @scan.command("rm")
+@display_exception(EXCEPTIONS_FOR_DISPLAY)
 def scan_rm(scan_id: SCANID):
     settings = Settings()
     poster = Poster(settings.sched_url, settings.s3_url)
@@ -151,6 +170,7 @@ def scan_rm(scan_id: SCANID):
 
 
 @scan.command("ls")
+@display_exception(EXCEPTIONS_FOR_DISPLAY)
 def scan_ls():
     settings = Settings()
     poster = Poster(settings.sched_url, settings.s3_url)
@@ -158,6 +178,7 @@ def scan_ls():
 
 
 @seq.command("ls")
+@display_exception(EXCEPTIONS_FOR_DISPLAY)
 def seq_ls():
     settings = Settings()
     poster = Poster(settings.sched_url, settings.s3_url)
@@ -165,6 +186,7 @@ def seq_ls():
 
 
 @scan.command("snap-add")
+@display_exception(EXCEPTIONS_FOR_DISPLAY)
 def snap_add(scan_id: SCANID, snap: SNAPFILE):
     settings = Settings()
     poster = Poster(settings.sched_url, settings.s3_url)
@@ -172,6 +194,7 @@ def snap_add(scan_id: SCANID, snap: SNAPFILE):
 
 
 @scan.command("snap-get")
+@display_exception(EXCEPTIONS_FOR_DISPLAY)
 def snap_get(scan_id: SCANID, output_file: OUTFILE = Path("snap.dcs")):
     settings = Settings()
     poster = Poster(settings.sched_url, settings.s3_url)
@@ -180,6 +203,7 @@ def snap_get(scan_id: SCANID, output_file: OUTFILE = Path("snap.dcs")):
 
 
 @scan.command("snap-rm")
+@display_exception(EXCEPTIONS_FOR_DISPLAY)
 def snap_rm(scan_id: SCANID):
     settings = Settings()
     poster = Poster(settings.sched_url, settings.s3_url)
@@ -187,6 +211,7 @@ def snap_rm(scan_id: SCANID):
 
 
 @scan.command("snap-view")
+@display_exception(EXCEPTIONS_FOR_DISPLAY)
 def snap_view(scan_id: SCANID):
     settings = Settings()
     poster = Poster(settings.sched_url, settings.s3_url)
