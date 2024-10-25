@@ -4,14 +4,14 @@ services:
     restart: unless-stopped
     ports: ["8000:8000"]
     environment:
-      - DECIPHON_SCHED_PORT
-      - DECIPHON_SCHED_HOST
-      - DECIPHON_SCHED_ALLOW_ORIGINS
-      - DECIPHON_SCHED_LOG_LEVEL
-      - DECIPHON_SCHED_S3_URL
-      - DECIPHON_SCHED_MQTT_HOST
-      - DECIPHON_SCHED_MQTT_PORT
-      - DECIPHON_SCHED_DATABASE_URL
+      - DECIPHON_SCHED_PORT=${SCHED_PORT}
+      - DECIPHON_SCHED_ALLOW_ORIGINS=${SCHED_ALLOW_ORIGINS}
+      - DECIPHON_SCHED_LOG_LEVEL=${SCHED_LOG_LEVEL}
+      - DECIPHON_SCHED_HOST="0.0.0.0"
+      - DECIPHON_SCHED_S3_URL="http://s3:9000"
+      - DECIPHON_SCHED_MQTT_HOST="mqtt"
+      - DECIPHON_SCHED_MQTT_PORT=1883
+      - DECIPHON_SCHED_DATABASE_URL="sqlite+pysqlite:///:memory:"
     depends_on:
       - s3
       - mqtt
@@ -19,25 +19,17 @@ services:
       - scanner
     command: ["deciphon-sched"]
   presser:
-    image: danilohorta/deciphonctl
+    image: danilohorta/deciphon-worker
     restart: unless-stopped
-    environment:
-      - DECIPHONCTL_SCHED_URL
-      - DECIPHONCTL_MQTT_HOST
-      - DECIPHONCTL_MQTT_PORT
     depends_on:
       - mqtt
-    command: ["deciphonctl", "presser", "run", "--log-level", "debug"]
+    command: ["http://sched:8000", "mqtt", "1883", "--log-level", "debug"]
   scanner:
     image: danilohorta/deciphonctl
     restart: unless-stopped
-    environment:
-      - DECIPHONCTL_SCHED_URL
-      - DECIPHONCTL_MQTT_HOST
-      - DECIPHONCTL_MQTT_PORT
     depends_on:
       - mqtt
-    command: ["deciphonctl", "scanner", "run", "--log-level", "debug"]
+    command: ["http://sched:8000", "mqtt", "1883", "--log-level", "debug"]
   s3:
     image: quay.io/minio/minio
     restart: unless-stopped
