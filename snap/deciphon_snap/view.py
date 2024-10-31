@@ -20,7 +20,7 @@ class DeciStep(BaseModel):
 
 class HMMERStep(BaseModel):
     hmm_pos: int
-    hmm_cs: str
+    hmm_cs: Optional[str]
     amino_pos: int
     amino_cs: str
     amino: str
@@ -58,7 +58,7 @@ def make_hmmer_steps(annot: DomAnnot):
         for i in range(len(core_positions)):
             step = HMMERStep(
                 hmm_pos=core_positions[i],
-                hmm_cs=a.hmm_cs[i],
+                hmm_cs=None if a.hmm_cs is None else a.hmm_cs[i],
                 amino_pos=amino_pos[i],
                 amino_cs=a.query_cs[i],
                 amino=a.query[i],
@@ -105,6 +105,13 @@ def flat(x):
     return list(chain.from_iterable(x))
 
 
+def has_cs(steps: list[AssocStep]):
+    count = 0
+    for x in steps:
+        count += x.hmmer is not None and x.hmmer.hmm_cs is not None
+    return count > 0
+
+
 def view_alignment(prod: Prod):
     assert prod.h3result is not None
     annot = make_hmmer_annot(prod.h3result)
@@ -149,7 +156,10 @@ def view_alignment(prod: Prod):
         if x.hmmer is not None and x.deci is None:
             query_pos.append(curr_pos)
 
-    hmm_cs = flat(("" if x.hmmer is None else x.hmmer.hmm_cs) for x in steps)
+    if has_cs(steps):
+        hmm_cs = flat(("" if x.hmmer is None else x.hmmer.hmm_cs) for x in steps)
+    else:
+        hmm_cs = None
     query = flat(("" if x.hmmer is None else x.hmmer.amino) for x in steps)
     match = flat(("" if x.hmmer is None else x.hmmer.match) for x in steps)
 
@@ -172,7 +182,7 @@ def view_alignment(prod: Prod):
             amino_pos.append(x.hmmer.amino_pos)
 
     table = []
-    n = len(hmm_cs)
+    n = len(query)
     COLS = 96
     width = min(COLS, n)
     for i in range(0, n, COLS):
@@ -184,8 +194,10 @@ def view_alignment(prod: Prod):
         amino_pos_right = amino_pos[sl][-1] + 1
         query_pos_left = query_pos[sl][0] + 1
         query_pos_right = query_pos[sl][-1] + 1
+        row = []
+        if hmm_cs is not None:
+            row.append([None, None, "".join(hmm_cs[sl]) + pad, "CS"])
         row = [
-            [None, None, "".join(hmm_cs[sl]) + pad, "CS"],
             [profile, hmm_pos_left, "".join(query[sl]) + pad, hmm_pos_right],
             [None, None, "".join(match[sl]) + pad, None],
             [None, amino_pos_left, "".join(amino[sl]) + pad, amino_pos_right],
