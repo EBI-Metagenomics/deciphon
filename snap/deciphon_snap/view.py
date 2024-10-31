@@ -197,7 +197,7 @@ def view_alignment(prod: Prod):
         row = []
         if hmm_cs is not None:
             row.append([None, None, "".join(hmm_cs[sl]) + pad, "CS"])
-        row = [
+        row += [
             [profile, hmm_pos_left, "".join(query[sl]) + pad, hmm_pos_right],
             [None, None, "".join(match[sl]) + pad, None],
             [None, amino_pos_left, "".join(amino[sl]) + pad, amino_pos_right],
