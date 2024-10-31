@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deciphon-sched"
-version = "1.0.5"
+version = "1.0.6"
 description = "Deciphon scheduler"
 authors = ["Danilo Horta <horta@ebi.ac.uk>"]
 license = "MIT"
@@ -21,7 +21,7 @@ loguru = "^0.7"
 deciphon-core = "1.0.1"
 python-multipart = "^0.0.10"
 aiomqtt = "^2.3"
-deciphon-snap = "^1.0.1"
+deciphon-snap = "^1.0.2"
 boto3 = "^1.35.52"
 tenacity = "^9.0.0"
 sqlalchemy = "^2.0.36"
