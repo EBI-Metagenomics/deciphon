@@ -57,6 +57,8 @@ def process_request(
         with atomic_file_creation(dbfile) as t:
             download(poster.download_db_url(dbfile.name), t)
 
+
+    bg.fire(partial(poster.job_patch, JobUpdate.run(request.job_id, 0)))
     id = scanner_hash(request.hmm, request.multi_hits, request.hmmer3_compat)
     if id not in scans:
         hmm = HMMFile(path=hmmfile)
