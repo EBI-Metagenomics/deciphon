@@ -45,6 +45,7 @@ def process_request(
     request: ScanRequest,
 ):
     logger.info(f"processing scan request: {request}")
+    bg.fire(partial(poster.job_patch, JobUpdate.run(request.job_id, 0)))
 
     hmmfile = Path(request.hmm.name)
     dbfile = Path(request.db.name)
@@ -57,7 +58,6 @@ def process_request(
         with atomic_file_creation(dbfile) as t:
             download(poster.download_db_url(dbfile.name), t)
 
-    bg.fire(partial(poster.job_patch, JobUpdate.run(request.job_id, 0)))
     id = scanner_hash(request.hmm, request.multi_hits, request.hmmer3_compat)
     if id not in scans:
         hmm = HMMFile(path=hmmfile)
