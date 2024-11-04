@@ -1,5 +1,5 @@
 from functools import partial
-from queue import Queue
+from deciphon_worker.queue313 import Queue, ShutDown
 from subprocess import DEVNULL
 from threading import Thread
 
@@ -40,14 +40,14 @@ class ScanThread:
         self._hmmer3_compat = hmmer3_compat
         self._daemon = H3Daemon(self._hmmfile, stdout=DEVNULL)
         self._scan: Scan | None = None
-        self._queue: Queue[ScanRequest | None] = Queue()
+        self._queue: Queue[ScanRequest] = Queue()
         self._thread = Thread(target=self.run)
 
     def start(self):
         self._thread.start()
 
     def stop(self):
-        self._queue.put(None)
+        self._queue.shutdown()
         self._thread.join()
 
     def fire(self, request: ScanRequest):
@@ -76,7 +76,10 @@ class ScanThread:
     def run(self):
         with self:
             while True:
-                request = self._queue.get()
+                try:
+                    request = self._queue.get()
+                except ShutDown:
+                    break
                 try:
                     if request is None:
                         break

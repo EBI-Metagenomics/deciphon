@@ -5,9 +5,9 @@ from typer import Option, Typer
 from typing_extensions import Annotated
 
 from deciphon_worker.logging import LogLevel, setup_logger
-from deciphon_worker.presser import presser_loop
-from deciphon_worker.scanner import scanner_loop
-from deciphon_worker.signals import raise_sigint_on_sigterm
+from deciphon_worker.presser import PresserManager
+from deciphon_worker.scanner import ScannerManager
+from deciphon_worker.signals import raise_sigint_on_sigterm, sigint_hook
 from deciphon_worker.url import http_url
 
 LOG_LEVEL = Annotated[LogLevel, Option(help="Log level.")]
@@ -30,7 +30,9 @@ def scanner(
     raise_sigint_on_sigterm()
     setup_logger(log_level)
     poster = Poster(http_url(sched_url), s3_url if s3_url is None else http_url(s3_url))
-    scanner_loop(poster, mqtt_host, mqtt_port)
+    x = ScannerManager(poster, mqtt_host, mqtt_port)
+    sigint_hook(lambda: x.stop())
+    x.run_forever()
 
 
 @app.command()
@@ -44,4 +46,6 @@ def presser(
     raise_sigint_on_sigterm()
     setup_logger(log_level)
     poster = Poster(http_url(sched_url), s3_url if s3_url is None else http_url(s3_url))
-    presser_loop(poster, mqtt_host, mqtt_port)
+    x = PresserManager(poster, mqtt_host, mqtt_port)
+    sigint_hook(lambda: x.stop())
+    x.run_forever()

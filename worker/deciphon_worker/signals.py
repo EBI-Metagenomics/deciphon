@@ -1,5 +1,6 @@
 import os
 import signal
+from typing import Callable
 
 
 def ignore_sigint():
@@ -16,3 +17,7 @@ def raise_sigint(*_):
 
 def raise_sigint_on_sigterm(*_):
     signal.signal(signal.SIGTERM, raise_sigint)
+
+
+def sigint_hook(callback: Callable[[], None]):
+    signal.signal(signal.SIGINT, lambda *_: callback())

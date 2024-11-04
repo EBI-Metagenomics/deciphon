@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from queue import Queue
+from deciphon_worker.queue313 import Queue, ShutDown
 
 from deciphon_core.press import PressContext
 from deciphon_core.schema import DBName, Gencode, HMMFile
@@ -82,25 +82,39 @@ def process_request(bg: Background, poster: Poster, request: PressRequest):
     logger.info(f"finished posting {hmm.dbfile}")
 
 
-def presser_loop(poster: Poster, mqtt_host: str, mqtt_port: int):
-    requests: Queue[PressRequest] = Queue()
+class PresserManager:
+    def __init__(self, poster: Poster, mqtt_host: str, mqtt_port: int):
+        self.poster = poster
+        self.requests: Queue[PressRequest] = Queue()
+        self.mqtt_host = mqtt_host
+        self.mqtt_port = mqtt_port
 
-    logger.info(f"connecting to MQTT server (host={mqtt_host}, port={mqtt_port})")
-    client = Client(CallbackAPIVersion.VERSION2, userdata=requests)
-    client.on_connect = on_connect
-    client.on_message = on_message
-    client.connect(mqtt_host, mqtt_port)
+    def run_forever(self):
+        logger.info(
+            f"connecting to MQTT server (host={self.mqtt_host}, port={self.mqtt_port})"
+        )
+        client = Client(CallbackAPIVersion.VERSION2, userdata=self.requests)
+        client.on_connect = on_connect
+        client.on_message = on_message
+        client.connect(self.mqtt_host, self.mqtt_port)
 
-    client.loop_start()
-    with Background() as bg:
-        while True:
-            request = requests.get()
-            try:
-                process_request(bg, poster, request)
-            except Exception as exception:
-                logger.warning(f"pressing failed: {exception}")
-                job_update = JobUpdate.fail(request.job_id, str(exception))
-                bg.fire(partial(poster.job_patch, job_update))
-            finally:
-                requests.task_done()
-    client.loop_stop()
+        client.loop_start()
+        with Background() as bg:
+            while True:
+                try:
+                    request = self.requests.get()
+                except ShutDown:
+                    logger.info("shutting down...")
+                    break
+                try:
+                    process_request(bg, self.poster, request)
+                except Exception as exception:
+                    logger.warning(f"pressing failed: {exception}")
+                    job_update = JobUpdate.fail(request.job_id, str(exception))
+                    bg.fire(partial(self.poster.job_patch, job_update))
+                finally:
+                    self.requests.task_done()
+        client.loop_stop()
+
+    def stop(self):
+        self.requests.shutdown()

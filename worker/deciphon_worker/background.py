@@ -1,24 +1,25 @@
-from queue import Queue
 from threading import Thread
 from typing import Callable
+
+from deciphon_worker.queue313 import Queue, ShutDown
 
 callback_type = Callable[[], None]
 
 
 class Background:
     def __init__(self):
-        self._queue: Queue[callback_type | None] = Queue()
+        self._queue: Queue[callback_type] = Queue()
         self._thread = Thread(target=self.loop)
 
     def fire(self, callback: callback_type):
         self._queue.put(callback)
 
-    def shutdown(self):
-        self._queue.put(None)
-
     def loop(self):
         while True:
-            callback = self._queue.get()
+            try:
+                callback = self._queue.get()
+            except ShutDown:
+                break
             if callback is None:
                 break
             callback()
@@ -29,7 +30,7 @@ class Background:
         self._thread.start()
 
     def stop(self):
-        self.shutdown()
+        self._queue.shutdown()
         self._thread.join()
 
     def __enter__(self):
