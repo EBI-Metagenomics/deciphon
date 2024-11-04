@@ -37,4 +37,5 @@ services:
     command: ["server", "/data"]
   mqtt:
     image: library/eclipse-mosquitto
+    ports: ["1883:1883"]
     command: ["mosquitto", "-c", "/mosquitto-no-auth.conf"]
