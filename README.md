@@ -1,39 +1,50 @@
-# Welcome to Deciphon projects 👋
+![Deciphon Light Logo](.github/assets/logo-light.png)
 
-The main part of Deciphon is its core. It is implemented in C and built on top of [IMM](https://github.com/EBI-Metagenomics/imm) library to define protein using hidden Markov models and perform inference using the Viterbi method.
+# Deciphon
+
+Deciphon is a robust protein annotation software tailored for handling long-read
+sequencing data with high error rates. By leveraging a novel approach that
+incorporates quasi-codons, Deciphon allows for direct annotation of protein sequences
+without the need for prior error correction or open reading frame identification.
+
+![Comparison on Chlamydia long-read](.github/assets/chlamydia.png)
+
+The figure above illustrates the Pfam annotations found using Deciphon, compared to combinations
+of Prodigal and FragGeneScan with HMMER, on a long-read of the Chlamydia strain 14-2711_R47,
+isolated from flamingos.
+The alignment spans a chromosomal region of 23,953 nucleotides and consists of 23,242 matches,
+880 deletions, and 711 insertions. Deciphon recovered 21 out of 29 proteins (72%) while
+mislabelling only one (Chordopox_A30L). FGS1-HMMER and FGS3-HMMER recovered 10 (34%) and
+8 (28%) proteins, respectively. Prodigal-HMMER predicted 9 genes but found no significant
+match against Pfam.
 
 ## Quick start
 
-Its command-line interface can be installed by
+To get started, you can install Deciphon via the command line using Python’s package manager:
 
 ```sh
 pip install deciphon
 ```
 
-if you have a working Python environment. It will run on MacOS and Linux operating systems. After installing it, just enter
+Deciphon is compatible with both __macOS__ and __Linux__ operating systems.
+Once installed, you can access the help documentation by entering:
 
 ```sh
 deciphon --help
 ```
 
-in the terminal to show usage information.
+in the terminal to display usage information.
 
 ## Directory layout
 
-    ├─ c-core/          Deciphon library written in C.
-    ├─ cli/             Command-line interface written in Python.
-    ├─ control/         Command-line interface to control and run the servers.
-    ├─ eval/            Python scripts to evaluate its performance.
-    ├─ python-core/     Python wrapper around the Deciphon library.
-    ├─ sched/           RESTful API for Deciphon server in Python.
-    ├─ snap/            Reader for Deciphon snap files written in Python.
-    ├─ tests/           Unit tests.
-
-## Compose
-
-The relevant files are `compose.yml` and `compose.cfg`. You can launch it via `docker compose --env-file compose.cfg up` and test it running `./tests/test-compose.sh`. Once it is running, open `http://127.0.0.1:1515/docs` to have an overview of the RESTful API.
-
-You might want to change the variable `DECIPHON_SCHED_ALLOW_ORIGINS` in the file `compose.cfg` to the hostname of a web server.
+    ├─ c-core/          Deciphon core library written in C.
+    ├─ cli/             Command-line interface (CLI) written in Python.
+    ├─ compose/         Docker Compose setup for running a Deciphon server.
+    ├─ control/         CLI for controlling and managing servers.
+    ├─ intervals/       Python and R-based interval definitions.
+    ├─ python-core/     Python wrapper for the Deciphon core library.
+    ├─ sched/           RESTful API for Deciphon server.
+    ├─ snap/            Python reader for Deciphon snap files.
 
 ## 👤 Author
 
@@ -41,4 +52,4 @@ You might want to change the variable `DECIPHON_SCHED_ALLOW_ORIGINS` in the file
 
 ## Show your support
 
-Give a ⭐️ if this project helped you!
+If you find this project useful, please consider giving it a ⭐️!
