@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deciphon-worker"
-version = "0.2.0"
+version = "0.2.1"
 description = "Deciphon worker."
 authors = ["Danilo Horta <danilo.horta@pm.me>"]
 license = "MIT"
