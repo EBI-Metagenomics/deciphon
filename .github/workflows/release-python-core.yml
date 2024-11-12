@@ -25,10 +25,28 @@ jobs:
         with:
           path: python-core/dist/*.tar.gz
 
-  make_linux_wheels:
+  make_linux_intel_wheels:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Setup architecture
+        run: echo "CIBW_ARCHS_LINUX=x86_64" >> "$GITHUB_ENV"
+
+      - name: Build wheels
+        run: pipx run cibuildwheel==2.21.3
+
+      - uses: actions/upload-artifact@v3
+        with:
+          path: python-core/wheelhouse/*.whl
+
+  make_linux_arm_wheels:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup architecture
+        run: echo "CIBW_ARCHS_LINUX=aarch64" >> "$GITHUB_ENV"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -88,7 +106,7 @@ jobs:
           path: python-core/wheelhouse/*.whl
 
   upload_all:
-    needs: [make_linux_wheels, make_macos_intel_wheels, make_macos_arm_wheels, make_sdist]
+    needs: [make_linux_intel_wheels, make_linux_arm_wheels, make_macos_intel_wheels, make_macos_arm_wheels, make_sdist]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v3
