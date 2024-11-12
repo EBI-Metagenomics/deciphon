@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from deciphon_core.cffi import ffi, lib
+from deciphon_core._cffi import ffi, lib
 from deciphon_core.error import DeciphonError
 from deciphon_core.sequence import Sequence
 

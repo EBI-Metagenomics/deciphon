@@ -1,4 +1,4 @@
-from deciphon_core.cffi import ffi, lib
+from deciphon_core._cffi import ffi, lib
 
 __all__ = ["DeciphonError"]
 
