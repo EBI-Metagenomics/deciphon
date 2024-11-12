@@ -1,29 +1,10 @@
 from __future__ import annotations
-import psutil
-
-import importlib.metadata
-from pathlib import Path
-from subprocess import DEVNULL
-from typing import Optional
-
-from deciphon_core.batch import Batch
-from deciphon_core.press import PressContext
-from deciphon_core.scan import Scan
-from deciphon_core.schema import Gencode, HMMFile, NewSnapFile
-from deciphon_snap.read_snap import read_snap
-from deciphon_snap.view import view_alignments
-from more_itertools import mark_ends
-from rich.progress import track
-from typer import Argument, BadParameter, Exit, Option, Typer, echo
 
 from enum import Enum
-from deciphon.catch_validation import catch_validation
-from deciphon.gencode import gencodes
-from deciphon.h3daemon import H3Daemon
-from deciphon.hmmer_press import hmmer_press
-from deciphon.progress import Progress
-from deciphon.read_sequences import read_sequences
-from deciphon.service_exit import service_exit
+from pathlib import Path
+from typing import Optional
+
+from typer import Argument, BadParameter, Exit, Option, Typer, echo
 
 __all__ = ["app"]
 
@@ -55,15 +36,18 @@ O_HMMER3_COMPAT = Option(
 H_HMMER = "HMMER profile file."
 
 
-@app.callback(invoke_without_command=True)
+@app.callback(invoke_without_command=True, no_args_is_help=True)
 def cli(version: Optional[bool] = Option(None, "--version", is_eager=True)):
+    import importlib.metadata
+
     if version:
-        assert __package__ is not None
-        echo(importlib.metadata.version(__package__))
+        echo(importlib.metadata.version("deciphon"))
         raise Exit(0)
 
 
 def gencode_callback(gencode: int):
+    from deciphon.gencode import gencodes
+
     if gencode not in gencodes:
         raise BadParameter(f"{gencode} is not in {gencodes}")
     return gencode
@@ -84,6 +68,14 @@ def press(
     """
     Make protein database.
     """
+    from deciphon_core.press import PressContext
+    from deciphon_core.schema import Gencode, HMMFile
+    from rich.progress import track
+
+    from deciphon.catch_validation import catch_validation
+    from deciphon.hmmer_press import hmmer_press
+    from deciphon.service_exit import service_exit
+
     with service_exit(), catch_validation():
         hmm = HMMFile(path=hmmfile)
 
@@ -135,6 +127,19 @@ def scan(
     """
     Scan nucleotide sequences against protein database.
     """
+    from subprocess import DEVNULL
+
+    import psutil
+    from deciphon_core.batch import Batch
+    from deciphon_core.scan import Scan
+    from deciphon_core.schema import HMMFile, NewSnapFile
+
+    from deciphon.catch_validation import catch_validation
+    from deciphon.h3daemon import H3Daemon
+    from deciphon.progress import Progress
+    from deciphon.read_sequences import read_sequences
+    from deciphon.service_exit import service_exit
+
     with service_exit(), catch_validation():
         hmm = HMMFile(path=hmmfile)
         db = hmm.dbfile
@@ -167,9 +172,19 @@ def see(
     """
     Display scan results.
     """
+    from deciphon_snap.read_snap import read_snap
+    from deciphon_snap.view import view_alignments
+    from more_itertools import mark_ends
+
+    from deciphon.service_exit import service_exit
+
     with service_exit():
         for x in mark_ends(iter(view_alignments(read_snap(snapfile)))):
             if x[1]:
                 echo(x[2].rstrip("\n"))
             else:
                 echo(x[2])
+
+
+if __name__ == "__main__":
+    app()
