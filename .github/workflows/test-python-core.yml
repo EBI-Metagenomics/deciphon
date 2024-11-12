@@ -22,10 +22,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: setup openmp
+      - name: setup openmp and autoconf
         if: startsWith(matrix.os, 'macos')
         run: |
-          brew install libomp
+          brew install libomp autoconf
           echo "C_INCLUDE_PATH=$(brew --prefix)/opt/libomp/include" >> $GITHUB_ENV
           echo "LIBRARY_PATH=$(brew --prefix)/opt/libomp/lib"       >> $GITHUB_ENV
 
