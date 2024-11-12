@@ -67,7 +67,7 @@ if __name__ == "__main__":
 
     ffibuilder.cdef(open(PKG / "interface.h", "r").read())
     ffibuilder.set_source(
-        "deciphon_core.cffi",
+        "deciphon_core._cffi",
         """
         #include "deciphon.h"
         """,
