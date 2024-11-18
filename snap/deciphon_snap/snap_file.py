@@ -80,7 +80,7 @@ class SnapFile:
             prods = prods[:4] + [["…"] * num_fields] + prods[-4:]
 
         x = pt.PrettyTable()
-        x.set_style(pt.SINGLE_BORDER)
+        x.set_style(pt.TableStyle.SINGLE_BORDER)
         x.field_names = fields
         x.align = "l"
         for prod in prods:
