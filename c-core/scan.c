@@ -193,6 +193,7 @@ int dcp_scan_run(struct dcp_scan *x, struct dcp_batch *batch, char const *produc
 #pragma omp critical
     if (r && !rc) rc = r;
   }
+  if (rc) defer_return(rc);
 
   return product_close(&x->product, x->num_threads);
 
