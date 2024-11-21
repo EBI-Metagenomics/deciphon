@@ -12,7 +12,6 @@ def check_exception(exception, exc_value, traceback):
     if traceback is not None:
         scan: Scan = ffi.from_handle(traceback.tb_frame.f_locals["userdata"])
         scan.interrupt()
-        scan.interrupted = True
 
 
 @ffi.def_extern(onerror=check_exception)
@@ -58,6 +57,7 @@ class Scan:
             raise DeciphonError(rc)
 
     def interrupt(self):
+        self.interrupted = True
         lib.dcp_scan_interrupt(self._cscan)
 
     def progress(self) -> int:
