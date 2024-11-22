@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "deciphon-gui"
+version = "0.1.0"
+description = ""
+authors = ["Danilo Horta <danilo.horta@pm.me>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+customtkinter = "^5.2.2"
+deciphon = { path = "/Users/horta/code/deciphon/cli" }
+fasta-reader = "^3.0.3"
+loguru = "^0.7.2"
+deciphon-worker = { path = "/Users/horta/code/deciphon-worker", develop = true }
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
