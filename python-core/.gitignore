@@ -1,5 +1,6 @@
 .build_ext/
 cffi.*
+_cffi.*
 deciphon_core/include/
 deciphon_core/lib/
 deciphon_core/share/
