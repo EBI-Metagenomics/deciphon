@@ -22,6 +22,7 @@ psutil = "^6.1.0"
 deciphon-core = "^1.0.2"
 h3daemon = "^0.14.6"
 h3result = "^1.0.2"
+loguru = "^0.7.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2"
