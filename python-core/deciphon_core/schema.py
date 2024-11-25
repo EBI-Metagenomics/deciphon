@@ -90,6 +90,14 @@ class DBFile(BaseModel):
             raise ValueError("must end in `.dcp`")
         return x
 
+    @property
+    def _hmmpath(self) -> Path:
+        return self.path.parent / f"{self.path.stem}.hmm"
+
+    @property
+    def hmmfile(self) -> DBFile:
+        return HMMFile(path=self._hmmpath)
+
 
 class NewDBFile(BaseModel):
     path: Path
