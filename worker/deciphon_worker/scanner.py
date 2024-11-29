@@ -1,111 +1,134 @@
-from __future__ import annotations
-
+import shutil
+import sys
+from dataclasses import dataclass
 from functools import partial
-from pathlib import Path
+from threading import Thread
+from typing import Any
 
-from deciphon_core.schema import HMMFile, HMMName
-from deciphon_poster.poster import Poster
-from deciphon_poster.schema import JobUpdate
+from deciphon_core.scan import Scan
+from deciphon_core.schema import DBFile, NewSnapFile, SnapFile
+from deciphon_core.sequence import Sequence
+from h3daemon.hmmfile import HMMFile as H3File
 from loguru import logger
-from paho.mqtt.client import CallbackAPIVersion, Client
 
-from deciphon_worker.background import Background
-from deciphon_worker.download import download
-from deciphon_worker.files import atomic_file_creation
-from deciphon_worker.models import ScanRequest
-from deciphon_worker.queue313 import Queue, ShutDown
-from deciphon_worker.scan_thread import ScanThread
+from deciphon_worker.alarm import Alarm
+from deciphon_worker.batch import create_batch
+from deciphon_worker.hmmer import HMMER, launch_hmmer
+from deciphon_worker.interrupted import Interrupted
+from deciphon_worker.progressor import Progressor
+from deciphon_worker.queue_loop import queue_loop
+from deciphon_worker.thread import launch_thread
 
-FILE_MODE = 0o640
-TOPIC = "/deciphon.org/scan"
-
-
-def on_connect(client, userdata, flags, reason_code, properties):
-    logger.info(f"connected to MQTT with result code {reason_code}")
-    logger.info(f"subscribing to {TOPIC}")
-    client.subscribe(TOPIC)
+if sys.version_info >= (3, 13):
+    from queue import Queue
+else:
+    from deciphon_worker.queue313 import Queue
 
 
-def on_message(client, userdata, msg):
-    assert isinstance(msg.payload, bytes)
-    payload = msg.payload.decode()
-    logger.info(f"received <{payload}>")
-    requests: Queue[ScanRequest] = userdata
-    requests.put(ScanRequest.model_validate_json(payload))
+info = logger.info
 
 
-def scanner_hash(hmm: HMMName, multi_hits: bool, hmmer3_compat: bool):
-    return hash(f"{str(hmm)}_{multi_hits}_{hmmer3_compat}")
+@dataclass
+class Request:
+    snap: NewSnapFile
+    sequences: list[Sequence]
+    future: Progressor[SnapFile]
 
 
-def process_request(
-    scans: dict[int, ScanThread],
-    bg: Background,
-    poster: Poster,
-    request: ScanRequest,
+class Scanner:
+    def __init__(
+        self,
+        dbfile: DBFile,
+        num_threads: int = 2,
+        multi_hits: bool = True,
+        hmmer3_compat: bool = False,
+        cache: bool = False,
+        stdout: Any = None,
+        stderr: Any = None,
+    ):
+        h3file = H3File(dbfile.hmmfile.path)
+        self._hmmer: HMMER = launch_hmmer(h3file, stdout, stderr).result()
+        info("starting scan daemon")
+        self._scan = Scan(
+            dbfile,
+            self._hmmer.port,
+            num_threads,
+            multi_hits,
+            hmmer3_compat,
+            cache,
+        )
+        self._queue: Queue[Request] = Queue()
+        self._is_stop = False
+        self._thread = Thread(target=self._run)
+        self._thread.start()
+
+    def shutdown(self):
+        def func():
+            info("stopping scan daemon")
+            self._is_stop = True
+            self._queue.shutdown(immediate=True)
+            self._thread.join()
+            self._scan.free()
+            self._hmmer.shutdown()
+
+        return launch_thread(func, name="Scanner.shutdown")
+
+    def put(self, snap: NewSnapFile, sequences: list[Sequence]):
+        future: Progressor[SnapFile] = Progressor()
+        request = Request(snap, sequences, future)
+        self._queue.put(request)
+        return future
+
+    def _run(self):
+        for x in queue_loop(self._queue):
+            x.future.set_running_or_notify_cancel()
+            try:
+                batch = create_batch(x.sequences)
+                scan = self._scan
+
+                with Alarm(0.1, partial(self._monitor, x.future)):
+                    scan.run(x.snap, batch)
+
+                if scan.interrupted:
+                    info("Scanner has been interrupted.")
+                    raise Interrupted
+
+                x.snap.make_archive()
+                snap = SnapFile(path=x.snap.path)
+                info(f"Scan has finished successfully and results in '{snap.path}'.")
+                x.future.set_progress(100)
+                x.future.set_result(snap)
+            except Exception as exception:
+                shutil.rmtree(x.snap.path, ignore_errors=True)
+                x.future.set_exception(exception)
+            finally:
+                shutil.rmtree(x.snap.basename, ignore_errors=True)
+
+    def _monitor(self, x: Progressor[SnapFile]):
+        scan = self._scan
+        if x.interrupted or self._is_stop:
+            scan.interrupt()
+            return
+        x.set_progress(scan.progress())
+
+
+def launch_scanner(
+    dbfile: DBFile,
+    num_threads: int = 2,
+    multi_hits: bool = True,
+    hmmer3_compat: bool = False,
+    cache: bool = False,
+    stdout: Any = None,
+    stderr: Any = None,
 ):
-    logger.info(f"processing scan request: {request}")
-    bg.fire(partial(poster.job_patch, JobUpdate.run(request.job_id, 0)))
-
-    hmmfile = Path(request.hmm.name)
-    dbfile = Path(request.db.name)
-
-    if not hmmfile.exists():
-        with atomic_file_creation(hmmfile) as t:
-            download(poster.download_hmm_url(hmmfile.name), t)
-
-    if not dbfile.exists():
-        with atomic_file_creation(dbfile) as t:
-            download(poster.download_db_url(dbfile.name), t)
-
-    id = scanner_hash(request.hmm, request.multi_hits, request.hmmer3_compat)
-    if id not in scans:
-        hmm = HMMFile(path=hmmfile)
-        scans[id] = ScanThread(
-            bg, poster, hmm, request.multi_hits, request.hmmer3_compat
-        )
-        scans[id].start()
-
-    scans[id].fire(request)
-
-
-class ScannerManager:
-    def __init__(self, poster: Poster, mqtt_host: str, mqtt_port: int):
-        self.poster = poster
-        self.requests: Queue[ScanRequest] = Queue()
-        self.scans: dict[int, ScanThread] = dict()
-        self.mqtt_host = mqtt_host
-        self.mqtt_port = mqtt_port
-
-    def run_forever(self):
-        logger.info(
-            f"connecting to MQTT server (host={self.mqtt_host}, port={self.mqtt_port})"
-        )
-        client = Client(CallbackAPIVersion.VERSION2, userdata=self.requests)
-        client.on_connect = on_connect
-        client.on_message = on_message
-        client.connect(self.mqtt_host, self.mqtt_port)
-
-        client.loop_start()
-        with Background() as bg:
-            while True:
-                try:
-                    request = self.requests.get()
-                except ShutDown:
-                    logger.info("shutting down...")
-                    break
-                try:
-                    process_request(self.scans, bg, self.poster, request)
-                except Exception as exception:
-                    logger.warning(f"scanning failed: {exception}")
-                    job_update = JobUpdate.fail(request.job_id, str(exception))
-                    bg.fire(partial(self.poster.job_patch, job_update))
-                finally:
-                    self.requests.task_done()
-        client.loop_stop()
-
-        for x in self.scans.values():
-            x.stop()
-
-    def stop(self):
-        self.requests.shutdown()
+    func = partial(
+        Scanner,
+        dbfile=dbfile,
+        num_threads=num_threads,
+        multi_hits=multi_hits,
+        hmmer3_compat=hmmer3_compat,
+        cache=cache,
+        stdout=stdout,
+        stderr=stderr,
+    )
+    return launch_thread(func, name="Scanner")

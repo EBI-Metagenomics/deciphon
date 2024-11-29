@@ -27,3 +27,4 @@ class Alarm:
 
     def __exit__(self, *_):
         self.stop()
+        return False
