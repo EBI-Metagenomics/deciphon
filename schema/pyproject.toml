@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "deciphon-schema"
+version = "1.0.0"
+description = "Schema for Deciphon packages."
+authors = ["Danilo Horta <danilo.horta@pm.me>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pydantic = "^2.10.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
