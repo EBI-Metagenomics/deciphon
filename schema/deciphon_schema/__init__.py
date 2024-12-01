@@ -197,7 +197,8 @@ class NewSnapFile(BaseModel):
     @field_validator("path")
     def basedir_must_not_exist(cls, x: Path):
         if x.with_suffix("").exists():
-            raise ValueError(f"`{x.with_suffix("")}` path must not exist")
+            y = x.with_suffix("")
+            raise ValueError(f"`{y}` path must not exist")
         return x
 
     @property
