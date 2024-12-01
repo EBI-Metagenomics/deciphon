@@ -6,9 +6,8 @@ from threading import Thread
 from typing import Any
 
 from deciphon_core.scan import Scan
-from deciphon_core.schema import DBFile, NewSnapFile, SnapFile
 from deciphon_core.sequence import Sequence
-from h3daemon.hmmfile import HMMFile as H3File
+from deciphon_schema import DBFile, HMMFile, NewSnapFile, SnapFile
 from loguru import logger
 
 from deciphon_worker.alarm import Alarm
@@ -46,7 +45,7 @@ class Scanner:
         stdout: Any = None,
         stderr: Any = None,
     ):
-        h3file = H3File(dbfile.hmmfile.path)
+        h3file = HMMFile(path=dbfile.hmmpath.path)
         self._hmmer: HMMER = launch_hmmer(h3file, stdout, stderr).result()
         info("starting scan daemon")
         self._scan = Scan(
@@ -102,7 +101,7 @@ class Scanner:
                 shutil.rmtree(x.snap.path, ignore_errors=True)
                 x.future.set_exception(exception)
             finally:
-                shutil.rmtree(x.snap.basename, ignore_errors=True)
+                shutil.rmtree(x.snap.basedir, ignore_errors=True)
 
     def _monitor(self, x: Progressor[SnapFile]):
         scan = self._scan

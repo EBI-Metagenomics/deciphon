@@ -1,7 +1,7 @@
 from functools import partial
 from typing import Any
 
-from h3daemon.hmmfile import HMMFile
+from deciphon_schema import HMMFile
 from h3daemon.sched import SchedContext
 from loguru import logger
 
@@ -13,7 +13,7 @@ info = logger.info
 class HMMER:
     def __init__(self, hmmfile: HMMFile, stdout: Any, stderr: Any):
         info("starting hmmer daemon")
-        h3file = HMMFile(hmmfile.path)
+        h3file = HMMFile(path=hmmfile.path)
         stdout = stdout
         stderr = stderr
         self._sched_ctx = SchedContext(h3file, stdout=stdout, stderr=stderr)

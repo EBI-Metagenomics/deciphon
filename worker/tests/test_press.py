@@ -1,8 +1,8 @@
 import os
 import shutil
+from pathlib import Path
 
-from deciphon_core.schema import Gencode, HMMFile
-from h3daemon.hmmfile import Path
+from deciphon_schema import Gencode, HMMFile
 
 from deciphon_worker import press
 

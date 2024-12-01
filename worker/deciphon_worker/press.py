@@ -2,7 +2,7 @@ from functools import partial
 from threading import Thread
 
 from deciphon_core.press import PressContext
-from deciphon_core.schema import DBFile, Gencode, HMMFile
+from deciphon_schema import DBFile, Gencode, HMMFile
 
 from deciphon_worker.interrupted import Interrupted
 from deciphon_worker.progressor import Progressor
@@ -21,7 +21,7 @@ def press_thread(
                 ctx.next()
                 future.set_progress((100 * (i + 1)) // ctx.nproteins)
 
-        future.set_result(hmmfile.dbfile)
+        future.set_result(DBFile(path=hmmfile.dbpath.path))
     except Exception as exception:
         future.set_exception(exception)
 
