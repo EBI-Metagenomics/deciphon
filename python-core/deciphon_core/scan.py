@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from deciphon_schema import DBFile, NewSnapFile
+
 from deciphon_core._cffi import ffi, lib
 from deciphon_core.batch import Batch
 from deciphon_core.error import DeciphonError
-from deciphon_core.schema import DBFile, NewSnapFile
 
 __all__ = ["Scan"]
 
@@ -51,9 +52,7 @@ class Scan:
 
     def run(self, snap: NewSnapFile, batch: Batch):
         self.interrupted = False
-        if rc := lib.dcp_scan_run(
-            self._cscan, batch.cdata, str(snap.basename).encode()
-        ):
+        if rc := lib.dcp_scan_run(self._cscan, batch.cdata, str(snap.basedir).encode()):
             raise DeciphonError(rc)
 
     def interrupt(self):

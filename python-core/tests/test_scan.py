@@ -5,15 +5,15 @@ import os
 import shutil
 from pathlib import Path
 
+from deciphon_schema import DBFile, Gencode, HMMFile, NewSnapFile
 from h3daemon.hmmfile import HMMFile as H3File
-from h3daemon.sched import SchedContext
 from h3daemon.polling import wait_until
+from h3daemon.sched import SchedContext
 
+from deciphon_core.batch import Batch
 from deciphon_core.press import PressContext
 from deciphon_core.scan import Scan
-from deciphon_core.schema import Gencode, HMMFile, NewSnapFile
 from deciphon_core.sequence import Sequence
-from deciphon_core.batch import Batch
 
 
 def checksum(filename: Path):
@@ -31,7 +31,7 @@ def run_scan(hmm: Path, hmmfile: H3File, num_threads: int, cache: bool):
 
     with SchedContext(hmmfile) as sched:
         wait_until(sched.is_ready)
-        dbfile = HMMFile(path=hmm).dbfile
+        dbfile = DBFile(path=HMMFile(path=hmm).dbpath.path)
         batch = Batch()
         for seq in sequences:
             batch.add(seq)
@@ -42,7 +42,7 @@ def run_scan(hmm: Path, hmmfile: H3File, num_threads: int, cache: bool):
             assert scan.progress() == 100
 
     shutil.unpack_archive(snapfile.path, format="zip")
-    products = snapfile.basename / "products.tsv"
+    products = snapfile.basedir / "products.tsv"
     assert checksum(products)[:8] == "a8d59263"
 
 

@@ -1,6 +1,7 @@
+from deciphon_schema import Gencode, HMMFile
+
 from deciphon_core._cffi import ffi, lib
 from deciphon_core.error import DeciphonError
-from deciphon_core.schema import Gencode, HMMFile
 
 __all__ = ["PressContext"]
 
@@ -18,7 +19,7 @@ class PressContext:
 
     def open(self):
         hmmpath = bytes(self._hmm.path)
-        dbpath = bytes(self._hmm.newdbfile.path)
+        dbpath = bytes(self._hmm.dbpath.path)
         if rc := lib.dcp_press_open(self._cpress, hmmpath, dbpath):
             raise DeciphonError(rc)
 

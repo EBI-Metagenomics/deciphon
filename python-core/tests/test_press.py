@@ -2,8 +2,9 @@ import os
 import shutil
 from pathlib import Path
 
+from deciphon_schema import Gencode, HMMFile
+
 from deciphon_core.press import PressContext
-from deciphon_core.schema import Gencode, HMMFile
 
 
 def test_press(tmp_path: Path, files_path: Path):
@@ -15,4 +16,4 @@ def test_press(tmp_path: Path, files_path: Path):
         while not press.end():
             press.next()
 
-    assert hmmfile.dbfile.path.stat().st_size == 3609858
+    assert hmmfile.dbpath.path.stat().st_size == 3609858
