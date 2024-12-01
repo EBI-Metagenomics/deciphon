@@ -24,7 +24,7 @@ generate-setup-file = false
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2"
-h3daemon = "^0.14"
+h3daemon = "^0.14.9"
 gitpython = "^3.1.43"
 
 [tool.pytest.ini_options]
