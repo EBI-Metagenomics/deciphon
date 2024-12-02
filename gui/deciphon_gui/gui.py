@@ -1,5 +1,7 @@
+import os
+
 import customtkinter as ctk
-from deciphon_core.schema import Gencode
+from deciphon_schema import Gencode
 
 from deciphon_gui.alignment import AlignmentFrame
 from deciphon_gui.banner import Banner
@@ -11,17 +13,15 @@ from deciphon_gui.sequence import SequenceFrame
 class GUI(ctk.CTk):
     def __init__(self):
         super().__init__()
-        ctk.set_appearance_mode("system")
-        ctk.set_default_color_theme("dark-blue")
+        ctk.set_appearance_mode("light")
+        dir = os.path.dirname(os.path.realpath(__file__))
+        theme_path = f"{dir}/theme.json"
+        ctk.set_default_color_theme(theme_path)
         self.geometry("1700x556+5250")
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(2, weight=1)
         self.title("Deciphon")
         self.configure(fg_color=ctk.ThemeManager.theme["CTkFrame"]["fg_color"])
-        for k in ctk.ThemeManager.theme.keys():
-            print(k)
-            print(ctk.ThemeManager.theme[k].values())
-            print()
 
         self.banner = Banner(self)
         self.banner.grid(row=0, column=0, columnspan=2, stick="nwe")

@@ -1,12 +1,13 @@
+import os
 from pathlib import Path
-from PIL import Image
 from tkinter.filedialog import askopenfilename
 
 import customtkinter as ctk
-from deciphon_core.schema import HMMFile
+from deciphon_schema import HMMFile
+from PIL import Image
 
-from deciphon_gui.entry import Entry
 from deciphon_gui.button import Button
+from deciphon_gui.entry import Entry
 
 
 class FileFrame(ctk.CTkFrame):
@@ -24,28 +25,31 @@ class FileFrame(ctk.CTkFrame):
         self.field.configure(corner_radius=0)
         self.field.grid(row=0, column=1, sticky="nsew")
 
-        image = ctk.CTkImage(
-            light_image=Image.open(
-                "/Users/horta/code/deciphon/gui/deciphon_gui/file_dark.png"
-            ),
-            dark_image=Image.open(
-                "/Users/horta/code/deciphon/gui/deciphon_gui/file_light.png"
-            ),
+        dir = os.path.dirname(os.path.realpath(__file__))
+        file_enabled = f"{dir}/file_enabled.png"
+        file_disabled = f"{dir}/file_disabled.png"
+        image_enabled = ctk.CTkImage(
+            light_image=Image.open(file_enabled),
+            dark_image=Image.open(file_enabled),
+            size=(20, 20),
+        )
+        image_disabled = ctk.CTkImage(
+            light_image=Image.open(file_disabled),
+            dark_image=Image.open(file_disabled),
             size=(20, 20),
         )
 
         button_size = 28
-        self.button = Button(self, text="", image=image)
+        self.button = Button(
+            self, text="", image_enabled=image_enabled, image_disabled=image_disabled
+        )
         self.button.configure(height=button_size, width=button_size)
         self.button.configure(corner_radius=0)
+        self.button.configure(fg_color="#325881")
         self.button.grid(row=0, column=2, sticky="nsew")
         self.button.grid(padx=(0, 0))
         self.button.grid(pady=(0, 0))
         self.button.configure(command=self.on_select_file)
-
-        # self.home_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Home",
-        #                                            fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
-        #                                            image=self.home_image, anchor="w", command=self.home_button_event)
 
     def select(self, x: HMMFile):
         self.field.insert("0", str(x.path))

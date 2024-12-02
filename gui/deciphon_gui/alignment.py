@@ -1,10 +1,10 @@
 import customtkinter as ctk
-from deciphon_core.schema import SnapFile
+from deciphon_schema import SnapFile
+from deciphon_snap.read_snap import read_snap
+from deciphon_snap.view import view_alignments
 
 from deciphon_gui.heading import h2
 from deciphon_gui.text import TextArea
-from deciphon_snap.read_snap import read_snap
-from deciphon_snap.view import view_alignments
 
 
 class AlignmentFrame(ctk.CTkFrame):
@@ -23,8 +23,8 @@ class AlignmentFrame(ctk.CTkFrame):
         self.text.grid(row=1, column=0, sticky="nsew")
         self.text.grid(padx=(10, 10))
         self.text.grid(pady=(0, 10))
-        self.text.disable()
-        self.set_empty()
+        self.text.disable(change_color=False)
+        self.info("No alignment yet...")
 
     def set_alignment(self, snap: SnapFile):
         view = view_alignments(read_snap(snap.path))
@@ -37,5 +37,5 @@ class AlignmentFrame(ctk.CTkFrame):
         else:
             self.text.set_lines(lines)
 
-    def set_empty(self):
-        self.text.set_lines(["No alignment yet..."])
+    def info(self, text: str):
+        self.text.set_lines([text])

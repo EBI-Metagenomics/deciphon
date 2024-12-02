@@ -37,4 +37,4 @@ class ProgressFrame(ctk.CTkFrame):
     def error(self, x: str):
         msg = shorten(x, 98)
         self.status.configure(text=f"Status: {msg}")
-        self.status.configure(text_color="red")
+        self.status.configure(text_color="#D32F2E")

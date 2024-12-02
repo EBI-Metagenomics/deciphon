@@ -1,9 +1,10 @@
 from concurrent.futures import CancelledError, Future
+from tempfile import TemporaryDirectory
 from contextlib import suppress
 from pathlib import Path
 from subprocess import DEVNULL
 
-from deciphon_core.schema import DBFile, HMMFile, NewSnapFile, SnapFile
+from deciphon_schema import DBFile, HMMFile, NewSnapFile, SnapFile
 from deciphon_worker import Progressor, Scanner, launch_scanner, press
 from deciphon_worker.interrupted import Interrupted
 from fasta_reader.errors import ParsingError
@@ -35,13 +36,18 @@ class App:
         self.gui.sequence.set_lines(example_sequence())
         self.gui.library.on_enter_callback(self.library_on_enter)
         self.gui.set_on_closing(self.on_closing)
+        self._tempdir = TemporaryDirectory()
         self.gui.mainloop()
+
+    def snapfile(self):
+        f = Path(f"{self._tempdir.name}/snap.dcs")
+        f.unlink(missing_ok=True)
+        return NewSnapFile(path=f)
 
     def library_on_enter(self):
         self.load_library()
 
     def library_on_cancel(self):
-        print("library_on_cancel")
         assert self._press_future is not None
         self.gui.library.disable_cancel()
         if not self._press_future.cancel():
@@ -91,14 +97,12 @@ class App:
         self.poll_now()
 
     def sequence_on_cancel(self):
-        print("sequence_on_cancel")
         assert self._scan_future is not None
         self.gui.sequence.disable_cancel()
         if not self._scan_future.cancel():
             self._scan_future.interrupt()
 
     def sequence_on_search(self):
-        print("sequence_on_search")
         try:
             seqs = self.gui.sequence.get_sequences()
         except ParsingError as exception:
@@ -107,17 +111,15 @@ class App:
         if len(seqs) == 0:
             self.gui.progress.error("you must provide at least one sequence.")
             return
-        snap = NewSnapFile(path=Path("snap.dcs"))
-        self._scan_future = self.scanner.put(snap, seqs)
+
+        self._scan_future = self.scanner.put(self.snapfile(), seqs)
         self.gui.sequence.enable_cancel()
         self.gui.sequence.disable_submit()
         self.gui.sequence.disable_text()
-        self.gui.alignment.set_empty()
+        self.gui.alignment.info("Processing...")
         self.poll_now()
 
     def poll(self):
-        print("poll")
-
         if self._press_future:
             if self._press_future.done():
                 try:
@@ -157,7 +159,6 @@ class App:
                     self.gui.sequence.disable_submit()
                     self.gui.sequence.text.enable()
                 except Exception as exception:
-                    print(exception)
                     self.gui.progress.error(f"failed to load library ({exception}).")
                     self.gui.library.enable_input()
                     self.gui.library.disable_cancel()
@@ -171,9 +172,7 @@ class App:
                 self.gui.progress.info("loading...")
 
         elif self._scan_future:
-            print("Ponto 1")
             if self._scan_future.done():
-                print("Ponto 2")
                 try:
                     snap = self._scan_future.result()
                     self.gui.progress.set_progress(1.0)
@@ -192,7 +191,6 @@ class App:
                     self.gui.sequence.enable_search()
 
             else:
-                print("Ponto 3")
                 self.gui.progress.set_progress(self._scan_future.progress / 100)
                 self.gui.progress.info("annotating...")
 
@@ -201,7 +199,7 @@ class App:
                 try:
                     self._scanner_shutdown.result()
                 except Exception as exception:
-                    print(exception)
+                    pass
                 finally:
                     self.gui.progress.info("unloaded.")
                     self.gui.library.enable_submit()
@@ -251,4 +249,5 @@ class App:
                 if not self._press_future.cancel():
                     self._press_future.interrupt()
 
+        self._tempdir.cleanup()
         self.gui.destroy()

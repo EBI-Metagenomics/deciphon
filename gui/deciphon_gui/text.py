@@ -1,8 +1,7 @@
 import customtkinter as ctk
 
-from deciphon_gui.theme import disabled_fg_color
-from deciphon_gui.widget import get_state, disable, enable
 from deciphon_gui.heading import h2
+from deciphon_gui.widget import disable, enable, get_state
 
 
 class TextAreaFrame(ctk.CTkFrame):
@@ -21,8 +20,6 @@ class TextAreaFrame(ctk.CTkFrame):
         self.box.grid(padx=(10, 10))
         self.box.grid(pady=(0, 10))
         self.box.configure(font=ctk.CTkFont(family=family))
-        self._disabled_fg_color = self["background"]
-        self._enabled_fg_color = self.box["background"]
 
     def set_text(self, rows: list[str]):
         old_state = get_state(self.box)
@@ -33,11 +30,9 @@ class TextAreaFrame(ctk.CTkFrame):
         self.box.configure(state=old_state)
 
     def enable(self):
-        self.box.configure(fg_color=self._enabled_fg_color)
         enable(self.box)
 
     def disable(self):
-        self.box.configure(fg_color=self._disabled_fg_color)
         disable(self.box)
 
 
@@ -46,8 +41,6 @@ class TextArea(ctk.CTkTextbox):
         super().__init__(parent, *args, **kwargs)
         self.configure(font=ctk.CTkFont(family=family))
         self.configure(corner_radius=0)
-        self._disabled_fg_color = disabled_fg_color()
-        self._enabled_fg_color = ctk.ThemeManager.theme["CTkTextbox"]["fg_color"]
 
     def set_lines(self, rows: list[str]):
         old_state = get_state(self)
@@ -61,9 +54,12 @@ class TextArea(ctk.CTkTextbox):
         return self.get("0.0", "end").split("\n")
 
     def enable(self):
-        self.configure(fg_color=self._enabled_fg_color)
+        self.configure(text_color=ctk.ThemeManager.theme["CTkTextbox"]["text_color"])
         enable(self)
 
-    def disable(self):
-        self.configure(fg_color=self._disabled_fg_color)
+    def disable(self, change_color=True):
+        if change_color:
+            self.configure(
+                text_color=ctk.ThemeManager.theme["CTkTextbox"]["text_color_disabled"]
+            )
         disable(self)
