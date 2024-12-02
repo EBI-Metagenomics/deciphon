@@ -5,7 +5,7 @@ from enum import Enum
 from typing import Optional
 
 import fastapi
-from deciphon_core.schema import (
+from deciphon_schema import (
     DB_NAME_PATTERN,
     HMM_NAME_PATTERN,
     NAME_MAX_LENGTH,
@@ -78,7 +78,7 @@ class PressRequest(BaseModel):
     @classmethod
     def create(cls, job_id: int, hmm: HMMName, gencode: Gencode, epsilon: float):
         return cls(
-            job_id=job_id, hmm=hmm, db=hmm.db_name, gencode=gencode, epsilon=epsilon
+            job_id=job_id, hmm=hmm, db=hmm.dbname, gencode=gencode, epsilon=epsilon
         )
 
 

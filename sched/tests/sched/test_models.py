@@ -1,5 +1,5 @@
 import pytest
-from deciphon_core.schema import DBName, HMMName
+from deciphon_schema import DBName, HMMName
 from sqlalchemy import select
 
 from deciphon_sched.database import Database

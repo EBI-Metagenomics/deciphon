@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from deciphon_core.schema import Gencode, HMMName
+from deciphon_schema import Gencode, HMMName
 from fastapi import APIRouter, Request
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
@@ -34,7 +34,7 @@ async def presigned_hmm_upload(
     database: Database = request.app.state.database
 
     with database.create_session() as session:
-        x = HMM.get_by_name(session, name)
+        x = HMM.get_by_name(session, HMMName(name=name))
         if x is not None:
             raise FileNameExistsError(name)
         return storage.presigned_upload(name)
@@ -49,7 +49,7 @@ async def presigned_hmm_download(
     database: Database = request.app.state.database
 
     with database.create_session() as session:
-        x = HMM.get_by_name(session, name)
+        x = HMM.get_by_name(session, HMMName(name=name))
         if x is None:
             raise FileNameNotFoundError(name)
         return storage.presigned_download(name)
@@ -63,7 +63,7 @@ async def create_hmm(
     database: Database = request.app.state.database
 
     with database.create_session() as session:
-        x = HMM.get_by_name(session, hmm.name)
+        x = HMM.get_by_name(session, hmm)
         if x is not None:
             raise FileNameExistsError(hmm.name)
 

@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from deciphon_core.schema import DBName
+from deciphon_schema import DBName
 from fastapi import APIRouter, Request
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
@@ -33,7 +33,7 @@ async def presigned_db_upload(
     database: Database = request.app.state.database
 
     with database.create_session() as session:
-        x = DB.get_by_name(session, name)
+        x = DB.get_by_name(session, DBName(name=name))
         if x is not None:
             raise FileNameExistsError(name)
         return storage.presigned_upload(name)
@@ -48,7 +48,7 @@ async def presigned_db_download(
     database: Database = request.app.state.database
 
     with database.create_session() as session:
-        x = DB.get_by_name(session, name)
+        x = DB.get_by_name(session, DBName(name=name))
         if x is None:
             raise FileNameNotFoundError(name)
         return storage.presigned_download(name)
@@ -60,12 +60,12 @@ async def create_db(request: Request, db: DBName) -> DBRead:
     database: Database = request.app.state.database
 
     with database.create_session() as session:
-        if DB.get_by_name(session, db.name) is not None:
+        if DB.get_by_name(session, db) is not None:
             raise FileNameExistsError(db.name)
 
-        hmm = HMM.get_by_name(session, db.hmm_name.name)
+        hmm = HMM.get_by_name(session, db.hmmname)
         if hmm is None:
-            raise FileNameNotFoundError(db.hmm_name.name)
+            raise FileNameNotFoundError(str(db.hmmname))
 
         if not storage.has_file(db.name):
             raise FileNameNotFoundError(db.name)

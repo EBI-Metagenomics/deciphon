@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Optional
 
-from deciphon_core.schema import DBName, HMMName
+from deciphon_schema import DBName, HMMName
 from sqlalchemy import ForeignKey, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
 
@@ -63,7 +63,7 @@ class Job(BaseModel):
             state=JobState.pend,
             progress=0,
             error="",
-            submission=datetime.utcnow(),
+            submission=datetime.now(UTC),
         )
 
     def set_pend(self):
@@ -142,8 +142,8 @@ class HMM(BaseModel):
         return x if x is None else x._tuple()[0]
 
     @staticmethod
-    def get_by_name(session: Session, name: str):
-        x = session.execute(select(HMM).where(HMM.name == name)).one_or_none()
+    def get_by_name(session: Session, hmmname: HMMName):
+        x = session.execute(select(HMM).where(HMM.name == hmmname.name)).one_or_none()
         return x if x is None else x._tuple()[0]
 
     @staticmethod
@@ -176,8 +176,8 @@ class DB(BaseModel):
         return x if x is None else x._tuple()[0]
 
     @staticmethod
-    def get_by_name(session: Session, name: str):
-        x = session.execute(select(DB).where(DB.name == name)).one_or_none()
+    def get_by_name(session: Session, hmmname: DBName):
+        x = session.execute(select(DB).where(DB.name == hmmname.name)).one_or_none()
         return x if x is None else x._tuple()[0]
 
     @staticmethod
