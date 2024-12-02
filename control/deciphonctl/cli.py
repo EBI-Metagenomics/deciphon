@@ -6,10 +6,10 @@ import fasta_reader
 import requests
 import rich
 import typer
-from deciphon_core.schema import DBName, Gencode, HMMName
 from deciphon_poster.errors import PosterHTTPError
 from deciphon_poster.poster import Poster
 from deciphon_poster.schema import Scan, Seq
+from deciphon_schema import DBName, Gencode, HMMName
 from typer import Argument, FileText, Option, echo
 from typing_extensions import Annotated
 

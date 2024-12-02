@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deciphonctl"
-version = "1.0.0"
+version = "1.0.1"
 description = "Control Deciphon server."
 authors = ["Danilo Horta <horta@ebi.ac.uk>"]
 license = "MIT"
@@ -17,18 +17,22 @@ fasta-reader = "^3.0.3"
 loguru = "^0.7"
 requests-toolbelt = "^1.0"
 paho-mqtt = "^2.1"
-deciphon = "^1.0.0"
-deciphon-poster = "^0.2.1"
+deciphon = "^1.0.3"
+deciphon-poster = "^0.2.2"
 xdg-base-dirs = "^6.0.2"
 python-dotenv = "^1.0.1"
 
 [tool.poetry.group.dev.dependencies]
-deciphon-sched = { version = "^1.0.2", extras = ["testing"] }
+deciphon-sched = { version = "^1.0.8", extras = ["testing"] }
 pytest = "^8.2"
 uvicorn = "^0.30"
+pytest-env = "^1.1.5"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+
+[tool.pytest_env]
+XDG_CONFIG_HOME = "/dev/null"
 
 [tool.poetry.scripts]
 deciphonctl = 'deciphonctl.cli:app'
