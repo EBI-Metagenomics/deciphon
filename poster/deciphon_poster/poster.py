@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Callable, Optional
 
 import requests
-from deciphon_core.schema import DBName, Gencode, HMMName
+from deciphon_schema import DBName, Gencode, HMMName
 from pydantic import FilePath, HttpUrl, TypeAdapter
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 

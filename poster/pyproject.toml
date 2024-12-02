@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deciphon-poster"
-version = "0.2.1"
+version = "0.2.2"
 description = "Poster for Deciphon scheduler."
 authors = ["Danilo Horta <danilo.horta@pm.me>"]
 license = "MIT"
@@ -11,7 +11,8 @@ python = "^3.10"
 pydantic = "^2.9.2"
 requests = "^2.32.3"
 requests-toolbelt = "^1.0.0"
-deciphon-core = "^1.0.1"
+deciphon-core = "^1.0.7"
+deciphon-schema = "^0.1.1"
 
 
 [build-system]
