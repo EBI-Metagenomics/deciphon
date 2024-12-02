@@ -1,11 +1,31 @@
 from __future__ import annotations
 
 import sys
+from contextlib import suppress
 from enum import Enum
+from functools import partial
 from pathlib import Path
+from subprocess import DEVNULL
 from typing import Optional
+import itertools
 
+import psutil
+from deciphon_schema import DBFile, Gencode, HMMFile, NewSnapFile, SnapFile
+from deciphon_snap.read_snap import read_snap
+from deciphon_snap.view import view_alignments
+from deciphon_worker import Progressor, launch_scanner, shutting
+from deciphon_worker import press as worker
+from loguru import logger
+from more_itertools import mark_ends
+from pydantic import ValidationError
+from rich import print
+from rich.progress import Progress
 from typer import Argument, BadParameter, Exit, Option, Typer
+
+from deciphon.catch_validation import catch_validation
+from deciphon.hmmer_press import hmmer_press
+from deciphon.read_sequences import read_sequences
+from deciphon.service_exit import service_exit
 
 __all__ = ["app"]
 
@@ -71,34 +91,27 @@ def press(
     """
     Make protein database.
     """
-    from deciphon_core.schema import Gencode, HMMFile
-    from deciphon_worker.presser import Presser
-    from rich import print
-    from rich.progress import Progress
-
-    from deciphon.catch_validation import catch_validation
-    from deciphon.hmmer_press import hmmer_press
-    from deciphon.service_exit import service_exit
-
     with service_exit() as srv_exit, catch_validation():
         hmm = HMMFile(path=hmmfile)
 
         if force and hmm.path.with_suffix(".dcp"):
             hmm.path.with_suffix(".dcp").unlink()
 
-        with Presser() as presser:
+        def cleanup(future: Progressor[DBFile]):
+            if not future.cancel():
+                future.interrupt()
+            with suppress(Exception):
+                future.result()
+            hmm.path.with_suffix(".dcp").unlink(missing_ok=True)
 
-            def cleanup():
-                hmm.path.with_suffix(".dcp").unlink(missing_ok=True)
-                presser.shutdown()
+        future = worker(hmm, Gencode(gencode), epsilon)
+        srv_exit.setup(partial(cleanup, future))
 
-            srv_exit.setup(cleanup)
-            product = presser.put(hmm, Gencode(gencode), epsilon)
-            with Progress(disable=not progress) as x:
-                task = x.add_task("Pressing", total=100)
-                for i in product.as_progress():
-                    x.update(task, completed=i)
-            hmmer_press(hmm.path)
+        with Progress(disable=not progress) as x:
+            task = x.add_task("Pressing", total=100)
+            for i in future.as_progress():
+                x.update(task, completed=i)
+        hmmer_press(hmm.path)
 
         file_dcp = hmm.path.with_suffix(".dcp")
         file_h3m = hmm.path.with_suffix(".h3m")
@@ -110,6 +123,21 @@ def press(
             f"  alongside with HMMER files '{file_h3m}', '{file_h3i}',\n"
             f"                             '{file_h3f}', '{file_h3p}'."
         )
+
+
+def find_new_snap_file(seqfile: Path):
+    snap: NewSnapFile | None = None
+    for i in itertools.count(start=0):
+        if i == 0:
+            x = seqfile.with_suffix("")
+        else:
+            x = seqfile.with_suffix(f".{i}")
+        try:
+            snap = NewSnapFile(path=x)
+            break
+        except ValidationError:
+            continue
+    assert snap is NewSnapFile
 
 
 @app.command()
@@ -140,28 +168,15 @@ def scan(
     """
     Scan nucleotide sequences against protein database.
     """
-    from subprocess import DEVNULL
-
-    import psutil
-    from deciphon_core.schema import HMMFile, NewSnapFile
-    from deciphon_worker.scanner import Scanner, ScannerBoot, ScannerConfig
-    from loguru import logger
-    from rich import print
-    from rich.progress import Progress
-
-    from deciphon.catch_validation import catch_validation
-    from deciphon.read_sequences import read_sequences
-    from deciphon.service_exit import service_exit
-
     logger.remove()
     logger.add(sys.stderr, filter="deciphon_worker", level="WARNING")
 
-    with service_exit(), catch_validation():
+    with service_exit() as srv_exit, catch_validation():
         hmm = HMMFile(path=hmmfile)
         if snapfile:
             snap = NewSnapFile(path=snapfile)
         else:
-            snap = NewSnapFile.create_from_prefix(seqfile.with_suffix("").name)
+            snap = find_new_snap_file(seqfile)
 
         if num_threads == 0:
             cpu_count = psutil.cpu_count(logical=auto_threads == AutoThreads.logical)
@@ -170,26 +185,31 @@ def scan(
             else:
                 num_threads = 2
 
-        cfg = ScannerConfig(
-            hmm, num_threads, multi_hits, hmmer3_compat, DEVNULL, None, False
-        )
-        with ScannerBoot(cfg) as boot:
-            with Scanner(boot.scan) as scanner:
+        dbfile = DBFile(path=hmm.dbpath.path)
+        scanner = launch_scanner(
+            dbfile, num_threads, multi_hits, hmmer3_compat, False, DEVNULL, None
+        ).result()
+        with shutting(scanner):
 
-                def cleanup():
-                    snap.path.unlink(missing_ok=True)
-                    scanner.stop().wait()
-                    boot.stop().wait()
+            def cleanup(future: Progressor[SnapFile]):
+                if not future.cancel():
+                    future.interrupt()
+                with suppress(Exception):
+                    future.result()
+                scanner.shutdown().result()
+                snap.path.unlink(missing_ok=True)
 
-                product = scanner.put(snap, read_sequences(seqfile))
-                with Progress(disable=not progress) as x:
-                    task = x.add_task("Scanning", total=100)
-                    for i in product.as_progress():
-                        x.update(task, completed=i)
-                print(
-                    "Scan has finished successfully and "
-                    f"results stored in '{snap.path}'."
-                )
+            future = scanner.put(snap, read_sequences(seqfile))
+            srv_exit.setup(partial(cleanup, future))
+
+            with Progress(disable=not progress) as x:
+                task = x.add_task("Scanning", total=100)
+                for i in future.as_progress():
+                    x.update(task, completed=i)
+            print(
+                "Scan has finished successfully and "
+                f"results stored in '{snap.path}'."
+            )
 
 
 @app.command()
@@ -199,13 +219,6 @@ def see(
     """
     Display scan results.
     """
-    from deciphon_snap.read_snap import read_snap
-    from deciphon_snap.view import view_alignments
-    from more_itertools import mark_ends
-    from rich import print
-
-    from deciphon.service_exit import service_exit
-
     with service_exit():
         for x in mark_ends(iter(view_alignments(read_snap(snapfile)))):
             if x[1]:

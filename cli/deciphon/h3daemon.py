@@ -1,5 +1,4 @@
-from deciphon_core.schema import HMMFile
-from h3daemon.hmmfile import HMMFile as H3File
+from deciphon_schema import HMMFile
 from h3daemon.sched import SchedContext
 
 __all__ = ["H3Daemon"]
@@ -7,9 +6,7 @@ __all__ = ["H3Daemon"]
 
 class H3Daemon:
     def __init__(self, hmmfile: HMMFile, stdout=None, stderr=None) -> None:
-        self._hmmfile = hmmfile
-        h3file = H3File(hmmfile.path)
-        self._sched_ctx = SchedContext(h3file, stdout=stdout, stderr=stderr)
+        self._sched_ctx = SchedContext(hmmfile, stdout=stdout, stderr=stderr)
         self._port: int = -1
 
     @property
