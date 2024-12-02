@@ -26,5 +26,5 @@ jobs:
 
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: schema/dist
+          packages-dir: sched/dist
           skip-existing: true
