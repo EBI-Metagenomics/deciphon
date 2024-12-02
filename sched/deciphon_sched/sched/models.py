@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from typing import Optional
 
 from deciphon_schema import DBName, HMMName
@@ -63,7 +63,7 @@ class Job(BaseModel):
             state=JobState.pend,
             progress=0,
             error="",
-            submission=datetime.now(UTC),
+            submission=datetime.now(timezone.utc),
         )
 
     def set_pend(self):
