@@ -12,6 +12,11 @@ defaults:
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/deciphon-sched
+    permissions:
+      id-token: write
 
     steps:
       - uses: actions/checkout@v4
@@ -21,6 +26,5 @@ jobs:
 
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{secrets.PYPI_API_TOKEN}}
-          packages-dir: sched/dist
+          packages-dir: schema/dist
           skip-existing: true
