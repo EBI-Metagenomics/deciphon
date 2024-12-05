@@ -106,19 +106,19 @@ def test_scan_worker_3(tmp_path, files_path: Path):
     scanner = launch_scanner(task.result()).result()
     with shutting(scanner):
         products = [
-            scanner.put(NewSnapFile(path=Path("result.1.dcs")), sequences),
-            scanner.put(NewSnapFile(path=Path("result.2.dcs")), sequences),
-            scanner.put(NewSnapFile(path=Path("result.3.dcs")), sequences),
             scanner.put(NewSnapFile(path=Path("result.4.dcs")), sequences),
             scanner.put(NewSnapFile(path=Path("result.5.dcs")), sequences),
+            scanner.put(NewSnapFile(path=Path("result.6.dcs")), sequences),
+            scanner.put(NewSnapFile(path=Path("result.7.dcs")), sequences),
+            scanner.put(NewSnapFile(path=Path("result.8.dcs")), sequences),
         ]
 
     scanner = launch_scanner(task.result()).result()
     with shutting(scanner):
         products = [
-            scanner.put(NewSnapFile(path=Path("result.1.dcs")), sequences),
-            scanner.put(NewSnapFile(path=Path("result.2.dcs")), sequences),
-            scanner.put(NewSnapFile(path=Path("result.3.dcs")), sequences),
+            scanner.put(NewSnapFile(path=Path("result.9.dcs")), sequences),
+            scanner.put(NewSnapFile(path=Path("result.10.dcs")), sequences),
+            scanner.put(NewSnapFile(path=Path("result.11.dcs")), sequences),
         ]
         for x in products:
             x.result()
