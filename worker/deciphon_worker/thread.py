@@ -19,6 +19,5 @@ def handler(function: Callable[[], T], future: Future[T]):
 def launch_thread(function: Callable[[], T], name: str | None = None):
     future: Future[T] = Future()
     thread = Thread(target=partial(handler, function, future), name=name)
-    thread.daemon = True
     thread.start()
     return future

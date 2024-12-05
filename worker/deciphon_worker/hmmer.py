@@ -24,6 +24,13 @@ class HMMER:
     def port(self):
         return self._manager.port()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        self.shutdown()
+        return False
+
 
 def launch_hmmer(hmmfile: HMMFile, stdout: Any = None, stderr: Any = None):
     return launch_thread(partial(HMMER, hmmfile, stdout, stderr), name="HMMER")

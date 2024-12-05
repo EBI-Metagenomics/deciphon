@@ -110,6 +110,13 @@ class Scanner:
             return
         x.set_progress(scan.progress())
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        self.shutdown().result()
+        return False
+
 
 def launch_scanner(
     dbfile: DBFile,

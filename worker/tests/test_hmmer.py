@@ -4,7 +4,7 @@ from pathlib import Path
 
 from deciphon_schema import HMMFile
 
-from deciphon_worker import launch_hmmer, shutting
+from deciphon_worker import launch_hmmer
 
 
 def test_hmmer(tmp_path, files_path: Path):
@@ -12,5 +12,5 @@ def test_hmmer(tmp_path, files_path: Path):
     shutil.copy(files_path / "minifam.hmm", Path("minifam.hmm"))
     hmmfile = HMMFile(path=Path("minifam.hmm"))
     hmmer = launch_hmmer(hmmfile).result()
-    with shutting(hmmer):
+    with hmmer:
         hmmer.port

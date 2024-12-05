@@ -6,7 +6,7 @@ from deciphon_core.scan import NewSnapFile
 from deciphon_core.sequence import Sequence
 from deciphon_schema import Gencode, HMMFile
 
-from deciphon_worker import launch_scanner, press, shutting
+from deciphon_worker import launch_scanner, press
 
 sequences = [
     Sequence(
@@ -67,7 +67,7 @@ def test_scan_worker_1(tmp_path, files_path: Path):
     task = press(hmmfile, Gencode.BAPP, 0.01)
     task.result()
     scanner = launch_scanner(task.result()).result()
-    with shutting(scanner):
+    with scanner:
         pass
 
 
@@ -78,7 +78,7 @@ def test_scan_worker_2(tmp_path, files_path: Path):
     task = press(hmmfile, Gencode.BAPP, 0.01)
 
     scanner = launch_scanner(task.result()).result()
-    with shutting(scanner):
+    with scanner:
         task = scanner.put(NewSnapFile(path=Path("result.dcs")), sequences)
         task.result()
         assert task.done
@@ -92,7 +92,7 @@ def test_scan_worker_3(tmp_path, files_path: Path):
     task = press(hmmfile, Gencode.BAPP, 0.01)
 
     scanner = launch_scanner(task.result()).result()
-    with shutting(scanner):
+    with scanner:
         products = [
             scanner.put(NewSnapFile(path=Path("result.1.dcs")), sequences),
             scanner.put(NewSnapFile(path=Path("result.2.dcs")), sequences),
@@ -104,7 +104,7 @@ def test_scan_worker_3(tmp_path, files_path: Path):
             assert x.progress == 100
 
     scanner = launch_scanner(task.result()).result()
-    with shutting(scanner):
+    with scanner:
         products = [
             scanner.put(NewSnapFile(path=Path("result.4.dcs")), sequences),
             scanner.put(NewSnapFile(path=Path("result.5.dcs")), sequences),
@@ -114,7 +114,7 @@ def test_scan_worker_3(tmp_path, files_path: Path):
         ]
 
     scanner = launch_scanner(task.result()).result()
-    with shutting(scanner):
+    with scanner:
         products = [
             scanner.put(NewSnapFile(path=Path("result.9.dcs")), sequences),
             scanner.put(NewSnapFile(path=Path("result.10.dcs")), sequences),
@@ -135,7 +135,7 @@ def test_scan_worker_4(tmp_path, files_path: Path):
     task.result()
 
     scanner = launch_scanner(task.result()).result()
-    with shutting(scanner):
+    with scanner:
         task = scanner.put(NewSnapFile(path=Path("result.1.dcs")), sequences)
         for i in task.as_progress():
             pass
