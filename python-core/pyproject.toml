@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "deciphon-core"
-version = "1.0.7"
+version = "1.0.8"
 description = "Python wrapper around the Deciphon C library"
 authors = ["Danilo Horta <horta@ebi.ac.uk>"]
 license = "MIT"
@@ -24,7 +24,7 @@ generate-setup-file = false
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2"
-h3daemon = "^0.14.9"
+h3daemon = "^0.16.1"
 gitpython = "^3.1.43"
 
 [tool.pytest.ini_options]

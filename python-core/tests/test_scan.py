@@ -5,10 +5,8 @@ import os
 import shutil
 from pathlib import Path
 
+import h3daemon
 from deciphon_schema import DBFile, Gencode, HMMFile, NewSnapFile
-from h3daemon.ensure_pressed import ensure_pressed
-from h3daemon.polling import wait_until
-from h3daemon.sched import SchedContext
 
 from deciphon_core.batch import Batch
 from deciphon_core.press import PressContext
@@ -29,13 +27,12 @@ def run_scan(hmm: Path, hmmfile: HMMFile, num_threads: int, cache: bool):
     shutil.rmtree("snap", ignore_errors=True)
     snapfile = NewSnapFile(path=Path("snap.dcs").absolute())
 
-    with SchedContext(hmmfile) as sched:
-        wait_until(sched.is_ready)
+    with h3daemon.daemon_context(hmmfile) as daemon:
         dbfile = DBFile(path=hmmfile.dbpath.path)
         batch = Batch()
         for seq in sequences:
             batch.add(seq)
-        scan = Scan(dbfile, sched.get_cport(), num_threads, True, False, False)
+        scan = Scan(dbfile, daemon.port(), num_threads, True, False, False)
         with scan:
             scan.run(snapfile, batch)
             snapfile.make_archive()
@@ -108,7 +105,6 @@ def test_scan(tmp_path, files_path: Path):
             press.next()
 
     hmmfile = HMMFile(path=hmm)
-    ensure_pressed(hmmfile)
 
     run_scan(hmm, hmmfile, 1, False)
     run_scan(hmm, hmmfile, 1, True)
