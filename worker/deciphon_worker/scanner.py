@@ -45,8 +45,8 @@ class Scanner:
         stdout: Any = None,
         stderr: Any = None,
     ):
-        h3file = HMMFile(path=dbfile.hmmpath.path)
-        self._hmmer: HMMER = launch_hmmer(h3file, stdout, stderr).result()
+        hmmfile = HMMFile(path=dbfile.hmmpath.path)
+        self._hmmer: HMMER = launch_hmmer(hmmfile, stdout, stderr).result()
         info("starting scan daemon")
         self._scan = Scan(
             dbfile,

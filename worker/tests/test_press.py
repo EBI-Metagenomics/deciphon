@@ -7,7 +7,7 @@ from deciphon_schema import Gencode, HMMFile
 from deciphon_worker import press
 
 
-def test_press_worker(tmp_path, files_path: Path):
+def test_press(tmp_path, files_path: Path):
     os.chdir(tmp_path)
     shutil.copy(files_path / "minifam.hmm", Path("minifam.hmm"))
     hmmfile = HMMFile(path=Path("minifam.hmm"))
