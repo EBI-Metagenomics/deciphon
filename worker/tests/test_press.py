@@ -16,3 +16,4 @@ def test_press(tmp_path, files_path: Path):
     assert task.done
     assert task.progress == 100
     assert dbfile.path.name == "minifam.dcp"
+    assert os.path.getsize(dbfile.path) == 3609858

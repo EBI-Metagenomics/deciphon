@@ -65,7 +65,9 @@ def test_scan_worker_1(tmp_path, files_path: Path):
     shutil.copy(files_path / "minifam.hmm", Path("minifam.hmm"))
     hmmfile = HMMFile(path=Path("minifam.hmm"))
     task = press(hmmfile, Gencode.BAPP, 0.01)
-    task.result()
+    dbfile = task.result()
+    assert os.path.getsize(dbfile.path) == 3609858
+
     scanner = launch_scanner(task.result()).result()
     with scanner:
         pass
@@ -76,8 +78,10 @@ def test_scan_worker_2(tmp_path, files_path: Path):
     shutil.copy(files_path / "minifam.hmm", Path("minifam.hmm"))
     hmmfile = HMMFile(path=Path("minifam.hmm"))
     task = press(hmmfile, Gencode.BAPP, 0.01)
+    dbfile = task.result()
+    assert os.path.getsize(dbfile.path) == 3609858
 
-    scanner = launch_scanner(task.result()).result()
+    scanner = launch_scanner(dbfile).result()
     with scanner:
         task = scanner.put(NewSnapFile(path=Path("result.dcs")), sequences)
         task.result()
@@ -90,8 +94,10 @@ def test_scan_worker_3(tmp_path, files_path: Path):
     shutil.copy(files_path / "minifam.hmm", Path("minifam.hmm"))
     hmmfile = HMMFile(path=Path("minifam.hmm"))
     task = press(hmmfile, Gencode.BAPP, 0.01)
+    dbfile = task.result()
+    assert os.path.getsize(dbfile.path) == 3609858
 
-    scanner = launch_scanner(task.result()).result()
+    scanner = launch_scanner(dbfile).result()
     with scanner:
         products = [
             scanner.put(NewSnapFile(path=Path("result.1.dcs")), sequences),
@@ -103,7 +109,7 @@ def test_scan_worker_3(tmp_path, files_path: Path):
             assert x.done
             assert x.progress == 100
 
-    scanner = launch_scanner(task.result()).result()
+    scanner = launch_scanner(dbfile).result()
     with scanner:
         products = [
             scanner.put(NewSnapFile(path=Path("result.4.dcs")), sequences),
@@ -113,7 +119,7 @@ def test_scan_worker_3(tmp_path, files_path: Path):
             scanner.put(NewSnapFile(path=Path("result.8.dcs")), sequences),
         ]
 
-    scanner = launch_scanner(task.result()).result()
+    scanner = launch_scanner(dbfile).result()
     with scanner:
         products = [
             scanner.put(NewSnapFile(path=Path("result.9.dcs")), sequences),
@@ -132,9 +138,10 @@ def test_scan_worker_4(tmp_path, files_path: Path):
     hmmfile = HMMFile(path=Path("minifam.hmm"))
 
     task = press(hmmfile, Gencode.BAPP, 0.01)
-    task.result()
+    dbfile = task.result()
+    assert os.path.getsize(dbfile.path) == 3609858
 
-    scanner = launch_scanner(task.result()).result()
+    scanner = launch_scanner(dbfile).result()
     with scanner:
         task = scanner.put(NewSnapFile(path=Path("result.1.dcs")), sequences)
         for i in task.as_progress():
