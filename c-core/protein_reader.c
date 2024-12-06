@@ -43,8 +43,8 @@ int protein_reader_setup(struct protein_reader *x, struct database_reader *db,
 
   uint32_t num_proteins = 0;
   if ((rc = read_array(&db->file, &num_proteins))) return rc;
-  if (num_proteins > INT_MAX) return error(DCP_EFDATA);
-  if ((int)num_proteins != db->num_proteins) return error(DCP_EFDATA);
+  if (num_proteins > INT_MAX) return error(DCP_ETOOMANYPROTEINS);
+  if ((int)num_proteins != db->num_proteins) return error(DCP_EINVALNUMPROTEINS);
 
   if (lio_tell(&db->file, &x->offset[0])) return error(DCP_EFTELL);
   partition_it(x, db);

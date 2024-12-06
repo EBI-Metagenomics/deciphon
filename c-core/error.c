@@ -80,6 +80,11 @@ static char const *msg[] = {
     [DCP_EDBRNASEQDNA] = "database is RNA but sequence is DNA",
     [DCP_ENUCLTSEQTU] = "nucleotide sequence cannot have both U and T",
     [DCP_ENOHIT] = "failed to find hit",
+    [DCP_EOPEN] = "failed to open file",
+    [DCP_ECLOSE] = "failed to close file",
+    [DCP_EDUP] = "failed to duplicate descriptor",
+    [DCP_ETOOMANYPROTEINS] = "too many proteins",
+    [DCP_EINVALNUMPROTEINS]= "invalid number of proteins",
 };
 
 char const *dcp_error_string(int error_code)
