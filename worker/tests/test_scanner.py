@@ -8,6 +8,8 @@ from deciphon_schema import Gencode, HMMFile
 
 from deciphon_worker import launch_scanner, press
 
+os.environ["DECIPHON_LOGLEVEL"] = "0"
+
 sequences = [
     Sequence(
         1,
