@@ -11,6 +11,7 @@ def test_hmmer(tmp_path, files_path: Path):
     os.chdir(tmp_path)
     shutil.copy(files_path / "minifam.hmm", Path("minifam.hmm"))
     hmmfile = HMMFile(path=Path("minifam.hmm"))
-    hmmer = launch_hmmer(hmmfile).result()
+    future = launch_hmmer(hmmfile)
+    hmmer = future.result()
     with hmmer:
         hmmer.port
