@@ -16,6 +16,7 @@ class HMMER:
             hmmfile, stdout=stdout, stderr=stderr, detach=False, force=True
         )
         self._manager = h3daemon.possess(pidfile)
+        self._manager.wait_for_readiness()
 
     def shutdown(self, force=False):
         self._manager.shutdown(force=force)
