@@ -9,11 +9,11 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.9"
 h3daemon = "^0.16.14"
-deciphon-core = "^1.0.10"
+deciphon-core = "^1.0.11"
 loguru = "^0.7.2"
 tenacity = "^9.0.0"
 deciphon-snap = "^1.0.3"
-deciphon-schema = "^0.1.1"
+deciphon-schema = "^0.1.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"

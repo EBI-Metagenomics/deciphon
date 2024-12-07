@@ -8,8 +8,6 @@ from deciphon_schema import Gencode, HMMFile
 
 from deciphon_worker import launch_scanner, press
 
-os.environ["DECIPHON_LOGLEVEL"] = "0"
-
 sequences = [
     Sequence(
         1,
@@ -62,7 +60,7 @@ sequences = [
 ]
 
 
-def test_scan_worker_1(tmp_path, files_path: Path):
+def test_scanner_1(tmp_path, files_path: Path):
     os.chdir(tmp_path)
     shutil.copy(files_path / "minifam.hmm", Path("minifam.hmm"))
     hmmfile = HMMFile(path=Path("minifam.hmm"))
@@ -75,7 +73,7 @@ def test_scan_worker_1(tmp_path, files_path: Path):
         pass
 
 
-def test_scan_worker_2(tmp_path, files_path: Path):
+def test_scanner_2(tmp_path, files_path: Path):
     os.chdir(tmp_path)
     shutil.copy(files_path / "minifam.hmm", Path("minifam.hmm"))
     hmmfile = HMMFile(path=Path("minifam.hmm"))
@@ -91,7 +89,7 @@ def test_scan_worker_2(tmp_path, files_path: Path):
         assert task.progress == 100
 
 
-def test_scan_worker_3(tmp_path, files_path: Path):
+def test_scanner_3(tmp_path, files_path: Path):
     os.chdir(tmp_path)
     shutil.copy(files_path / "minifam.hmm", Path("minifam.hmm"))
     hmmfile = HMMFile(path=Path("minifam.hmm"))
@@ -134,7 +132,7 @@ def test_scan_worker_3(tmp_path, files_path: Path):
             assert x.progress == 100
 
 
-def test_scan_worker_4(tmp_path, files_path: Path):
+def test_scanner_4(tmp_path, files_path: Path):
     os.chdir(tmp_path)
     shutil.copy(files_path / "minifam.hmm", Path("minifam.hmm"))
     hmmfile = HMMFile(path=Path("minifam.hmm"))
