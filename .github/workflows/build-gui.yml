@@ -30,16 +30,6 @@ jobs:
       - name: Install dependencies
         run: pip install .
 
-      - name: Find tcl
-        run: find $(dirname $(which python))/.. | grep tcl
-
-      - name: tk version
-        run: python -c 'print(__import__("tkinter").TkVersion)'
-
-      - name: TCL directory
-        run: |
-          TCL_VERSION=$(python -c 'print(__import__("tkinter").TkVersion)')
-
       - name: Build with Nuitka (MacOS)
         uses: Nuitka/Nuitka-Action@main
         with:
