@@ -1,0 +1,47 @@
+name: 🏗 GUI build
+
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - gui/**
+      - .github/workflows/build-gui.yml
+
+defaults:
+  run:
+    working-directory: gui
+
+jobs:
+  build:
+    strategy:
+        matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pipx run poetry install
+
+      - name: Build Executable with Nuitka
+        uses: Nuitka/Nuitka-Action@main
+        with:
+          nuitka-version: develop
+          script-name: Deciphon.py
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ runner.os }} Build
+          path: | # match what's created for the 3 OSes
+              build/*.exe
+              build/*.bin
+              build/*.app/**/*
+          include-hidden-files: true
