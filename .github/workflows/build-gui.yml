@@ -17,7 +17,7 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-13, macos-14]
 
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +36,7 @@ jobs:
           nuitka-version: develop
           script-name: gui/Deciphon.py
           mode: app
-        if: matrix.os == 'macos-latest'
+        if: runner.os == 'macOS'
 
       - name: Build with Nuitka (Linux)
         uses: Nuitka/Nuitka-Action@main
@@ -44,7 +44,7 @@ jobs:
           nuitka-version: develop
           script-name: gui/Deciphon.py
           mode: onefile
-        if: matrix.os == 'ubuntu-latest'
+        if: runner.os == 'Linux'
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
