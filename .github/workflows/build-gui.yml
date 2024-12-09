@@ -25,7 +25,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.11'
 
       - name: Install dependencies
         run: pip install .
@@ -35,6 +35,10 @@ jobs:
 
       - name: tk version
         run: python -c 'print(__import__("tkinter").TkVersion)'
+
+      - name: TCL directory
+        run: |
+          TCL_VERSION=$(python -c 'print(__import__("tkinter").TkVersion)')
 
       - name: Build with Nuitka (MacOS)
         uses: Nuitka/Nuitka-Action@main
