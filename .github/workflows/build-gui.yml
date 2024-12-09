@@ -42,7 +42,7 @@ jobs:
         with:
           name: ${{ runner.os }} Build
           path: | # match what's created for the 3 OSes
-            gui/build/*.exe
-            gui/build/*.bin
-            gui/build/*.app/**/*
+            build/*.exe
+            build/*.bin
+            build/*.app/**/*
           include-hidden-files: true
