@@ -15,8 +15,8 @@ defaults:
 jobs:
   build:
     strategy:
-        matrix:
-        os: [macos-latest, ubuntu-latest]
+      matrix:
+      os: [macos-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -41,7 +41,7 @@ jobs:
         with:
           name: ${{ runner.os }} Build
           path: | # match what's created for the 3 OSes
-              build/*.exe
-              build/*.bin
-              build/*.app/**/*
+            build/*.exe
+            build/*.bin
+            build/*.app/**/*
           include-hidden-files: true
