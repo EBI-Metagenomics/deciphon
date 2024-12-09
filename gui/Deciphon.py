@@ -1,6 +1,5 @@
 # Compilation mode, support OS-specific options
 # nuitka-project-if: {OS} in ("Darwin"):
-#    nuitka-project: --mode=app
 #    nuitka-project: --macos-target-arch=arm64
 #    nuitka-project: --macos-app-icon={MAIN_DIRECTORY}/logo.icns
 #    nuitka-project: --macos-app-name=Deciphon
@@ -11,7 +10,6 @@
 #    nuitka-project: --include-package-data=hmmer
 #    nuitka-project: --include-package-data=deciphon_core
 # nuitka-project-if: {OS} in ("Linux"):
-#    nuitka-project: --mode=onefile
 #    nuitka-project: --linux-icon={MAIN_DIRECTORY}/logo.png
 # nuitka-project: --product-name=Deciphon
 # nuitka-project: --product-version=1.0.0
