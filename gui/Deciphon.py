@@ -1,6 +1,5 @@
 # Compilation mode, support OS-specific options
 # nuitka-project-if: {OS} in ("Darwin"):
-#    nuitka-project: --macos-target-arch=arm64
 #    nuitka-project: --macos-app-icon={MAIN_DIRECTORY}/logo.icns
 #    nuitka-project: --macos-app-name=Deciphon
 #    nuitka-project: --macos-app-mode=gui
