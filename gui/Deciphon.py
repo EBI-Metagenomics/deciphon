@@ -16,6 +16,7 @@
 # nuitka-project: --include-package-data=hmmer
 # nuitka-project: --include-package-data=deciphon_core
 # nuitka-project: --include-package-data=deciphon_gui
+# nuitka-project: --enable-plugin=tk-inter
 from deciphon_gui.app import App
 
 if __name__ == "__main__":
