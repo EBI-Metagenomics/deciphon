@@ -6,8 +6,6 @@
 #    nuitka-project: --macos-app-name=Deciphon
 #    nuitka-project: --macos-app-mode=gui
 #    nuitka-project: --macos-app-version=1.0.0
-#    nuitka-project: --include-module=ijson.backends.yajl2_c
-#    nuitka-project: --include-module=ijson.backends._yajl2
 #    nuitka-project: --output-dir=build
 #    nuitka-project: --output-filename=deciphon
 #    nuitka-project: --include-package-data=hmmer

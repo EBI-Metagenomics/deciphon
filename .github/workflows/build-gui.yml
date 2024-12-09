@@ -27,10 +27,6 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Set IJSON backend
-        run: echo "IJSON_BACKEND=yajl2_c" >> $GITHUB_ENV
-        if: matrix.os == 'macos-latest'
-
       - name: Install dependencies
         run: pip install .
 
