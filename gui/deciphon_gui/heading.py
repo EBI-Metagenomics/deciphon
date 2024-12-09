@@ -2,11 +2,13 @@ import customtkinter as ctk
 
 
 def h1(master, text):
-    return ctk.CTkLabel(master, text=text, font=ctk.CTkFont(size=20))
+    font = ctk.CTkFont(size=20)
+    return ctk.CTkLabel(master, text=text, font=font)
 
 
 def h2(master, text):
-    return ctk.CTkLabel(master, text=text, font=ctk.CTkFont(size=14, weight="bold"))
+    font = ctk.CTkFont(size=14, weight="bold")
+    return ctk.CTkLabel(master, text=text, font=font)
 
 
 def h3(master, text: str, width: int = 0):

@@ -19,7 +19,7 @@ class AlignmentFrame(ctk.CTkFrame):
         self.title.grid(padx=(10, 10))
         self.title.grid(pady=(0, 0))
 
-        self.text = TextArea(self, "Roboto Mono")
+        self.text = TextArea(self)
         self.text.grid(row=1, column=0, sticky="nsew")
         self.text.grid(padx=(10, 10))
         self.text.grid(pady=(0, 10))

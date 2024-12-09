@@ -1,4 +1,5 @@
 from io import StringIO
+
 import customtkinter as ctk
 from deciphon_core.sequence import Sequence
 from fasta_reader import Reader
@@ -20,7 +21,7 @@ class SequenceFrame(ctk.CTkFrame):
         self.title.grid(padx=(10, 10))
         self.title.grid(pady=(0, 0))
 
-        self.text = TextArea(self, "Roboto Mono")
+        self.text = TextArea(self)
         self.text.grid(row=1, column=0, sticky="nsew")
         self.text.grid(padx=(10, 10))
         self.text.grid(pady=(0, 10))

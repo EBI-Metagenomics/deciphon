@@ -1,6 +1,10 @@
+import os
+import pkgutil
 from io import StringIO
-from pathlib import Path
-from fasta_reader import Reader, Formatter
+
+from fasta_reader import Formatter, Reader
+from xdg_base_dirs import xdg_cache_home
+from xxhash import xxh64_hexdigest
 
 RAW_SEQUENCE = """
 >Homoserine_dh-consensus
@@ -15,6 +19,8 @@ GCCGTGGCTGTAGAAACGGAACGGGTAGGCGAACTCGTAGTGCAGGGACCAGGGGCTGGC
 GCAGAGCCAACCGCATCCGCTGTACTCGCTGACCTTCTC
 """
 
+CACHEDIR = xdg_cache_home() / "deciphon-gui"
+
 
 def example_sequence(chunk=10, width=76):
     formatter = Formatter(chunk=chunk, width=width)
@@ -25,6 +31,15 @@ def example_sequence(chunk=10, width=76):
 
 
 def example_hmmfile():
-    return Path("/Users/horta/Downloads/minifam.hmm")
-    # return Path("/Users/horta/Downloads/Pfam-A.500.hmm")
-    # return Path("/Users/horta/Downloads/Pfam-A.one_tenth.hmm")
+    os.makedirs(CACHEDIR, exist_ok=True)
+    minifam = CACHEDIR / "minifam.hmm"
+    desired = "8aca59c4bc167d72"
+    actual = xxh64_hexdigest(open(minifam, "rb").read()) if minifam.exists() else ""
+
+    if desired != actual:
+        data = pkgutil.get_data("deciphon_gui", "minifam.hmm")
+        assert data is not None
+        with open(minifam, "wb") as f:
+            f.write(data)
+
+    return minifam

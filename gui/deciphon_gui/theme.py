@@ -1,5 +1,7 @@
-import customtkinter as ctk
+import sys
 
 
-def disabled_fg_color():
-    return ctk.ThemeManager.theme["CTk"]["fg_color"]
+def font_family_mono():
+    if sys.platform == "darwin":
+        return "Roboto Mono"
+    return "DejaVuSansMono"

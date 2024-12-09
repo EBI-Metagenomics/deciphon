@@ -1,4 +1,4 @@
-import os
+from io import BytesIO
 from pathlib import Path
 from tkinter.filedialog import askopenfilename
 
@@ -6,6 +6,7 @@ import customtkinter as ctk
 from deciphon_schema import HMMFile
 from PIL import Image
 
+from deciphon_gui.assets import file_disabled_png, file_enabled_png
 from deciphon_gui.button import Button
 from deciphon_gui.entry import Entry
 
@@ -25,17 +26,16 @@ class FileFrame(ctk.CTkFrame):
         self.field.configure(corner_radius=0)
         self.field.grid(row=0, column=1, sticky="nsew")
 
-        dir = os.path.dirname(os.path.realpath(__file__))
-        file_enabled = f"{dir}/file_enabled.png"
-        file_disabled = f"{dir}/file_disabled.png"
+        enabled = BytesIO(file_enabled_png())
+        disabled = BytesIO(file_disabled_png())
         image_enabled = ctk.CTkImage(
-            light_image=Image.open(file_enabled),
-            dark_image=Image.open(file_enabled),
+            light_image=Image.open(enabled),
+            dark_image=Image.open(enabled),
             size=(20, 20),
         )
         image_disabled = ctk.CTkImage(
-            light_image=Image.open(file_disabled),
-            dark_image=Image.open(file_disabled),
+            light_image=Image.open(disabled),
+            dark_image=Image.open(disabled),
             size=(20, 20),
         )
 

@@ -1,8 +1,7 @@
 from concurrent.futures import CancelledError, Future
-from tempfile import TemporaryDirectory
 from contextlib import suppress
 from pathlib import Path
-from subprocess import DEVNULL
+from tempfile import TemporaryDirectory
 
 from deciphon_schema import DBFile, HMMFile, NewSnapFile, SnapFile
 from deciphon_worker import Progressor, Scanner, launch_scanner, press
@@ -65,7 +64,7 @@ class App:
             error = self.gui.library.get_error()
         except (ValueError, ValidationError):
             self.gui.progress.error(
-                "invalid error probability (must be a real number between zero and one)."
+                "invalid error probability (must be a real number between zero and one)"
             )
             return
         try:
@@ -73,9 +72,9 @@ class App:
         except ValidationError as exception:
             error = exception.errors()[0]
             if error["type"] == "path_not_file":
-                self.gui.progress.error("not a file path.")
+                self.gui.progress.error("not a file path")
             else:
-                self.gui.progress.error(f"invalid file path ({exception})")
+                self.gui.progress.error("invalid file path", exception)
             return
         if hmmfile.path.with_suffix(".dcp").exists():
             hmmfile.path.with_suffix(".dcp").unlink()
@@ -105,11 +104,11 @@ class App:
     def sequence_on_search(self):
         try:
             seqs = self.gui.sequence.get_sequences()
-        except ParsingError as exception:
-            self.gui.progress.error(f"invalid sequence. Parsing error ({exception}).")
+        except ParsingError as error:
+            self.gui.progress.error("invalid sequence. Parsing error", error)
             return
         if len(seqs) == 0:
-            self.gui.progress.error("you must provide at least one sequence.")
+            self.gui.progress.error("you must provide at least one sequence")
             return
 
         self._scan_future = self.scanner.put(self.snapfile(), seqs)
@@ -125,18 +124,15 @@ class App:
                 try:
                     self._db = self._press_future.result()
                     self.gui.progress.set_progress(1.0)
-                    self._scanner_startup = launch_scanner(
-                        self._db, stdout=DEVNULL, stderr=DEVNULL
-                    )
+                    self._scanner_startup = launch_scanner(self._db)
                 except (Interrupted, CancelledError):
                     self.gui.progress.info("cancelled.")
-                except Exception as exception:
-                    self.gui.progress.error(f"failed to press library ({exception}).")
+                except Exception as error:
+                    self.gui.progress.error("failed to press library", error)
                 finally:
                     self._press_future = None
                     self.gui.library.use_load(False)
                     self.gui.library.disable_cancel()
-                    self.gui.library.enable_submit()
             else:
                 self.gui.progress.set_progress(self._press_future.progress / 100)
                 self.gui.progress.info("pressing...")
@@ -146,6 +142,8 @@ class App:
                 try:
                     self._scanner = self._scanner_startup.result()
                     self.gui.progress.info("library is ready to use!")
+                    self.gui.library.enable_submit()
+                    self.gui.library.use_load(False)
                     self.gui.sequence.disable_cancel()
                     self.gui.sequence.enable_search()
                     self.gui.sequence.text.enable()
@@ -158,8 +156,8 @@ class App:
                     self.gui.sequence.disable_cancel()
                     self.gui.sequence.disable_submit()
                     self.gui.sequence.text.enable()
-                except Exception as exception:
-                    self.gui.progress.error(f"failed to load library ({exception}).")
+                except Exception as error:
+                    self.gui.progress.error("failed to load library", error)
                     self.gui.library.enable_input()
                     self.gui.library.disable_cancel()
                     self.gui.library.enable_submit()
@@ -180,10 +178,8 @@ class App:
                     self.gui.alignment.set_alignment(snap)
                 except (Interrupted, CancelledError):
                     self.gui.progress.info("cancelled.")
-                except Exception as exception:
-                    self.gui.progress.error(
-                        f"failed to annotate sequence ({exception})."
-                    )
+                except Exception as error:
+                    self.gui.progress.error("failed to annotate sequence", error)
                 finally:
                     self._scan_future = None
                     self.gui.sequence.disable_cancel()
@@ -196,17 +192,14 @@ class App:
 
         elif self._scanner_shutdown:
             if self._scanner_shutdown.done():
-                try:
+                with suppress(Exception):
                     self._scanner_shutdown.result()
-                except Exception as exception:
-                    pass
-                finally:
-                    self.gui.progress.info("unloaded.")
-                    self.gui.library.enable_submit()
-                    self.gui.library.use_load(True)
-                    self.gui.library.enable_input()
-                    self.gui.sequence.disable()
-                    self._scanner_shutdown = None
+                self.gui.progress.info("unloaded.")
+                self.gui.library.enable_submit()
+                self.gui.library.use_load(True)
+                self.gui.library.enable_input()
+                self.gui.sequence.disable()
+                self._scanner_shutdown = None
             else:
                 self.gui.progress.info("shutting down...")
 

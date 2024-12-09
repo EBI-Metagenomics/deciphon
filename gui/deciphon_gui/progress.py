@@ -1,4 +1,8 @@
+import traceback
+
 import customtkinter as ctk
+from loguru import logger
+
 from deciphon_gui.heading import h2, h3
 from deciphon_gui.shorten import shorten
 
@@ -33,8 +37,15 @@ class ProgressFrame(ctk.CTkFrame):
         msg = shorten(x, 98)
         self.status.configure(text=f"Status: {msg}")
         self.status.configure(text_color=self._default_text_color)
+        logger.info(x)
 
-    def error(self, x: str):
-        msg = shorten(x, 98)
-        self.status.configure(text=f"Status: {msg}")
+    def error(self, message: str, exception: Exception | None = None):
+        text = shorten(message, 98)
+        text = f"Status: {text}"
+        text = f"{text} ({exception})." if exception else f"{text}."
+        self.status.configure(text=text)
         self.status.configure(text_color="#D32F2E")
+        if exception:
+            traceback.print_tb(exception.__traceback__)
+        else:
+            logger.error(message)

@@ -1,12 +1,13 @@
 from collections.abc import Callable
+
 import customtkinter as ctk
 
+from deciphon_gui.epsilon import Epsilon
 from deciphon_gui.file import FileFrame
 from deciphon_gui.gencode import Gencode, GencodeName, gencode_description
 from deciphon_gui.heading import h2
 from deciphon_gui.label import LabelField, LabelMenu
 from deciphon_gui.submit import SubmitFrame
-from deciphon_gui.epsilon import Epsilon
 
 GENCODES = {i.value: gencode_description(i, j) for i, j in zip(Gencode, GencodeName)}
 
@@ -30,7 +31,9 @@ class LibraryFrame(ctk.CTkFrame):
         self.gencode.grid(padx=(10, 10))
         self.gencode.grid(pady=(0, 4))
 
-        self.error = LabelField(self, "Error probability", "e.g., 0.01")
+        self.error = LabelField(
+            self, title="Error probability", placeholder_text="e.g., 0.01"
+        )
         self.error.label.configure(width=105)
         self.error.entry.configure(width=80)
         self.error.grid(row=1, column=1)

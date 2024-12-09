@@ -1,22 +1,46 @@
-import os
+import json
+import sys
+from io import BytesIO
 
 import customtkinter as ctk
 from deciphon_schema import Gencode
 
 from deciphon_gui.alignment import AlignmentFrame
+from deciphon_gui.assets import theme_json
 from deciphon_gui.banner import Banner
 from deciphon_gui.library import LibraryFrame
 from deciphon_gui.progress import ProgressFrame
 from deciphon_gui.sequence import SequenceFrame
 
 
+def load_theme():
+    cls = ctk.ThemeManager
+    cls.theme = json.load(BytesIO(theme_json()))
+
+    # filter theme values for platform
+    for key in cls.theme.keys():
+        # check if values for key differ on platforms
+        if "macOS" in cls.theme[key].keys():
+            if sys.platform == "darwin":
+                cls.theme[key] = cls.theme[key]["macOS"]
+            elif sys.platform.startswith("win"):
+                cls.theme[key] = cls.theme[key]["Windows"]
+            else:
+                cls.theme[key] = cls.theme[key]["Linux"]
+
+    # fix name inconsistencies
+    if "CTkCheckbox" in cls.theme.keys():
+        cls.theme["CTkCheckBox"] = cls.theme.pop("CTkCheckbox")
+    if "CTkRadiobutton" in cls.theme.keys():
+        cls.theme["CTkRadioButton"] = cls.theme.pop("CTkRadiobutton")
+
+
 class GUI(ctk.CTk):
     def __init__(self):
         super().__init__()
         ctk.set_appearance_mode("light")
-        dir = os.path.dirname(os.path.realpath(__file__))
-        theme_path = f"{dir}/theme.json"
-        ctk.set_default_color_theme(theme_path)
+        ctk.ThemeManager
+        load_theme()
         self.geometry("1700x556+5250")
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(2, weight=1)

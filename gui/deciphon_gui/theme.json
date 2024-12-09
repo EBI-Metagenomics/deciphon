@@ -143,13 +143,8 @@
       "size": 13,
       "weight": "normal"
     },
-    "Windows": {
-      "family": "Roboto",
-      "size": 13,
-      "weight": "normal"
-    },
     "Linux": {
-      "family": "Roboto",
+      "family": "Cantarell",
       "size": 13,
       "weight": "normal"
     }
