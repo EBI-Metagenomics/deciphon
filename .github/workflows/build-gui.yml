@@ -36,7 +36,7 @@ jobs:
           nuitka-version: develop
           script-name: gui/Deciphon.py
           mode: app
-          output_dir: gui/build-macos-amd64
+          output-dir: gui/build-macos-amd64
         if: matrix.os == 'macos-13'
 
       - name: Build with Nuitka (MacOS 14 ARM64)
@@ -45,7 +45,7 @@ jobs:
           nuitka-version: develop
           script-name: gui/Deciphon.py
           mode: app
-          output_dir: gui/build-macos-arm64
+          output-dir: gui/build-macos-arm64
         if: matrix.os == 'macos-14'
 
       - name: Build with Nuitka (Linux AMD64)
@@ -54,7 +54,7 @@ jobs:
           nuitka-version: develop
           script-name: gui/Deciphon.py
           mode: onefile
-          output_dir: gui/build-linux-amd64
+          output-dir: gui/build-linux-amd64
         if: matrix.os == 'ubuntu-latest'
 
       - name: Upload Artifacts
