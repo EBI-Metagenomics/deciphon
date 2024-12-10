@@ -3,6 +3,7 @@ from contextlib import suppress
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import psutil
 from deciphon_schema import DBFile, HMMFile, NewSnapFile, SnapFile
 from deciphon_worker import Progressor, Scanner, launch_scanner, press
 from deciphon_worker.interrupted import Interrupted
@@ -124,7 +125,10 @@ class App:
                 try:
                     self._db = self._press_future.result()
                     self.gui.progress.set_progress(1.0)
-                    self._scanner_startup = launch_scanner(self._db)
+                    cpus = psutil.cpu_count(logical=True)
+                    if cpus is None:
+                        cpus = 2
+                    self._scanner_startup = launch_scanner(self._db, num_threads=cpus)
                 except (Interrupted, CancelledError):
                     self.gui.progress.info("cancelled.")
                 except Exception as error:
