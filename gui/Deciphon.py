@@ -4,7 +4,6 @@
 #    nuitka-project: --macos-app-name=Deciphon
 #    nuitka-project: --macos-app-mode=gui
 #    nuitka-project: --macos-app-version=1.0.0
-#    nuitka-project: --output-dir=build
 #    nuitka-project: --output-filename=deciphon
 #    nuitka-project: --include-package-data=hmmer
 #    nuitka-project: --include-package-data=deciphon_core
@@ -12,7 +11,6 @@
 #    nuitka-project: --linux-icon={MAIN_DIRECTORY}/logo.png
 # nuitka-project: --product-name=Deciphon
 # nuitka-project: --product-version=1.0.0
-# nuitka-project: --output-dir={MAIN_DIRECTORY}/build
 # nuitka-project: --include-package-data=hmmer
 # nuitka-project: --include-package-data=deciphon_core
 # nuitka-project: --include-package-data=deciphon_gui

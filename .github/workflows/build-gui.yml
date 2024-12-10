@@ -30,28 +30,45 @@ jobs:
       - name: Install dependencies
         run: pip install .
 
-      - name: Build with Nuitka (MacOS)
+      - name: Build with Nuitka (MacOS 13 AMD64)
         uses: Nuitka/Nuitka-Action@main
         with:
           nuitka-version: develop
           script-name: gui/Deciphon.py
           mode: app
-        if: runner.os == 'macOS'
+          output_dir: gui/build-macos-amd64
+        if: matrix.os == 'macos-13'
 
-      - name: Build with Nuitka (Linux)
+      - name: Build with Nuitka (MacOS 14 ARM64)
+        uses: Nuitka/Nuitka-Action@main
+        with:
+          nuitka-version: develop
+          script-name: gui/Deciphon.py
+          mode: app
+          output_dir: gui/build-macos-arm64
+        if: matrix.os == 'macos-14'
+
+      - name: Build with Nuitka (Linux AMD64)
         uses: Nuitka/Nuitka-Action@main
         with:
           nuitka-version: develop
           script-name: gui/Deciphon.py
           mode: onefile
-        if: runner.os == 'Linux'
+          output_dir: gui/build-linux-amd64
+        if: matrix.os == 'ubuntu-latest'
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ runner.os }} Build
-          path: | # match what's created for the 3 OSes
-            build/*.exe
-            build/*.bin
-            build/*.app/**/*
+          path: |
+            build-macos-amd64/*.exe
+            build-macos-amd64/*.bin
+            build-macos-amd64/*.app/**/*
+            build-macos-arm64/*.exe
+            build-macos-arm64/*.bin
+            build-macos-arm64/*.app/**/*
+            build-linux-amd64/*.exe
+            build-linux-amd64/*.bin
+            build-linux-amd64/*.app/**/*
           include-hidden-files: true
