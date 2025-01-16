@@ -1,23 +1,23 @@
-[tool.poetry]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
 name = "deciphon-worker"
 version = "0.3.9"
 description = "Deciphon worker."
-authors = ["Danilo Horta <danilo.horta@pm.me>"]
-license = "MIT"
+authors = [{ name = "Danilo Horta", email = "danilo.horta@pm.me" }]
+requires-python = "~=3.9"
 readme = "README.md"
+license = "MIT"
+dependencies = [
+    "h3daemon>=0.16.14,<0.17",
+    "deciphon-core>=1.0.11,<2",
+    "loguru>=0.7.2,<0.8",
+    "tenacity>=9.0.0,<10",
+    "deciphon-snap>=1.0.3,<2",
+    "deciphon-schema>=0.1.2,<0.2",
+]
 
-[tool.poetry.dependencies]
-python = "^3.9"
-h3daemon = "^0.16.14"
-deciphon-core = "^1.0.11"
-loguru = "^0.7.2"
-tenacity = "^9.0.0"
-deciphon-snap = "^1.0.3"
-deciphon-schema = "^0.1.2"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.3"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[dependency-groups]
+dev = ["pytest>=8.3.3,<9"]
