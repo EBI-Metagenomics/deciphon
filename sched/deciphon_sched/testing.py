@@ -6,7 +6,18 @@ from testcontainers.core.waiting_utils import wait_container_is_ready
 from testcontainers.minio import MinioContainer
 
 
+def docker_working():
+    try:
+        DockerContainer("hello-world")
+    except Exception:
+        return False
+    return True
+
+
 def mqtt_server():
+    if not docker_working():
+        raise RuntimeError("Docker is not working.")
+
     with MosquittoContainer() as x:
         yield {
             "host": x.get_container_host_ip(),
@@ -15,6 +26,9 @@ def mqtt_server():
 
 
 def s3_server():
+    if not docker_working():
+        raise RuntimeError("Docker is not working.")
+
     with MinioContainer() as x:
         yield {
             "client": x.get_client(),
