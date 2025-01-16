@@ -11,5 +11,5 @@ __all__ = ["read_snap"]
 def read_snap(filename: PathLike):
     fo = filename.decode() if isinstance(filename, bytes) else str(filename)
     with open(fo, "rb") as f:
-        fs = ZipFileSystem(fo=MemoryFile(data=f.read()))
+        fs = ZipFileSystem(fo=MemoryFile(data=f.read()))  # type: ignore
         return SnapFile(SimpleCacheFileSystem(fs=fs))

@@ -169,7 +169,7 @@ class LazyMatchList(BaseModel):
     def __getitem__(self, i):
         return self.evaluate()[i]
 
-    def __iter__(self):
+    def __iter__(self):  # type: ignore
         return iter(self.evaluate())
 
     def __str__(self):

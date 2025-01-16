@@ -45,11 +45,11 @@ class GFFList(RootModel):
         assert isinstance(prod, GFFItem)
         return prod
 
-    def __iter__(self):
+    def __iter__(self):  # type: ignore
         return iter(self.root)
 
     def format(self):
         gffs = [GFFItem.model_validate(x) for x in self.root]
         for i, x in enumerate(gffs):
-            x.attributes = x.attributes + f";ID={i+1}"
+            x.attributes = x.attributes + f";ID={i + 1}"
         return "\n".join(["##gff-version 3"] + [x.format() for x in gffs]) + "\n"

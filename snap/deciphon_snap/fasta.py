@@ -33,7 +33,7 @@ class FASTAList(RootModel):
         assert isinstance(prod, FASTAItem)
         return prod
 
-    def __iter__(self):
+    def __iter__(self):  # type: ignore
         return iter(self.root)
 
     def format(self, ncols: int = 60):

@@ -106,7 +106,7 @@ class ProdList(RootModel):
         assert isinstance(prod, Prod)
         return prod
 
-    def __iter__(self):
+    def __iter__(self):  # type: ignore
         return iter(self.root)
 
     def gff_list(self):
@@ -125,5 +125,3 @@ class ProdList(RootModel):
                 yield FASTAItem(defline=str(x.seq_id), sequence=x.match_list.codon)
             elif name == MatchElemName.AMINO:
                 yield FASTAItem(defline=str(x.seq_id), sequence=x.match_list.amino)
-            else:
-                assert False

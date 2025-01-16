@@ -70,7 +70,7 @@ class HitList(RootModel):
         assert isinstance(hit, Hit)
         return hit
 
-    def __iter__(self):
+    def __iter__(self):  # type: ignore
         return iter(self.root)
 
     def __str__(self):
