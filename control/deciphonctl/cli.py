@@ -82,8 +82,6 @@ job = typer.Typer()
 scan = typer.Typer()
 seq = typer.Typer()
 snap = typer.Typer()
-presser = typer.Typer()
-scanner = typer.Typer()
 
 
 @config.command("debug")
@@ -292,8 +290,6 @@ app.add_typer(db, name="db")
 app.add_typer(job, name="job")
 app.add_typer(scan, name="scan")
 app.add_typer(seq, name="seq")
-app.add_typer(presser, name="presser")
-app.add_typer(scanner, name="scanner")
 
 if __name__ == "__main__":
     sys.exit(app())
