@@ -1,15 +1,13 @@
-[tool.poetry]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
 name = "deciphon-intervals"
 version = "1.0.0"
 description = "It helps to model the Python and R intervals seamlessly."
-authors = ["Danilo Horta <danilo.horta@pm.me>"]
-license = "MIT"
+authors = [{ name = "Danilo Horta", email = "danilo.horta@pm.me" }]
+requires-python = "~=3.9"
 readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.9"
-pydantic = "^2.7"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+license = "MIT"
+dependencies = ["pydantic~=2.7"]
