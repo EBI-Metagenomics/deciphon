@@ -16,7 +16,7 @@ include = [
 python = "^3.9"
 cffi = "^1.17"
 pydantic = "^2.9"
-deciphon-schema = "^0.2.0"
+deciphon-schema = ">=0.2.0"
 
 [tool.poetry.build]
 script = "build_ext.py"
