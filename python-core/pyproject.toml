@@ -16,7 +16,7 @@ include = [
 python = "^3.9"
 cffi = "^1.17"
 pydantic = "^2.9"
-deciphon-schema = "^0.1.1"
+deciphon-schema = "^0.2.0"
 
 [tool.poetry.build]
 script = "build_ext.py"
@@ -24,8 +24,8 @@ generate-setup-file = false
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2"
-h3daemon = "^0.16.14"
-gitpython = "^3.1.43"
+h3daemon = ">=0.16.14"
+gitpython = ">=3.1.43"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
