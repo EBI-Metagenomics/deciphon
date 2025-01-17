@@ -16,7 +16,7 @@ dependencies = [
     "loguru>=0.7.2,<0.8",
     "tenacity>=9.0.0,<10",
     "deciphon-snap>=1.0.3,<2",
-    "deciphon-schema>=0.1.2,<0.2",
+    "deciphon-schema>=0.2.0",
 ]
 
 [dependency-groups]
