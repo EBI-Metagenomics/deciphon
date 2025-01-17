@@ -1,10 +1,10 @@
+from deciphon_schema import SeqRead
 from fastapi import APIRouter, Request
 from starlette.status import HTTP_200_OK
 
 from deciphon_sched.database import Database
 from deciphon_sched.errors import NotFoundInDatabaseError
 from deciphon_sched.sched.models import Seq
-from deciphon_sched.sched.schemas import SeqRead
 
 router = APIRouter()
 

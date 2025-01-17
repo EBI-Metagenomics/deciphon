@@ -4,13 +4,10 @@ from collections.abc import Iterable
 from datetime import datetime, timezone
 from typing import Optional
 
-from deciphon_schema import DBName, HMMName
-from sqlalchemy import ForeignKey, select
-from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
-
-from deciphon_sched.errors import JobStateTransitionError
-from deciphon_sched.sched.schemas import (
+from deciphon_schema import (
+    DBName,
     DBRead,
+    HMMName,
     HMMRead,
     JobRead,
     JobState,
@@ -19,6 +16,10 @@ from deciphon_sched.sched.schemas import (
     SeqRead,
     SnapRead,
 )
+from sqlalchemy import ForeignKey, select
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
+
+from deciphon_sched.errors import JobStateTransitionError
 
 
 def metadata():

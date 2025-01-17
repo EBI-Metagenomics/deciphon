@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from deciphon_schema import DBName
+from deciphon_schema import DBName, DBRead
 from fastapi import APIRouter, Request
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
@@ -11,7 +11,7 @@ from deciphon_sched.errors import (
     NotFoundInDatabaseError,
 )
 from deciphon_sched.sched.models import DB, HMM
-from deciphon_sched.sched.schemas import DBFilePathType, DBRead
+from deciphon_sched.sched.schemas import DBFilePathType
 from deciphon_sched.storage import PresignedDownload, PresignedUpload, Storage
 
 router = APIRouter()

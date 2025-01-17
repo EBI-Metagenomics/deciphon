@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from deciphon_schema import Gencode, HMMName
+from deciphon_schema import Gencode, HMMName, HMMRead, PressRequest
 from fastapi import APIRouter, Request
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
@@ -12,7 +12,7 @@ from deciphon_sched.errors import (
 )
 from deciphon_sched.journal import Journal
 from deciphon_sched.sched.models import HMM
-from deciphon_sched.sched.schemas import HMMFilePathType, HMMRead, PressRequest
+from deciphon_sched.sched.schemas import HMMFilePathType
 from deciphon_sched.storage import PresignedDownload, PresignedUpload, Storage
 
 router = APIRouter()

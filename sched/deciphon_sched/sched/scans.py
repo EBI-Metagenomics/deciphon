@@ -1,8 +1,9 @@
 import tempfile
 from typing import Annotated, Optional
 
+from deciphon_schema import ProdRead, ScanRead, ScanRequest
 from deciphon_snap.match import MatchElemName
-from deciphon_snap.prod import ProdList
+from deciphon_snap.prod import Prod, ProdList
 from deciphon_snap.read_snap import read_snap
 from deciphon_snap.view import view_alignments
 from fastapi import APIRouter, File, Request, Response
@@ -17,12 +18,7 @@ from deciphon_sched.errors import (
 )
 from deciphon_sched.journal import Journal
 from deciphon_sched.sched.models import DB, Scan, Seq, Snap
-from deciphon_sched.sched.schemas import (
-    ProdRead,
-    ScanCreate,
-    ScanRead,
-    ScanRequest,
-)
+from deciphon_sched.sched.schemas import ScanCreate
 
 router = APIRouter()
 
@@ -146,9 +142,19 @@ def get_snap_file(request: Request, scan_id: int):
                 raise SnapFileError(str(exception))
 
 
+def make_prod_read(x: Prod):
+    return ProdRead(
+        seq_id=x.seq_id,
+        profile=x.profile,
+        abc=x.abc,
+        lrt=x.lrt,
+        evalue=x.evalue,
+    )
+
+
 @router.get("/scans/{scan_id}/snap.dcs/prods", status_code=HTTP_200_OK)
 async def read_prods(request: Request, scan_id: int):
-    return [ProdRead.make(x) for x in get_snap_file(request, scan_id).products]
+    return [make_prod_read(x) for x in get_snap_file(request, scan_id).products]
 
 
 def fasta_repr(products: ProdList, name: MatchElemName):
