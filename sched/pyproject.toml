@@ -21,7 +21,7 @@ dependencies = [
     "boto3>=1.35.72,<2",
     "tenacity>=9.0.0,<10",
     "sqlalchemy>=2.0.36,<3",
-    "deciphon-schema>=0.1.2",
+    "deciphon-schema>=0.2.0",
 ]
 
 [project.optional-dependencies]
