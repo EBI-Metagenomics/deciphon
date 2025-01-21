@@ -85,7 +85,7 @@ def test_scanner_2(tmp_path, files_path: Path):
     with scanner:
         task = scanner.put(NewSnapFile(path=Path("result.dcs")), sequences)
         task.result()
-        assert task.done
+        assert task.done()
         assert task.progress == 100
 
 
@@ -106,7 +106,7 @@ def test_scanner_3(tmp_path, files_path: Path):
         ]
         for x in products:
             x.result()
-            assert x.done
+            assert x.done()
             assert x.progress == 100
 
     scanner = launch_scanner(dbfile).result()
@@ -128,7 +128,7 @@ def test_scanner_3(tmp_path, files_path: Path):
         ]
         for x in products:
             x.result()
-            assert x.done
+            assert x.done()
             assert x.progress == 100
 
 
@@ -146,5 +146,5 @@ def test_scanner_4(tmp_path, files_path: Path):
         task = scanner.put(NewSnapFile(path=Path("result.1.dcs")), sequences)
         for i in task.as_progress():
             pass
-        assert task.done
+        assert task.done()
         assert task.progress == 100

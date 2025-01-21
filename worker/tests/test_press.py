@@ -13,7 +13,7 @@ def test_press(tmp_path, files_path: Path):
     hmmfile = HMMFile(path=Path("minifam.hmm"))
     task = press(hmmfile, Gencode.BAPP, 0.01)
     dbfile = task.result()
-    assert task.done
+    assert task.done()
     assert task.progress == 100
     assert dbfile.path.name == "minifam.dcp"
     assert os.path.getsize(dbfile.path) == 3609858

@@ -41,12 +41,12 @@ class Progressor(concurrent.futures.Future[T]):
     def as_progress(self, timeout: float | None = None):
         last_progress = self._progress
         with self._progressing:
-            while not self.done:
+            while not self.done():
                 self._progressing.wait(timeout=timeout)
                 if self._progress != last_progress:
                     last_progress = self._progress
-                    self._condition.release()
-                    yield self._progress
                     self._condition.acquire()
+                    yield self._progress
+                    self._condition.release()
 
         self.result()
