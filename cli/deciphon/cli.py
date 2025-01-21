@@ -1,19 +1,18 @@
 from __future__ import annotations
 
+import itertools
 import sys
 from contextlib import suppress
 from enum import Enum
 from functools import partial
 from pathlib import Path
-from subprocess import DEVNULL
 from typing import Optional
-import itertools
 
 import psutil
 from deciphon_schema import DBFile, Gencode, HMMFile, NewSnapFile, SnapFile
 from deciphon_snap.read_snap import read_snap
 from deciphon_snap.view import view_alignments
-from deciphon_worker import Progressor, launch_scanner, shutting
+from deciphon_worker import Progressor, launch_scanner
 from deciphon_worker import press as worker
 from loguru import logger
 from more_itertools import mark_ends
@@ -129,15 +128,16 @@ def find_new_snap_file(seqfile: Path):
     snap: NewSnapFile | None = None
     for i in itertools.count(start=0):
         if i == 0:
-            x = seqfile.with_suffix("")
+            x = seqfile.with_suffix(".dcs")
         else:
-            x = seqfile.with_suffix(f".{i}")
+            x = seqfile.with_suffix(f".{i}.dcs")
         try:
             snap = NewSnapFile(path=x)
             break
         except ValidationError:
             continue
-    assert snap is NewSnapFile
+    assert snap is not None
+    return snap
 
 
 @app.command()
@@ -187,16 +187,15 @@ def scan(
 
         dbfile = DBFile(path=hmm.dbpath.path)
         scanner = launch_scanner(
-            dbfile, num_threads, multi_hits, hmmer3_compat, False, DEVNULL, None
+            dbfile, num_threads, multi_hits, hmmer3_compat, False, None, None
         ).result()
-        with shutting(scanner):
+        with scanner:
 
             def cleanup(future: Progressor[SnapFile]):
                 if not future.cancel():
                     future.interrupt()
                 with suppress(Exception):
                     future.result()
-                scanner.shutdown().result()
                 snap.path.unlink(missing_ok=True)
 
             future = scanner.put(snap, read_sequences(seqfile))
@@ -207,8 +206,7 @@ def scan(
                 for i in future.as_progress():
                     x.update(task, completed=i)
             print(
-                "Scan has finished successfully and "
-                f"results stored in '{snap.path}'."
+                f"Scan has finished successfully and results stored in '{snap.path}'."
             )
 
 
