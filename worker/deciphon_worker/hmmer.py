@@ -1,8 +1,9 @@
 from functools import partial
 from typing import Any
 
-from deciphon_schema import HMMFile
 import h3daemon
+from deciphon_schema import HMMFile
+from h3daemon.pidfile import PIDLockFile
 from loguru import logger
 
 from deciphon_worker.thread import launch_thread
@@ -11,10 +12,7 @@ info = logger.info
 
 
 class HMMER:
-    def __init__(self, hmmfile: HMMFile, stdout: Any, stderr: Any):
-        pidfile = h3daemon.spawn(
-            hmmfile, stdout=stdout, stderr=stderr, detach=False, force=True
-        )
+    def __init__(self, pidfile: PIDLockFile):
         self._manager = h3daemon.possess(pidfile)
         self._manager.wait_for_readiness()
 
@@ -34,4 +32,7 @@ class HMMER:
 
 
 def launch_hmmer(hmmfile: HMMFile, stdout: Any = None, stderr: Any = None):
-    return launch_thread(partial(HMMER, hmmfile, stdout, stderr), name="HMMER")
+    pidfile = h3daemon.spawn(
+        hmmfile, stdout=stdout, stderr=stderr, detach=False, force=True
+    )
+    return launch_thread(partial(HMMER, pidfile), name="HMMER")
