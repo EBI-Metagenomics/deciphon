@@ -22,17 +22,17 @@ def checksum(filename: Path):
     return hash_obj.hexdigest()
 
 
-def run_scan(hmm: Path, hmmfile: HMMFile, num_threads: int, cache: bool):
+def run_scan(hmmfile: HMMFile, num_threads: int):
     shutil.rmtree("snap.dcs", ignore_errors=True)
     shutil.rmtree("snap", ignore_errors=True)
     snapfile = NewSnapFile(path=Path("snap.dcs").absolute())
 
-    with h3daemon.daemon_context(hmmfile) as daemon:
+    with h3daemon.context(hmmfile) as daemon_port:
         dbfile = DBFile(path=hmmfile.dbpath.path)
         batch = Batch()
         for seq in sequences:
             batch.add(seq)
-        scan = Scan(dbfile, daemon.port(), num_threads, True, False, False)
+        scan = Scan(dbfile, daemon_port, num_threads, True, False, False)
         with scan:
             scan.run(snapfile, batch)
             snapfile.make_archive()
@@ -106,7 +106,5 @@ def test_scan(tmp_path, files_path: Path):
 
     hmmfile = HMMFile(path=hmm)
 
-    run_scan(hmm, hmmfile, 1, False)
-    run_scan(hmm, hmmfile, 1, True)
-    run_scan(hmm, hmmfile, 2, False)
-    run_scan(hmm, hmmfile, 2, True)
+    run_scan(hmmfile, 1)
+    run_scan(hmmfile, 2)
