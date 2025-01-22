@@ -13,7 +13,7 @@ info = logger.info
 
 class HMMER:
     def __init__(self, pidfile: PIDLockFile):
-        self._manager = h3daemon.possess(pidfile)
+        self._manager = h3daemon.possess(pidfile, wait=True)
         self._manager.wait_for_readiness()
 
     def shutdown(self, force=False):
