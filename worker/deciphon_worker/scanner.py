@@ -1,5 +1,6 @@
 import shutil
 import sys
+from concurrent.futures import Future
 from dataclasses import dataclass
 from functools import partial
 from threading import Thread
@@ -37,16 +38,14 @@ class Request:
 class Scanner:
     def __init__(
         self,
+        hmmer: Future[HMMER],
         dbfile: DBFile,
         num_threads: int = 2,
         multi_hits: bool = True,
         hmmer3_compat: bool = False,
         cache: bool = False,
-        stdout: Any = None,
-        stderr: Any = None,
     ):
-        hmmfile = HMMFile(path=dbfile.hmmpath.path)
-        self._hmmer: HMMER = launch_hmmer(hmmfile, stdout, stderr).result()
+        self._hmmer: HMMER = hmmer.result()
         info("starting scan daemon")
         self._scan = Scan(
             dbfile,
@@ -127,14 +126,15 @@ def launch_scanner(
     stdout: Any = None,
     stderr: Any = None,
 ):
+    hmmfile = HMMFile(path=dbfile.hmmpath.path)
+    hmmer: Future[HMMER] = launch_hmmer(hmmfile, stdout, stderr)
     func = partial(
         Scanner,
+        hmmer=hmmer,
         dbfile=dbfile,
         num_threads=num_threads,
         multi_hits=multi_hits,
         hmmer3_compat=hmmer3_compat,
         cache=cache,
-        stdout=stdout,
-        stderr=stderr,
     )
     return launch_thread(func, name="Scanner")

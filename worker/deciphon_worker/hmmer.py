@@ -32,7 +32,5 @@ class HMMER:
 
 
 def launch_hmmer(hmmfile: HMMFile, stdout: Any = None, stderr: Any = None):
-    pidfile = h3daemon.spawn(
-        hmmfile, stdout=stdout, stderr=stderr, detach=False, force=True
-    )
+    pidfile = h3daemon.spawn(hmmfile, stdout=stdout, stderr=stderr, force=True)
     return launch_thread(partial(HMMER, pidfile), name="HMMER")
