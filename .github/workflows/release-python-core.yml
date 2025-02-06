@@ -45,7 +45,7 @@ jobs:
           path: python-core/wheelhouse/*.whl
 
   make_linux_arm_cp_wheels:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v3
 
@@ -53,11 +53,6 @@ jobs:
         run: |
           echo "CIBW_ARCHS_LINUX=aarch64" >> "$GITHUB_ENV"
           echo "CIBW_BUILD=cp*" >> "$GITHUB_ENV"
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: all
 
       - name: Build wheels
         run: pipx run cibuildwheel==2.22.0
@@ -86,7 +81,7 @@ jobs:
           path: python-core/wheelhouse/*.whl
 
   make_linux_arm_pp_wheels:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v3
 
@@ -94,11 +89,6 @@ jobs:
         run: |
           echo "CIBW_ARCHS_LINUX=aarch64" >> "$GITHUB_ENV"
           echo "CIBW_BUILD=pp*" >> "$GITHUB_ENV"
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: all
 
       - name: Build wheels
         run: pipx run cibuildwheel==2.22.0
