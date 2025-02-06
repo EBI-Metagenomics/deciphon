@@ -151,6 +151,14 @@ loop_exit1:
     if (r && !rc) rc = r;
   }
 
+  if (rc)
+  {
+    for (int i = 0; i < x->num_threads; ++i)
+      workload_cleanup(x->workloads + i);
+    database_reader_close(db);
+    return rc;
+  }
+
   x->callback = callback;
   x->userdata = userdata;
   return database_reader_close(db);
