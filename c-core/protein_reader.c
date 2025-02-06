@@ -63,6 +63,12 @@ int protein_reader_partition_size(struct protein_reader const *x, int partition)
   return csum[partition + 1] - csum[partition];
 }
 
+int protein_reader_partition_cumsize(struct protein_reader const *x,
+                                     int partition)
+{
+  return x->size_cumsum[partition];
+}
+
 int protein_reader_size(struct protein_reader const *x)
 {
   return x->size_cumsum[x->num_partitions];

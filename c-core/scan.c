@@ -117,10 +117,10 @@ int dcp_scan_setup(struct dcp_scan *x, char const *dbfile, int port, int num_thr
 
     int r = 0;
     protein_setup(protein, params, multi_hits, hmmer3_compat);
-    if ((r = protein_reader_iter(&x->protein_reader, i, it)))             goto loop_exit;
-    if ((r = hmmer_setup(hmmer, db->has_ga, db->num_proteins, port)))     goto loop_exit;
+    if ((r = protein_reader_iter(&x->protein_reader, i, it)))             goto loop_exit0;
+    if ((r = hmmer_setup(hmmer, db->has_ga, db->num_proteins, port)))     goto loop_exit0;
 
-loop_exit:
+loop_exit0:
 #pragma omp critical
     if (r && !rc) rc = r;
   }
@@ -131,7 +131,7 @@ loop_exit:
     return rc;
   }
 
-  int index_offset = 0;
+#pragma omp parallel for
   for (int i = 0; i < x->num_threads; ++i)
   {
     struct protein        *protein  = x->proteins + i;
@@ -139,11 +139,16 @@ loop_exit:
     struct hmmer          *hmmer    = x->hmmers + i;
     struct workload       *workload = x->workloads + i;
     struct thread         *thread   = x->threads + i;
+    int index_offset                = protein_reader_partition_cumsize(&x->protein_reader, i);
     int num_proteins                = protein_reader_partition_size(&x->protein_reader, i);
 
-    if ((rc = workload_setup(workload, cache, index_offset, num_proteins, protein, it))) break;
+    int r = 0;
+    if ((r = workload_setup(workload, cache, index_offset, num_proteins, protein, it))) goto loop_exit1;
     thread_setup(thread, hmmer, workload);
-    index_offset += num_proteins;
+
+loop_exit1:
+#pragma omp critical
+    if (r && !rc) rc = r;
   }
 
   x->callback = callback;

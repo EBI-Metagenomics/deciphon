@@ -33,6 +33,10 @@ jobs:
           echo "C_INCLUDE_PATH=${C_INCLUDE_PATH}:$(brew --prefix)/opt/libomp/include" >> $GITHUB_ENV
           echo "LIBRARY_PATH=${LIBRARY_PATH}:$(brew --prefix)/opt/libomp/lib"         >> $GITHUB_ENV
 
+      - name: Install h3daemon for tests
+        run: |
+          pipx install "h3daemon[cli]"
+
       - name: clone lite-pack
         run: git clone --depth 1 https://github.com/EBI-Metagenomics/lite-pack.git lite-pack
 

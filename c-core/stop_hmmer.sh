@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-pipx run h3daemon stop "$1"
+h3daemon stop "$1"
 test -e $1.h3f && rm $1.h3f
 test -e $1.h3i && rm $1.h3i
 test -e $1.h3m && rm $1.h3m
