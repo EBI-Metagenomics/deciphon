@@ -41,11 +41,15 @@ class Poster:
         self.handle_http_response(requests.delete(url, **kwargs))
 
     def upload(
-        self, file: Path, post: UploadPost, callback: Callable[[int, int]] | None = None
+        self,
+        file: Path,
+        post: UploadPost,
+        callback: Callable[[int, int]] | None = None,
+        name: str | None = None,
     ):
         with open(file, "rb") as f:
             fields = post.fields
-            fields["file"] = (file.name, f)
+            fields["file"] = (file.name if name is None else name, f)
             encoder = MultipartEncoder(fields=fields)
             if callback is None:
                 data = MultipartEncoderMonitor(encoder)
