@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "deciphon-poster"
-version = "0.2.2"
+version = "0.2.3"
 description = "Poster for Deciphon scheduler."
 authors = [{ name = "Danilo Horta", email = "danilo.horta@pm.me" }]
 requires-python = "~=3.10"
@@ -15,5 +15,5 @@ dependencies = [
     "requests>=2.32.3,<3",
     "requests-toolbelt>=1.0.0,<2",
     "deciphon-core>=1.0.7,<2",
-    "deciphon-schema>=0.1.1,<0.2",
+    "deciphon-schema>=0.1.2",
 ]
