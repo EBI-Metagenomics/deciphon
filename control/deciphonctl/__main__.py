@@ -1,3 +1,3 @@
-from .cli import app
+from deciphonctl.cli import app
 
 app()

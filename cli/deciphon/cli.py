@@ -6,17 +6,18 @@ from contextlib import suppress
 from enum import Enum
 from functools import partial
 from pathlib import Path
-from typing import Optional
+from typing import Annotated, Optional
 
 import psutil
+from deciphon_poster.poster import Poster
 from deciphon_schema import DBFile, Gencode, HMMFile, NewSnapFile, SnapFile
 from deciphon_snap.read_snap import read_snap
 from deciphon_snap.view import view_alignments
 from deciphon_worker import Progressor, launch_scanner
-from deciphon_worker import press as worker
+from deciphon_worker import press as launch_presser
 from loguru import logger
 from more_itertools import mark_ends
-from pydantic import ValidationError
+from pydantic import HttpUrl, TypeAdapter, ValidationError
 from rich import print
 from rich.progress import Progress
 from typer import Argument, BadParameter, Exit, Option, Typer
@@ -25,6 +26,7 @@ from deciphon.catch_validation import catch_validation
 from deciphon.hmmer_press import hmmer_press
 from deciphon.read_sequences import read_sequences
 from deciphon.service_exit import service_exit
+from deciphon.worker import LogLevel, Worker, WorkType, setup_logger
 
 __all__ = ["app"]
 
@@ -103,7 +105,7 @@ def press(
                 future.result()
             hmm.path.with_suffix(".dcp").unlink(missing_ok=True)
 
-        future = worker(hmm, Gencode(gencode), epsilon)
+        future = launch_presser(hmm, Gencode(gencode), epsilon)
         srv_exit.setup(partial(cleanup, future))
 
         with Progress(disable=not progress) as x:
@@ -223,6 +225,43 @@ def see(
                 print(x[2].rstrip("\n"))
             else:
                 print(x[2])
+
+
+def http_url(url: str) -> HttpUrl:
+    return TypeAdapter(HttpUrl).validate_strings(url)
+
+
+class shutdown_worker:
+    def __init__(self, worker: Worker):
+        self.worker = worker
+        self.count = 0
+
+    def __call__(self):
+        immediate = self.count > 0
+        self.count += 1
+        self.worker.shutdown(immediate=immediate)
+
+
+@app.command()
+def worker(
+    work: WorkType = Argument(..., help="Work type."),
+    sched_url: str = Argument(..., help="Scheduler URL."),
+    mqtt_host: str = Argument(..., help="MQTT host."),
+    mqtt_port: int = Argument(..., help="MQTT port."),
+    s3_url: Optional[str] = Argument(None, help="S3 url."),
+    log_level: Annotated[LogLevel, Option(help="Log level.")] = LogLevel.info,
+):
+    """
+    Make protein database.
+    """
+    with service_exit() as srv_exit, catch_validation():
+        setup_logger(log_level)
+        poster = Poster(
+            http_url(sched_url), s3_url if s3_url is None else http_url(s3_url)
+        )
+        w = Worker(work, poster, mqtt_host, mqtt_port)
+        srv_exit.setup(shutdown_worker(w))
+        w.loop_forever()
 
 
 if __name__ == "__main__":
