@@ -1,6 +1,6 @@
 [project]
 name = "deciphon"
-version = "1.0.5"
+version = "1.0.6"
 description = "Individually annotate long, error-prone nucleotide sequences into proteins"
 authors = [{ name = "Danilo Horta", email = "horta@ebi.ac.uk" }]
 requires-python = "~=3.11"
