@@ -1,5 +1,5 @@
 from multiprocessing import Queue
-from typing import Literal, TypeVar, cast
+from typing import Generic, Literal, TypeVar, cast
 
 T = TypeVar("T")
 shutdown = Literal["shutdown"]
@@ -9,7 +9,7 @@ class ShutDown(Exception):
     """Raised when put/get with shut-down queue."""
 
 
-class ShuttableQueue[T]:
+class ShuttableQueue(Generic[T]):
     def __init__(self):
         self._queue: Queue[T | shutdown] = Queue()
 

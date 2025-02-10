@@ -124,7 +124,7 @@ class ScanProcess:
                         info(f"Progress {i}% on <scan_id={x.id}>...")
                         self._poster.job_patch(JobUpdate.run(x.job_id, i))
 
-                    info(f"Finished scanning scan_id <{x.id}>")
+                    info(f"Finished scanning <scan_id={x.id}>")
 
                     snappath = task.result().path
                     self._poster.snap_post(x.id, snappath)

@@ -21,7 +21,7 @@ from more_itertools import mark_ends
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 from rich import print
 from rich.progress import Progress
-from typer import Argument, Exit, Option, Typer
+from typer import Argument, BadParameter, Exit, Option, Typer
 
 from deciphon.catch_validation import catch_validation
 from deciphon.hmmer_press import hmmer_press
@@ -276,24 +276,53 @@ class shutdown_worker:
         self.worker.shutdown(immediate=immediate)
 
 
+def mqtt_argument_callback(value: str):
+    if len(value.split(":")) > 2:
+        raise BadParameter("Expected HOST[:PORT]")
+
+    if len(value.split(":")) == 1:
+        host = value
+        port = 1883
+    else:
+        host = value.split(":")[0]
+        try:
+            port = int(value.split(":")[1])
+        except Exception:
+            raise BadParameter("Expected HOST[:PORT]")
+    return f"{host}:{port}"
+
+
 @app.command()
 def worker(
     work: Annotated[WorkType, Argument(help="Work type.", show_default=False)],
-    sched_url: Annotated[str, Argument(help="Scheduler URL.", show_default=False)],
-    mqtt_host: Annotated[str, Argument(help="MQTT host.", show_default=False)],
-    mqtt_port: Annotated[int, Option(help="MQTT port.")] = 1883,
-    s3_url: Annotated[Optional[str], Option(help="S3 url.", show_default=False)] = None,
+    sched: Annotated[
+        str,
+        Argument(help="Scheduler address.", metavar="SCHED_URL", show_default=False),
+    ],
+    mqtt: Annotated[
+        str,
+        Argument(
+            help="MQTT address.",
+            metavar="MQTT_HOST[:MQTT_PORT]",
+            show_default=False,
+            callback=mqtt_argument_callback,
+        ),
+    ],
+    s3: Annotated[
+        Optional[str],
+        Option(help="S3 address.", metavar="[S3_URL]", show_default=False),
+    ] = None,
     log_level: Annotated[LogLevel, Option(help="Log level.")] = LogLevel.info,
 ):
     """
     Launch worker.
     """
+    mqtt_host, mqtt_port = mqtt.split(":")
+
     with service_exit() as srv_exit, catch_validation():
         setup_logger(log_level)
-        poster = Poster(
-            http_url(sched_url), s3_url if s3_url is None else http_url(s3_url)
-        )
-        w = Worker(work, poster, mqtt_host, mqtt_port)
+        poster = Poster(http_url(sched), s3 if s3 is None else http_url(s3))
+        w = Worker(work, poster, mqtt_host, int(mqtt_port))
         srv_exit.setup(shutdown_worker(w))
         w.loop_forever()
 
