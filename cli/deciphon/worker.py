@@ -90,10 +90,10 @@ class ScanProcess:
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
         dbname = self._dbname
+        scanner: Scanner | None = None
 
         for x in queue_loop(self._queue):
             snappath: Path | None = None
-            scanner: Scanner | None = None
             try:
                 info(f"Consuming <{x}> request...")
                 self._poster.job_patch(JobUpdate.run(x.job_id, 0))
@@ -150,11 +150,13 @@ class ScanProcess:
             finally:
                 if snappath is not None:
                     snappath.unlink(missing_ok=True)
-                if scanner is not None:
-                    try:
-                        scanner.shutdown().result()
-                    except Exception as exception:
-                        warn(f"Failed to shutdown scanner <{dbname.name}>: {exception}")
+
+        if scanner is not None:
+            try:
+                scanner.shutdown().result()
+            except Exception as exception:
+                warn(f"Failed to shutdown scanner <{dbname.name}>: {exception}")
+
         info("Exitting scan process...")
 
     def add(self, x: ScanRequest):
