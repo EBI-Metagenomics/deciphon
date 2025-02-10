@@ -19,17 +19,17 @@ services:
       - scanner
     command: ["deciphon-sched"]
   presser:
-    image: danilohorta/deciphon-worker
+    image: danilohorta/deciphon
     restart: unless-stopped
     depends_on:
       - mqtt
-    command: ["presser", "http://sched:8000", "mqtt", "1883", "--log-level", "debug"]
+    command: ["worker", "press", "http://sched:8000", "mqtt:1883", "--log-level", "debug"]
   scanner:
-    image: danilohorta/deciphon-worker
+    image: danilohorta/deciphon
     restart: unless-stopped
     depends_on:
       - mqtt
-    command: ["scanner", "http://sched:8000", "mqtt", "1883", "--log-level", "debug"]
+    command: ["worker", "scan", "http://sched:8000", "mqtt:1883", "--log-level", "debug"]
   s3:
     image: quay.io/minio/minio
     restart: unless-stopped
