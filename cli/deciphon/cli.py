@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.metadata
 import itertools
 import sys
 from contextlib import suppress
@@ -20,7 +21,7 @@ from more_itertools import mark_ends
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 from rich import print
 from rich.progress import Progress
-from typer import Argument, BadParameter, Exit, Option, Typer
+from typer import Argument, Exit, Option, Typer
 
 from deciphon.catch_validation import catch_validation
 from deciphon.hmmer_press import hmmer_press
@@ -42,52 +43,75 @@ app = Typer(
     pretty_exceptions_show_locals=False,
 )
 
-O_PROGRESS = Option(True, "--progress/--no-progress", help="Display progress bar.")
-O_NUM_THREADS = Option(
-    0, "--num-threads", help="Number of threads. Pass 0 for core count."
-)
-O_AUTO_THREADS = Option(
-    AutoThreads.physical,
-    "--auto-threads",
-    help="Set number of threads based on core type.",
-)
-O_MULTI_HITS = Option(True, "--multi-hits/--no-multi-hits", help="Set multi-hits.")
-O_HMMER3_COMPAT = Option(
-    False, "--hmmer3-compat/--no-hmmer3-compat", help="Set hmmer3 compatibility."
-)
-H_HMMER = "HMMER profile file."
+PROGRESS = Annotated[
+    bool, Option("--progress/--no-progress", help="Display progress bar.")
+]
+HMMFILE = Annotated[
+    Path,
+    Argument(
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="HMMER profile file.",
+        show_default=False,
+    ),
+]
 
 
 @app.callback(invoke_without_command=True, no_args_is_help=True)
-def cli(version: Optional[bool] = Option(None, "--version", is_eager=True)):
-    import importlib.metadata
-
-    from rich import print
-
+def cli(
+    version: Annotated[
+        Optional[bool], Option("--version", help="Show version.", is_eager=True)
+    ] = None,
+):
     if version:
         print(importlib.metadata.version("deciphon"))
         raise Exit(0)
 
 
-def gencode_callback(gencode: int):
-    from deciphon.gencode import gencodes
-
-    if gencode not in gencodes:
-        raise BadParameter(f"{gencode} is not in {gencodes}")
-    return gencode
+class GencodeChoice(Enum):
+    SGC0 = "1"
+    SGC1 = "2"
+    SGC2 = "3"
+    SGC3 = "4"
+    SGC4 = "5"
+    SGC5 = "6"
+    SGC8 = "9"
+    SGC9 = "10"
+    BAPP = "11"
+    AYN = "12"
+    AMC = "13"
+    AFMC = "14"
+    BMN = "15"
+    CMC = "16"
+    TMC = "21"
+    SOMC = "22"
+    TMMC = "23"
+    PMMC = "24"
+    CDSR1G = "25"
+    PTN = "26"
+    KN = "27"
+    CN = "28"
+    MN = "29"
+    PN = "30"
+    BN = "31"
+    BP = "32"
+    CMMC = "33"
 
 
 @app.command()
 def press(
-    hmmfile: Path = Argument(
-        ..., exists=True, file_okay=True, dir_okay=False, readable=True, help=H_HMMER
-    ),
-    gencode: int = Argument(
-        ..., callback=gencode_callback, help="Genetic code number."
-    ),
-    epsilon: float = Option(0.01, "--epsilon", help="Error probability."),
-    progress: bool = O_PROGRESS,
-    force: bool = Option(False, "--force", help="Overwrite existing protein database."),
+    hmmfile: HMMFILE,
+    gencode: Annotated[
+        GencodeChoice,
+        Argument(help="NCBI genetic code.", metavar="[GENCODE]:[1|2|...|33]"),
+    ] = GencodeChoice.BAPP,
+    epsilon: Annotated[float, Option("--epsilon", help="Error probability.")] = 0.01,
+    progress: PROGRESS = True,
+    force: Annotated[
+        bool, Option("--force", help="Overwrite existing protein database.")
+    ] = False,
 ):
     """
     Make protein database.
@@ -105,7 +129,7 @@ def press(
                 future.result()
             hmm.path.with_suffix(".dcp").unlink(missing_ok=True)
 
-        future = launch_presser(hmm, Gencode(gencode), epsilon)
+        future = launch_presser(hmm, Gencode(int(gencode.value)), epsilon)
         srv_exit.setup(partial(cleanup, future))
 
         with Progress(disable=not progress) as x:
@@ -144,31 +168,39 @@ def find_new_snap_file(seqfile: Path):
 
 @app.command()
 def scan(
-    hmmfile: Path = Argument(
-        ...,
-        exists=True,
-        file_okay=True,
-        dir_okay=False,
-        readable=True,
-        help=H_HMMER,
-    ),
-    seqfile: Path = Argument(
-        ...,
-        exists=True,
-        file_okay=True,
-        dir_okay=False,
-        readable=True,
-        help="File with nucleotide sequences.",
-    ),
-    snapfile: Optional[Path] = Option(None, help="File to store results."),
-    num_threads: int = O_NUM_THREADS,
-    auto_threads: AutoThreads = O_AUTO_THREADS,
-    multi_hits: bool = O_MULTI_HITS,
-    hmmer3_compat: bool = O_HMMER3_COMPAT,
-    progress: bool = O_PROGRESS,
+    hmmfile: HMMFILE,
+    seqfile: Annotated[
+        Path,
+        Argument(
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            help="File with nucleotide sequences.",
+            show_default=False,
+        ),
+    ],
+    snapfile: Annotated[
+        Optional[Path], Option(help="File to store results.", show_default=False)
+    ] = None,
+    num_threads: Annotated[
+        int, Option("--num-threads", help="Number of threads. Set 0 for core count.")
+    ] = 0,
+    auto_threads: Annotated[
+        AutoThreads,
+        Option("--auto-threads", help="Set number of threads based on core type."),
+    ] = AutoThreads.physical,
+    multi_hits: Annotated[
+        bool, Option("--multi-hits/--no-multi-hits", help="Set multi-hits.")
+    ] = True,
+    hmmer3_compat: Annotated[
+        bool,
+        Option("--hmmer3-compat/--no-hmmer3-compat", help="Set HMMER3 compatibility."),
+    ] = False,
+    progress: PROGRESS = True,
 ):
     """
-    Scan nucleotide sequences against protein database.
+    Scan nucleotide sequence against protein database.
     """
     logger.remove()
     logger.add(sys.stderr, filter="deciphon_worker", level="WARNING")
@@ -214,7 +246,9 @@ def scan(
 
 @app.command()
 def see(
-    snapfile: Path = Argument(..., help="File with scan results."),
+    snapfile: Annotated[
+        Path, Argument(help="File with scan results.", show_default=False)
+    ],
 ):
     """
     Display scan results.
@@ -244,15 +278,15 @@ class shutdown_worker:
 
 @app.command()
 def worker(
-    work: WorkType = Argument(..., help="Work type."),
-    sched_url: str = Argument(..., help="Scheduler URL."),
-    mqtt_host: str = Argument(..., help="MQTT host."),
-    mqtt_port: int = Argument(..., help="MQTT port."),
-    s3_url: Optional[str] = Argument(None, help="S3 url."),
+    work: Annotated[WorkType, Argument(help="Work type.", show_default=False)],
+    sched_url: Annotated[str, Argument(help="Scheduler URL.", show_default=False)],
+    mqtt_host: Annotated[str, Argument(help="MQTT host.", show_default=False)],
+    mqtt_port: Annotated[int, Argument(help="MQTT port.")] = 1883,
+    s3_url: Annotated[Optional[str], Argument(help="S3 url.")] = None,
     log_level: Annotated[LogLevel, Option(help="Log level.")] = LogLevel.info,
 ):
     """
-    Make protein database.
+    Launch worker.
     """
     with service_exit() as srv_exit, catch_validation():
         setup_logger(log_level)
