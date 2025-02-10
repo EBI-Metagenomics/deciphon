@@ -281,8 +281,8 @@ def worker(
     work: Annotated[WorkType, Argument(help="Work type.", show_default=False)],
     sched_url: Annotated[str, Argument(help="Scheduler URL.", show_default=False)],
     mqtt_host: Annotated[str, Argument(help="MQTT host.", show_default=False)],
-    mqtt_port: Annotated[int, Argument(help="MQTT port.")] = 1883,
-    s3_url: Annotated[Optional[str], Argument(help="S3 url.")] = None,
+    mqtt_port: Annotated[int, Option(help="MQTT port.")] = 1883,
+    s3_url: Annotated[Optional[str], Option(help="S3 url.", show_default=False)] = None,
     log_level: Annotated[LogLevel, Option(help="Log level.")] = LogLevel.info,
 ):
     """
