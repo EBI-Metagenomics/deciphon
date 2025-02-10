@@ -1,9 +1,9 @@
-name: 🐳 Worker container release
+name: 🐳 Cli container release
 
 on:
   push:
     tags:
-      - worker-v*
+      - cli-v*
 
 jobs:
   docker:
@@ -27,14 +27,14 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Set env
-        run: echo "VERSION=${GITHUB_REF#refs/*/worker-v}" >> $GITHUB_ENV
+        run: echo "VERSION=${GITHUB_REF#refs/*/cli-v}" >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: worker/
+          context: cli/
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            danilohorta/deciphon-worker:latest
-            danilohorta/deciphon-worker:${{ env.VERSION }}
+            danilohorta/deciphon:latest
+            danilohorta/deciphon:${{ env.VERSION }}
