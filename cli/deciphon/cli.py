@@ -57,6 +57,13 @@ HMMFILE = Annotated[
         show_default=False,
     ),
 ]
+NUM_THREADS = Annotated[
+    int, Option("--num-threads", help="Number of threads. Set 0 for core count.")
+]
+AUTO_THREADS = Annotated[
+    AutoThreads,
+    Option("--auto-threads", help="Set number of threads based on core type."),
+]
 
 
 @app.callback(invoke_without_command=True, no_args_is_help=True)
@@ -166,6 +173,16 @@ def find_new_snap_file(seqfile: Path):
     return snap
 
 
+def infer_num_threads(num_threads: int, auto_threads: AutoThreads):
+    if num_threads == 0:
+        cpu_count = psutil.cpu_count(logical=auto_threads == AutoThreads.logical)
+        if cpu_count is not None:
+            num_threads = cpu_count
+        else:
+            num_threads = 2
+    return num_threads
+
+
 @app.command()
 def scan(
     hmmfile: HMMFILE,
@@ -183,13 +200,8 @@ def scan(
     snapfile: Annotated[
         Optional[Path], Option(help="File to store results.", show_default=False)
     ] = None,
-    num_threads: Annotated[
-        int, Option("--num-threads", help="Number of threads. Set 0 for core count.")
-    ] = 0,
-    auto_threads: Annotated[
-        AutoThreads,
-        Option("--auto-threads", help="Set number of threads based on core type."),
-    ] = AutoThreads.physical,
+    num_threads: NUM_THREADS = 0,
+    auto_threads: AUTO_THREADS = AutoThreads.physical,
     multi_hits: Annotated[
         bool, Option("--multi-hits/--no-multi-hits", help="Set multi-hits.")
     ] = True,
@@ -212,14 +224,8 @@ def scan(
         else:
             snap = find_new_snap_file(seqfile)
 
-        if num_threads == 0:
-            cpu_count = psutil.cpu_count(logical=auto_threads == AutoThreads.logical)
-            if cpu_count is not None:
-                num_threads = cpu_count
-            else:
-                num_threads = 2
-
         dbfile = DBFile(path=hmm.dbpath.path)
+        num_threads = infer_num_threads(num_threads, auto_threads)
         scanner = launch_scanner(
             dbfile, num_threads, multi_hits, hmmer3_compat, False, None, None
         ).result()
@@ -312,6 +318,8 @@ def worker(
         Optional[str],
         Option(help="S3 address.", metavar="[S3_URL]", show_default=False),
     ] = None,
+    num_threads: NUM_THREADS = 0,
+    auto_threads: AUTO_THREADS = AutoThreads.physical,
     log_level: Annotated[LogLevel, Option(help="Log level.")] = LogLevel.info,
 ):
     """
@@ -322,7 +330,8 @@ def worker(
     with service_exit() as srv_exit, catch_validation():
         setup_logger(log_level)
         poster = Poster(http_url(sched), s3 if s3 is None else http_url(s3))
-        w = Worker(work, poster, mqtt_host, int(mqtt_port))
+        num_threads = infer_num_threads(num_threads, auto_threads)
+        w = Worker(work, poster, mqtt_host, int(mqtt_port), num_threads)
         srv_exit.setup(shutdown_worker(w))
         w.loop_forever()
 

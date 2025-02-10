@@ -69,13 +69,19 @@ def setup_logger(log_level: LogLevel):
 
 class ScanProcess:
     def __init__(
-        self, poster: Poster, dbname: DBName, multi_hits: bool, hmmer3_compat: bool
+        self,
+        poster: Poster,
+        dbname: DBName,
+        multi_hits: bool,
+        hmmer3_compat: bool,
+        num_threads: int,
     ):
         self._queue: ShuttableQueue[ScanRequest] = ShuttableQueue()
         self._poster = poster
         self._dbname = dbname
         self._multi_hits = multi_hits
         self._hmmer3_compat = hmmer3_compat
+        self._num_threads = num_threads
         self._process = Process(target=self._run)
         self._process.start()
 
@@ -107,7 +113,9 @@ class ScanProcess:
             "Launching scanner for "
             f"<{dbfile.path},multi_hits={multi_hits},hmmer3_compat={hmmer3_compat}>..."
         )
-        future = launch_scanner(dbfile, multi_hits, hmmer3_compat, cache=True)
+        future = launch_scanner(
+            dbfile, self._num_threads, multi_hits, hmmer3_compat, cache=True
+        )
 
         with future.result() as scanner:
             for x in queue_loop(self._queue):
@@ -124,7 +132,7 @@ class ScanProcess:
                         info(f"Progress {i}% on <scan_id={x.id}>...")
                         self._poster.job_patch(JobUpdate.run(x.job_id, i))
 
-                    info(f"Finished scanning <scan_id={x.id}>")
+                    info(f"Finished scanning scan_id <{x.id}>")
 
                     snappath = task.result().path
                     self._poster.snap_post(x.id, snappath)
@@ -221,8 +229,9 @@ class PressProcess:
 
 
 class ScanConsumer:
-    def __init__(self, poster: Poster):
+    def __init__(self, poster: Poster, num_threads: int):
         self._poster = poster
+        self._num_threads = num_threads
         self._processes: dict[str, ScanProcess] = {}
 
     def add(self, payload: bytes):
@@ -234,7 +243,7 @@ class ScanConsumer:
 
         if key not in self._processes:
             self._processes[key] = ScanProcess(
-                self._poster, r.db, r.multi_hits, r.hmmer3_compat
+                self._poster, r.db, r.multi_hits, r.hmmer3_compat, self._num_threads
             )
 
         self._processes[key].add(r)
@@ -277,9 +286,10 @@ class Worker:
         poster: Poster,
         mqtt_host: str,
         mqtt_port: int,
+        num_threads: int,
     ):
         if work == WorkType.scan:
-            self._consumer = ScanConsumer(poster)
+            self._consumer = ScanConsumer(poster, num_threads)
         elif work == WorkType.press:
             self._consumer = PressConsumer(poster)
 
