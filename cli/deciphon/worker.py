@@ -27,7 +27,10 @@ from paho.mqtt.client import Client, MQTTMessage
 from deciphon.download import download
 from deciphon.queue import ShuttableQueue, queue_loop
 
+__all__ = ["LogLevel", "Worker", "WorkType", "setup_logger"]
+
 info = logger.info
+warn = logger.warning
 
 
 class WorkType(str, Enum):
@@ -70,7 +73,6 @@ class ScanProcess:
     ):
         self._queue: ShuttableQueue[ScanRequest] = ShuttableQueue()
         self._poster = poster
-
         self._dbname = dbname
         self._multi_hits = multi_hits
         self._hmmer3_compat = hmmer3_compat
@@ -79,26 +81,33 @@ class ScanProcess:
 
     def _run(self):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
+        signal.signal(signal.SIGTERM, signal.SIG_IGN)
 
         hmmpath = Path(self._dbname.hmmname.name)
         dbpath = Path(self._dbname.name)
 
         if not hmmpath.exists():
+            info(f"File <{hmmpath}> does not exist, preparing to download it")
             with atomic_file_creation(hmmpath) as t:
                 url = self._poster.download_hmm_url(self._dbname.hmmname.name)
-                info(f"Downloading <{url}>")
+                info(f"Downloading <{url}>...")
                 download(url, t)
 
         if not dbpath.exists():
+            info(f"File <{dbpath}> does not exist, preparing to download it")
             with atomic_file_creation(dbpath) as t:
                 url = self._poster.download_db_url(self._dbname.name)
-                info(f"Downloading <{url}>")
+                info(f"Downloading <{url}>...")
                 download(url, t)
 
         dbfile = DBFile(path=dbpath)
-        future = launch_scanner(
-            dbfile, self._multi_hits, self._hmmer3_compat, cache=True
+        multi_hits = self._multi_hits
+        hmmer3_compat = self._hmmer3_compat
+        info(
+            "Launching scanner for "
+            f"<{dbfile.path},multi_hits={multi_hits},hmmer3_compat={hmmer3_compat}>..."
         )
+        future = launch_scanner(dbfile, multi_hits, hmmer3_compat, cache=True)
 
         with future.result() as scanner:
             for x in queue_loop(self._queue):
@@ -112,19 +121,18 @@ class ScanProcess:
 
                     task = scanner.put(snap, sequences)
                     for i in task.as_progress():
-                        info(f"Progress {i}% on scan_id <{x.id}>...")
+                        info(f"Progress {i}% on <scan_id={x.id}>...")
                         self._poster.job_patch(JobUpdate.run(x.job_id, i))
 
                     info(f"Finished scanning scan_id <{x.id}>")
 
                     snappath = task.result().path
-
                     self._poster.snap_post(x.id, snappath)
-                    info(f"Finished posting {snappath}")
+                    info(f"Finished posting <{snappath}>")
 
                 except Exception as exception:
                     fail = JobUpdate.fail(x.job_id, str(exception))
-                    info(f"Failed to process {x}: {exception}")
+                    warn(f"Failed to process <{x}>: {exception}")
                     self._poster.job_patch(fail)
                 finally:
                     if snappath is not None:
@@ -152,6 +160,7 @@ class PressProcess:
 
     def _run(self):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
+        signal.signal(signal.SIGTERM, signal.SIG_IGN)
         for x in queue_loop(self._queue):
             hmmpath: Path | None = None
             dbfile: DBFile | None = None
@@ -164,7 +173,7 @@ class PressProcess:
                     f"gencode{x.gencode}_epsilon{x.epsilon}_{hex}_{x.hmm.name}"
                 )
 
-                info(f"Downloading <{url}>")
+                info(f"Downloading <{url}>...")
                 download(url, hmmpath)
                 hmmfile = HMMFile(path=hmmpath)
 
@@ -182,7 +191,6 @@ class PressProcess:
 
                 info(f"Uploading <{dbfile.path}>...")
                 post = self._poster.upload_db_post(x.db.name)
-
                 self._poster.upload(dbfile.path, post, name=x.db.name)
                 info(f"Finished uploading <{dbfile.path}>")
 
@@ -191,7 +199,7 @@ class PressProcess:
 
             except Exception as exception:
                 fail = JobUpdate.fail(x.job_id, str(exception))
-                info(f"Failed to process {x}: {exception}")
+                warn(f"Failed to process <{x}>: {exception}")
                 self._poster.job_patch(fail)
             finally:
                 if hmmpath is not None:
@@ -212,10 +220,6 @@ class PressProcess:
         self._process.join()
 
 
-def scan_request_key(x: ScanRequest):
-    return f"{x.db.name}-{x.multi_hits}-{x.hmmer3_compat}"
-
-
 class ScanConsumer:
     def __init__(self, poster: Poster):
         self._poster = poster
@@ -225,7 +229,8 @@ class ScanConsumer:
         r = ScanRequest.model_validate_json(payload)
 
         info(f"Queuing scan request: {r}")
-        key = scan_request_key(r)
+
+        key = f"{r.db.name}-{r.multi_hits}-{r.hmmer3_compat}"
 
         if key not in self._processes:
             self._processes[key] = ScanProcess(
@@ -278,13 +283,22 @@ class Worker:
         elif work == WorkType.press:
             self._consumer = PressConsumer(poster)
 
-        mqtt_host = mqtt_host
-        mqtt_port = mqtt_port
+        def log_callback(client: Client, userdata, level: int, buf: str):
+            from paho.mqtt.enums import LogLevel
 
-        self._client = paho.Client(paho.CallbackAPIVersion.VERSION2)  # type: ignore
-        self._client.enable_logger()
-        self._client.user_data_set(self._consumer)
-        self._client.connect(mqtt_host, mqtt_port)
+            del client
+            del userdata
+
+            if level == LogLevel.MQTT_LOG_INFO:
+                logger.info(buf)
+            if level == LogLevel.MQTT_LOG_NOTICE:
+                logger.info(buf)
+            if level == LogLevel.MQTT_LOG_WARNING:
+                logger.warning(buf)
+            if level == LogLevel.MQTT_LOG_ERR:
+                logger.error(buf)
+            if level == LogLevel.MQTT_LOG_DEBUG:
+                logger.debug(buf)
 
         def on_connect(
             client: Client,
@@ -304,8 +318,12 @@ class Worker:
             info(f"Received: {msg.payload}")
             consumer.add(msg.payload)
 
+        self._client = paho.Client(paho.CallbackAPIVersion.VERSION2)  # type: ignore
+        self._client.on_log = log_callback
         self._client.on_connect = on_connect
         self._client.on_message = on_message
+        self._client.user_data_set(self._consumer)
+        self._client.connect(mqtt_host, mqtt_port)
 
     def loop_forever(self):
         self._client.loop_forever()
