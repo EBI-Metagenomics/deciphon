@@ -40,7 +40,6 @@ def main(reload: RELOAD = False):
     def shutdown(server: uvicorn.Server):
         if server.should_exit:
             os.abort()
-            thread.start()
         server.should_exit = True
 
     sigint_hook(partial(shutdown, server))

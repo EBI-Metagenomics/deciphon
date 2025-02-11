@@ -1,6 +1,6 @@
 from enum import Enum
 
-from pydantic import AnyUrl, Field, HttpUrl
+from pydantic import AnyUrl, Field, HttpUrl, TypeAdapter
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from deciphon_sched.url import http_url
@@ -25,11 +25,14 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
 
+    root_path: str = ""
     endpoint_prefix: str = ""
     allow_origins: list[str] = ["http://127.0.0.1", "http://localhost"]
-    log_level: LogLevel = Field(default="info")
+    log_level: LogLevel = Field(default=LogLevel.info)
 
-    database_url: AnyUrl = Field(default="sqlite+pysqlite:///:memory:")
+    database_url: AnyUrl = Field(
+        default=TypeAdapter(AnyUrl).validate_strings("sqlite+pysqlite:///:memory:")
+    )
 
     s3_key: str = "minioadmin"
     s3_secret: str = "minioadmin"

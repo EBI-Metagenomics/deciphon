@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI):
 
 
 def create_app(settings: Settings):
-    app = FastAPI(lifespan=lifespan)
+    app = FastAPI(lifespan=lifespan, root_path=settings.root_path)
     app.state.settings = settings
     app.state.logger = Logger(settings)
 
