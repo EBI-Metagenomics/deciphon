@@ -1,7 +1,7 @@
-from sqlalchemy import MetaData, create_engine
+from sqlalchemy import MetaData, create_engine, select, text
 from sqlalchemy.orm import Session
-from deciphon_sched.logger import Logger
 
+from deciphon_sched.logger import Logger
 from deciphon_sched.settings import Settings
 
 
@@ -25,3 +25,8 @@ class Database:
     def dispose(self):
         self._logger.handler.debug("disposing database engine")
         self._engine.dispose()
+
+    def health_check(self):
+        with self.create_session() as session:
+            session.execute(select(text("1")))
+            session.commit()

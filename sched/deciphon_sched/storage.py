@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import boto3
+from botocore.config import Config
 from botocore.exceptions import ClientError
 from pydantic import BaseModel, HttpUrl
-from deciphon_sched.logger import Logger
-from botocore.config import Config
 
+from deciphon_sched.logger import Logger
 from deciphon_sched.settings import Settings
 
 BUCKET = "deciphon.org"
@@ -66,6 +66,9 @@ class Storage:
             if e.response["Error"]["Code"] == "404":
                 return False
             raise e
+
+    def health_check(self):
+        self._s3.list_buckets()
 
 
 class PresignedUpload(BaseModel):

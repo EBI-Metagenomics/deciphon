@@ -41,3 +41,7 @@ class Journal:
             await self._mqtt.publish(topic, payload)
         except MqttError:
             await reconnect(self._mqtt)
+
+    async def health_check(self):
+        await self._mqtt.subscribe("/health")
+        await self._mqtt.unsubscribe("/health")

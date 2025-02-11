@@ -41,3 +41,7 @@ class ScanCreate(BaseModel):
     multi_hits: bool
     hmmer3_compat: bool
     seqs: list[SeqCreate]
+
+
+class HealthCheck(BaseModel):
+    status: str = "OK"
