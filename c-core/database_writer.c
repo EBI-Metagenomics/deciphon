@@ -11,11 +11,14 @@
 #include "write.h"
 #include <unistd.h>
 
+#define SPLIT_SIZE 4194304 // 4MB
+
 static void nullify_tempfiles(struct database_writer *x)
 {
   lio_setup(&x->tmp.header, -1);
   lio_setup(&x->tmp.sizes, -1);
-  lio_setup(&x->tmp.proteins, -1);
+  for (int i = 0; i < DATABASE_WRITER_CHUNKS; ++i)
+    lio_setup(x->tmp.proteins + i, -1);
 }
 
 static void destroy_tempfiles(struct database_writer *x)
@@ -30,10 +33,13 @@ static void destroy_tempfiles(struct database_writer *x)
     lio_flush(&x->tmp.sizes);
     close(lio_file(&x->tmp.sizes));
   }
-  if (lio_file(&x->tmp.proteins) >= 0)
+  for (int i = 0; i < DATABASE_WRITER_CHUNKS; ++i)
   {
-    lio_flush(&x->tmp.proteins);
-    close(lio_file(&x->tmp.proteins));
+    if (lio_file(x->tmp.proteins + i) >= 0)
+    {
+      lio_flush(x->tmp.proteins + i);
+      close(lio_file(x->tmp.proteins + i));
+    }
   }
   nullify_tempfiles(x);
 }
@@ -45,15 +51,20 @@ static int create_tempfiles(struct database_writer *x)
 
   int header = -1;
   int sizes = -1;
-  int proteins = -1;
 
   if ((rc = fs_mkstemp(&header, ".header_XXXXXX"))) defer_return(rc);
   if ((rc = fs_mkstemp(&sizes, ".sizes_XXXXXX"))) defer_return(rc);
-  if ((rc = fs_mkstemp(&proteins, ".proteins_XXXXXX"))) defer_return(rc);
-
   lio_setup(&x->tmp.header, header);
   lio_setup(&x->tmp.sizes, sizes);
-  lio_setup(&x->tmp.proteins, proteins);
+
+  for (int i = 0; i < DATABASE_WRITER_CHUNKS; ++i)
+  {
+    int proteins = -1;
+    if ((rc = fs_mkstemp(&proteins, ".proteins_XXXXXX"))) defer_return(rc);
+    lio_setup(x->tmp.proteins + i, proteins);
+  }
+
+  x->tmp.current_proteins = x->tmp.proteins;
 
   return rc;
 
@@ -104,10 +115,20 @@ static int pack_proteins(struct database_writer *x)
   int rc = 0;
   if ((rc = write_cstring(&x->file, "proteins"))) return rc;
   if ((rc = write_array(&x->file, x->nproteins))) return rc;
-  if (lio_rewind(&x->tmp.proteins)) return error(DCP_EFWRITE);
-  if (lio_flush(&x->tmp.proteins)) return error(DCP_EFFLUSH);
-  if (lio_flush(&x->file)) return error(DCP_EFFLUSH);
-  return fs_copy(lio_file(&x->file), lio_file(&x->tmp.proteins));
+
+  struct lio_writer *curr = x->tmp.proteins;
+  struct lio_writer *last = x->tmp.current_proteins;
+  while (curr <= last)
+  {
+    if (lio_rewind(curr)) return error(DCP_EFWRITE);
+    if (lio_flush(curr)) return error(DCP_EFFLUSH);
+    if (lio_flush(&x->file)) return error(DCP_EFFLUSH);
+    if ((rc = fs_copy(lio_file(&x->file), lio_file(curr)))) return rc;
+    close(lio_file(curr));
+    lio_setup(curr, -1);
+    curr += 1;
+  }
+  return 0;
 }
 
 int database_writer_close(struct database_writer *db)
@@ -175,14 +196,22 @@ int database_writer_pack(struct database_writer *x,
   int rc = 0;
 
   long start = 0;
-  if (lio_flush(&x->tmp.proteins)) return error(DCP_EFFLUSH);
-  if (lio_wtell(&x->tmp.proteins, &start)) return error(DCP_EFTELL);
+  if (lio_flush(x->tmp.current_proteins)) return error(DCP_EFFLUSH);
+  if (lio_wtell(x->tmp.current_proteins, &start)) return error(DCP_EFTELL);
 
-  if ((rc = protein_pack(protein, &x->tmp.proteins))) return rc;
+  if (start >= SPLIT_SIZE)
+  {
+    x->tmp.current_proteins += 1;
+    start = 0;
+  }
+  if (x->tmp.current_proteins >= x->tmp.proteins + DATABASE_WRITER_CHUNKS)
+    return error(DCP_ELARGEFILE);
+
+  if ((rc = protein_pack(protein, x->tmp.current_proteins))) return rc;
 
   long end = 0;
-  if (lio_flush(&x->tmp.proteins)) return error(DCP_EFFLUSH);
-  if (lio_tell(&x->tmp.proteins, &end)) return error(DCP_EFTELL);
+  if (lio_flush(x->tmp.current_proteins)) return error(DCP_EFFLUSH);
+  if (lio_tell(x->tmp.current_proteins, &end)) return error(DCP_EFTELL);
 
   if ((end - start) > UINT_MAX) return error(DCP_ELARGEPROTEIN);
 

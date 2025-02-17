@@ -1,10 +1,11 @@
 #ifndef DATABASE_WRITER_H
 #define DATABASE_WRITER_H
 
-#include "fs.h"
 #include "imm_nuclt_code.h"
 #include "lio.h"
 #include "model_params.h"
+
+#define DATABASE_WRITER_CHUNKS 32
 
 struct database_writer
 {
@@ -12,12 +13,10 @@ struct database_writer
   struct lio_writer file;
   struct
   {
-    char header_name[FS_PATH_MAX];
-    char sizes_name[FS_PATH_MAX];
-    char proteins_name[FS_PATH_MAX];
     struct lio_writer header;
     struct lio_writer sizes;
-    struct lio_writer proteins;
+    struct lio_writer proteins[DATABASE_WRITER_CHUNKS];
+    struct lio_writer *current_proteins;
   } tmp;
 
   struct model_params params;
