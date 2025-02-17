@@ -11,7 +11,7 @@
 #include "write.h"
 #include <unistd.h>
 
-#define SPLIT_SIZE 4194304 // 4MB
+#define SPLIT_SIZE 4294967296 // 4GB
 
 static void nullify_tempfiles(struct database_writer *x)
 {
