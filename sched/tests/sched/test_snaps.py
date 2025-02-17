@@ -53,4 +53,4 @@ def test_view(client: TestClient, files, s3_upload):
 def upload_db(client: TestClient, s3_upload, file):
     response = client.get(f"/dbs/presigned-upload/{file.name}")
     s3_upload(response.json(), file)
-    return client.post("/dbs/", json={"name": file.name, "gencode": 1, "epsilon": 0.01})
+    return client.post("/dbs/", json={"name": file.name})
