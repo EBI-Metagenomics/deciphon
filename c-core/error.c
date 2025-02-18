@@ -97,9 +97,10 @@ char const *dcp_error_string(int error_code)
   return unknown;
 }
 
-int error_print(int error_code, int line, const char *src)
+int error_print(int error_code, int line, const char *file, const char *func)
 {
   if (loglevel() <= LOGLEVEL_ERROR)
-    fprintf(SINK_ERROR, "%s:%d: %s\n", src, line, dcp_error_string(error_code));
+    fprintf(SINK_ERROR, "%s:%d:%s: %s\n", file, line, func,
+            dcp_error_string(error_code));
   return error_code;
 }
