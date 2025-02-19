@@ -1,6 +1,6 @@
 [project]
 name = "deciphon"
-version = "1.0.8"
+version = "1.0.9"
 description = "Individually annotate long, error-prone nucleotide sequences into proteins"
 authors = [{ name = "Danilo Horta", email = "horta@ebi.ac.uk" }]
 requires-python = "~=3.11"
@@ -20,10 +20,10 @@ dependencies = [
   "h3result>=1.0.3,<2",
   "loguru>=0.7.2,<0.8",
   "deciphon-schema>=0.2.0",
-  "h3daemon>=2.0.2",
+  "h3daemon>=2.0.3",
   "deciphon-worker>=0.5.2",
   "pip>=24.3.1",
-  "deciphon-core>=1.0.13",
+  "deciphon-core>=1.0.15",
   "paho-mqtt>=2.1.0",
   "deciphon-poster>=0.2.4",
 ]
