@@ -1,8 +1,13 @@
 #ifndef ERROR_H
 #define ERROR_H
 
-#define error(x) error_raise((x), __LINE__, __FILE__, __func__)
-int              error_raise(int error_code, int line, const char *file,
-                             const char *func);
+#include <stddef.h>
+
+int error_raise(int line, const char *file, const char *func, int error_code,
+                const char *fmt, ...);
+
+#define error(x)                  error_raise(__LINE__, __FILE__, __func__, (x), NULL)
+#define error_detail(x, fmt, ...) error_raise(__LINE__, __FILE__, __func__, (x), ". Detail: " (fmt)                , __VA_ARGS__)
+#define error_system(x, code)     error_raise(__LINE__, __FILE__, __func__, (x), (code > 0 ? ". System: %s" : NULL), strerror(code))
 
 #endif

@@ -3,7 +3,9 @@
 #include "deciphon.h"
 #include "loglevel.h"
 #include "sink.h"
+#include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 
 static char const *msg[] = {
     [DCP_EDIFFABC] = "different alphabets",
@@ -97,10 +99,23 @@ char const *dcp_error_string(int error_code)
   return unknown;
 }
 
-int error_raise(int error_code, int line, const char *file, const char *func)
+int error_raise(int line, const char *file, const char *func, int error_code,
+                const char *fmt, ...)
 {
+  if (error_code == 0) return 0;
   if (loglevel() <= LOGLEVEL_ERROR)
-    fprintf(SINK_ERROR, "%s:%d:%s: %s\n", file, line, func,
-            dcp_error_string(error_code));
+  {
+    char buffer[1024] = "";
+    if (fmt)
+    {
+      va_list args;
+      va_start(args, fmt);
+      vsnprintf(buffer, sizeof buffer, fmt, args);
+      va_end(args);
+    }
+
+    fprintf(SINK_ERROR, "%s:%d - %s - %s%s.\n", file, line, func,
+            dcp_error_string(error_code), buffer);
+  }
   return error_code;
 }
