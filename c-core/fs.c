@@ -50,6 +50,11 @@ int fs_fopen(FILE **fp, const char *restrict file, const char *restrict mode)
   return *fp == NULL ? error_system(DCP_EFOPEN, errno) : 0;
 }
 
+int fs_fclose(FILE *fp)
+{
+  return fclose(fp) ? error_system(DCP_EFCLOSE, errno) : 0;
+}
+
 int fs_seek(int fd, long offset, int whence)
 {
   return lseek(fd, (off_t)offset, whence) < 0 ? error(DCP_EFSEEK) : 0;
@@ -145,14 +150,14 @@ static int fletcher16(FILE *fp, uint8_t *buf, size_t bufsize, long *chk)
   uint16_t sum2 = 0;
   while ((n = fread(buf, 1, bufsize, fp)) > 0)
   {
-    if (n < bufsize && ferror(fp)) return error(DCP_EFREAD);
+    if (n < bufsize && ferror(fp)) return error_system(DCP_EFREAD, errno);
     for (int i = 0; i < (int)n; ++i)
     {
       sum1 = (sum1 + buf[i]) % 255;
       sum2 = (sum2 + sum1) % 255;
     }
   }
-  if (ferror(fp)) return error(DCP_EFREAD);
+  if (ferror(fp)) return error_system(DCP_EFREAD, errno);
 
   *chk = (sum2 << 8) | sum1;
   return 0;
@@ -165,8 +170,12 @@ int fs_chksum(char const *filepath, long *chk)
   if (!fp) return error(DCP_EFOPEN);
 
   int rc = fletcher16(fp, buffer, sizeof(buffer), chk);
-  fclose(fp);
-  return rc;
+  if (rc)
+  {
+    fs_fclose(fp);
+    return error(rc);
+  }
+  return error(fs_fclose(fp));
 }
 
 int fs_mkdir(char const *x, bool exist_ok)
@@ -184,7 +193,7 @@ int fs_touch(char const *x)
   if (access(x, F_OK) == 0) return 0;
   FILE *fp = fopen(x, "wb");
   if (!fp) return error(DCP_EFOPEN);
-  return fclose(fp) ? error(DCP_EFCLOSE) : 0;
+  return error(fs_fclose(fp));
 }
 
 static int unlink_callb(const char *path, const struct stat *stat, int flag,

@@ -71,7 +71,7 @@ int product_close(struct product *x, int num_threads)
 
     if ((rc = fs_fcopy(fp, tmp)))
     {
-      fclose(tmp);
+      fs_fclose(tmp);
       defer_return(rc);
     }
 
@@ -80,9 +80,9 @@ int product_close(struct product *x, int num_threads)
     if ((rc = fs_rmfile(file))) defer_return(rc);
   }
 
-  return fclose(fp) ? error(DCP_EFCLOSE) : 0;
+  return error(fs_fclose(fp));
 
 defer:
-  fclose(fp);
+  fs_fclose(fp);
   return rc;
 }

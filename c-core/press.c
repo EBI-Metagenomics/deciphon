@@ -97,7 +97,7 @@ int dcp_press_open(struct dcp_press *x, char const *hmm, char const *db)
 
 defer:
   if (x->writer.fd) close(x->writer.fd);
-  if (x->reader.fp) fclose(x->reader.fp);
+  if (x->reader.fp) fs_fclose(x->reader.fp);
   x->writer.fd = -1;
   x->reader.fp = NULL;
   return rc;
@@ -142,14 +142,15 @@ bool dcp_press_end(struct dcp_press const *press)
 
 int dcp_press_close(struct dcp_press *press)
 {
-  int rc_r =
-      press->reader.fp ? fclose(press->reader.fp) ? error(DCP_EFCLOSE) : 0 : 0;
-  int rc_w = finish_writer(press);
+  int rc_r = error(press->reader.fp ? fs_fclose(press->reader.fp) : 0);
+  int rc_w = error(finish_writer(press));
   press->writer.fd = -1;
   press->reader.fp = NULL;
   protein_cleanup(&press->protein);
   hmm_reader_cleanup(&press->reader.h3);
-  return rc_r ? rc_r : (rc_w ? rc_w : 0);
+  if (rc_r) return rc_r;
+  if (rc_w) return rc_w;
+  return 0;
 }
 
 void dcp_press_del(struct dcp_press const *x)

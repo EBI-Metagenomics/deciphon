@@ -64,16 +64,16 @@ int product_thread_add_match(struct product_thread *x, struct match begin,
   while (!match_equal(it, end))
   {
     if (i++ && fputc(';', fp) == EOF) defer_error(DCP_EWRITEPROD);
-    if ((rc = write_match(fp, &it))) defer_return(rc);
+    if ((rc = write_match(fp, &it)))  defer_error(rc);
     it = match_next(&it);
   }
 
   if (fputc('\n', fp) == EOF) defer_error(DCP_EWRITEPROD);
 
-  return fclose(fp) ? error(DCP_EFCLOSE) : 0;
+  return error(fs_fclose(fp));
 
 defer:
-  fclose(fp);
+  fs_fclose(fp);
   return rc;
 #undef defer_error
 }
