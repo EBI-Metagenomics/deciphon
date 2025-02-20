@@ -2,6 +2,7 @@
 #define ERROR_H
 
 #include <stddef.h>
+#include <string.h>
 
 int error_raise(int line, const char *file, const char *func, int error_code,
                 const char *fmt, ...);

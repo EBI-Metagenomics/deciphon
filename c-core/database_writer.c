@@ -83,11 +83,13 @@ static int pack_header_protein_sizes(struct database_writer *x)
   unsigned size = 0;
   struct lio_reader src = {0};
   lio_setup(&src, lio_file(&x->tmp.sizes));
-  while (!(rc = read_int(&src, &size)))
+  unsigned char *buf = NULL;
+  while (!(rc = lio_read(&src, &buf)))
   {
-    if ((rc = write_int(&x->file, size))) return rc;
+    if (lio_free(&src, lip_unpack_int(buf, &size))) return error(DCP_EFDATA);
+    if ((rc = write_int(&x->file, size)))           return error(rc);
   }
-  return lio_eof(&src) ? 0 : rc;
+  return lio_eof(&src) ? 0 : error_system(DCP_EFREAD, lio_syserror(rc));
 }
 
 static int pack_header(struct database_writer *x)

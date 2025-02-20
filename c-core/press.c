@@ -71,9 +71,8 @@ int dcp_press_open(struct dcp_press *x, char const *hmm, char const *db)
 
   int rc = 0;
 
-  if ((rc = fs_fopen(&x->reader.fp, hmm, "rb"))) defer_return(error(rc));
-  if ((x->writer.fd = open(db, O_WRONLY | O_CREAT | O_TRUNC, 0644)) <= 0)
-    defer_return(error(DCP_EOPENDB));
+  if ((rc = fs_fopen(&x->reader.fp, hmm, "rb")))                             defer_return(error(rc));
+  if ((rc = fs_open(&x->writer.fd, db, O_WRONLY | O_CREAT | O_TRUNC, 0644))) defer_return(error(rc));
 
   if ((rc = count_proteins(x))) defer_return(rc);
 

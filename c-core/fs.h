@@ -6,6 +6,7 @@
 
 #define FS_PATH_MAX 512
 
+int fs_open(int *fd, char const *file, int flags, int mode);
 int fs_close(int);
 int fs_fopen(FILE **, const char *restrict, const char *restrict);
 int fs_fclose(FILE *);

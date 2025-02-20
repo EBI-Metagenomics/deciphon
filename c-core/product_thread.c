@@ -96,8 +96,9 @@ int product_thread_add_hmmer(struct product_thread *x, struct h3r const *result)
   if ((rc = fs_mkdir(file, true)))                                                             return rc;
   if ((rc = format(file, FS_PATH_MAX, "%s/hmmer/%ld/%d/%d/%s.h3r", dir, seq, win, hit, prot))) return rc;
 
-  int fd = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-  if (fd < 0) return error(DCP_EOPEN);
+  int fd = 0;
+  if ((rc = fs_open(&fd, file, O_WRONLY | O_CREAT | O_TRUNC, 0644)))
+    return error(rc);
 
   if ((rc = h3r_pack(result, fd)))
   {

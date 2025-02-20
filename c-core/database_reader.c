@@ -26,10 +26,9 @@ static int unpack_header_protein_sizes(struct database_reader *x);
 int database_reader_open(struct database_reader *x, char const *filename)
 {
   int rc = 0;
-  int fd = -1;
+  int fd = 0;
 
-  if ((fd = open(filename, O_RDONLY, 0644)) < 0)
-    defer_return(error_system(DCP_EOPENDB, errno));
+  if ((rc = fs_open(&fd, filename, O_RDONLY, 0644))) defer_return(error(rc));
 
   x->num_proteins = 0;
   x->protein_sizes = NULL;

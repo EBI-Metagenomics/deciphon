@@ -44,6 +44,12 @@
 
 #define BUFFSIZE (8 * 1024)
 
+int fs_open(int *fd, char const *file, int flags, int mode)
+{
+  *fd = open(file, flags, mode);
+  return *fd < 0 ? error_system(DCP_EFOPEN, errno) : 0;
+}
+
 int fs_close(int fd)
 {
   return close(fd) ? error_system(DCP_EFCLOSE, errno) : 0;
