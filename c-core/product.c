@@ -42,8 +42,8 @@ int product_close(struct product *x, int num_threads)
 
   if ((rc = format(filename, FS_PATH_MAX, "%s/products.tsv", dir))) return rc;
 
-  FILE *fp = fopen(filename, "wb");
-  if (!fp) return error(DCP_EFOPEN);
+  FILE *fp = NULL;
+  if ((rc = fs_fopen(&fp, filename, "wb"))) return error(rc);
 
   bool ok = true;
   ok &= fputs("sequence\t", fp)     >= 0;
@@ -66,8 +66,8 @@ int product_close(struct product *x, int num_threads)
     if ((rc = format(file, FS_PATH_MAX, "%s/.products.%03d.tsv", dir, i)))
       defer_return(rc);
 
-    FILE *tmp = fopen(file, "rb");
-    if (!tmp) defer_return(rc);
+    FILE *tmp = NULL;
+    if ((rc = fs_fopen(&tmp, file, "rb"))) defer_return(error(rc));
 
     if ((rc = fs_fcopy(fp, tmp)))
     {

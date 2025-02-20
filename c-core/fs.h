@@ -6,6 +6,7 @@
 
 #define FS_PATH_MAX 512
 
+int fs_fopen(FILE **, const char *restrict, const char *restrict);
 int fs_seek(int fd, long offset, int whence);
 int fs_copy(int dst, int src);
 int fs_fcopy(FILE *restrict dst, FILE *restrict src);

@@ -44,8 +44,8 @@ int product_thread_add_match(struct product_thread *x, struct match begin,
   int rc = 0;
   struct product_line *line = &x->line;
 
-  FILE *fp = fopen(x->filename, "ab");
-  if (!fp) return error(DCP_EFOPEN);
+  FILE *fp = NULL;
+  if ((rc = fs_fopen(&fp, x->filename, "ab"))) return error(rc);
 
   if (fprintf(fp, "%ld\t",  line->sequence)       < 0) defer_error(DCP_EWRITEPROD);
   if (fprintf(fp, "%d\t",   line->window)         < 0) defer_error(DCP_EWRITEPROD);

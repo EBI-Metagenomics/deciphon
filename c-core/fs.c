@@ -44,6 +44,12 @@
 
 #define BUFFSIZE (8 * 1024)
 
+int fs_fopen(FILE **fp, const char *restrict file, const char *restrict mode)
+{
+  *fp = fopen(file, mode);
+  return *fp == NULL ? error_system(DCP_EFOPEN, errno) : 0;
+}
+
 int fs_seek(int fd, long offset, int whence)
 {
   return lseek(fd, (off_t)offset, whence) < 0 ? error(DCP_EFSEEK) : 0;

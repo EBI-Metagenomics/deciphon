@@ -3,6 +3,7 @@
 #include "deciphon.h"
 #include "defer_return.h"
 #include "error.h"
+#include "fs.h"
 #include "hmm_reader.h"
 #include "imm_gencode.h"
 #include "protein.h"
@@ -70,7 +71,7 @@ int dcp_press_open(struct dcp_press *x, char const *hmm, char const *db)
 
   int rc = 0;
 
-  if (!(x->reader.fp = fopen(hmm, "rb"))) defer_return(error(DCP_EOPENHMM));
+  if ((rc = fs_fopen(&x->reader.fp, hmm, "rb"))) defer_return(error(rc));
   if ((x->writer.fd = open(db, O_WRONLY | O_CREAT | O_TRUNC, 0644)) <= 0)
     defer_return(error(DCP_EOPENDB));
 
