@@ -1,5 +1,6 @@
 #include "match.h"
 #include "decoder.h"
+#include "error.h"
 #include "imm_gencode.h"
 #include "imm_nuclt_code.h"
 #include "imm_path.h"
@@ -42,7 +43,7 @@ struct match match_next(struct match const *x)
 
 int match_state_name(struct match const *x, char *dst)
 {
-  return state_name(match_state_id(x), dst);
+  return error(state_name(match_state_id(x), dst));
 }
 
 bool match_state_is_mute(struct match const *x)
@@ -73,7 +74,7 @@ int match_amino(struct match const *x, char *amino)
   struct imm_seq seq = imm_seq_slice(x->sequence, range);
 
   int rc = decoder_decode(x->decoder, &seq, state_id, &codon);
-  if (rc) return rc;
+  if (rc) return error(rc);
 
   *amino = imm_gencode_decode(x->decoder->gencode, codon);
   return 0;
@@ -84,7 +85,7 @@ int match_codon(struct match const *x, struct imm_codon *codon)
   *codon = imm_codon_any(x->decoder->code->nuclt);
   int state_id = match_state_id(x);
   struct imm_seq seq = match_subsequence(x);
-  return decoder_decode(x->decoder, &seq, state_id, codon);
+  return error(decoder_decode(x->decoder, &seq, state_id, codon));
 }
 
 struct imm_seq match_subsequence(struct match const *x)

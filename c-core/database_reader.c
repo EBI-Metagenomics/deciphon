@@ -34,7 +34,7 @@ int database_reader_open(struct database_reader *x, char const *filename)
   x->protein_sizes = NULL;
   lio_setup(&x->file, fd);
 
-  if ((rc = expect_map(&x->file, 2))) defer_return(error(rc));
+  if ((rc = expect_map(&x->file, 2)))               defer_return(error(rc));
 
   if ((rc = expect_key(&x->file, "header")))        defer_return(error(rc));
   if ((rc = expect_map(&x->file, 8)))               defer_return(error(rc));

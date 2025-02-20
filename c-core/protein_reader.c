@@ -37,16 +37,16 @@ int protein_reader_setup(struct protein_reader *x, struct database_reader *db,
   x->num_partitions = min(num_partitions, db->num_proteins);
 
   BUG_ON(x->file_descriptor != -1);
-  if ((rc = fs_dup(lio_rfile(&db->file), &x->file_descriptor))) return rc;
+  if ((rc = fs_dup(lio_rfile(&db->file), &x->file_descriptor))) return error(rc);
 
-  if ((rc = expect_key(&db->file, "proteins"))) return rc;
+  if ((rc = expect_key(&db->file, "proteins"))) return error(rc);
 
   uint32_t num_proteins = 0;
-  if ((rc = read_array(&db->file, &num_proteins))) return rc;
-  if (num_proteins > INT_MAX) return error(DCP_ETOOMANYPROTEINS);
-  if ((int)num_proteins != db->num_proteins) return error(DCP_EINVALNUMPROTEINS);
+  if ((rc = read_array(&db->file, &num_proteins))) return error(rc);
+  if (num_proteins > INT_MAX)                      return error(DCP_ETOOMANYPROTEINS);
+  if ((int)num_proteins != db->num_proteins)       return error(DCP_EINVALNUMPROTEINS);
 
-  if (lio_tell(&db->file, &x->offset[0])) return error(DCP_EFTELL);
+  if ((rc = lio_tell(&db->file, &x->offset[0]))) return error_system(DCP_EFTELL, lio_syserror(rc));
   partition_it(x, db);
 
   return rc;
@@ -93,7 +93,7 @@ int protein_reader_iter(struct protein_reader *x, int partition,
   int end = start + protein_reader_partition_size(x, partition);
   protein_iter_setup(it, x, start, end, offset, newfd);
 
-  return rc;
+  return 0;
 
 defer:
   if (newfd >= 0) fs_close(newfd);

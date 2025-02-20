@@ -1,4 +1,6 @@
 #include "viterbi.h"
+#include "deciphon.h"
+#include "error.h"
 #include "trellis.h"
 #include <math.h>
 #include <stdint.h>
@@ -344,21 +346,21 @@ int viterbi_setup(struct viterbi *x, int K)
     free(x->core_state);
     x->core_state = aligned_alloc(
         ALIGNMENT, sizeof(struct core_state[TIME_FRAME][Q]));
-    if (!x->core_state) return 1;
+    if (!x->core_state) return error(DCP_ENOMEM);
 
     free(x->emission.match);
     x->emission.match =
         aligned_alloc(ALIGNMENT, sizeof(packf[TABLE_SIZE][Q]));
-    if (!x->emission.match) return 1;
+    if (!x->emission.match) return error(DCP_ENOMEM);
 
     free(x->core_trans);
     x->core_trans = aligned_alloc(ALIGNMENT, sizeof(struct core_trans[Q]));
-    if (!x->core_trans) return 1;
+    if (!x->core_trans) return error(DCP_ENOMEM);
 
     free(x->prev_core_state);
     x->prev_core_state =
         aligned_alloc(ALIGNMENT, sizeof(struct prev_core_state[Q]));
-    if (!x->prev_core_state) return 1;
+    if (!x->prev_core_state) return error(DCP_ENOMEM);
 
     x->maxQ = Q;
   }
@@ -724,7 +726,7 @@ f32 viterbi_cost(struct viterbi *x, int L, viterbi_code_fn fn, void *arg)
 int viterbi_path(struct viterbi *x, int L, viterbi_code_fn fn, void *arg)
 {
   int rc = trellis_setup(&x->trellis, x->K, L);
-  if (rc) return rc;
+  if (rc) return error(rc);
   cost(x, L, 1, fn, arg);
   return 0;
 }

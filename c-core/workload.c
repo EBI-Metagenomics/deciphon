@@ -36,7 +36,7 @@ int workload_setup(struct workload *x, bool cache, int index_offset,
   for (int i = 0; i < (cache ? num_proteins : 1); ++i)
     work_init(x->works + i);
 
-  if ((rc = protein_iter_rewind(x->protein_iter))) defer_return(rc);
+  if ((rc = protein_iter_rewind(x->protein_iter))) defer_return(error(rc));
   if (cache)
   {
     while (!(rc = protein_iter_next(x->protein_iter, x->protein)))
@@ -44,9 +44,9 @@ int workload_setup(struct workload *x, bool cache, int index_offset,
       if (protein_iter_end(x->protein_iter)) break;
 
       x->index += 1;
-      if ((rc = work_setup(x->works + x->index, x->protein))) defer_return(rc);
+      if ((rc = work_setup(x->works + x->index, x->protein))) defer_return(error(rc));
     }
-    if (rc) defer_return(rc);
+    if (rc) defer_return(error(rc));
     BUG_ON(x->index + 1 != num_proteins);
   }
   x->index = -1;
@@ -66,7 +66,7 @@ defer:
 int workload_rewind(struct workload *x)
 {
   x->index = -1;
-  return x->cache ? 0 : protein_iter_rewind(x->protein_iter);
+  return x->cache ? 0 : error(protein_iter_rewind(x->protein_iter));
 }
 
 int workload_next(struct workload *x, struct work **work)
@@ -79,8 +79,8 @@ int workload_next(struct workload *x, struct work **work)
   *work = x->works + (x->cache ? x->index: 0);
   if (!x->cache)
   {
-    if ((rc = protein_iter_next(x->protein_iter, x->protein))) return rc;
-    if ((rc = work_setup(*work, x->protein)))                  return rc;
+    if ((rc = protein_iter_next(x->protein_iter, x->protein))) return error(rc);
+    if ((rc = work_setup(*work, x->protein)))                  return error(rc);
   }
 
   return 0;

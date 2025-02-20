@@ -32,7 +32,7 @@ int sequence_init(struct sequence *x, long id, char const *name,
   x->data = new_data;
   x->encoded = false;
 
-  int rc = disambiguate(strlen(x->data), x->data);
+  int rc = error(disambiguate(strlen(x->data), x->data));
   if (rc)
   {
     free(new_name);

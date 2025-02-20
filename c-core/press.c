@@ -74,14 +74,14 @@ int dcp_press_open(struct dcp_press *x, char const *hmm, char const *db)
   if ((rc = fs_fopen(&x->reader.fp, hmm, "rb")))                             defer_return(error(rc));
   if ((rc = fs_open(&x->writer.fd, db, O_WRONLY | O_CREAT | O_TRUNC, 0644))) defer_return(error(rc));
 
-  if ((rc = count_proteins(x))) defer_return(rc);
+  if ((rc = count_proteins(x))) defer_return(error(rc));
 
   database_writer_init(&x->writer.db, x->params);
   if ((rc = database_writer_open(&x->writer.db, x->writer.fd)))
-    defer_return(rc);
+    defer_return(error(rc));
 
   if ((rc = hmm_reader_init(&x->reader.h3, x->params, x->reader.fp)))
-    defer_return(rc);
+    defer_return(error(rc));
 
   protein_setup(&x->protein, x->params, true, false);
 
@@ -89,10 +89,10 @@ int dcp_press_open(struct dcp_press *x, char const *hmm, char const *db)
   if ((rc = protein_set_accession(&x->protein, acc)))
   {
     hmm_reader_cleanup(&x->reader.h3);
-    defer_return(rc);
+    defer_return(error(rc));
   }
 
-  return rc;
+  return 0;
 
 defer:
   if (x->writer.fd) close(x->writer.fd);
@@ -127,11 +127,11 @@ static int count_proteins(struct dcp_press *press)
 int dcp_press_next(struct dcp_press *press)
 {
   int rc = hmm_reader_next(&press->reader.h3);
-  if (rc) return rc;
+  if (rc) return error(rc);
 
   if (hmm_reader_end(&press->reader.h3)) return 0;
 
-  return protein_write(press);
+  return error(protein_write(press));
 }
 
 bool dcp_press_end(struct dcp_press const *press)
@@ -167,24 +167,24 @@ static int finish_writer(struct dcp_press *press)
 
   database_writer_set_has_ga(&press->writer.db, press->has_ga);
   int rc = database_writer_close(&press->writer.db);
-  if (rc) defer_return(rc);
+  if (rc) defer_return(error(rc));
 
   return error(fs_close(press->writer.fd));
 
 defer:
   fs_close(press->writer.fd);
-  return error(rc);
+  return rc;
 }
 
 static int protein_write(struct dcp_press *x)
 {
   int rc = protein_absorb(&x->protein, &x->reader.h3.model);
-  if (rc) return rc;
+  if (rc) return error(rc);
 
   if (!x->protein.has_ga) x->has_ga = false;
   size_t n = array_size_field(struct protein, accession);
   if (xstrcpy(x->protein.accession, x->reader.h3.protein.meta.acc, n))
     return error(DCP_ELONGACCESSION);
 
-  return database_writer_pack(&x->writer.db, &x->protein);
+  return error(database_writer_pack(&x->writer.db, &x->protein));
 }

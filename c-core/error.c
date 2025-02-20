@@ -114,7 +114,7 @@ int error_raise(int line, const char *file, const char *func, int error_code,
       va_end(args);
     }
 
-    fprintf(SINK_ERROR, "%s:%d - %s - %s%s.\n", file, line, func,
+    fprintf(SINK_ERROR, "%s %s:%d %s%s.\n", func, file, line,
             dcp_error_string(error_code), buffer);
   }
   return error_code;

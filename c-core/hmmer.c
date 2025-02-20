@@ -24,13 +24,13 @@ int hmmer_setup(struct hmmer *x, bool cut_ga, int num_proteins, int port)
   x->cut_ga = cut_ga;
   x->num_proteins = num_proteins;
   x->port = port;
-  if (!x->socket && !(x->socket = h3c_socket_new())) defer_return(DCP_ENOMEM);
-  if (!x->result && !(x->result = h3r_new())) defer_return(DCP_ENOMEM);
+  if (!x->socket && !(x->socket = h3c_socket_new())) defer_return(error(DCP_ENOMEM));
+  if (!x->result && !(x->result = h3r_new()))        defer_return(error(DCP_ENOMEM));
 
-  if ((rc = hmmer_dial(x))) return rc;
-  if ((rc = hmmer_warmup(x))) return rc;
+  if ((rc = hmmer_dial(x)))   return error(rc);
+  if ((rc = hmmer_warmup(x))) return error(rc);
 
-  return rc;
+  return 0;
 
 defer:
   if (x->socket)
@@ -75,7 +75,7 @@ int hmmer_warmup(struct hmmer *x)
 {
   char cmd[] = "--hmmdb 1 --hmmdb_range 0..0 --acc";
 
-  if (h3c_socket_send(x->socket, cmd, "")) return error(DCP_EH3CWARMUP);
+  if (h3c_socket_send(x->socket, cmd, ""))   return error(DCP_EH3CWARMUP);
   if (h3c_socket_recv(x->socket, x->result)) return error(DCP_EH3CWARMUP);
   return 0;
 }

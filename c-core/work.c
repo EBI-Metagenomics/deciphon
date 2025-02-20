@@ -32,10 +32,10 @@ int work_setup(struct work *x, struct protein *protein)
   int size = array_size_field(struct work, accession);
   if (xstrcpy(x->accession, protein->accession, size))   defer_return(error(DCP_ELONGACCESSION));
   if (!x->viterbi && !(x->viterbi = viterbi_new()))      defer_return(error(DCP_ENOMEM));
-  if ((rc = decoder_setup(&x->decoder, protein)))        defer_return(rc);
-  if ((rc = protein_setup_viterbi(protein, x->viterbi))) defer_return(rc);
+  if ((rc = decoder_setup(&x->decoder, protein)))        defer_return(error(rc));
+  if ((rc = protein_setup_viterbi(protein, x->viterbi))) defer_return(error(rc));
 
-  return rc;
+  return 0;
 
 defer:
   viterbi_del(x->viterbi);

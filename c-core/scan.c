@@ -98,11 +98,11 @@ int dcp_scan_setup(struct dcp_scan *x, char const *dbfile, int port, int num_thr
 
   struct database_reader *db = &x->database_reader;
 
-  if ((rc = database_reader_open(db, dbfile))) return rc;
+  if ((rc = database_reader_open(db, dbfile))) return error(rc);
   x->num_threads = min(num_threads, db->num_proteins);
 
   if ((rc = protein_reader_setup(&x->protein_reader, db, x->num_threads)))
-    return rc;
+    return error(rc);
 
   int abc = db->code.super.abc->typeid;
   if (!(abc == IMM_DNA || abc == IMM_RNA)) return error(DCP_ENUCLTNOSUPPORT);
@@ -128,7 +128,7 @@ loop_exit0:
   if (rc)
   {
     database_reader_close(db);
-    return rc;
+    return error(rc);
   }
 
 #pragma omp parallel for
@@ -161,7 +161,7 @@ loop_exit1:
 
   x->callback = callback;
   x->userdata = userdata;
-  return database_reader_close(db);
+  return error(database_reader_close(db));
 }
 
 int dcp_scan_run(struct dcp_scan *x, struct dcp_batch *batch, char const *product_dir)
@@ -174,15 +174,15 @@ int dcp_scan_run(struct dcp_scan *x, struct dcp_batch *batch, char const *produc
 
   struct imm_code *code = &x->database_reader.code.super;
 
-  if ((rc = batch_encode(batch, code)))              defer_return(rc);
-  if ((rc = product_open(&x->product, product_dir))) defer_return(rc);
+  if ((rc = batch_encode(batch, code)))              defer_return(error(rc));
+  if ((rc = product_open(&x->product, product_dir))) defer_return(error(rc));
 
   for (int i = 0; i < x->num_threads; ++i)
   {
     struct product_thread *product = x->product_threads + i;
     struct database_reader *db = &x->database_reader;
     char const *abc = imm_abc_typeid_name(db->code.super.abc->typeid);
-    if ((rc = product_thread_setup(product, abc, product_dir))) defer_return(rc);
+    if ((rc = product_thread_setup(product, abc, product_dir))) defer_return(error(rc));
   }
 
 #pragma omp parallel for
@@ -206,9 +206,9 @@ int dcp_scan_run(struct dcp_scan *x, struct dcp_batch *batch, char const *produc
 #pragma omp critical
     if (r && !rc) rc = r;
   }
-  if (rc) defer_return(rc);
+  if (rc) defer_return(error(rc));
 
-  return product_close(&x->product, x->num_threads);
+  return error(product_close(&x->product, x->num_threads));
 
 defer:
   product_close(&x->product, x->num_threads);

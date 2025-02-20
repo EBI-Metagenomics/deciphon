@@ -18,9 +18,9 @@ int product_open(struct product *x, char const *dir)
   char hmmer_dir[FS_PATH_MAX] = {0};
 
   if (xstrcpy(x->dirname, dir, FS_PATH_MAX))                         defer_return(error(DCP_ELONGPATH));
-  if ((rc = format(hmmer_dir, FS_PATH_MAX, "%s/hmmer", x->dirname))) defer_return(rc);
-  if ((rc = fs_mkdir(x->dirname, true)))                             defer_return(rc);
-  if ((rc = fs_mkdir(hmmer_dir, true)))                              defer_return(rc);
+  if ((rc = format(hmmer_dir, FS_PATH_MAX, "%s/hmmer", x->dirname))) defer_return(error(rc));
+  if ((rc = fs_mkdir(x->dirname, true)))                             defer_return(error(rc));
+  if ((rc = fs_mkdir(hmmer_dir, true)))                              defer_return(error(rc));
 
   x->closed = false;
   return 0;
@@ -40,7 +40,7 @@ int product_close(struct product *x, int num_threads)
   char *dir = x->dirname;
   int rc = 0;
 
-  if ((rc = format(filename, FS_PATH_MAX, "%s/products.tsv", dir))) return rc;
+  if ((rc = format(filename, FS_PATH_MAX, "%s/products.tsv", dir))) return error(rc);
 
   FILE *fp = NULL;
   if ((rc = fs_fopen(&fp, filename, "wb"))) return error(rc);
@@ -64,7 +64,7 @@ int product_close(struct product *x, int num_threads)
   {
     char file[FS_PATH_MAX] = {0};
     if ((rc = format(file, FS_PATH_MAX, "%s/.products.%03d.tsv", dir, i)))
-      defer_return(rc);
+      defer_return(error(rc));
 
     FILE *tmp = NULL;
     if ((rc = fs_fopen(&tmp, file, "rb"))) defer_return(error(rc));
@@ -72,12 +72,12 @@ int product_close(struct product *x, int num_threads)
     if ((rc = fs_fcopy(fp, tmp)))
     {
       fs_fclose(tmp);
-      defer_return(rc);
+      defer_return(error(rc));
     }
 
     if (fclose(tmp)) defer_return(error(DCP_EFCLOSE));
 
-    if ((rc = fs_rmfile(file))) defer_return(rc);
+    if ((rc = fs_rmfile(file))) defer_return(error(rc));
   }
 
   return error(fs_fclose(fp));

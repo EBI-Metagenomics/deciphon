@@ -1,4 +1,6 @@
 #include "protein_iter.h"
+#include "deciphon.h"
+#include "error.h"
 #include "protein.h"
 #include "protein_reader.h"
 #include <string.h>
@@ -27,14 +29,16 @@ void protein_iter_setup(struct protein_iter *x, struct protein_reader *reader,
 int protein_iter_rewind(struct protein_iter *x)
 {
   x->curr_idx = x->start_idx - 1;
-  return lio_seek(&x->file, x->offset);
+  int rc = lio_seek(&x->file, x->offset);
+  if (rc) return error_system(DCP_EFSEEK, lio_syserror(rc));
+  return 0;
 }
 
 int protein_iter_next(struct protein_iter *x, struct protein *protein)
 {
   x->curr_idx += 1;
   if (protein_iter_end(x)) return 0;
-  return protein_unpack(protein, &x->file);
+  return error(protein_unpack(protein, &x->file));
 }
 
 bool protein_iter_end(struct protein_iter const *x)

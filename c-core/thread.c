@@ -2,6 +2,7 @@
 #include "batch.h"
 #include "chararray.h"
 #include "debug.h"
+#include "error.h"
 #include "h3r_result.h"
 #include "hmmer.h"
 #include "imm_lprob.h"
@@ -53,7 +54,7 @@ int thread_run(struct thread *x, struct dcp_batch const *batch,
   x->interrupted = false;
   struct work *work = NULL;
 
-  if ((rc = workload_rewind(x->workload))) return rc;
+  if ((rc = workload_rewind(x->workload))) return error(rc);
 
   while (!(rc = workload_next(x->workload, &work)))
   {
@@ -68,10 +69,10 @@ int thread_run(struct thread *x, struct dcp_batch const *batch,
       while (window_next(&w))
       {
         int idx = workload_index(x->workload);
-        if ((rc = process_window(x, work, idx, product, &w))) return rc;
+        if ((rc = process_window(x, work, idx, product, &w))) return error(rc);
 
         if (callb) (*callb)(userdata);
-        if (x->interrupted) return rc;
+        if (x->interrupted) return 0;
       }
     }
 
@@ -117,15 +118,14 @@ static int process_window(struct thread *x, struct work *work, int protein_idx,
 
   line->lrt = lrt(null, alt);
   debug("lrt for %s: %g", work->accession, line->lrt);
-  if (!imm_lprob_is_finite(line->lrt) || line->lrt < 0) return rc;
+  if (!imm_lprob_is_finite(line->lrt) || line->lrt < 0) return 0;
   debug("passed lrt threshold for window [%d,%d]", window_range(w).start,
         window_range(w).stop);
 
-  if ((rc = product_line_set_accession(line, work->accession))) return rc;
-  if ((rc = viterbi_path(work->viterbi, L, code_fn, (void *)&seq->imm.eseq)))
-    return rc;
+  if ((rc = product_line_set_accession(line, work->accession)))               return error(rc);
+  if ((rc = viterbi_path(work->viterbi, L, code_fn, (void *)&seq->imm.eseq))) return error(rc);
   imm_path_reset(&x->path);
-  if ((rc = trellis_unzip(viterbi_trellis(work->viterbi), L, &x->path))) return rc;
+  if ((rc = trellis_unzip(viterbi_trellis(work->viterbi), L, &x->path))) return error(rc);
 
   struct match begin = match_end();
   struct match end = match_begin(&x->path, &seq->imm.seq, &work->decoder);
@@ -133,7 +133,7 @@ static int process_window(struct thread *x, struct work *work, int protein_idx,
   line->hit_start = 0;
   line->hit_stop = 0;
 
-  if (match_equal(begin, end)) return rc;
+  if (match_equal(begin, end)) return 0;
 
   struct match it = {0};
   line->hit_start = line->hit_stop;
@@ -143,7 +143,7 @@ static int process_window(struct thread *x, struct work *work, int protein_idx,
     line->hit_start += match_step(&it)->seqsize;
     it = match_next(&it);
   }
-  if (match_equal(it, match_end())) return rc;
+  if (match_equal(it, match_end())) return 0;
   int hit_stop = line->hit_start;
   begin = it;
   end = match_next(&it);
@@ -172,8 +172,8 @@ static int process_window(struct thread *x, struct work *work, int protein_idx,
     if (!match_state_is_mute(&it))
     {
       char amino = 0;
-      if ((rc = match_amino(&it, &amino))) return rc;
-      if ((rc = chararray_append(&x->amino, amino))) return rc;
+      if ((rc = match_amino(&it, &amino)))           return error(rc);
+      if ((rc = chararray_append(&x->amino, amino))) return error(rc);
     }
     it = match_next(&it);
   }
@@ -187,7 +187,7 @@ static int process_window(struct thread *x, struct work *work, int protein_idx,
   {
     debug("sending to hmmer sequence of size %zu", x->amino.size);
     debug("sequence sent: %s", x->amino.data);
-    if ((rc = hmmer_get(x->hmmer, protein_idx, x->amino.data))) return rc;
+    if ((rc = hmmer_get(x->hmmer, protein_idx, x->amino.data))) return error(rc);
 
     product->line.logevalue = h3r_nhits(x->hmmer->result)
                                   ? h3r_hit_logevalue(x->hmmer->result, 0)
@@ -198,10 +198,10 @@ static int process_window(struct thread *x, struct work *work, int protein_idx,
 
     debug("num_hits: %d logvalue: %g", h3r_nhits(x->hmmer->result),
           product->line.logevalue);
-    if (product->line.logevalue == 0) return rc;
-    if ((rc = product_thread_add_hmmer(product, x->hmmer->result))) return rc;
+    if (product->line.logevalue == 0) return 0;
+    if ((rc = product_thread_add_hmmer(product, x->hmmer->result))) return error(rc);
   }
-  if ((rc = product_thread_add_match(product, begin, end))) return rc;
+  if ((rc = product_thread_add_match(product, begin, end))) return error(rc);
   line->hit += 1;
 
   return 0;
