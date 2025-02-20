@@ -44,6 +44,11 @@
 
 #define BUFFSIZE (8 * 1024)
 
+int fs_close(int fd)
+{
+  return close(fd) ? error_system(DCP_EFCLOSE, errno) : 0;
+}
+
 int fs_fopen(FILE **fp, const char *restrict file, const char *restrict mode)
 {
   *fp = fopen(file, mode);
@@ -228,7 +233,7 @@ int fs_mkstemp(int *fd, char const *template)
   int rc = fs_rmfile(path);
   if (rc)
   {
-    close(*fd);
+    fs_close(*fd);
     return error(rc);
   }
 

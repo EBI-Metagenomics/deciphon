@@ -170,11 +170,11 @@ static int finish_writer(struct dcp_press *press)
   int rc = database_writer_close(&press->writer.db);
   if (rc) defer_return(rc);
 
-  return close(press->writer.fd) ? error(DCP_EFCLOSE) : 0;
+  return error(fs_close(press->writer.fd));
 
 defer:
-  close(press->writer.fd);
-  return rc;
+  fs_close(press->writer.fd);
+  return error(rc);
 }
 
 static int protein_write(struct dcp_press *x)

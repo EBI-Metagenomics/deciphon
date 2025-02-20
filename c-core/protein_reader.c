@@ -86,8 +86,8 @@ int protein_reader_iter(struct protein_reader *x, int partition,
   int rc = 0;
   long offset = x->offset[partition];
 
-  if ((rc = fs_reopen(fd, O_RDONLY, &newfd))) defer_return(rc);
-  if ((rc = fs_seek(newfd, offset, SEEK_SET))) defer_return(rc);
+  if ((rc = fs_reopen(fd, O_RDONLY, &newfd)))  defer_return(error(rc));
+  if ((rc = fs_seek(newfd, offset, SEEK_SET))) defer_return(error(rc));
 
   int start = x->size_cumsum[partition];
   int end = start + protein_reader_partition_size(x, partition);
@@ -96,7 +96,7 @@ int protein_reader_iter(struct protein_reader *x, int partition,
   return rc;
 
 defer:
-  if (newfd >= 0) close(newfd);
+  if (newfd >= 0) fs_close(newfd);
   return rc;
 }
 
@@ -104,7 +104,7 @@ void protein_reader_cleanup(struct protein_reader *x)
 {
   if (x->file_descriptor != -1)
   {
-    close(x->file_descriptor);
+    fs_close(x->file_descriptor);
     x->file_descriptor = -1;
   }
 }

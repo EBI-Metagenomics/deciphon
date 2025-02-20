@@ -101,11 +101,11 @@ int product_thread_add_hmmer(struct product_thread *x, struct h3r const *result)
 
   if ((rc = h3r_pack(result, fd)))
   {
-    close(fd);
+    fs_close(fd);
     return rc;
   }
 
-  return close(fd) ? error(DCP_ECLOSE) : 0;
+  return error(fs_close(fd));
 }
 
 static int write_match(FILE *fp, struct match const *m)

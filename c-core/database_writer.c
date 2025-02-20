@@ -26,19 +26,19 @@ static void destroy_tempfiles(struct database_writer *x)
   if (lio_file(&x->tmp.header) >= 0)
   {
     lio_flush(&x->tmp.header);
-    close(lio_file(&x->tmp.header));
+    fs_close(lio_file(&x->tmp.header));
   }
   if (lio_file(&x->tmp.sizes) >= 0)
   {
     lio_flush(&x->tmp.sizes);
-    close(lio_file(&x->tmp.sizes));
+    fs_close(lio_file(&x->tmp.sizes));
   }
   for (int i = 0; i < DATABASE_WRITER_CHUNKS; ++i)
   {
     if (lio_file(x->tmp.proteins + i) >= 0)
     {
       lio_flush(x->tmp.proteins + i);
-      close(lio_file(x->tmp.proteins + i));
+      fs_close(lio_file(x->tmp.proteins + i));
     }
   }
   nullify_tempfiles(x);
@@ -124,7 +124,7 @@ static int pack_proteins(struct database_writer *x)
     if (lio_flush(curr)) return error(DCP_EFFLUSH);
     if (lio_flush(&x->file)) return error(DCP_EFFLUSH);
     if ((rc = fs_copy(lio_file(&x->file), lio_file(curr)))) return rc;
-    close(lio_file(curr));
+    fs_close(lio_file(curr));
     lio_setup(curr, -1);
     curr += 1;
   }

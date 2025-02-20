@@ -4,6 +4,7 @@
 #include "defer_return.h"
 #include "error.h"
 #include "expect.h"
+#include "fs.h"
 #include "magic_number.h"
 #include "read.h"
 #include <errno.h>
@@ -83,7 +84,7 @@ int database_reader_close(struct database_reader *x)
 {
   int rc = 0;
   int fd = lio_rfile(&x->file);
-  if (fd != -1) rc = close(fd) ? error_system(DCP_EFCLOSE, errno) : 0;
+  if (fd != -1) rc = error(fs_close(fd));
   lio_setup(&x->file, -1);
   return rc;
 }
