@@ -235,50 +235,47 @@ int protein_pack(struct protein const *x, struct lio_writer *file)
 {
   int rc = 0;
 
-  if ((rc = write_map(file, 10))) return rc;
+  if ((rc = write_map(file, 10))) return error(rc);
 
-  if ((rc = write_cstring(file, "accession"))) return rc;
-  if ((rc = write_cstring(file, x->accession))) return rc;
+  if ((rc = write_cstring(file, "accession")))  return error(rc);
+  if ((rc = write_cstring(file, x->accession))) return error(rc);
 
-  if ((rc = write_cstring(file, "gencode"))) return rc;
+  if ((rc = write_cstring(file, "gencode")))         return error(rc);
   if ((rc = write_int(file, x->params.gencode->id))) return error(rc);
 
-  if ((rc = write_cstring(file, "consensus"))) return rc;
-  if ((rc = write_cstring(file, x->consensus))) return rc;
+  if ((rc = write_cstring(file, "consensus")))  return error(rc);
+  if ((rc = write_cstring(file, x->consensus))) return error(rc);
 
-  if ((rc = write_cstring(file, "core_size"))) return rc;
-  if ((rc = write_int(file, x->core_size))) return error(rc);
+  if ((rc = write_cstring(file, "core_size"))) return error(rc);
+  if ((rc = write_int(file, x->core_size)))    return error(rc);
 
-  if ((rc = write_cstring(file, "null_nuclt_dist"))) return rc;
-  if ((rc = nuclt_dist_pack(&x->null.nuclt_dist, file))) return rc;
+  if ((rc = write_cstring(file, "null_nuclt_dist")))     return error(rc);
+  if ((rc = nuclt_dist_pack(&x->null.nuclt_dist, file))) return error(rc);
 
-  if ((rc = write_cstring(file, "null_emission"))) return rc;
-  if ((rc = write_f32array(file, PROTEIN_NODE_SIZE, x->null.emission)))
-    return rc;
+  if ((rc = write_cstring(file, "null_emission")))                      return error(rc);
+  if ((rc = write_f32array(file, PROTEIN_NODE_SIZE, x->null.emission))) return error(rc);
 
-  if ((rc = write_cstring(file, "bg_nuclt_dist"))) return rc;
-  if ((rc = nuclt_dist_pack(&x->bg.nuclt_dist, file))) return rc;
+  if ((rc = write_cstring(file, "bg_nuclt_dist")))     return error(rc);
+  if ((rc = nuclt_dist_pack(&x->bg.nuclt_dist, file))) return error(rc);
 
-  if ((rc = write_cstring(file, "bg_emission"))) return rc;
-  if ((rc = write_f32array(file, PROTEIN_NODE_SIZE, x->bg.emission))) return rc;
+  if ((rc = write_cstring(file, "bg_emission")))                      return error(rc);
+  if ((rc = write_f32array(file, PROTEIN_NODE_SIZE, x->bg.emission))) return error(rc);
 
-  if ((rc = write_cstring(file, "nodes"))) return rc;
-  if ((rc = write_map(file, (x->core_size + 1) * 3))) return rc;
+  if ((rc = write_cstring(file, "nodes")))            return error(rc);
+  if ((rc = write_map(file, (x->core_size + 1) * 3))) return error(rc);
   for (int i = 0; i < x->core_size + 1; ++i)
   {
-    if ((rc = write_cstring(file, "nuclt_dist"))) return rc;
-    if ((rc = nuclt_dist_pack(&x->nodes[i].nuclt_dist, file))) return rc;
+    if ((rc = write_cstring(file, "nuclt_dist")))              return error(rc);
+    if ((rc = nuclt_dist_pack(&x->nodes[i].nuclt_dist, file))) return error(rc);
 
-    if ((rc = write_cstring(file, "trans"))) return rc;
-    if ((rc = write_f32array(file, TRANS_SIZE, x->nodes[i].trans.data)))
-      return rc;
+    if ((rc = write_cstring(file, "trans")))                             return error(rc);
+    if ((rc = write_f32array(file, TRANS_SIZE, x->nodes[i].trans.data))) return error(rc);
 
-    if ((rc = write_cstring(file, "emission"))) return rc;
-    if ((rc = write_f32array(file, PROTEIN_NODE_SIZE, x->nodes[i].emission)))
-      return rc;
+    if ((rc = write_cstring(file, "emission")))                               return error(rc);
+    if ((rc = write_f32array(file, PROTEIN_NODE_SIZE, x->nodes[i].emission))) return error(rc);
   }
-  if ((rc = write_cstring(file, "BMk"))) return rc;
-  if ((rc = write_f32array(file, x->core_size, x->BMk))) return rc;
+  if ((rc = write_cstring(file, "BMk")))                 return error(rc);
+  if ((rc = write_f32array(file, x->core_size, x->BMk))) return error(rc);
 
   return 0;
 }

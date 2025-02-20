@@ -6,6 +6,7 @@
 #include "expect.h"
 #include "magic_number.h"
 #include "read.h"
+#include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,51 +28,51 @@ int database_reader_open(struct database_reader *x, char const *filename)
   int fd = -1;
 
   if ((fd = open(filename, O_RDONLY, 0644)) < 0)
-    defer_return(error(DCP_EOPENDB));
+    defer_return(error_system(DCP_EOPENDB, errno));
 
   x->num_proteins = 0;
   x->protein_sizes = NULL;
   lio_setup(&x->file, fd);
 
-  if ((rc = expect_map(&x->file, 2))) defer_return(rc);
+  if ((rc = expect_map(&x->file, 2))) defer_return(error(rc));
 
-  if ((rc = expect_key(&x->file, "header"))) defer_return(rc);
-  if ((rc = expect_map(&x->file, 8))) defer_return(rc);
+  if ((rc = expect_key(&x->file, "header")))        defer_return(error(rc));
+  if ((rc = expect_map(&x->file, 8)))               defer_return(error(rc));
 
   int magic_number = 0;
-  if ((rc = expect_key(&x->file, "magic_number"))) defer_return(rc);
-  if ((rc = read_int(&x->file, &magic_number))) defer_return(rc);
-  if (magic_number != MAGIC_NUMBER) defer_return(error(DCP_ENOTDBFILE));
+  if ((rc = expect_key(&x->file, "magic_number")))  defer_return(error(rc));
+  if ((rc = read_int(&x->file, &magic_number)))     defer_return(error(rc));
+  if (magic_number != MAGIC_NUMBER)                 defer_return(error(DCP_ENOTDBFILE));
 
   int version = 0;
-  if ((rc = expect_key(&x->file, "version"))) defer_return(rc);
-  if ((rc = read_int(&x->file, &version))) defer_return(rc);
-  if (version != DATABASE_VERSION) defer_return(error(DCP_EDBVERSION));
+  if ((rc = expect_key(&x->file, "version")))       defer_return(error(rc));
+  if ((rc = read_int(&x->file, &version)))          defer_return(error(rc));
+  if (version != DATABASE_VERSION)                  defer_return(error(DCP_EDBVERSION));
 
   int entry_dist = 0;
-  if ((rc = expect_key(&x->file, "entry_dist"))) defer_return(rc);
-  if ((rc = read_int(&x->file, &entry_dist))) defer_return(rc);
+  if ((rc = expect_key(&x->file, "entry_dist")))    defer_return(error(rc));
+  if ((rc = read_int(&x->file, &entry_dist)))       defer_return(error(rc));
   x->entry_dist = (enum entry_dist)entry_dist;
-  if (!entry_dist_valid(x->entry_dist)) defer_return(error(DCP_EFDATA));
+  if (!entry_dist_valid(x->entry_dist))             defer_return(error(DCP_EFDATA));
 
-  if ((rc = expect_key(&x->file, "epsilon"))) defer_return(rc);
-  if ((rc = read_float(&x->file, &x->epsilon))) defer_return(rc);
-  if (x->epsilon < 0 || x->epsilon > 1) defer_return(error(DCP_EFDATA));
+  if ((rc = expect_key(&x->file, "epsilon")))       defer_return(error(rc));
+  if ((rc = read_float(&x->file, &x->epsilon)))     defer_return(error(rc));
+  if (x->epsilon < 0 || x->epsilon > 1)             defer_return(error(DCP_EFDATA));
 
-  if ((rc = expect_key(&x->file, "abc"))) defer_return(rc);
-  if (imm_abc_unpack(&x->nuclt.super, &x->file)) defer_return(DCP_EFREAD);
+  if ((rc = expect_key(&x->file, "abc")))           defer_return(error(rc));
+  if (imm_abc_unpack(&x->nuclt.super, &x->file))    defer_return(error(DCP_ENUCLTDUNPACK));
 
-  if ((rc = expect_key(&x->file, "amino"))) defer_return(rc);
-  if (imm_abc_unpack(&x->amino.super, &x->file)) defer_return(DCP_EFREAD);
+  if ((rc = expect_key(&x->file, "amino")))         defer_return(error(rc));
+  if (imm_abc_unpack(&x->amino.super, &x->file))    defer_return(error(DCP_ENUCLTDUNPACK));
 
-  if ((rc = expect_key(&x->file, "has_ga"))) defer_return(rc);
-  if ((rc = read_bool(&x->file, &x->has_ga))) defer_return(rc);
+  if ((rc = expect_key(&x->file, "has_ga")))        defer_return(error(rc));
+  if ((rc = read_bool(&x->file, &x->has_ga)))       defer_return(error(rc));
 
   imm_nuclt_code_init(&x->code, &x->nuclt);
-  if ((rc = expect_key(&x->file, "protein_sizes"))) defer_return(rc);
-  if ((rc = unpack_header_protein_sizes(x))) defer_return(rc);
+  if ((rc = expect_key(&x->file, "protein_sizes"))) defer_return(error(rc));
+  if ((rc = unpack_header_protein_sizes(x)))        defer_return(error(rc));
 
-  return rc;
+  return 0;
 
 defer:
   database_reader_close(x);
@@ -82,7 +83,7 @@ int database_reader_close(struct database_reader *x)
 {
   int rc = 0;
   int fd = lio_rfile(&x->file);
-  if (fd != -1) rc = close(fd) ? error(DCP_EFCLOSE) : 0;
+  if (fd != -1) rc = close(fd) ? error_system(DCP_EFCLOSE, errno) : 0;
   lio_setup(&x->file, -1);
   return rc;
 }
@@ -100,7 +101,7 @@ static int unpack_header_protein_sizes(struct database_reader *x)
   int rc = 0;
   uint32_t size = 0;
 
-  if ((rc = read_array(&x->file, &size))) return rc;
+  if ((rc = read_array(&x->file, &size))) return error(rc);
 
   if (size > INT_MAX) return error(DCP_EFDATA);
   x->num_proteins = (int)size;

@@ -1,6 +1,7 @@
 #include "codec.h"
 #include "bug.h"
 #include "decoder.h"
+#include "error.h"
 #include "imm_path.h"
 #include "state.h"
 
@@ -29,7 +30,7 @@ int codec_next(struct codec *x, struct imm_seq const *seq,
   struct imm_seq frag = imm_seq_slice(seq, range);
   x->start += size;
   x->idx++;
-  return decoder_decode(x->decoder, &frag, step->state_id, codon);
+  return error(decoder_decode(x->decoder, &frag, step->state_id, codon));
 }
 
 bool codec_end(struct codec const *x)

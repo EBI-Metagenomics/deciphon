@@ -208,14 +208,14 @@ int fs_mkstemp(int *fd, char const *template)
   char path[FS_PATH_MAX] = {0};
   if (xstrcpy(path, template, sizeof path)) return error(DCP_ENOMEM);
 
-  if ((*fd = mkstemp(path)) < 0) return error(DCP_EMKSTEMP);
+  if ((*fd = mkstemp(path)) < 0) return error_system(DCP_EMKSTEMP, errno);
 
   int rc = fs_rmfile(path);
   if (rc)
   {
     close(*fd);
-    return rc;
+    return error(rc);
   }
 
-  return *fd ? 0 : error(DCP_EFDOPEN);
+  return 0;
 }

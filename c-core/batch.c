@@ -34,7 +34,7 @@ int dcp_batch_add(struct dcp_batch *x, long id, char const *name, char const *da
   struct sequence *seq = malloc(sizeof(*seq));
 
   if (!seq) defer_return(error(DCP_ENOMEM));
-  if ((rc = sequence_init(seq, id, name, data))) defer_return(rc);
+  if ((rc = sequence_init(seq, id, name, data))) defer_return(error(rc));
 
   queue_put(&x->sequences, &seq->node);
   return 0;
@@ -64,9 +64,9 @@ int batch_encode(struct dcp_batch const *x, struct imm_code const *code)
   struct iter iter = queue_iter(&x->sequences);
   iter_for_each_entry(seq, &iter, node)
   {
-    if ((rc = sequence_encode(seq, code))) break;
+    if ((rc = sequence_encode(seq, code))) return error(rc);
   }
-  return rc;
+  return 0;
 }
 
 struct iter batch_iter(struct dcp_batch const *x)
