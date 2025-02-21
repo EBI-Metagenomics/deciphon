@@ -4,19 +4,19 @@ build-backend = "hatchling.build"
 
 [project]
 name = "deciphon-worker"
-version = "0.5.2"
+version = "0.5.3"
 description = "Deciphon worker."
 authors = [{ name = "Danilo Horta", email = "danilo.horta@pm.me" }]
 requires-python = "~=3.9"
 readme = "README.md"
 license = "MIT"
 dependencies = [
-  "deciphon-core>=1.0.11,<2",
-  "loguru>=0.7.2,<0.8",
+  "deciphon-core>=1.0.17,<2",
+  "loguru>=0.7.2,<1",
   "tenacity>=9.0.0,<10",
   "deciphon-snap>=1.0.3,<2",
   "deciphon-schema>=0.2.0",
-  "h3daemon>=2.0.2",
+  "h3daemon>=2.0.5",
 ]
 
 [dependency-groups]
