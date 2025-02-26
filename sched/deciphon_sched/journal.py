@@ -2,7 +2,7 @@ from aiomqtt import Client, MqttError
 from tenacity import (
     retry,
     retry_if_exception_type,
-    stop_after_attempt,
+    stop_after_delay,
     wait_exponential,
 )
 
@@ -12,11 +12,6 @@ from deciphon_sched.settings import Settings
 TOPIC = "deciphon.org"
 
 
-@retry(
-    retry=retry_if_exception_type(MqttError),
-    stop=stop_after_attempt(5),
-    wait=wait_exponential(),
-)
 async def reconnect(mqtt: Client):
     await mqtt.__aexit__(None, None, None)
     await mqtt.__aenter__()
@@ -34,6 +29,11 @@ class Journal:
     async def __aexit__(self, *args, **kargs):
         await self._mqtt.__aexit__(*args, **kargs)
 
+    @retry(
+        retry=retry_if_exception_type(MqttError),
+        stop=stop_after_delay(10),
+        wait=wait_exponential(multiplier=0.001),
+    )
     async def publish(self, subject: str, payload: str):
         topic = f"/{TOPIC}/{subject}"
         self._logger.handler.info(f"publishing <{payload}> to <{topic}>")
@@ -41,7 +41,17 @@ class Journal:
             await self._mqtt.publish(topic, payload)
         except MqttError:
             await reconnect(self._mqtt)
+            raise
 
+    @retry(
+        retry=retry_if_exception_type(MqttError),
+        stop=stop_after_delay(10),
+        wait=wait_exponential(multiplier=0.001),
+    )
     async def health_check(self):
-        await self._mqtt.subscribe("/health")
-        await self._mqtt.unsubscribe("/health")
+        try:
+            await self._mqtt.subscribe("/health")
+            await self._mqtt.unsubscribe("/health")
+        except MqttError:
+            await reconnect(self._mqtt)
+            raise

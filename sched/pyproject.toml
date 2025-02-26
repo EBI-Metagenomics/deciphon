@@ -1,6 +1,6 @@
 [project]
 name = "deciphon-sched"
-version = "1.2.1"
+version = "1.2.2"
 description = "Deciphon scheduler"
 authors = [{ name = "Danilo Horta", email = "horta@ebi.ac.uk" }]
 requires-python = "~=3.9"
