@@ -9,7 +9,7 @@
 - Python >= 3.11
 - Pip
 - [Homebrew](https://brew.sh) on MacOS (recommended)
-- [Pipx](https://pypa.github.io/pipx/) (or [uvx](https://docs.astral.sh/uv/guides/tools/)) for Python package management (recommended)
+- [Pipx](https://pypa.github.io/pipx/) (or [uvx](https://docs.astral.sh/uv/guides/tools/)) for Python application management (recommended)
 
 ### MacOS
 
