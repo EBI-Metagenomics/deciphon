@@ -3,7 +3,7 @@ import shutil
 import signal
 import sys
 import uuid
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from enum import Enum
 from multiprocessing import Process
 from pathlib import Path
@@ -32,6 +32,7 @@ __all__ = ["LogLevel", "Worker", "WorkType", "setup_logger"]
 
 info = logger.info
 warn = logger.warning
+error = logger.error
 
 
 class WorkType(str, Enum):
@@ -83,79 +84,91 @@ class ScanProcess:
         self._multi_hits = multi_hits
         self._hmmer3_compat = hmmer3_compat
         self._num_threads = num_threads
+        self._scanner: Scanner | None = None
         self._process = Process(target=self._run)
         self._process.start()
+
+    def _process_request(self, x: ScanRequest):
+        dbname = self._dbname
+        snappath: Path | None = None
+        try:
+            info(f"Consuming <{x}> request...")
+            self._poster.job_patch(JobUpdate.run(x.job_id, 0))
+
+            hmmpath = Path(dbname.hmmname.name)
+            dbpath = Path(dbname.name)
+
+            if not hmmpath.exists():
+                info(f"File <{hmmpath}> does not exist, preparing to download it")
+                with atomic_file_creation(hmmpath) as t:
+                    url = self._poster.download_hmm_url(dbname.hmmname.name)
+                    info(f"Downloading <{url}>...")
+                    download(url, t)
+
+            if not dbpath.exists():
+                info(f"File <{dbpath}> does not exist, preparing to download it")
+                with atomic_file_creation(dbpath) as t:
+                    url = self._poster.download_db_url(dbname.name)
+                    info(f"Downloading <{url}>...")
+                    download(url, t)
+
+            if self._scanner is None:
+                dbfile = DBFile(path=dbpath)
+                num_threads = self._num_threads
+                multi_hits = self._multi_hits
+                hmmer3_compat = self._hmmer3_compat
+                info(
+                    f"Launching scanner for <{dbfile.path},"
+                    f"multi_hits={multi_hits},hmmer3_compat={hmmer3_compat}>..."
+                )
+                self._scanner = launch_scanner(
+                    dbfile, num_threads, multi_hits, hmmer3_compat, cache=True
+                ).result()
+
+            hex = str(uuid.uuid4().hex)[:8]
+            snap = NewSnapFile(path=Path(f"snapfile_scan_id{x.id}_{hex}.dcs"))
+            sequences = [Sequence(i.id, i.name, i.data) for i in x.seqs]
+
+            task = self._scanner.put(snap, sequences)
+            for i in task.as_progress():
+                info(f"Progress {i}% on <scan_id={x.id}>...")
+                self._poster.job_patch(JobUpdate.run(x.job_id, i))
+
+            info(f"Finished scanning scan_id <{x.id}>")
+
+            snappath = task.result().path
+            self._poster.snap_post(x.id, snappath)
+            info(f"Finished posting <{snappath}>")
+
+        except Exception as exception:
+            fail = JobUpdate.fail(x.job_id, str(exception))
+            warn(f"Failed to process <{x}>: {exception}")
+            with suppress(Exception):
+                self._poster.job_patch(fail)
+        finally:
+            if snappath is not None:
+                snappath.unlink(missing_ok=True)
 
     def _run(self):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
-        dbname = self._dbname
-        scanner: Scanner | None = None
 
         for x in queue_loop(self._queue):
-            snappath: Path | None = None
             try:
-                info(f"Consuming <{x}> request...")
-                self._poster.job_patch(JobUpdate.run(x.job_id, 0))
-
-                hmmpath = Path(dbname.hmmname.name)
-                dbpath = Path(dbname.name)
-
-                if not hmmpath.exists():
-                    info(f"File <{hmmpath}> does not exist, preparing to download it")
-                    with atomic_file_creation(hmmpath) as t:
-                        url = self._poster.download_hmm_url(dbname.hmmname.name)
-                        info(f"Downloading <{url}>...")
-                        download(url, t)
-
-                if not dbpath.exists():
-                    info(f"File <{dbpath}> does not exist, preparing to download it")
-                    with atomic_file_creation(dbpath) as t:
-                        url = self._poster.download_db_url(dbname.name)
-                        info(f"Downloading <{url}>...")
-                        download(url, t)
-
-                if scanner is None:
-                    dbfile = DBFile(path=dbpath)
-                    num_threads = self._num_threads
-                    multi_hits = self._multi_hits
-                    hmmer3_compat = self._hmmer3_compat
-                    info(
-                        f"Launching scanner for <{dbfile.path},"
-                        f"multi_hits={multi_hits},hmmer3_compat={hmmer3_compat}>..."
-                    )
-                    scanner = launch_scanner(
-                        dbfile, num_threads, multi_hits, hmmer3_compat, cache=True
-                    ).result()
-
-                hex = str(uuid.uuid4().hex)[:8]
-                snap = NewSnapFile(path=Path(f"snapfile_scan_id{x.id}_{hex}.dcs"))
-                sequences = [Sequence(i.id, i.name, i.data) for i in x.seqs]
-
-                task = scanner.put(snap, sequences)
-                for i in task.as_progress():
-                    info(f"Progress {i}% on <scan_id={x.id}>...")
-                    self._poster.job_patch(JobUpdate.run(x.job_id, i))
-
-                info(f"Finished scanning scan_id <{x.id}>")
-
-                snappath = task.result().path
-                self._poster.snap_post(x.id, snappath)
-                info(f"Finished posting <{snappath}>")
-
+                self._process_request(x)
             except Exception as exception:
-                fail = JobUpdate.fail(x.job_id, str(exception))
-                warn(f"Failed to process <{x}>: {exception}")
-                self._poster.job_patch(fail)
-            finally:
-                if snappath is not None:
-                    snappath.unlink(missing_ok=True)
-
-        if scanner is not None:
-            try:
-                scanner.shutdown().result()
-            except Exception as exception:
-                warn(f"Failed to shutdown scanner <{dbname.name}>: {exception}")
+                warn(
+                    f"Exception: {exception}."
+                    "Trying to recover by restarting the scanner..."
+                )
+                if self._scanner is not None:
+                    try:
+                        self._scanner.shutdown().result()
+                    except Exception as exception:
+                        error(
+                            f"Failed to shutdown scanner <{self._dbname.name}>: {exception}"
+                        )
+                        raise
 
         info("Exitting scan process...")
 
@@ -220,7 +233,8 @@ class PressProcess:
             except Exception as exception:
                 fail = JobUpdate.fail(x.job_id, str(exception))
                 warn(f"Failed to process <{x}>: {exception}")
-                self._poster.job_patch(fail)
+                with suppress(Exception):
+                    self._poster.job_patch(fail)
             finally:
                 if hmmpath is not None:
                     hmmpath.unlink(missing_ok=True)
