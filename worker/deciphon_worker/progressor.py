@@ -46,7 +46,8 @@ class Progressor(concurrent.futures.Future[T]):
                 if self._progress != last_progress:
                     last_progress = self._progress
                     self._condition.acquire()
-                    yield self._progress
-                    self._condition.release()
-
+                    try:
+                        yield self._progress
+                    finally:
+                        self._condition.release()
         self.result()
