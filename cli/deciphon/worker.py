@@ -1,3 +1,4 @@
+import importlib.metadata
 import os
 import shutil
 import signal
@@ -27,6 +28,7 @@ from paho.mqtt.client import Client, MQTTMessage
 
 from deciphon.download import download
 from deciphon.queue import ShuttableQueue, queue_loop
+from contextlib import closing
 
 __all__ = ["LogLevel", "Worker", "WorkType", "setup_logger"]
 
@@ -88,6 +90,12 @@ class ScanProcess:
         self._process = Process(target=self._run)
         self._process.start()
 
+    def _notify_progress(self, x: ScanRequest, progress: int):
+        try:
+            self._poster.job_patch(JobUpdate.run(x.job_id, progress))
+        except Exception as exception:
+            warn(f"Failed to notify progress <{x}>: {exception}. Continuing anyway...")
+
     def _process_request(self, x: ScanRequest):
         dbname = self._dbname
         snappath: Path | None = None
@@ -130,9 +138,10 @@ class ScanProcess:
             sequences = [Sequence(i.id, i.name, i.data) for i in x.seqs]
 
             task = self._scanner.put(snap, sequences)
-            for i in task.as_progress():
-                info(f"Progress {i}% on <scan_id={x.id}>...")
-                self._poster.job_patch(JobUpdate.run(x.job_id, i))
+            with closing(task.as_progress()) as progress:
+                for i in progress:
+                    info(f"Progress {i}% on <scan_id={x.id}>...")
+                    self._notify_progress(x, i)
 
             info(f"Finished scanning scan_id <{x.id}>")
 
@@ -157,17 +166,13 @@ class ScanProcess:
             try:
                 self._process_request(x)
             except Exception as exception:
-                warn(
-                    f"Exception: {exception}."
-                    "Trying to recover by restarting the scanner..."
-                )
+                warn(f"Exception: {exception}. Recovering by restarting the scanner...")
                 if self._scanner is not None:
                     try:
                         self._scanner.shutdown().result()
                     except Exception as exception:
-                        error(
-                            f"Failed to shutdown scanner <{self._dbname.name}>: {exception}"
-                        )
+                        name = self._dbname.name
+                        error(f"Failed to shutdown scanner:  <{name}>: {exception}")
                         raise
 
         info("Exitting scan process...")
@@ -362,6 +367,8 @@ class Worker:
         self._client.connect(mqtt_host, mqtt_port)
 
     def loop_forever(self):
+        version = importlib.metadata.version("deciphon")
+        info(f"Deciphon worker (version {version}).")
         self._client.loop_forever()
 
     def shutdown(self, immediate=False):
